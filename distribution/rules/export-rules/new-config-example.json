@@ -1,0 +1,49 @@
+{
+  "frontend": "pegasus",
+  "name": "Pegasus Frontend",
+  "version": "2.0",
+  "description": "Pegasus frontend export rules with header support",
+  "rules": {
+    "media": {
+      "box2dfront": {
+        "source": "box2dfront",
+        "target": "{mediaPath}/{gameName}/boxFront.png",
+        "dataFileTag": "assets.boxFront"
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "target": "{mediaPath}/{gameName}/screenshot.png"
+      }
+    },
+    "dataFile": {
+      "filename": "metadata.pegasus.txt",
+      "format": "text",
+      "header": {
+        "structure": [
+          "collection: {platform.system}",
+          "sort-by: 064",
+          "{platform.launch}",
+          ""
+        ],
+        "fields": {
+          "platform.system": "system",
+          "platform.launch": "launch"
+        }
+      },
+      "footer": [
+        "# End of file"
+      ],
+      "fields": {
+        "game": "name",
+        "files": "path",
+        "description": "description"
+      },
+      "fieldSeparator": "\n",
+      "entrySeparator": "\n\n"
+    },
+    "directory": {
+      "roms": "{outputPath}/{platform.system}",
+      "media": "{outputPath}/{platform.system}/media"
+    }
+  }
+}

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="report_details_title">合并报告详情</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #2ed573, #26a65b);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(45deg, #26a65b, #2ed573);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #ff4757, #ff3344);
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar h2 {
+            font-size: 20px;
+            color: #00ffff;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .info-card h3 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            font-size: 18px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-processing {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .status-completed {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid #2ed573;
+        }
+
+        h3 {
+            color: #ff00ff;
+            margin: 20px 0 15px 0;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .source-platforms {
+            color: #888;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(90deg, #1a1a2e, #16213e);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #00ffff;
+            border-bottom: 2px solid #333;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #444;
+        }
+
+        tr {
+            transition: all 0.3s ease;
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .conflict-type {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .conflict-type-name {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .conflict-type-file {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .conflict-type-both {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            border: 1px solid #00ffff;
+        }
+
+        .conflict-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .conflict-status-pending {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .conflict-status-resolved {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid #2ed573;
+        }
+
+        .conflict-status-skipped {
+            background: rgba(136, 136, 136, 0.2);
+            color: #888;
+            border: 1px solid #888;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ffff;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
+
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="report_details_title">合并报告详情</h1>
+                <p data-i18n="report_details_desc">查看平台合并的详细信息</p>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <h2 id="reportTitle" data-i18n="report_details">报告详情</h2>
+            <div class="toolbar-buttons">
+                <a href="/merge-reports.html" class="btn btn-primary" data-i18n="back_to_list">返回列表</a>
+                <button id="completeBtn" class="btn btn-success" onclick="completeReport()" style="display: none;" data-i18n="complete_report">完成报告</button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="loading" class="loading" data-i18n="loading">加载中...</div>
+
+        <div id="reportInfo" style="display: none;">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3 data-i18n="report_name">报告名称</h3>
+                    <p id="reportName"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="status">状态</h3>
+                    <p><span id="reportStatus" class="status"></span></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="total_games">总游戏数</h3>
+                    <p id="totalGames"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="added_games">已添加</h3>
+                    <p id="addedGames"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="conflict_games">冲突游戏</h3>
+                    <p id="conflictGames"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="created_time">创建时间</h3>
+                    <p id="createdAt"></p>
+                </div>
+            </div>
+
+            <h3 data-i18n="source_platforms">源平台</h3>
+            <p id="sourcePlatforms" class="source-platforms"></p>
+
+            <h3 data-i18n="conflict_list">冲突列表</h3>
+            <div id="emptyConflicts" class="empty-state" style="display: none;">
+                <p data-i18n="no_conflicts">暂无冲突</p>
+            </div>
+
+            <div id="conflictsTableContainer" class="table-container" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th data-i18n="source_game_name">源游戏名称</th>
+                            <th data-i18n="source_file_name">源文件名</th>
+                            <th data-i18n="conflict_type">冲突类型</th>
+                            <th data-i18n="conflict_status">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="conflictsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            'zh-CN': {
+                'report_details_title': '合并报告详情',
+                'report_details_desc': '查看平台合并的详细信息',
+                'back_to_home': '返回首页',
+                'report_details': '报告详情',
+                'back_to_list': '返回列表',
+                'complete_report': '完成报告',
+                'loading': '加载中...',
+                'report_name': '报告名称',
+                'status': '状态',
+                'total_games': '总游戏数',
+                'added_games': '已添加',
+                'conflict_games': '冲突游戏',
+                'created_time': '创建时间',
+                'source_platforms': '源平台',
+                'conflict_list': '冲突列表',
+                'no_conflicts': '暂无冲突',
+                'source_game_name': '源游戏名称',
+                'source_file_name': '源文件名',
+                'conflict_type': '冲突类型',
+                'conflict_status': '状态',
+                'name_conflict': '名称冲突',
+                'file_conflict': '文件冲突',
+                'both_conflict': '双重冲突',
+                'pending': '待处理',
+                'resolved': '已解决',
+                'skipped': '已跳过',
+                'processing': '处理中',
+                'completed': '已完成',
+                'confirm_complete': '确定要完成此报告吗？完成后将无法再进行操作。',
+                'report_completed': '报告已完成',
+                'complete_failed': '完成失败',
+                'load_failed': '加载报告详情失败',
+                'report_not_exist': '报告不存在'
+            },
+            'en-US': {
+                'report_details_title': 'Merge Report Details',
+                'report_details_desc': 'View detailed information about platform merge',
+                'back_to_home': 'Back to Home',
+                'report_details': 'Report Details',
+                'back_to_list': 'Back to List',
+                'complete_report': 'Complete Report',
+                'loading': 'Loading...',
+                'report_name': 'Report Name',
+                'status': 'Status',
+                'total_games': 'Total Games',
+                'added_games': 'Added',
+                'conflict_games': 'Conflicts',
+                'created_time': 'Created Time',
+                'source_platforms': 'Source Platforms',
+                'conflict_list': 'Conflict List',
+                'no_conflicts': 'No conflicts',
+                'source_game_name': 'Source Game Name',
+                'source_file_name': 'Source File Name',
+                'conflict_type': 'Conflict Type',
+                'conflict_status': 'Status',
+                'name_conflict': 'Name Conflict',
+                'file_conflict': 'File Conflict',
+                'both_conflict': 'Both Conflicts',
+                'pending': 'Pending',
+                'resolved': 'Resolved',
+                'skipped': 'Skipped',
+                'processing': 'Processing',
+                'completed': 'Completed',
+                'confirm_complete': 'Are you sure you want to complete this report? You will not be able to make further changes.',
+                'report_completed': 'Report completed',
+                'complete_failed': 'Failed to complete',
+                'load_failed': 'Failed to load report details',
+                'report_not_exist': 'Report does not exist'
+            },
+            'ja-JP': {
+                'report_details_title': 'マージレポート詳細',
+                'report_details_desc': 'プラットフォームマージの詳細情報を表示',
+                'back_to_home': 'ホームに戻る',
+                'report_details': 'レポート詳細',
+                'back_to_list': '一覧に戻る',
+                'complete_report': 'レポートを完了',
+                'loading': '読み込み中...',
+                'report_name': 'レポート名',
+                'status': 'ステータス',
+                'total_games': '総ゲーム数',
+                'added_games': '追加済み',
+                'conflict_games': '競合ゲーム',
+                'created_time': '作成時間',
+                'source_platforms': 'ソースプラットフォーム',
+                'conflict_list': '競合一覧',
+                'no_conflicts': '競合なし',
+                'source_game_name': 'ソースゲーム名',
+                'source_file_name': 'ソースファイル名',
+                'conflict_type': '競合タイプ',
+                'conflict_status': 'ステータス',
+                'name_conflict': '名前競合',
+                'file_conflict': 'ファイル競合',
+                'both_conflict': '複合競合',
+                'pending': '保留中',
+                'resolved': '解決済み',
+                'skipped': 'スキップ済み',
+                'processing': '処理中',
+                'completed': '完了',
+                'confirm_complete': 'このレポートを完了してもよろしいですか？以降的操作ができなくなります。',
+                'report_completed': 'レポートが完了しました',
+                'complete_failed': '完了に失敗しました',
+                'load_failed': 'レポート詳細の読み込みに失敗しました',
+                'report_not_exist': 'レポートが存在しません'
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'zh-CN';
+
+        function getI18nText(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = getI18nText(key);
+            });
+        }
+
+        function initLanguage() {
+            document.getElementById('languageSelect').value = currentLanguage;
+            changeLanguage(currentLanguage);
+        }
+
+        const reportId = new URLSearchParams(window.location.search).get('id');
+
+        async function loadReportDetails() {
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}`);
+                const report = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (!report) {
+                    document.getElementById('error').textContent = getI18nText('report_not_exist');
+                    document.getElementById('error').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('reportInfo').style.display = 'block';
+
+                document.getElementById('reportTitle').textContent = report.reportName;
+                document.getElementById('reportName').textContent = report.reportName;
+                document.getElementById('totalGames').textContent = report.totalGames;
+                document.getElementById('addedGames').textContent = report.addedGames;
+                document.getElementById('conflictGames').textContent = report.conflictGames;
+                document.getElementById('sourcePlatforms').textContent = report.sourcePlatforms;
+                document.getElementById('createdAt').textContent = new Date(report.createdAt).toLocaleString(currentLanguage === 'en-US' ? 'en-US' : (currentLanguage === 'ja-JP' ? 'ja-JP' : 'zh-CN'));
+
+                const statusClass = report.status === 'processing' ? 'status-processing' : 'status-completed';
+                const statusText = report.status === 'processing' ? getI18nText('processing') : getI18nText('completed');
+                document.getElementById('reportStatus').className = `status ${statusClass}`;
+                document.getElementById('reportStatus').textContent = statusText;
+
+                if (report.status === 'processing') {
+                    document.getElementById('completeBtn').style.display = 'inline-block';
+                }
+
+                await loadConflicts();
+
+            } catch (error) {
+                console.error('加载报告详情失败:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        async function loadConflicts() {
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}/conflicts`);
+                const conflicts = await response.json();
+
+                if (conflicts.length === 0) {
+                    document.getElementById('emptyConflicts').style.display = 'block';
+                    document.getElementById('conflictsTableContainer').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('emptyConflicts').style.display = 'none';
+                document.getElementById('conflictsTableContainer').style.display = 'block';
+
+                const tbody = document.getElementById('conflictsTableBody');
+                tbody.innerHTML = '';
+
+                conflicts.forEach(conflict => {
+                    const row = document.createElement('tr');
+
+                    let conflictTypeClass, conflictTypeText;
+                    switch (conflict.conflictType) {
+                        case 'name_conflict':
+                            conflictTypeClass = 'conflict-type-name';
+                            conflictTypeText = getI18nText('name_conflict');
+                            break;
+                        case 'file_conflict':
+                            conflictTypeClass = 'conflict-type-file';
+                            conflictTypeText = getI18nText('file_conflict');
+                            break;
+                        case 'both_conflict':
+                            conflictTypeClass = 'conflict-type-both';
+                            conflictTypeText = getI18nText('both_conflict');
+                            break;
+                        default:
+                            conflictTypeClass = 'conflict-type-name';
+                            conflictTypeText = conflict.conflictType;
+                    }
+
+                    let conflictStatusClass, conflictStatusText;
+                    switch (conflict.status) {
+                        case 'pending':
+                            conflictStatusClass = 'conflict-status-pending';
+                            conflictStatusText = getI18nText('pending');
+                            break;
+                        case 'resolved':
+                            conflictStatusClass = 'conflict-status-resolved';
+                            conflictStatusText = getI18nText('resolved');
+                            break;
+                        case 'skipped':
+                            conflictStatusClass = 'conflict-status-skipped';
+                            conflictStatusText = getI18nText('skipped');
+                            break;
+                        default:
+                            conflictStatusClass = 'conflict-status-pending';
+                            conflictStatusText = conflict.status;
+                    }
+
+                    row.innerHTML = `
+                        <td>${conflict.id}</td>
+                        <td>${conflict.sourceGameName}</td>
+                        <td>${conflict.sourceFileName || '-'}</td>
+                        <td><span class="conflict-type ${conflictTypeClass}">${conflictTypeText}</span></td>
+                        <td><span class="conflict-status ${conflictStatusClass}">${conflictStatusText}</span></td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('加载冲突列表失败:', error);
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        async function completeReport() {
+            if (!confirm(getI18nText('confirm_complete'))) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}/complete`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(getI18nText('report_completed'));
+                    location.reload();
+                } else {
+                    alert(getI18nText('complete_failed') + ': ' + result.message);
+                }
+            } catch (error) {
+                console.error('完成报告失败:', error);
+                alert(getI18nText('complete_failed') + ': ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadReportDetails();
+        });
+    </script>
+</body>
+</html>

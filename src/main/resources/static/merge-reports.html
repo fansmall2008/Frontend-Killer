@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="merge_reports_title">合并报告管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #ff4757, #ff3344);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #2ed573, #26a65b);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(45deg, #26a65b, #2ed573);
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar h2 {
+            font-size: 20px;
+            color: #00ffff;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card p {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ffff;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(90deg, #1a1a2e, #16213e);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #00ffff;
+            border-bottom: 2px solid #333;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #444;
+        }
+
+        tr {
+            transition: all 0.3s ease;
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-processing {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .status-completed {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid #2ed573;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .actions .btn {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
+
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="merge_reports_title">合并报告管理</h1>
+                <p data-i18n="merge_reports_desc">查看和管理平台合并报告</p>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <h2 data-i18n="report_list">报告列表</h2>
+        </div>
+
+        <div id="stats" class="stats"></div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="loading" class="loading" data-i18n="loading">加载中...</div>
+
+        <div id="empty" class="empty-state" style="display: none;">
+            <i>📋</i>
+            <p data-i18n="no_reports">暂无合并报告</p>
+        </div>
+
+        <div id="tableContainer" class="table-container" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th data-i18n="report_name">报告名称</th>
+                        <th data-i18n="source_platforms">源平台</th>
+                        <th data-i18n="total_games">总游戏数</th>
+                        <th data-i18n="added_games">已添加</th>
+                        <th data-i18n="conflicts">冲突</th>
+                        <th data-i18n="status">状态</th>
+                        <th data-i18n="created_time">创建时间</th>
+                        <th data-i18n="actions">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            'zh-CN': {
+                'merge_reports_title': '合并报告管理',
+                'merge_reports_desc': '查看和管理平台合并报告',
+                'back_to_home': '返回首页',
+                'report_list': '报告列表',
+                'loading': '加载中...',
+                'no_reports': '暂无合并报告',
+                'report_name': '报告名称',
+                'source_platforms': '源平台',
+                'total_games': '总游戏数',
+                'added_games': '已添加',
+                'conflicts': '冲突',
+                'status': '状态',
+                'created_time': '创建时间',
+                'actions': '操作',
+                'total_reports': '总报告数',
+                'processing': '处理中',
+                'completed': '已完成',
+                'total_conflicts': '总冲突数',
+                'view_details': '查看详情',
+                'handle_conflicts': '处理冲突',
+                'delete': '删除',
+                'confirm_delete': '确定要删除此报告吗？此操作不可恢复。',
+                'delete_success': '报告已删除',
+                'delete_failed': '删除失败',
+                'load_failed': '加载报告失败',
+                'processing_status': '处理中',
+                'completed_status': '已完成'
+            },
+            'en-US': {
+                'merge_reports_title': 'Merge Reports',
+                'merge_reports_desc': 'View and manage platform merge reports',
+                'back_to_home': 'Back to Home',
+                'report_list': 'Report List',
+                'loading': 'Loading...',
+                'no_reports': 'No merge reports available',
+                'report_name': 'Report Name',
+                'source_platforms': 'Source Platforms',
+                'total_games': 'Total Games',
+                'added_games': 'Added',
+                'conflicts': 'Conflicts',
+                'status': 'Status',
+                'created_time': 'Created Time',
+                'actions': 'Actions',
+                'total_reports': 'Total Reports',
+                'processing': 'Processing',
+                'completed': 'Completed',
+                'total_conflicts': 'Total Conflicts',
+                'view_details': 'View Details',
+                'handle_conflicts': 'Handle Conflicts',
+                'delete': 'Delete',
+                'confirm_delete': 'Are you sure you want to delete this report? This action cannot be undone.',
+                'delete_success': 'Report deleted',
+                'delete_failed': 'Delete failed',
+                'load_failed': 'Failed to load reports',
+                'processing_status': 'Processing',
+                'completed_status': 'Completed'
+            },
+            'ja-JP': {
+                'merge_reports_title': 'マージレポート',
+                'merge_reports_desc': 'プラットフォームマージレポートの表示と管理',
+                'back_to_home': 'ホームに戻る',
+                'report_list': 'レポート一覧',
+                'loading': '読み込み中...',
+                'no_reports': 'マージレポートがありません',
+                'report_name': 'レポート名',
+                'source_platforms': 'ソースプラットフォーム',
+                'total_games': '総ゲーム数',
+                'added_games': '追加済み',
+                'conflicts': '競合',
+                'status': 'ステータス',
+                'created_time': '作成時間',
+                'actions': '操作',
+                'total_reports': '総レポート数',
+                'processing': '処理中',
+                'completed': '完了',
+                'total_conflicts': '総競合数',
+                'view_details': '詳細を表示',
+                'handle_conflicts': '競合を処理',
+                'delete': '削除',
+                'confirm_delete': 'このレポートを削除してもよろしいですか？この操作は元に戻せません。',
+                'delete_success': 'レポートを削除しました',
+                'delete_failed': '削除に失敗しました',
+                'load_failed': 'レポートの読み込みに失敗しました',
+                'processing_status': '処理中',
+                'completed_status': '完了'
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'zh-CN';
+
+        function getI18nText(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = getI18nText(key);
+            });
+        }
+
+        function initLanguage() {
+            document.getElementById('languageSelect').value = currentLanguage;
+            changeLanguage(currentLanguage);
+        }
+
+        async function loadReports() {
+            try {
+                const response = await fetch('/api/merge-reports');
+                const reports = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (reports.length === 0) {
+                    document.getElementById('empty').style.display = 'block';
+                    document.getElementById('tableContainer').style.display = 'none';
+                    document.getElementById('stats').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('empty').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'block';
+                document.getElementById('stats').style.display = 'grid';
+
+                displayStats(reports);
+                displayReports(reports);
+
+            } catch (error) {
+                console.error('加载报告失败:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function displayStats(reports) {
+            const totalReports = reports.length;
+            const processingReports = reports.filter(r => r.status === 'processing').length;
+            const completedReports = reports.filter(r => r.status === 'completed').length;
+            const totalConflicts = reports.reduce((sum, r) => sum + r.conflictGames, 0);
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <h3>${totalReports}</h3>
+                    <p data-i18n="total_reports">${getI18nText('total_reports')}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${processingReports}</h3>
+                    <p data-i18n="processing">${getI18nText('processing')}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${completedReports}</h3>
+                    <p data-i18n="completed">${getI18nText('completed')}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${totalConflicts}</h3>
+                    <p data-i18n="total_conflicts">${getI18nText('total_conflicts')}</p>
+                </div>
+            `;
+        }
+
+        function displayReports(reports) {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+
+            reports.forEach(report => {
+                const row = document.createElement('tr');
+                const statusClass = report.status === 'processing' ? 'status-processing' : 'status-completed';
+                const statusText = report.status === 'processing' ? getI18nText('processing_status') : getI18nText('completed_status');
+                const createdAt = new Date(report.createdAt).toLocaleString(currentLanguage === 'en-US' ? 'en-US' : (currentLanguage === 'ja-JP' ? 'ja-JP' : 'zh-CN'));
+
+                row.innerHTML = `
+                    <td>${report.id}</td>
+                    <td>${report.reportName}</td>
+                    <td>${report.sourcePlatforms}</td>
+                    <td>${report.totalGames}</td>
+                    <td>${report.addedGames}</td>
+                    <td>${report.conflictGames}</td>
+                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                    <td>${createdAt}</td>
+                    <td class="actions">
+                        <button class="btn btn-primary" onclick="viewDetails(${report.id})" data-i18n="view_details">${getI18nText('view_details')}</button>
+                        ${report.status === 'processing' && report.conflictGames > 0 ?
+                            `<button class="btn btn-success" onclick="viewConflicts(${report.id})" data-i18n="handle_conflicts">${getI18nText('handle_conflicts')}</button>` : ''}
+                        ${report.status === 'completed' ?
+                            `<button class="btn btn-danger" onclick="deleteReport(${report.id})" data-i18n="delete">${getI18nText('delete')}</button>` : ''}
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function viewDetails(reportId) {
+            window.location.href = `/merge-report-details.html?id=${reportId}`;
+        }
+
+        function viewConflicts(reportId) {
+            window.location.href = `/merge-conflicts.html?id=${reportId}`;
+        }
+
+        async function deleteReport(reportId) {
+            if (!confirm(getI18nText('confirm_delete'))) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(getI18nText('delete_success'));
+                    loadReports();
+                } else {
+                    alert(getI18nText('delete_failed') + ': ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除报告失败:', error);
+                alert(getI18nText('delete_failed') + ': ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadReports();
+        });
+    </script>
+</body>
+</html>

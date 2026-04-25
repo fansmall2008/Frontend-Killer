@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 前端杀手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+        
+        /* 功能分类标题 */
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin: 50px 0 30px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+            border-bottom: 2px solid #ff00ff;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 4px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border-radius: 2px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        
+        /* 设置区域样式 */
+        .settings-section {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-section:hover {
+            border-color: #00ffff;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        .settings-section h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        /* 设置项样式 */
+        .setting-item {
+            margin-bottom: 25px;
+        }
+        
+        .setting-item label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #00ffff;
+            font-size: 1rem;
+        }
+        
+        .setting-item input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .setting-item input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        /* 按钮组样式 */
+        .button-group {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* 消息样式 */
+        .message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            position: relative;
+            border: 2px solid transparent;
+            font-weight: bold;
+        }
+        
+        .message-success {
+            background: rgba(39, 174, 96, 0.2);
+            color: #2ecc71;
+            border-color: #2ecc71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .message-error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border-color: #e74c3c;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        /* 备份区域样式 */
+        .backup-section {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .backup-item {
+            padding: 15px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            background: rgba(26, 26, 46, 0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .backup-item:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .backup-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .backup-name {
+            font-weight: bold;
+            color: #00ffff;
+            font-size: 1rem;
+        }
+        
+        .backup-date {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 60px;
+            color: #888;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .version-info {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* 通知铃铛样式 */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 120px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .notification-bell:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            transform: scale(1.1);
+        }
+        .notification-bell .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff0000;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        }
+        
+        /* 通知弹窗样式 */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            margin: 10% auto;
+            padding: 40px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #00ffff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ff00ff;
+            transform: rotate(90deg);
+            text-decoration: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin: 40px 0 30px;
+                padding: 30px 15px;
+            }
+            
+            .language-selector {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .notification-bell {
+                top: 10px;
+                right: 100px;
+                font-size: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .backup-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+    
+    <!-- 通知铃铛 -->
+    <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
+        🔔
+        <span class="badge" style="display: none;">0</span>
+    </div>
+    
+    <div class="container">
+        <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
+        
+        <div class="header">
+            <h1 data-i18n="system_settings_title">系统设置</h1>
+            <p data-i18n="system_settings_desc">配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。</p>
+        </div>
+        
+        <div id="message" class="message" style="display: none;"></div>
+        
+
+        
+        <!-- 数据库备份 -->
+        <div class="settings-section">
+            <h2 data-i18n="database_backup">数据库备份</h2>
+            <div class="button-group">
+                <button class="btn" id="backupDatabaseBtn" data-i18n="backup_database">备份数据库</button>
+                <button class="btn" id="restoreDatabaseBtn" data-i18n="restore_database">恢复数据库</button>
+                <button class="btn danger-btn" id="initDatabaseBtn" data-i18n="execute_init">执行初始化</button>
+            </div>
+            <p data-i18n="database_init_desc" style="margin-top: 15px; color: #888; font-size: 14px;">执行数据库初始化操作将重建表结构并清空所有数据。此操作不可逆，请谨慎执行！</p>
+            <div id="initStatus" class="status" style="margin-top: 15px;"></div>
+            <div class="backup-section" id="databaseBackups">
+                <!-- 备份文件列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+
+        
+
+        
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+        </div>
+    </div>
+    
+    <!-- 通知模态框 -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>任务消息</h2>
+            <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- 消息将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 语言翻译映射
+        const translations = {
+            'zh-CN': {
+                'system_settings_title': '系统设置',
+                'system_settings_desc': '配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。',
+                'back_to_home': '返回首页',
+                'database_backup': '数据库备份',
+                'backup_database': '备份数据库',
+                'restore_database': '恢复数据库',
+            'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
+            'version': '版本：1.0 beta',
+            'settings_saved': '设置保存成功！',
+            'backup_success': '备份成功！',
+            'restore_success': '恢复成功！',
+            'error': '操作失败，请重试。',
+            'select_backup': '请选择备份文件',
+            'confirm_restore': '确定要恢复此备份吗？这将覆盖当前数据。',
+            'no_backups': '暂无备份文件',
+            'select_backup_file': '选择备份文件',
+            'backup_date': '备份日期',
+            'actions': '操作',
+            'translation_api_settings': '翻译API设置',
+            'google_api_key': 'Google翻译API密钥',
+            'baidu_app_id': '百度翻译APP ID',
+            'baidu_app_key': '百度翻译APP密钥',
+
+            'execute_init': '执行初始化',
+            'database_init_desc': '执行数据库初始化操作将重建表结构并清空所有数据。此操作不可逆，请谨慎执行！',
+            'init_confirm': '确定要执行数据库初始化吗？此操作将清空所有数据，不可逆！',
+            'init_processing': '正在执行数据库初始化...',
+            'init_failed': '初始化失败：',
+                'enter_backup_filename': '请输入备份文件名:',
+                'log_save_translation_settings_error': '保存翻译API设置失败:',
+                'log_backup_error': '备份失败:',
+                'log_restore_error': '恢复失败:',
+                'log_load_backups_error': '加载备份列表失败:'
+            },
+            'en-US': {
+
+                'system_settings_title': 'System Settings',
+                'system_settings_desc': 'Configure system parameters, database connections and other advanced settings to optimize system performance and functionality.',
+                'back_to_home': 'Back to Home',
+                'database_backup': 'Database Backup',
+                'backup_database': 'Backup Database',
+                'restore_database': 'Restore Database',
+
+                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
+                'version': 'Version: 1.0 beta',
+                'settings_saved': 'Settings saved successfully!',
+                'backup_success': 'Backup successful!',
+                'restore_success': 'Restore successful!',
+                'error': 'Operation failed, please try again.',
+                'select_backup': 'Please select a backup file',
+                'confirm_restore': 'Are you sure you want to restore this backup? This will overwrite current data.',
+                'no_backups': 'No backup files available',
+                'select_backup_file': 'Select backup file',
+                'backup_date': 'Backup Date',
+                'actions': 'Actions',
+                'execute_init': 'Execute Initialization',
+                'database_init_desc': 'Performing database initialization will rebuild table structures and clear all data. This operation is irreversible, please proceed with caution!',
+                'init_confirm': 'Are you sure you want to perform database initialization? This operation will clear all data and is irreversible!',
+                'init_processing': 'Performing database initialization...',
+                'init_failed': 'Initialization failed: ',
+                'enter_backup_filename': 'Please enter backup filename:',
+                'log_save_translation_settings_error': 'Failed to save translation API settings:',
+                'log_backup_error': 'Backup failed:',
+                'log_restore_error': 'Restore failed:',
+                'log_load_backups_error': 'Failed to load backup list:'
+            },
+            'ja-JP': {
+                'system_settings_title': 'システム設定',
+                'system_settings_desc': 'システムパフォーマンスと機能を最適化するために，システムパラメータ，データベース接続，その他の高度な設定を構成します。',
+                'back_to_home': 'ホームに戻る',
+                'database_backup': 'データベースバックアップ',
+                'backup_database': 'データベースをバックアップ',
+                'restore_database': 'データベースを復元',
+
+                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
+                'version': 'バージョン：1.0 beta',
+                'settings_saved': '設定が正常に保存されました！',
+                'backup_success': 'バックアップが成功しました！',
+                'restore_success': '復元が成功しました！',
+                'error': '操作に失敗しました，もう一度お試しください。',
+                'select_backup': 'バックアップファイルを選択してください',
+                'confirm_restore': 'このバックアップを復元しますか？現在のデータが上書きされます。',
+                'no_backups': '利用可能なバックアップファイルはありません',
+                'select_backup_file': 'バックアップファイルを選択',
+                'backup_date': 'バックアップ日時',
+                'actions': '操作',
+
+                'execute_init': '初期化を実行',
+                'database_init_desc': 'データベースの初期化を実行すると，テーブル構造が再構築され，すべてのデータが消去されます．この操作は元に戻せませんので，慎重に実行してください！',
+                'init_confirm': 'データベースの初期化を実行しますか？この操作はすべてのデータを消去し，元に戻せません！',
+                'init_processing': 'データベースの初期化を実行中...',
+                'init_failed': '初期化に失敗しました：',
+                'enter_backup_filename': 'バックアップファイル名を入力してください：',
+                'log_save_translation_settings_error': '翻訳API設定の保存に失敗しました：',
+                'log_backup_error': 'バックアップに失敗しました：',
+                'log_restore_error': '復元に失敗しました：',
+                'log_load_backups_error': 'バックアップリストの読み込みに失敗しました：'
+            }
+        };
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            const translation = translations[lang];
+            if (!translation) return;
+            
+            // 更新标题
+            document.title = translation['system_settings_title'] + ' - 前端杀手';
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+            
+            // 更新所有带有data-placeholder-i18n属性的元素
+            document.querySelectorAll('[data-placeholder-i18n]').forEach(element => {
+                const key = element.getAttribute('data-placeholder-i18n');
+                if (translation[key]) {
+                    element.placeholder = translation[key];
+                }
+            });
+        }
+        
+        // 获取翻译文本
+        function getI18nText(key) {
+            const lang = getCurrentLanguage();
+            return translations[lang][key] || key;
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            document.getElementById('languageSelect').value = lang;
+            setLanguage(lang);
+        }
+        
+        // 显示消息
+        function showMessage(message, isSuccess = true) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${isSuccess ? 'message-success' : 'message-error'}`;
+            messageDiv.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+
+        
+
+        
+        // 数据库备份
+        async function backupDatabase() {
+            const backupPath = '/data/backup';
+            
+            try {
+                const response = await fetch('/api/settings/backup/database', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ backupPath: backupPath }),
+                });
+                
+                const result = await response.text();
+                if (response.ok) {
+                    showMessage(getI18nText('backup_success'));
+                    loadDatabaseBackups();
+                } else {
+                    showMessage(result, false);
+                }
+            } catch (error) {
+                console.error(getI18nText('log_backup_error'), error);
+                showMessage(getI18nText('error'), false);
+            }
+        }
+        
+        // 数据库恢复
+        async function restoreDatabase() {
+            const backupPath = '/data/backup';
+            
+            try {
+                // 加载备份文件列表
+                const response = await fetch(`/api/settings/backups/list?backupPath=${encodeURIComponent(backupPath)}`);
+                if (response.ok) {
+                    const backups = await response.json();
+                    
+                    // 过滤出数据库备份文件
+                    const dbBackups = backups.filter(backup => backup.name.endsWith('.sql'));
+                    
+                    if (dbBackups.length === 0) {
+                        showMessage(getI18nText('no_backups'), false);
+                        return;
+                    }
+                    
+                    // 创建选择对话框
+                    let selectHtml = '<select id="backupFileSelect">';
+                    dbBackups.forEach(backup => {
+                        selectHtml += `<option value="${backup.name}">${backup.name} (${backup.size} bytes)</option>`;
+                    });
+                    selectHtml += '</select>';
+                    
+                    // 显示对话框
+                    const dialogHtml = `
+                        <div style="padding: 20px;">
+                            <h3>${getI18nText('select_backup_file')}</h3>
+                            ${selectHtml}
+                        </div>
+                    `;
+                    
+                    // 使用alert替代，因为没有内置的confirm对话框支持HTML
+                    const selectedFileName = prompt(getI18nText('select_backup_file') + '\n' + dbBackups.map(b => b.name).join('\n'), dbBackups[0].name);
+                    
+                    if (!selectedFileName) return;
+                    
+                    const fullBackupPath = backupPath + '/' + selectedFileName;
+                    
+                    if (confirm(getI18nText('confirm_restore'))) {
+                        try {
+                            const restoreResponse = await fetch('/api/settings/restore/database', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({ backupFile: fullBackupPath }),
+                            });
+                            
+                            const result = await restoreResponse.text();
+                            if (restoreResponse.ok) {
+                                showMessage(getI18nText('restore_success'));
+                            } else {
+                                showMessage(result, false);
+                            }
+                        } catch (error) {
+                            console.error(getI18nText('log_restore_error'), error);
+                            showMessage(getI18nText('error'), false);
+                        }
+                    }
+                } else {
+                    showMessage(getI18nText('error'), false);
+                }
+            } catch (error) {
+                console.error(getI18nText('log_load_backups_error'), error);
+                showMessage(getI18nText('error'), false);
+            }
+        }
+        
+
+        
+        // 加载数据库备份列表
+        async function loadDatabaseBackups() {
+            const container = document.getElementById('databaseBackups');
+            container.innerHTML = '';
+            
+            const backupPath = '/data/backup';
+            
+            try {
+                const response = await fetch(`/api/settings/backups/list?backupPath=${encodeURIComponent(backupPath)}`);
+                if (response.ok) {
+                    const backups = await response.json();
+                    
+                    // 过滤出数据库备份文件
+                    const dbBackups = backups.filter(backup => backup.name.endsWith('.sql'));
+                    
+                    if (dbBackups.length === 0) {
+                        container.innerHTML = `<p>${getI18nText('no_backups')}</p>`;
+                        return;
+                    }
+                    
+                    dbBackups.forEach(backup => {
+                        const date = new Date(backup.lastModified);
+                        const formattedDate = date.toLocaleString();
+                        
+                        const backupItem = document.createElement('div');
+                        backupItem.className = 'backup-item';
+                        backupItem.innerHTML = `
+                            <div class="backup-info">
+                                <div>
+                                    <span class="backup-name">${backup.name}</span>
+                                    <span class="backup-date">${formattedDate}</span>
+                                </div>
+                                <button class="btn btn-sm" onclick="restoreFromBackup('${backup.path}')">${getI18nText('restore_database')}</button>
+                            </div>
+                        `;
+                        container.appendChild(backupItem);
+                    });
+                } else {
+                    container.innerHTML = `<p>${getI18nText('error')}</p>`;
+                }
+            } catch (error) {
+                console.error(getI18nText('log_load_backups_error'), error);
+                container.innerHTML = `<p>${getI18nText('error')}</p>`;
+            }
+        }
+        
+
+        
+        // 从指定备份恢复
+        async function restoreFromBackup(backupPath) {
+            if (confirm(getI18nText('confirm_restore'))) {
+                try {
+                    const response = await fetch('/api/settings/restore/database', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ backupFile: backupPath }),
+                    });
+                    
+                    const result = await response.text();
+                    if (response.ok) {
+                        showMessage(getI18nText('restore_success'));
+                    } else {
+                        showMessage(result, false);
+                    }
+                } catch (error) {
+                    console.error(getI18nText('log_restore_error'), error);
+                    showMessage(getI18nText('error'), false);
+                }
+            }
+        }
+        
+
+
+        
+        // 数据库初始化
+        function initDatabase() {
+            if (!confirm(getI18nText('init_confirm'))) {
+                return;
+            }
+            
+            const statusDiv = document.getElementById('initStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.innerHTML = getI18nText('init_processing');
+            
+            fetch('/api/settings/database/init', {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(data => {
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = data;
+                showNotification(data, 'success');
+            })
+            .catch(error => {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = getI18nText('init_failed') + error.message;
+                showNotification(getI18nText('init_failed') + error.message, 'error');
+            });
+        }
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.style.backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+        
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #888;">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                    notificationItem.style.padding = '10px';
+                    notificationItem.style.marginBottom = '10px';
+                    notificationItem.style.borderRadius = '5px';
+                    notificationItem.style.backgroundColor = notification.read ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 255, 255, 0.1)';
+                    notificationItem.style.borderLeft = notification.read ? '3px solid #333' : '3px solid #00ffff';
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
+                        <div style="font-size: 12px; color: #888;">${notification.time}</div>
+                    `;
+                    content.appendChild(notificationItem);
+                    
+                    if (!notification.read) {
+                        notification.read = true;
+                        unreadCount--;
+                    }
+                });
+            }
+            
+            updateNotificationBell();
+            modal.style.display = 'block';
+        }
+        
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadDatabaseBackups();
+            
+            // 语言选择器事件监听
+            document.getElementById('languageSelect').addEventListener('change', (e) => {
+                setLanguage(e.target.value);
+                loadDatabaseBackups();
+            });
+            
+            // 数据库备份按钮
+            document.getElementById('backupDatabaseBtn').addEventListener('click', backupDatabase);
+            document.getElementById('restoreDatabaseBtn').addEventListener('click', restoreDatabase);
+            
+
+            
+
+
+            
+            // 数据库初始化按钮
+            document.getElementById('initDatabaseBtn').addEventListener('click', initDatabase);
+            
+            // 通知模态框关闭按钮
+            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                const modal = document.getElementById('notificationModal');
+                if (event.target == modal) {
+                    closeNotificationPanel();
+                }
+            };
+            
+            // 初始化通知系统
+            updateNotificationBell();
+        });
+    </script>
+</body>
+</html>

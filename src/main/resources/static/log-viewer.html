@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日志查看器 - 前端杀手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 3px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+        
+        /* 导航栏样式 */
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar a {
+            color: #00ffff;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar a:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* 日志上传和查看区域 */
+        .log-section {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .log-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+        }
+        
+        .log-upload {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        
+        .log-upload h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .log-upload form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .log-upload input[type="file"] {
+            padding: 10px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .log-upload button {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .log-upload button:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        /* 日志内容区域 */
+        .log-content {
+            margin-top: 30px;
+        }
+        
+        .log-content h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .log-content pre {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .log-content .empty-log {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            padding: 40px;
+        }
+        
+        /* 日志级别样式 */
+        .log-level-error {
+            color: #ff0000;
+        }
+        
+        .log-level-warn {
+            color: #ffff00;
+        }
+        
+        .log-level-info {
+            color: #00ffff;
+        }
+        
+        .log-level-debug {
+            color: #00ff00;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 60px;
+            color: #888;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        /* 版本信息 */
+        .version-info {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* 通知铃铛样式 */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 120px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .notification-bell:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            transform: scale(1.1);
+        }
+        .notification-bell .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff0000;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* 通知弹窗样式 */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            margin: 10% auto;
+            padding: 40px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #00ffff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ff00ff;
+            transform: rotate(90deg);
+            text-decoration: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin: 40px 0 30px;
+                padding: 30px 15px;
+            }
+            
+            .log-section {
+                padding: 20px;
+            }
+            
+            .language-selector {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .notification-bell {
+                top: 10px;
+                right: 100px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+    
+    <!-- 通知铃铛 -->
+    <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
+        🔔
+        <span class="badge" style="display: none;">0</span>
+    </div>
+    
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="log_viewer_title">日志查看器</h1>
+                <p data-i18n="log_viewer_subtitle">实时查看系统日志，方便排查错误</p>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="navbar">
+            <a href="index.html" data-i18n="nav_home">返回首页</a>
+            <a href="task-management.html" data-i18n="nav_tasks">任务管理</a>
+        </div>
+        
+        <!-- 日志查看区域 -->
+        <div class="log-section">
+            <div class="log-upload">
+                <h2 data-i18n="realtime_log_title">实时系统日志</h2>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <label data-i18n="log_lines_label">显示行数:</label>
+                    <input type="number" id="logLines" value="100" min="10" max="1000" style="padding: 5px; border: 1px solid #00ffff; border-radius: 4px; background: #1a1a2e; color: #fff;">
+                    <button id="refreshLog" class="btn" style="padding: 5px 15px;" data-i18n="refresh_log_btn">刷新</button>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="autoRefresh" checked>
+                        <span data-i18n="auto_refresh_label">自动刷新</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 实时日志内容区域 -->
+            <div class="log-content">
+                <h2 data-i18n="realtime_log_content_title">日志内容</h2>
+                <div id="realtimeLogContent" class="empty-log" data-i18n="realtime_log_empty">正在加载实时日志...</div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+        </div>
+    </div>
+    
+    <!-- 通知模态框 -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>任务消息</h2>
+            <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- 消息将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 语言翻译映射
+        const translations = {
+            'zh-CN': {
+                'log_viewer_title': '日志查看器',
+                'log_viewer_subtitle': '实时查看系统日志，方便排查错误',
+                'nav_home': '返回首页',
+                'nav_tasks': '任务管理',
+                'realtime_log_title': '实时系统日志',
+                'log_lines_label': '显示行数:',
+                'refresh_log_btn': '刷新',
+                'auto_refresh_label': '自动刷新',
+                'realtime_log_content_title': '日志内容',
+                'realtime_log_empty': '暂无实时日志',
+                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
+                'version': '版本：1.0 beta'
+            },
+            'en-US': {
+                'log_viewer_title': 'Log Viewer',
+                'log_viewer_subtitle': 'View real-time system logs for error troubleshooting',
+                'nav_home': 'Back to Home',
+                'nav_tasks': 'Task Management',
+                'realtime_log_title': 'Realtime System Logs',
+                'log_lines_label': 'Display Lines:',
+                'refresh_log_btn': 'Refresh',
+                'auto_refresh_label': 'Auto Refresh',
+                'realtime_log_content_title': 'Log Content',
+                'realtime_log_empty': 'No realtime logs available',
+                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
+                'version': 'Version: 1.0 beta'
+            },
+            'ja-JP': {
+                'log_viewer_title': 'ログビューア',
+                'log_viewer_subtitle': 'リアルタイムでシステムログを表示し，エラーのトラブルシューティングを容易にします',
+                'nav_home': 'ホームに戻る',
+                'nav_tasks': 'タスク管理',
+                'realtime_log_title': 'リアルタイムシステムログ',
+                'log_lines_label': '表示行数:',
+                'refresh_log_btn': '更新',
+                'auto_refresh_label': '自動更新',
+                'realtime_log_content_title': 'ログコンテンツ',
+                'realtime_log_empty': 'リアルタイムログはありません',
+                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
+                'version': 'バージョン：1.0 beta'
+            }
+        };
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            const translation = translations[lang];
+            if (!translation) return;
+            
+            // 更新标题
+            document.title = `${translation['log_viewer_title']} - 前端杀手`;
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            document.getElementById('languageSelect').value = lang;
+            setLanguage(lang);
+        }
+        
+        // 语言选择器事件监听
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+        
+        // 显示日志内容
+        function displayLogContent(content) {
+            const logContentElement = document.getElementById('realtimeLogContent');
+            
+            // 处理日志内容，添加样式
+            let formattedContent = content
+                .replace(/(ERROR|error)/g, '<span class="log-level-error">$1</span>')
+                .replace(/(WARN|warn|WARNING|warning)/g, '<span class="log-level-warn">$1</span>')
+                .replace(/(INFO|info)/g, '<span class="log-level-info">$1</span>')
+                .replace(/(DEBUG|debug)/g, '<span class="log-level-debug">$1</span>');
+            
+            logContentElement.innerHTML = `<pre>${formattedContent}</pre>`;
+        }
+        
+        // 加载实时日志
+        function loadRealtimeLogs() {
+            const lines = document.getElementById('logLines').value;
+            const logContentElement = document.getElementById('realtimeLogContent');
+            
+            logContentElement.innerHTML = '<div style="text-align: center; color: #00ffff;">正在加载实时日志...</div>';
+            
+            fetch(`/api/logs/realtime?lines=${lines}`)
+                .then(response => response.json())
+                .then(logs => {
+                    if (logs && logs.length > 0) {
+                const logContent = logs.join('\n');
+                displayLogContent(logContent);
+            } else {
+                logContentElement.innerHTML = '<div class="empty-log" data-i18n="realtime_log_empty">暂无实时日志</div>';
+                updateTranslations(getCurrentLanguage());
+            }
+                })
+                .catch(error => {
+                    console.error('获取实时日志失败:', error);
+                    logContentElement.innerHTML = `<div class="empty-log" style="color: #ff0000;">获取日志失败: ${error.message}</div>`;
+                });
+        }
+        
+        // 刷新日志按钮点击事件
+        document.getElementById('refreshLog').addEventListener('click', loadRealtimeLogs);
+        
+        // 自动刷新功能
+        let autoRefreshInterval;
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                if (document.getElementById('autoRefresh').checked && 
+                    document.getElementById('panel-realtime').style.display === 'block') {
+                    loadRealtimeLogs();
+                }
+            }, 5000); // 每5秒刷新一次
+        }
+        
+        // 自动刷新复选框点击事件
+        document.getElementById('autoRefresh').addEventListener('change', startAutoRefresh);
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            startAutoRefresh();
+            loadRealtimeLogs();
+        });
+        
+        // 消息通知功能
+        let notifications = [];
+        let unreadCount = 0;
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 添加到通知列表
+            notifications.unshift({
+                id: Date.now(),
+                message: message,
+                type: type,
+                time: new Date().toLocaleString(),
+                read: false
+            });
+            
+            unreadCount++;
+            updateNotificationBell();
+            
+            // 显示弹窗通知
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification notification-${type}`;
+            notificationElement.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: #fff;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            `;
+            
+            if (type === 'success') {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ff00, #008800)';
+            } else if (type === 'error') {
+                notificationElement.style.background = 'linear-gradient(45deg, #ff0000, #880000)';
+            } else {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ffff, #0088ff)';
+            }
+            
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notificationElement);
+                }, 300);
+            }, 3000);
+        }
+
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const bellIcon = document.getElementById('notificationBell');
+            if (bellIcon) {
+                const badge = bellIcon.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
+                }
+            }
+        }
+
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            // 生成通知列表
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #aaa;">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`;
+                    notificationItem.style.cssText = `
+                        padding: 15px;
+                        margin-bottom: 10px;
+                        border-radius: 8px;
+                        background: ${notification.read ? 'rgba(26, 26, 46, 0.8)' : 'rgba(0, 255, 255, 0.1)'};
+                        border-left: 4px solid ${notification.type === 'success' ? '#00ff00' : notification.type === 'error' ? '#ff0000' : '#00ffff'};
+                    `;
+                    
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
+                        <div style="font-size: 12px; color: #aaa;">${notification.time}</div>
+                    `;
+                    
+                    content.appendChild(notificationItem);
+                    
+                    // 标记为已读
+                    notification.read = true;
+                });
+                
+                unreadCount = 0;
+                updateNotificationBell();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭通知模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                const closeBtn = modal.querySelector('.close');
+                if (closeBtn) {
+                    closeBtn.onclick = function() {
+                        modal.style.display = 'none';
+                    };
+                }
+                
+                // 点击模态框外部关闭
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            }
+        });
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initLanguage);
+    </script>
+</body>
+</html>

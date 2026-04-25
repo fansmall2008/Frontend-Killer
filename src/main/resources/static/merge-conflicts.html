@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="resolve_conflicts_title">解决合并冲突</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #2ed573, #26a65b);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(45deg, #26a65b, #2ed573);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #ffa500, #ff8c00);
+            color: #000;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(45deg, #ff8c00, #ffa500);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #ff4757, #ff3344);
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar h2 {
+            font-size: 20px;
+            color: #00ffff;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .conflict-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .conflict-card {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .conflict-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .conflict-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .conflict-card-header h3 {
+            font-size: 18px;
+            color: #00ffff;
+        }
+
+        .conflict-type {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .conflict-type-name {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .conflict-type-file {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .conflict-type-both {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            border: 1px solid #00ffff;
+        }
+
+        .game-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .game-card {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .game-card h4 {
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        .game-card.source h4 {
+            border-bottom-color: #00ffff;
+            color: #00ffff;
+        }
+
+        .game-card.existing h4 {
+            border-bottom-color: #2ed573;
+            color: #2ed573;
+        }
+
+        .game-info-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .game-info-item label {
+            font-weight: 600;
+            color: #888;
+            margin-right: 8px;
+            min-width: 80px;
+        }
+
+        .game-info-item span {
+            color: #fff;
+            word-break: break-all;
+        }
+
+        .conflict-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .conflict-actions .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ffff;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
+
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="resolve_conflicts_title">解决合并冲突</h1>
+                <p data-i18n="resolve_conflicts_desc">查看冲突详情并选择处理方式</p>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <h2 id="reportTitle" data-i18n="conflict_list">冲突列表</h2>
+            <div class="toolbar-buttons">
+                <a href="/merge-report-details.html" class="btn btn-primary" data-i18n="back_to_details">返回详情</a>
+                <button id="completeBtn" class="btn btn-success" onclick="completeReport()" data-i18n="complete_report">完成报告</button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="loading" class="loading" data-i18n="loading">加载中...</div>
+
+        <div id="emptyConflicts" class="empty-state" style="display: none;">
+            <p data-i18n="no_pending_conflicts">暂无待处理的冲突</p>
+        </div>
+
+        <div id="conflictsContainer" class="conflict-grid" style="display: none;"></div>
+
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            'zh-CN': {
+                'resolve_conflicts_title': '解决合并冲突',
+                'resolve_conflicts_desc': '查看冲突详情并选择处理方式',
+                'back_to_home': '返回首页',
+                'conflict_list': '冲突列表',
+                'back_to_details': '返回详情',
+                'complete_report': '完成报告',
+                'loading': '加载中...',
+                'no_pending_conflicts': '暂无待处理的冲突',
+                'source_game': '源游戏',
+                'existing_game': '已存在的游戏',
+                'game_name': '游戏名称',
+                'file_name': '文件名',
+                'add_to_platform': '添加到新平台',
+                'skip_conflict': '跳过此冲突',
+                'name_conflict': '名称冲突',
+                'file_conflict': '文件冲突',
+                'both_conflict': '双重冲突',
+                'conflict': '冲突',
+                'confirm_add': '确定要添加到新平台此冲突吗？',
+                'confirm_skip': '确定要跳过此冲突吗？',
+                'confirm_complete': '确定要完成此报告吗？完成后将无法再进行操作。',
+                'operation_success': '操作成功',
+                'operation_failed': '操作失败',
+                'report_completed': '报告已完成',
+                'complete_failed': '完成失败',
+                'load_failed': '加载冲突失败'
+            },
+            'en-US': {
+                'resolve_conflicts_title': 'Resolve Merge Conflicts',
+                'resolve_conflicts_desc': 'View conflict details and choose how to handle them',
+                'back_to_home': 'Back to Home',
+                'conflict_list': 'Conflict List',
+                'back_to_details': 'Back to Details',
+                'complete_report': 'Complete Report',
+                'loading': 'Loading...',
+                'no_pending_conflicts': 'No pending conflicts',
+                'source_game': 'Source Game',
+                'existing_game': 'Existing Game',
+                'game_name': 'Game Name',
+                'file_name': 'File Name',
+                'add_to_platform': 'Add to New Platform',
+                'skip_conflict': 'Skip This Conflict',
+                'name_conflict': 'Name Conflict',
+                'file_conflict': 'File Conflict',
+                'both_conflict': 'Both Conflicts',
+                'conflict': 'Conflict',
+                'confirm_add': 'Are you sure you want to add this conflict to the new platform?',
+                'confirm_skip': 'Are you sure you want to skip this conflict?',
+                'confirm_complete': 'Are you sure you want to complete this report? You will not be able to make further changes.',
+                'operation_success': 'Operation successful',
+                'operation_failed': 'Operation failed',
+                'report_completed': 'Report completed',
+                'complete_failed': 'Failed to complete',
+                'load_failed': 'Failed to load conflicts'
+            },
+            'ja-JP': {
+                'resolve_conflicts_title': 'マージ競合の解決',
+                'resolve_conflicts_desc': '競合の詳細を表示し、处理方法を選択',
+                'back_to_home': 'ホームに戻る',
+                'conflict_list': '競合一覧',
+                'back_to_details': '詳細に戻る',
+                'complete_report': 'レポートを完了',
+                'loading': '読み込み中...',
+                'no_pending_conflicts': '保留中の競合がありません',
+                'source_game': 'ソースゲーム',
+                'existing_game': '既存のゲーム',
+                'game_name': 'ゲーム名',
+                'file_name': 'ファイル名',
+                'add_to_platform': '新規プラットフォームに追加',
+                'skip_conflict': 'この競合をスキップ',
+                'name_conflict': '名前競合',
+                'file_conflict': 'ファイル競合',
+                'both_conflict': '複合競合',
+                'conflict': '競合',
+                'confirm_add': 'この競合を新規プラットフォームに追加してもよろしいですか？',
+                'confirm_skip': 'この競合をスキップしてもよろしいですか？',
+                'confirm_complete': 'このレポートを完了してもよろしいですか？以降的操作ができなくなります。',
+                'operation_success': '操作成功',
+                'operation_failed': '操作失敗',
+                'report_completed': 'レポートが完了しました',
+                'complete_failed': '完了に失敗しました',
+                'load_failed': '競合の読み込みに失敗しました'
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'zh-CN';
+
+        function getI18nText(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = getI18nText(key);
+            });
+        }
+
+        function initLanguage() {
+            document.getElementById('languageSelect').value = currentLanguage;
+            changeLanguage(currentLanguage);
+        }
+
+        const reportId = new URLSearchParams(window.location.search).get('id');
+
+        async function loadConflicts() {
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}/conflicts/pending`);
+                const conflicts = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (conflicts.length === 0) {
+                    document.getElementById('emptyConflicts').style.display = 'block';
+                    document.getElementById('conflictsContainer').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('emptyConflicts').style.display = 'none';
+                document.getElementById('conflictsContainer').style.display = 'grid';
+
+                displayConflicts(conflicts);
+
+            } catch (error) {
+                console.error('加载冲突失败:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function displayConflicts(conflicts) {
+            const container = document.getElementById('conflictsContainer');
+            container.innerHTML = '';
+
+            conflicts.forEach(conflict => {
+                const card = document.createElement('div');
+                card.className = 'conflict-card';
+                card.id = `conflict-${conflict.id}`;
+
+                let conflictTypeClass, conflictTypeText;
+                switch (conflict.conflictType) {
+                    case 'name_conflict':
+                        conflictTypeClass = 'conflict-type-name';
+                        conflictTypeText = getI18nText('name_conflict');
+                        break;
+                    case 'file_conflict':
+                        conflictTypeClass = 'conflict-type-file';
+                        conflictTypeText = getI18nText('file_conflict');
+                        break;
+                    case 'both_conflict':
+                        conflictTypeClass = 'conflict-type-both';
+                        conflictTypeText = getI18nText('both_conflict');
+                        break;
+                    default:
+                        conflictTypeClass = 'conflict-type-name';
+                        conflictTypeText = conflict.conflictType;
+                }
+
+                card.innerHTML = `
+                    <div class="conflict-card-header">
+                        <h3>${getI18nText('conflict')} #${conflict.id}</h3>
+                        <span class="conflict-type ${conflictTypeClass}">${conflictTypeText}</span>
+                    </div>
+
+                    <div class="game-info">
+                        <div class="game-card source">
+                            <h4>${getI18nText('source_game')}</h4>
+                            <div class="game-info-item">
+                                <label>${getI18nText('game_name')}:</label>
+                                <span>${conflict.sourceGameName}</span>
+                            </div>
+                            <div class="game-info-item">
+                                <label>${getI18nText('file_name')}:</label>
+                                <span>${conflict.sourceFileName || '-'}</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card existing">
+                            <h4>${getI18nText('existing_game')}</h4>
+                            <div class="game-info-item">
+                                <label>${getI18nText('game_name')}:</label>
+                                <span>${conflict.existingGameName}</span>
+                            </div>
+                            <div class="game-info-item">
+                                <label>${getI18nText('file_name')}:</label>
+                                <span>${conflict.existingFileName || '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conflict-actions">
+                        <button class="btn btn-success" onclick="resolveConflict(${conflict.id}, 'add')">
+                            ${getI18nText('add_to_platform')}
+                        </button>
+                        <button class="btn btn-warning" onclick="resolveConflict(${conflict.id}, 'skip')">
+                            ${getI18nText('skip_conflict')}
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        async function resolveConflict(conflictId, action) {
+            const actionText = action === 'add' ? getI18nText('add_to_platform') : getI18nText('skip_conflict');
+            const confirmText = action === 'add' ? getI18nText('confirm_add') : getI18nText('confirm_skip');
+            if (!confirm(confirmText)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/merge-reports/conflicts/${conflictId}/resolve?reportId=${reportId}&action=${action}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(getI18nText('operation_success'));
+
+                    const card = document.getElementById(`conflict-${conflictId}`);
+                    if (card) {
+                        card.style.opacity = '0.5';
+                        card.style.pointerEvents = 'none';
+                    }
+
+                    setTimeout(() => {
+                        loadConflicts();
+                    }, 500);
+                } else {
+                    alert(getI18nText('operation_failed') + ': ' + result.message);
+                }
+            } catch (error) {
+                console.error('解决冲突失败:', error);
+                alert(getI18nText('operation_failed') + ': ' + error.message);
+            }
+        }
+
+        async function completeReport() {
+            if (!confirm(getI18nText('confirm_complete'))) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}/complete`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(getI18nText('report_completed'));
+                    window.location.href = `/merge-report-details.html?id=${reportId}`;
+                } else {
+                    alert(getI18nText('complete_failed') + ': ' + result.message);
+                }
+            } catch (error) {
+                console.error('完成报告失败:', error);
+                alert(getI18nText('complete_failed') + ': ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadConflicts();
+        });
+    </script>
+</body>
+</html>

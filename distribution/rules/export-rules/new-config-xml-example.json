@@ -1,0 +1,49 @@
+{
+  "frontend": "retrobat",
+  "name": "RetroBat",
+  "version": "2.0",
+  "description": "RetroBat export rules with header support",
+  "rules": {
+    "media": {
+      "box2dfront": {
+        "source": "box2dfront",
+        "target": "{mediaPath}/box2dfront/{gameName}.png",
+        "dataFileTag": "box2dfront"
+      }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "header": {
+        "structure": [
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<gameList>",
+          "  <provider>",
+          "    <System>{platform.system}</System>",
+          "    <software>{platform.software}</software>",
+          "    <database>{platform.database}</database>",
+          "    <web>{platform.web}</web>",
+          "  </provider>"
+        ],
+        "fields": {
+          "platform.system": "system",
+          "platform.software": "software",
+          "platform.database": "database",
+          "platform.web": "web"
+        }
+      },
+      "footer": [
+        "</gameList>"
+      ],
+      "fields": {
+        "title": "name",
+        "description": "description",
+        "path": "path"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/{platform.system}",
+      "media": "{outputPath}/{platform.system}/media"
+    }
+  }
+}

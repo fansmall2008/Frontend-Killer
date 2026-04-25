@@ -1,0 +1,786 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.GameMapper">
+    
+    <resultMap id="GameResultMap" type="com.gamelist.model.Game">
+        <id column="id" property="id"/>
+        <result column="game_id" property="gameId"/>
+        <result column="source" property="source"/>
+        <result column="path" property="path"/>
+        <result column="name" property="name"/>
+        <result column="desc" property="desc"/>
+        <result column="translated_name" property="translatedName"/>
+        <result column="translated_desc" property="translatedDesc"/>
+        <result column="image" property="image"/>
+        <result column="video" property="video"/>
+        <result column="marquee" property="marquee"/>
+        <result column="thumbnail" property="thumbnail"/>
+        <result column="manual" property="manual"/>
+        <result column="box_front" property="boxFront"/>
+        <result column="box_back" property="boxBack"/>
+        <result column="box_spine" property="boxSpine"/>
+        <result column="box_full" property="boxFull"/>
+        <result column="cartridge" property="cartridge"/>
+        <result column="logo" property="logo"/>
+        <result column="bezel" property="bezel"/>
+        <result column="panel" property="panel"/>
+        <result column="cabinet_left" property="cabinetLeft"/>
+        <result column="cabinet_right" property="cabinetRight"/>
+        <result column="tile" property="tile"/>
+        <result column="banner" property="banner"/>
+        <result column="steam" property="steam"/>
+        <result column="poster" property="poster"/>
+        <result column="background" property="background"/>
+        <result column="music" property="music"/>
+        <result column="screenshot" property="screenshot"/>
+        <result column="titlescreen" property="titlescreen"/>
+        <result column="box3d" property="box3d"/>
+        <result column="steamgrid" property="steamgrid"/>
+        <result column="fanart" property="fanart"/>
+        <result column="boxtexture" property="boxtexture"/>
+        <result column="supporttexture" property="supporttexture"/>
+        <result column="platform_type" property="platformType"/>
+        <result column="hash" property="hash"/>
+        <result column="rating" property="rating"/>
+        <result column="releasedate" property="releasedate"/>
+        <result column="developer" property="developer"/>
+        <result column="publisher" property="publisher"/>
+        <result column="genre" property="genre"/>
+        <result column="players" property="players"/>
+        <result column="crc32" property="crc32"/>
+        <result column="md5" property="md5"/>
+        <result column="lang" property="lang"/>
+        <result column="genreid" property="genreid"/>
+        <result column="platform_id" property="platformId"/>
+        <result column="sort_by" property="sortBy"/>
+        <result column="scraped" property="scraped"/>
+        <result column="edited" property="edited"/>
+        <result column="exists" property="exists"/>
+        <result column="absolute_path" property="absolutePath"/>
+        <result column="platform_path" property="platformPath"/>
+    </resultMap>
+    
+    <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO game (
+            game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, platform_type, hash,
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path
+        ) VALUES (
+            #{gameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
+            #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3d}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{platformType}, #{hash},
+            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}
+        )
+    </insert>
+    
+    <insert id="insertGamesBatch" parameterType="java.util.List">
+        INSERT INTO game (
+            game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, platform_type, hash,
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, scraped, edited, `exists`, absolute_path, platform_path
+        ) VALUES
+        <foreach collection="list" item="game" separator=",">
+            (
+                #{game.gameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
+                #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight}, #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen}, #{game.box3d}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.platformType}, #{game.hash},
+                #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.platformId}, #{game.scraped, jdbcType=BOOLEAN}, #{game.edited, jdbcType=BOOLEAN}, #{game.exists, jdbcType=BOOLEAN}, #{game.absolutePath}, #{game.platformPath}
+            )
+        </foreach>
+    </insert>
+    
+    <select id="selectAllGames" resultMap="GameResultMap">
+        SELECT * FROM game
+    </select>
+    
+    <select id="selectAllGamesWithFilter" resultMap="GameResultMap">
+        SELECT * FROM game WHERE 1=1
+        <if test="search != null and search != ''">
+            AND (LOWER(name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(translated_name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(path) LIKE CONCAT('%', LOWER(#{search}), '%'))
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND (releasedate IS NULL OR CAST(SUBSTRING(releasedate, 1, 4) AS INTEGER) >= CAST(#{startDate} AS INTEGER))
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND (releasedate IS NULL OR CAST(SUBSTRING(releasedate, 1, 4) AS INTEGER) &lt;= CAST(#{endDate} AS INTEGER))
+        </if>
+        <if test="developers != null and developers.size() > 0">
+            AND developer IN
+            <foreach item="developer" collection="developers" open="(" separator="," close=")">
+                #{developer}
+            </foreach>
+        </if>
+        <if test="genres != null and genres.size() > 0">
+            AND genre IN
+            <foreach item="genre" collection="genres" open="(" separator="," close=")">
+                #{genre}
+            </foreach>
+        </if>
+        <if test="players != null and players.size() > 0">
+            AND players IN
+            <foreach item="player" collection="players" open="(" separator="," close=")">
+                #{player}
+            </foreach>
+        </if>
+        <if test="scrapeStatuses != null and scrapeStatuses.size() > 0">
+            <foreach item="status" collection="scrapeStatuses" separator=" OR " open="AND (" close=")">
+                <choose>
+                    <when test="status == 'fully_scraped'">
+                        (name IS NOT NULL AND name != ''
+                        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+                        AND image IS NOT NULL AND image != ''
+                        AND video IS NOT NULL AND video != ''
+                        AND marquee IS NOT NULL AND marquee != ''
+                        AND thumbnail IS NOT NULL AND thumbnail != ''
+                        AND manual IS NOT NULL AND manual != '')
+                    </when>
+                    <when test="status == 'partially_scraped'">
+                        (name IS NOT NULL AND name != ''
+                        AND ((`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+                        OR image IS NOT NULL AND image != ''
+                        OR video IS NOT NULL AND video != ''
+                        OR marquee IS NOT NULL AND marquee != ''
+                        OR thumbnail IS NOT NULL AND thumbnail != ''
+                        OR manual IS NOT NULL AND manual != '')
+                        AND NOT (name IS NOT NULL AND name != ''
+                        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+                        AND image IS NOT NULL AND image != ''
+                        AND video IS NOT NULL AND video != ''
+                        AND marquee IS NOT NULL AND marquee != ''
+                        AND thumbnail IS NOT NULL AND thumbnail != ''
+                        AND manual IS NOT NULL AND manual != ''))
+                    </when>
+                    <when test="status == 'not_scraped'">
+                        (name IS NULL OR name = ''
+                        OR (`desc` IS NULL OR `desc` = '' AND translated_desc IS NULL OR translated_desc = '')
+                        OR image IS NULL OR image = ''
+                        OR video IS NULL OR video = ''
+                        OR marquee IS NULL OR marquee = ''
+                        OR thumbnail IS NULL OR thumbnail = ''
+                        OR manual IS NULL OR manual = '')
+                    </when>
+                </choose>
+            </foreach>
+        </if>
+        ORDER BY name
+    </select>
+
+    <select id="selectGamesByPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE platform_id = #{platformId}
+    </select>
+    
+    <select id="selectGamesByPlatformIdWithFilter" resultMap="GameResultMap">
+        SELECT * FROM game WHERE platform_id = #{platformId}
+        <if test="search != null and search != ''">
+            AND (LOWER(name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(translated_name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(path) LIKE CONCAT('%', LOWER(#{search}), '%'))
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND (releasedate IS NULL OR CAST(SUBSTRING(releasedate, 1, 4) AS INTEGER) >= CAST(#{startDate} AS INTEGER))
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND (releasedate IS NULL OR CAST(SUBSTRING(releasedate, 1, 4) AS INTEGER) &lt;= CAST(#{endDate} AS INTEGER))
+        </if>
+        <if test="developers != null and developers.size() > 0">
+            AND developer IN
+            <foreach item="developer" collection="developers" open="(" separator="," close=")">
+                #{developer}
+            </foreach>
+        </if>
+        <if test="genres != null and genres.size() > 0">
+            AND genre IN
+            <foreach item="genre" collection="genres" open="(" separator="," close=")">
+                #{genre}
+            </foreach>
+        </if>
+        <if test="players != null and players.size() > 0">
+            AND players IN
+            <foreach item="player" collection="players" open="(" separator="," close=")">
+                #{player}
+            </foreach>
+        </if>
+        <if test="scrapeStatuses != null and scrapeStatuses.size() > 0">
+            <foreach item="status" collection="scrapeStatuses" separator=" OR " open="AND (" close=")">
+                <choose>
+                    <when test="status == 'fully_scraped'">
+                        (name IS NOT NULL AND name != ''
+                        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+                        AND image IS NOT NULL AND image != ''
+                        AND video IS NOT NULL AND video != ''
+                        AND marquee IS NOT NULL AND marquee != ''
+                        AND thumbnail IS NOT NULL AND thumbnail != ''
+                        AND manual IS NOT NULL AND manual != '')
+                    </when>
+                    <when test="status == 'partially_scraped'">
+                        (name IS NOT NULL AND name != ''
+                        AND ((`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+                        OR image IS NOT NULL AND image != ''
+                        OR video IS NOT NULL AND video != ''
+                        OR marquee IS NOT NULL AND marquee != ''
+                        OR thumbnail IS NOT NULL AND thumbnail != ''
+                        OR manual IS NOT NULL AND manual != '')
+                        AND NOT (name IS NOT NULL AND name != ''
+                        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+                        AND image IS NOT NULL AND image != ''
+                        AND video IS NOT NULL AND video != ''
+                        AND marquee IS NOT NULL AND marquee != ''
+                        AND thumbnail IS NOT NULL AND thumbnail != ''
+                        AND manual IS NOT NULL AND manual != ''))
+                    </when>
+                    <when test="status == 'not_scraped'">
+                        (name IS NULL OR name = ''
+                        OR (`desc` IS NULL OR `desc` = '' AND translated_desc IS NULL OR translated_desc = '')
+                        OR image IS NULL OR image = ''
+                        OR video IS NULL OR video = ''
+                        OR marquee IS NULL OR marquee = ''
+                        OR thumbnail IS NULL OR thumbnail = ''
+                        OR manual IS NULL OR manual = '')
+                    </when>
+                </choose>
+            </foreach>
+        </if>
+        ORDER BY name
+    </select>
+    
+    <select id="selectGameById" resultMap="GameResultMap">
+        SELECT * FROM game WHERE id = #{id}
+    </select>
+    
+    <delete id="deleteAllGames">
+        DELETE FROM game
+    </delete>
+    
+    <delete id="deleteGamesByPlatformId" parameterType="java.lang.Long">
+        DELETE FROM game WHERE platform_id = #{platformId}
+    </delete>
+    
+    <delete id="deleteGameById" parameterType="java.lang.Long">
+        DELETE FROM game WHERE id = #{id}
+    </delete>
+    
+    <update id="updatePlatformPathForAllGames">
+        UPDATE game SET platform_path = #{platformPath} WHERE platform_id = #{platformId}
+    </update>
+    
+    <!-- 统计相关查询 -->
+    <select id="countTotalGames" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM game
+    </select>
+    
+    <select id="countFullyScrapedGames" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM game
+        WHERE name IS NOT NULL AND name != ''
+        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+        AND image IS NOT NULL AND image != ''
+        AND video IS NOT NULL AND video != ''
+        AND marquee IS NOT NULL AND marquee != ''
+        AND thumbnail IS NOT NULL AND thumbnail != ''
+        AND manual IS NOT NULL AND manual != ''
+    </select>
+    
+    <select id="countPartiallyScrapedGames" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM game
+        WHERE name IS NOT NULL AND name != ''
+        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+        AND (image IS NULL OR image = ''
+             OR video IS NULL OR video = ''
+             OR marquee IS NULL OR marquee = ''
+             OR thumbnail IS NULL OR thumbnail = ''
+             OR manual IS NULL OR manual = '')
+    </select>
+    
+    <select id="countNotScrapedGames" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM game
+        WHERE NOT (
+            (name IS NOT NULL AND name != ''
+            AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+            AND image IS NOT NULL AND image != ''
+            AND video IS NOT NULL AND video != ''
+            AND marquee IS NOT NULL AND marquee != ''
+            AND thumbnail IS NOT NULL AND thumbnail != ''
+            AND manual IS NOT NULL AND manual != '')
+            OR
+            (name IS NOT NULL AND name != ''
+            AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
+            AND (image IS NULL OR image = ''
+                 OR video IS NULL OR video = ''
+                 OR marquee IS NULL OR marquee = ''
+                 OR thumbnail IS NULL OR thumbnail = ''
+                 OR manual IS NULL OR manual != ''))
+        )
+    </select>
+    
+    <select id="selectPlatformStatistics" resultType="com.gamelist.model.PlatformStatistics">
+        SELECT
+            p.id AS platformId,
+            p.system AS platformName,
+            COUNT(g.id) AS totalGames,
+            SUM(CASE WHEN g.name IS NOT NULL AND g.name != ''
+                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                AND g.image IS NOT NULL AND g.image != ''
+                AND g.video IS NOT NULL AND g.video != ''
+                AND g.marquee IS NOT NULL AND g.marquee != ''
+                AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                AND g.manual IS NOT NULL AND g.manual != ''
+                THEN 1 ELSE 0 END) AS fullyScraped,
+            SUM(CASE WHEN g.name IS NOT NULL AND g.name != ''
+                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                AND (g.image IS NULL OR g.image = ''
+                     OR g.video IS NULL OR g.video = ''
+                     OR g.marquee IS NULL OR g.marquee = ''
+                     OR g.thumbnail IS NULL OR g.thumbnail = ''
+                     OR g.manual IS NULL OR g.manual = '')
+                THEN 1 ELSE 0 END) AS partiallyScraped,
+            SUM(CASE WHEN NOT (
+                (g.name IS NOT NULL AND g.name != ''
+                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                AND g.image IS NOT NULL AND g.image != ''
+                AND g.video IS NOT NULL AND g.video != ''
+                AND g.marquee IS NOT NULL AND g.marquee != ''
+                AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                AND g.manual IS NOT NULL AND g.manual != '')
+                OR
+                (g.name IS NOT NULL AND g.name != ''
+                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                AND (g.image IS NULL OR g.image = ''
+                     OR g.video IS NULL OR g.video = ''
+                     OR g.marquee IS NULL OR g.marquee = ''
+                     OR g.thumbnail IS NULL OR g.thumbnail = ''
+                     OR g.manual IS NULL OR g.manual = ''))
+            ) THEN 1 ELSE 0 END) AS notScraped,
+            SUM(CASE WHEN g.`exists` = false THEN 1 ELSE 0 END) AS missingGames
+        FROM platform p
+        LEFT JOIN game g ON p.id = g.platform_id
+        GROUP BY p.id, p.system
+        ORDER BY p.system
+    </select>
+    
+    <select id="selectGamesByScrapeStatus" resultMap="GameResultMap">
+        SELECT g.* FROM game g
+        LEFT JOIN platform p ON g.platform_id = p.id
+        WHERE 1=1
+        <if test="platformId != null">
+            AND g.platform_id = #{platformId}
+        </if>
+        <choose>
+            <when test="status == 'fully'">
+                AND g.name IS NOT NULL AND g.name != ''
+                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                AND g.image IS NOT NULL AND g.image != ''
+                AND g.video IS NOT NULL AND g.video != ''
+                AND g.marquee IS NOT NULL AND g.marquee != ''
+                AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                AND g.manual IS NOT NULL AND g.manual != ''
+            </when>
+            <when test="status == 'partially'">
+                AND g.name IS NOT NULL AND g.name != ''
+                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                AND (g.image IS NULL OR g.image = ''
+                     OR g.video IS NULL OR g.video = ''
+                     OR g.marquee IS NULL OR g.marquee = ''
+                     OR g.thumbnail IS NULL OR g.thumbnail = ''
+                     OR g.manual IS NULL OR g.manual = '')
+            </when>
+            <when test="status == 'not'">
+                AND NOT (
+                    (g.name IS NOT NULL AND g.name != ''
+                    AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                    AND g.image IS NOT NULL AND g.image != ''
+                    AND g.video IS NOT NULL AND g.video != ''
+                    AND g.marquee IS NOT NULL AND g.marquee != ''
+                    AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                    AND g.manual IS NOT NULL AND g.manual != '')
+                    OR
+                    (g.name IS NOT NULL AND g.name != ''
+                    AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                    AND (g.image IS NULL OR g.image = ''
+                         OR g.video IS NULL OR g.video = ''
+                         OR g.marquee IS NULL OR g.marquee = ''
+                         OR g.thumbnail IS NULL OR g.thumbnail = ''
+                         OR g.manual IS NULL OR g.manual = ''))
+                )
+            </when>
+        </choose>
+        ORDER BY g.name
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <update id="updateGame" parameterType="com.gamelist.model.Game">
+        UPDATE game SET
+            name = #{name},
+            `desc` = #{desc},
+            translated_name = #{translatedName},
+            translated_desc = #{translatedDesc},
+            image = #{image},
+            video = #{video},
+            marquee = #{marquee},
+            thumbnail = #{thumbnail},
+            manual = #{manual},
+            box_front = #{boxFront},
+            box_back = #{boxBack},
+            box_spine = #{boxSpine},
+            box_full = #{boxFull},
+            cartridge = #{cartridge},
+            logo = #{logo},
+            bezel = #{bezel},
+            panel = #{panel},
+            cabinet_left = #{cabinetLeft},
+            cabinet_right = #{cabinetRight},
+            tile = #{tile},
+            banner = #{banner},
+            steam = #{steam},
+            poster = #{poster},
+            background = #{background},
+            music = #{music},
+            screenshot = #{screenshot},
+            titlescreen = #{titlescreen},
+            box3d = #{box3d},
+            steamgrid = #{steamgrid},
+            fanart = #{fanart},
+            boxtexture = #{boxtexture},
+            supporttexture = #{supporttexture},
+            platform_type = #{platformType},
+            hash = #{hash},
+            path = #{path},
+            developer = #{developer},
+            publisher = #{publisher},
+            genre = #{genre},
+            players = #{players},
+            releasedate = #{releasedate},
+            rating = #{rating},
+            lang = #{lang},
+            game_id = #{gameId},
+            source = #{source},
+            crc32 = #{crc32},
+            genreid = #{genreid},
+            platform_id = #{platformId},
+            sort_by = #{sortBy},
+            scraped = #{scraped, jdbcType=BOOLEAN},
+            edited = #{edited, jdbcType=BOOLEAN},
+            `exists` = #{exists, jdbcType=BOOLEAN},
+            absolute_path = #{absolutePath},
+            platform_path = #{platformPath}
+        WHERE id = #{id}
+    </update>
+    
+    <select id="selectGameByPath" parameterType="java.lang.String" resultMap="GameResultMap">
+        SELECT * FROM game WHERE path = #{path}
+    </select>
+    
+    <select id="selectAllGamePaths" resultType="java.lang.String">
+        SELECT path FROM game
+    </select>
+    
+    <select id="selectExistingGamePaths" parameterType="java.util.List" resultType="java.lang.String">
+        SELECT path FROM game WHERE path IN
+        <foreach collection="list" item="path" open="(" close=")" separator=",">
+            #{path}
+        </foreach>
+    </select>
+    
+    <!-- 平台合并相关查询 -->
+    <select id="selectGameByGameIdAndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE game_id = #{param1} AND platform_id = #{param2}
+    </select>
+    
+    <select id="selectGamesByGameId" parameterType="java.lang.String" resultMap="GameResultMap">
+        SELECT * FROM game WHERE game_id = #{gameId}
+    </select>
+    
+    <select id="selectGamesByFileName" parameterType="java.lang.String" resultMap="GameResultMap">
+        SELECT * FROM game WHERE path LIKE CONCAT('%', #{fileName}, '%')
+    </select>
+    
+    <select id="selectGamesByFileNameAndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE path LIKE CONCAT('%', #{param1}, '%') AND platform_id = #{param2}
+    </select>
+    
+    <select id="selectGamesByNameAndFileName" resultMap="GameResultMap">
+        SELECT * FROM game WHERE name = #{param1} AND path LIKE CONCAT('%', #{param2}, '%') AND platform_id = #{param3}
+    </select>
+    
+    <select id="selectGamesByNameAndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE name = #{param1} AND platform_id = #{param2}
+    </select>
+    
+    <select id="selectGamesByGameIdAndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE game_id = #{param1} AND platform_id = #{param2}
+    </select>
+    
+    <select id="selectGamesByCrc32AndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE crc32 = #{param1} AND platform_id = #{param2}
+    </select>
+    
+    <select id="selectGamesByExactFileNameAndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE path LIKE CONCAT('%', #{param1}) AND platform_id = #{param2}
+    </select>
+    
+    <select id="selectGamesByNameIgnoreCaseAndPlatformId" resultMap="GameResultMap">
+        SELECT * FROM game WHERE LOWER(name) = LOWER(#{param1}) AND platform_id = #{param2}
+    </select>
+    
+    <!-- 游戏筛选查询 -->
+    <select id="selectGamesByFilter" parameterType="java.util.Map" resultMap="GameResultMap">
+        SELECT g.* FROM game g
+        WHERE 1=1
+        
+        <!-- 平台ID筛选 -->
+        <if test="platformIds != null and !platformIds.isEmpty()">
+            AND g.platform_id IN
+            <foreach collection="platformIds" item="platformId" open="(" close=")" separator=",">
+                #{platformId}
+            </foreach>
+        </if>
+        
+        <!-- 最低评分筛选 -->
+        <if test="ratingMin != null and ratingMin != ''">
+            AND g.rating &gt;= #{ratingMin}
+        </if>
+        
+        <!-- 最低年份筛选 -->
+        <if test="yearMin != null and yearMin != ''">
+            AND (g.releasedate IS NULL OR g.releasedate LIKE CONCAT(#{yearMin}, '%') OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &gt;= CAST(#{yearMin} AS INTEGER))
+        </if>
+        
+        <!-- 最高年份筛选 -->
+        <if test="yearMax != null and yearMax != ''">
+            AND (g.releasedate IS NULL OR g.releasedate LIKE CONCAT(#{yearMax}, '%') OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &lt;= CAST(#{yearMax} AS INTEGER))
+        </if>
+        
+        <!-- 开发商筛选 -->
+        <if test="developer != null and developer != ''">
+            AND (g.developer LIKE CONCAT('%', #{developer}, '%'))
+        </if>
+        
+        <!-- 发行商筛选 -->
+        <if test="publisher != null and publisher != ''">
+            AND (g.publisher LIKE CONCAT('%', #{publisher}, '%'))
+        </if>
+        
+        <!-- 游戏类型筛选 -->
+        <if test="genre != null and genre != ''">
+            AND (g.genre LIKE CONCAT('%', #{genre}, '%'))
+        </if>
+        
+        <!-- 最低玩家数筛选 -->
+        <if test="minPlayers != null and minPlayers != ''">
+            AND (g.players IS NULL OR g.players &gt;= #{minPlayers} OR g.players LIKE CONCAT(#{minPlayers}, '-%') OR g.players LIKE CONCAT('%', #{minPlayers}, '+'))
+        </if>
+        
+        <!-- 语言筛选 -->
+        <if test="language != null and language != ''">
+            AND (g.lang LIKE CONCAT('%', #{language}, '%'))
+        </if>
+        
+        <!-- 刮削状态筛选 -->
+        <if test="scrapeStatus != null and scrapeStatus.size() > 0">
+            AND (
+                <foreach collection="scrapeStatus" item="status" index="index">
+                    <if test="index > 0">OR</if>
+                    <choose>
+                        <when test="status == 'fully'">
+                            (g.name IS NOT NULL AND g.name != ''
+                            AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                            AND g.image IS NOT NULL AND g.image != ''
+                            AND g.video IS NOT NULL AND g.video != ''
+                            AND g.marquee IS NOT NULL AND g.marquee != ''
+                            AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                            AND g.manual IS NOT NULL AND g.manual != '')
+                        </when>
+                        <when test="status == 'partially'">
+                            (g.name IS NOT NULL AND g.name != ''
+                            AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                            AND (g.image IS NULL OR g.image = ''
+                                 OR g.video IS NULL OR g.video = ''
+                                 OR g.marquee IS NULL OR g.marquee = ''
+                                 OR g.thumbnail IS NULL OR g.thumbnail = ''
+                                 OR g.manual IS NULL OR g.manual = ''))
+                        </when>
+                        <when test="status == 'not'">
+                            (g.name IS NULL OR g.name = ''
+                            OR (g.`desc` IS NULL AND g.translated_desc IS NULL)
+                            OR (g.`desc` = '' AND g.translated_desc IS NULL)
+                            OR (g.`desc` IS NULL AND g.translated_desc = '')
+                            OR (g.`desc` = '' AND g.translated_desc = ''))
+                        </when>
+                    </choose>
+                </foreach>
+            )
+        </if>
+        
+
+        
+        ORDER BY g.name
+    </select>
+    
+    <!-- 游戏筛选计数查询 -->
+    <select id="countGamesByFilter" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM game g
+        WHERE 1=1
+        
+        <!-- 平台ID筛选 -->
+        <if test="platformIds != null and !platformIds.isEmpty()">
+            AND g.platform_id IN
+            <foreach collection="platformIds" item="platformId" open="(" close=")" separator=",">
+                #{platformId}
+            </foreach>
+        </if>
+        
+        <!-- 最低评分筛选 -->
+        <if test="ratingMin != null and ratingMin != ''">
+            AND g.rating &gt;= #{ratingMin}
+        </if>
+        
+        <!-- 最低年份筛选 -->
+        <if test="yearMin != null and yearMin != ''">
+            AND (g.releasedate IS NULL OR g.releasedate LIKE CONCAT(#{yearMin}, '%') OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &gt;= CAST(#{yearMin} AS INTEGER))
+        </if>
+        
+        <!-- 最高年份筛选 -->
+        <if test="yearMax != null and yearMax != ''">
+            AND (g.releasedate IS NULL OR g.releasedate LIKE CONCAT(#{yearMax}, '%') OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &lt;= CAST(#{yearMax} AS INTEGER))
+        </if>
+        
+        <!-- 开发商筛选 -->
+        <if test="developer != null and developer != ''">
+            AND (g.developer LIKE CONCAT('%', #{developer}, '%'))
+        </if>
+        
+        <!-- 发行商筛选 -->
+        <if test="publisher != null and publisher != ''">
+            AND (g.publisher LIKE CONCAT('%', #{publisher}, '%'))
+        </if>
+        
+        <!-- 游戏类型筛选 -->
+        <if test="genre != null and genre != ''">
+            AND (g.genre LIKE CONCAT('%', #{genre}, '%'))
+        </if>
+        
+        <!-- 最低玩家数筛选 -->
+        <if test="minPlayers != null and minPlayers != ''">
+            AND (g.players IS NULL OR g.players >= #{minPlayers} OR g.players LIKE CONCAT(#{minPlayers}, '-%') OR g.players LIKE CONCAT('%', #{minPlayers}, '+'))
+        </if>
+        
+        <!-- 语言筛选 -->
+        <if test="language != null and language != ''">
+            AND (g.lang LIKE CONCAT('%', #{language}, '%'))
+        </if>
+        
+        <!-- 开始年份筛选 -->
+        <if test="startDate != null and startDate != ''">
+            AND (g.releasedate IS NULL OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &gt;= CAST(#{startDate} AS INTEGER))
+        </if>
+        
+        <!-- 结束年份筛选 -->
+        <if test="endDate != null and endDate != ''">
+            AND (g.releasedate IS NULL OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &lt;= CAST(#{endDate} AS INTEGER))
+        </if>
+        
+        <!-- 开发商筛选（多选） -->
+        <if test="developers != null and !developers.isEmpty()">
+            AND g.developer IN
+            <foreach collection="developers" item="developer" open="(" close=")" separator=",">
+                #{developer}
+            </foreach>
+        </if>
+        
+        <!-- 发行商筛选（多选） -->
+        <if test="publishers != null and !publishers.isEmpty()">
+            AND g.publisher IN
+            <foreach collection="publishers" item="publisher" open="(" close=")" separator=",">
+                #{publisher}
+            </foreach>
+        </if>
+        
+        <!-- 游戏类型筛选（多选） -->
+        <if test="genres != null and !genres.isEmpty()">
+            AND g.genre IN
+            <foreach collection="genres" item="genre" open="(" close=")" separator=",">
+                #{genre}
+            </foreach>
+        </if>
+        
+        <!-- 玩家数量筛选（多选） -->
+        <if test="players != null and !players.isEmpty()">
+            AND g.players IN
+            <foreach collection="players" item="player" open="(" close=")" separator=",">
+                #{player}
+            </foreach>
+        </if>
+        
+        <!-- 游戏名正则表达式筛选 -->
+        <if test="gameNameRegex != null and gameNameRegex != ''">
+            AND g.name REGEXP #{gameNameRegex}
+        </if>
+        
+        <!-- 刮削状态筛选 -->
+        <if test="scrapeStatus != null and scrapeStatus.size() > 0">
+            AND (
+                <foreach collection="scrapeStatus" item="status" index="index">
+                    <if test="index > 0">OR</if>
+                    <choose>
+                        <when test="status == 'fully'">
+                            (g.name IS NOT NULL AND g.name != ''
+                            AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                            AND g.image IS NOT NULL AND g.image != ''
+                            AND g.video IS NOT NULL AND g.video != ''
+                            AND g.marquee IS NOT NULL AND g.marquee != ''
+                            AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                            AND g.manual IS NOT NULL AND g.manual != '')
+                        </when>
+                        <when test="status == 'partially'">
+                            (g.name IS NOT NULL AND g.name != ''
+                            AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                            AND (g.image IS NULL OR g.image = ''
+                                 OR g.video IS NULL OR g.video = ''
+                                 OR g.marquee IS NULL OR g.marquee = ''
+                                 OR g.thumbnail IS NULL OR g.thumbnail = ''
+                                 OR g.manual IS NULL OR g.manual = ''))
+                        </when>
+                        <when test="status == 'not'">
+                            NOT (
+                                (g.name IS NOT NULL AND g.name != ''
+                                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                                AND g.image IS NOT NULL AND g.image != ''
+                                AND g.video IS NOT NULL AND g.video != ''
+                                AND g.marquee IS NOT NULL AND g.marquee != ''
+                                AND g.thumbnail IS NOT NULL AND g.thumbnail != ''
+                                AND g.manual IS NOT NULL AND g.manual != '')
+                                OR
+                                (g.name IS NOT NULL AND g.name != ''
+                                AND (g.`desc` IS NOT NULL AND g.`desc` != '' OR g.translated_desc IS NOT NULL AND g.translated_desc != '')
+                                AND (g.image IS NULL OR g.image = ''
+                                     OR g.video IS NULL OR g.video = ''
+                                     OR g.marquee IS NULL OR g.marquee = ''
+                                     OR g.thumbnail IS NULL OR g.thumbnail = ''
+                                     OR g.manual IS NULL OR g.manual = ''))
+                            )
+                        </when>
+                    </choose>
+                </foreach>
+            )
+        </if>
+    </select>
+    
+    <!-- 获取平台游戏数量 -->
+    <select id="countGamesByPlatformId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM game WHERE platform_id = #{platformId}
+    </select>
+    
+    <!-- 获取唯一的开发商 -->
+    <select id="selectUniqueDevelopers" resultType="java.lang.String">
+        SELECT DISTINCT developer FROM game WHERE developer IS NOT NULL AND developer != '' ORDER BY developer
+    </select>
+    
+    <!-- 获取唯一的发行商 -->
+    <select id="selectUniquePublishers" resultType="java.lang.String">
+        SELECT DISTINCT publisher FROM game WHERE publisher IS NOT NULL AND publisher != '' ORDER BY publisher
+    </select>
+    
+    <!-- 获取唯一的游戏类型 -->
+    <select id="selectUniqueGenres" resultType="java.lang.String">
+        SELECT DISTINCT genre FROM game WHERE genre IS NOT NULL AND genre != '' ORDER BY genre
+    </select>
+    
+    <!-- 获取唯一的玩家数量 -->
+    <select id="selectUniquePlayers" resultType="java.lang.String">
+        SELECT DISTINCT players FROM game WHERE players IS NOT NULL AND players != '' ORDER BY players
+    </select>
+</mapper>

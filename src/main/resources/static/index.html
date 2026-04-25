@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端杀手 - 模拟游戏元数据管理平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        .header {
+            text-align: center;
+            margin: 30px 0 20px;
+            padding: 20px 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 3px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+        }
+        
+        /* 功能分类标题 */
+        .section-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 30px 0 20px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+            border-bottom: 2px solid #ff00ff;
+            padding-bottom: 8px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 4px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border-radius: 2px;
+        }
+        
+        /* 功能卡片网格 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        /* 功能卡片样式 */
+        .feature-card {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: #00ffff;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .feature-card h2 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 游戏风格图标 */
+        .feature-card h2::before {
+            content: '🎮';
+            font-size: 1.5rem;
+        }
+        
+        .feature-card:nth-child(2) h2::before {
+            content: '📊';
+        }
+        
+        .feature-card:nth-child(3) h2::before {
+            content: '⚙️';
+        }
+        
+        .feature-card p {
+            color: #ccc;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        /* 功能子卡片 */
+        .sub-features {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .sub-feature-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .sub-feature-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+        
+        .sub-feature-card h3 {
+            color: #ff00ff;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .sub-feature-card p {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        /* 版本信息 */
+        .version-info {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* 通知铃铛样式 */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 120px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .notification-bell:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            transform: scale(1.1);
+        }
+        .notification-bell .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff0000;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* 通知弹窗样式 */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            margin: 10% auto;
+            padding: 40px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #00ffff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ff00ff;
+            transform: rotate(90deg);
+            text-decoration: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin: 40px 0 30px;
+                padding: 30px 15px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .language-selector {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .notification-bell {
+                top: 10px;
+                right: 100px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+    
+    <!-- 通知铃铛 -->
+    <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
+        🔔
+        <span class="badge" style="display: none;">0</span>
+    </div>
+    
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="page_title">前端杀手</h1>
+                <p data-i18n="page_subtitle">模拟游戏元数据管理平台</p>
+                <p class="subtitle" data-i18n="page_desc">专业的游戏元数据管理工具，支持多种格式导入导出</p>
+            </div>
+        </div>
+        
+        <!-- 功能模块：导入 -->
+        <h2 class="section-title" data-i18n="section_import">导入</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h2 data-i18n="feature_import_title">导入</h2>
+                <p data-i18n="feature_import_desc">扫描指定目录下的gamelist.xml文件并导入到数据库中，支持批量处理和详细的导入结果反馈。</p>
+                <a href="data-import.html" class="btn" data-i18n="feature_import_btn">进入导入</a>
+            </div>
+        </div>
+        
+        <!-- 功能模块：数据处理 -->
+        <h2 class="section-title" data-i18n="section_data_processing">数据处理</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h2 data-i18n="feature_data_processing_title">数据处理</h2>
+                <p data-i18n="feature_data_processing_desc">管理游戏平台信息并查看详细的统计数据，帮助您了解游戏库的整体情况</p>
+                <a href="platform-management.html" class="btn" data-i18n="feature_data_processing_btn">进入数据处理</a>
+            </div>
+        </div>
+        
+        <!-- 功能模块：数据合并 -->
+        <h2 class="section-title" data-i18n="section_data_merge">数据合并</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h2 data-i18n="feature_data_merge_title">数据合并</h2>
+                <p data-i18n="feature_data_merge_desc">将多个平台合并为一个新平台，源平台保持不变，处理冲突并保留游戏数据的完整性。</p>
+                <a href="platform-merge.html" class="btn" data-i18n="feature_data_merge_btn">进入数据合并</a>
+            </div>
+        </div>
+        
+        <!-- 功能模块：导出 -->
+        <h2 class="section-title" data-i18n="section_export">导出</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h2 data-i18n="feature_export_title">导出</h2>
+                <p data-i18n="feature_export_desc">将选中平台的游戏文件、媒体文件、数据文件拷贝到用户选中的路径下，支持多种前端规则。</p>
+                <a href="export.html" class="btn" data-i18n="feature_export_btn">进入导出</a>
+            </div>
+        </div>
+        
+        <!-- 功能模块：系统设置及数据 -->
+        <h2 class="section-title" data-i18n="section_system_data">系统设置及数据</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h2 data-i18n="feature_system_data_title">系统设置及数据</h2>
+                <p data-i18n="feature_system_data_desc">配置系统参数并管理数据库，确保平台稳定运行</p>
+                
+                <div class="sub-features">
+                    <div class="sub-feature-card">
+                        <h3 data-i18n="feature_setting_title">系统设置</h3>
+                        <p data-i18n="feature_setting_desc">配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。</p>
+                        <a href="system-settings.html" class="btn" data-i18n="feature_setting_btn">进入系统设置</a>
+                    </div>
+                    
+
+                    
+                    <div class="sub-feature-card">
+                        <h3 data-i18n="feature_h2_title">H2 数据库控制台</h3>
+                        <p data-i18n="feature_h2_desc">访问H2数据库控制台，直接查看和管理数据库中的表结构和数据。</p>
+                        <a href="/h2-console" class="btn" target="_blank" data-i18n="feature_h2_btn">进入数据库控制台</a>
+                    </div>
+                    
+                    <div class="sub-feature-card">
+                        <h3 data-i18n="feature_task_title">后台任务管理</h3>
+                        <p data-i18n="feature_task_desc">查看和管理后台任务执行情况，包括导入、导出、翻译等任务的进度和状态。</p>
+                        <a href="task-management.html" class="btn" data-i18n="feature_task_btn">进入任务管理</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+        </div>
+    </div>
+    
+    <!-- 通知模态框 -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>任务消息</h2>
+            <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- 消息将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 语言翻译映射
+        const translations = {
+            'zh-CN': {
+                'page_title': '前端杀手',
+                'page_subtitle': '模拟游戏元数据管理平台',
+                'page_desc': '专业的游戏元数据管理工具，支持多种格式导入导出',
+                
+                'section_import': '导入',
+                'section_data_processing': '数据处理',
+                'section_data_merge': '数据合并',
+                'section_export': '导出',
+                'section_system_data': '系统设置及数据',
+                
+                'feature_import_title': '导入',
+                'feature_import_desc': '扫描指定目录下的gamelist.xml文件并导入到数据库中，支持批量处理和详细的导入结果反馈。',
+                'feature_import_btn': '进入导入',
+                
+                'feature_data_processing_title': '数据处理',
+                'feature_data_processing_desc': '管理游戏平台信息并查看详细的统计数据，帮助您了解游戏库的整体情况',
+                'feature_data_processing_btn': '进入数据处理',
+                
+                'feature_data_merge_title': '数据合并',
+                'feature_data_merge_desc': '将多个平台合并为一个新平台，源平台保持不变，处理冲突并保留游戏数据的完整性。',
+                'feature_data_merge_btn': '进入数据合并',
+                
+                'feature_export_title': '导出',
+                'feature_export_desc': '将选中平台的游戏文件、媒体文件、数据文件拷贝到用户选中的路径下，支持多种前端规则。',
+                'feature_export_btn': '进入导出',
+                
+                'feature_system_data_title': '系统设置及数据',
+                'feature_system_data_desc': '配置系统参数并管理数据库，确保平台稳定运行',
+                
+                'feature_setting_title': '系统设置',
+                'feature_setting_desc': '配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。',
+                'feature_setting_btn': '进入系统设置',
+                
+                'feature_h2_title': 'H2 数据库控制台',
+                'feature_h2_desc': '访问H2数据库控制台，直接查看和管理数据库中的表结构和数据。',
+                'feature_h2_btn': '进入数据库控制台',
+                
+                'feature_task_title': '后台任务管理',
+                'feature_task_desc': '查看和管理后台任务执行情况，包括导入、导出、翻译等任务的进度和状态。',
+                'feature_task_btn': '进入任务管理',
+                
+                'feature_log_viewer_title': '日志查看器',
+                'feature_log_viewer_desc': '上传和查看日志文件，方便排查错误和问题。',
+                'feature_log_viewer_btn': '进入日志查看',
+                
+                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
+                'version': '版本：1.0 beta'
+            },
+            'en-US': {
+                'page_title': 'Frontend Killer',
+                'page_subtitle': 'Emulator Game Metadata Management Platform',
+                'page_desc': 'Professional game metadata management tool supporting multiple formats',
+                
+                'section_import': 'Import',
+                'section_data_processing': 'Data Processing',
+                'section_data_merge': 'Data Merge',
+                'section_export': 'Export',
+                'section_system_data': 'System Settings & Data',
+                
+                'feature_import_title': 'Import',
+                'feature_import_desc': 'Scan specified directories for gamelist.xml files and import them into the database, supporting batch processing and detailed feedback.',
+                'feature_import_btn': 'Enter Import',
+                
+                'feature_data_processing_title': 'Data Processing',
+                'feature_data_processing_desc': 'Manage game platform information and view detailed statistics to understand your game library',
+                'feature_data_processing_btn': 'Enter Data Processing',
+                
+                'feature_data_merge_title': 'Data Merge',
+                'feature_data_merge_desc': 'Merge multiple platforms into a new platform, source platforms remain unchanged, handle conflicts and preserve game data integrity.',
+                'feature_data_merge_btn': 'Enter Data Merge',
+                
+                'feature_export_title': 'Export',
+                'feature_export_desc': 'Copy game files, media files, and data files from the selected platform to the user-selected path, supporting multiple frontend rules.',
+                'feature_export_btn': 'Enter Export',
+                
+                'feature_system_data_title': 'System Settings & Data',
+                'feature_system_data_desc': 'Configure system parameters and manage database for stable platform operation',
+                
+                'feature_setting_title': 'System Settings',
+                'feature_setting_desc': 'Configure system parameters, database connections and other advanced settings to optimize system performance and functionality.',
+                'feature_setting_btn': 'Enter System Settings',
+                
+                'feature_h2_title': 'H2 Database Console',
+                'feature_h2_desc': 'Access the H2 database console to directly view and manage database table structures and data.',
+                'feature_h2_btn': 'Enter Database Console',
+                
+                'feature_task_title': 'Background Task Management',
+                'feature_task_desc': 'View and manage background task execution status, including progress and status of import, export, translation and other tasks.',
+                'feature_task_btn': 'Enter Task Management',
+                
+                'feature_log_viewer_title': 'Log Viewer',
+                'feature_log_viewer_desc': 'Upload and view log files for error troubleshooting.',
+                'feature_log_viewer_btn': 'Enter Log Viewer',
+                
+                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
+                'version': 'Version: 1.0 beta'
+            },
+            'ja-JP': {
+                'page_title': 'フロントエンドキラー',
+                'page_subtitle': 'エミュレータゲームメタデータ管理プラットフォーム',
+                'page_desc': '専門的なゲームメタデータ管理ツール，複数のフォーマットのインポートエクスポートをサポート',
+                
+                'section_import': 'インポート',
+                'section_data_processing': 'データ処理',
+                'section_data_merge': 'データ統合',
+                'section_export': 'エクスポート',
+                'section_system_data': 'システム設定とデータ',
+                
+                'feature_import_title': 'インポート',
+                'feature_import_desc': '指定したディレクトリ内のgamelist.xmlファイルをスキャンしてデータベースにインポートし，バッチ処理と詳細なインポート結果フィードバックをサポートします。',
+                'feature_import_btn': 'インポートに入る',
+                
+                'feature_data_processing_title': 'データ処理',
+                'feature_data_processing_desc': 'ゲームプラットフォーム情報を管理し，詳細な統計データを表示し，ゲームライブラリの全体的な状況を把握できます',
+                'feature_data_processing_btn': 'データ処理に入る',
+                
+                'feature_data_merge_title': 'データ統合',
+                'feature_data_merge_desc': '複数のプラットフォームを新しいプラットフォームに統合し，ソースプラットフォームは変更されず，競合を処理し，ゲームデータの整合性を維持します。',
+                'feature_data_merge_btn': 'データ統合に入る',
+                
+                'feature_export_title': 'エクスポート',
+                'feature_export_desc': '選択したプラットフォームのゲームファイル、メディアファイル、データファイルをユーザーが選択したパスにコピーし，複数のフロントエンドルールをサポートします。',
+                'feature_export_btn': 'エクスポートに入る',
+                
+                'feature_system_data_title': 'システム設定とデータ',
+                'feature_system_data_desc': 'システムパラメータを設定し，データベースを管理し，プラットフォームの安定した運用を確保します',
+                
+                'feature_setting_title': 'システム設定',
+                'feature_setting_desc': 'システムパフォーマンスと機能を最適化するために，システムパラメータ，データベース接続，その他の高度な設定を構成します。',
+                'feature_setting_btn': 'システム設定に入る',
+                
+                'feature_h2_title': 'H2 データベースコンソール',
+                'feature_h2_desc': 'H2データベースコンソールにアクセスし，データベース内のテーブル構造とデータを直接表示および管理します。',
+                'feature_h2_btn': 'データベースコンソールに入る',
+                
+                'feature_task_title': 'バックグラウンドタスク管理',
+                'feature_task_desc': 'バックグラウンドタスクの実行状態を表示および管理し，インポート，エクスポート，翻訳などのタスクの進行状況と状態を確認します。',
+                'feature_task_btn': 'タスク管理に入る',
+                
+                'feature_log_viewer_title': 'ログビューア',
+                'feature_log_viewer_desc': 'ログファイルをアップロードして表示し，エラーのトラブルシューティングを容易にします。',
+                'feature_log_viewer_btn': 'ログビューアに入る',
+                
+                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
+                'version': 'バージョン：1.0 beta'
+            }
+        };
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            const translation = translations[lang];
+            if (!translation) return;
+            
+            // 更新标题
+            document.title = `${translation['page_title']} - ${translation['page_subtitle']}`;
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            document.getElementById('languageSelect').value = lang;
+            setLanguage(lang);
+        }
+        
+        // 语言选择器事件监听
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initLanguage);
+    </script>
+    
+    <!-- 通知功能脚本 -->
+    <script>
+        // 消息通知功能
+        let notifications = [];
+        let unreadCount = 0;
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 添加到通知列表
+            notifications.unshift({
+                id: Date.now(),
+                message: message,
+                type: type,
+                time: new Date().toLocaleString(),
+                read: false
+            });
+            
+            unreadCount++;
+            updateNotificationBell();
+            
+            // 显示弹窗通知
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification notification-${type}`;
+            notificationElement.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: #fff;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            `;
+            
+            if (type === 'success') {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ff00, #008800)';
+            } else if (type === 'error') {
+                notificationElement.style.background = 'linear-gradient(45deg, #ff0000, #880000)';
+            } else {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ffff, #0088ff)';
+            }
+            
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notificationElement);
+                }, 300);
+            }, 3000);
+        }
+
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const bellIcon = document.getElementById('notificationBell');
+            if (bellIcon) {
+                const badge = bellIcon.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
+                }
+            }
+        }
+
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            // 生成通知列表
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #aaa;">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`;
+                    notificationItem.style.cssText = `
+                        padding: 15px;
+                        margin-bottom: 10px;
+                        border-radius: 8px;
+                        background: ${notification.read ? 'rgba(26, 26, 46, 0.8)' : 'rgba(0, 255, 255, 0.1)'};
+                        border-left: 4px solid ${notification.type === 'success' ? '#00ff00' : notification.type === 'error' ? '#ff0000' : '#00ffff'};
+                    `;
+                    
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
+                        <div style="font-size: 12px; color: #aaa;">${notification.time}</div>
+                    `;
+                    
+                    content.appendChild(notificationItem);
+                    
+                    // 标记为已读
+                    notification.read = true;
+                });
+                
+                unreadCount = 0;
+                updateNotificationBell();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭通知模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                const closeBtn = modal.querySelector('.close');
+                if (closeBtn) {
+                    closeBtn.onclick = function() {
+                        modal.style.display = 'none';
+                    };
+                }
+                
+                // 点击模态框外部关闭
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html>

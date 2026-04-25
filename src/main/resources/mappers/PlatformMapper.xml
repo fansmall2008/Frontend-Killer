@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.PlatformMapper">
+    
+    <resultMap id="PlatformResultMap" type="com.gamelist.model.Platform">
+        <id column="id" property="id"/>
+        <result column="system" property="system"/>
+        <result column="software" property="software"/>
+        <result column="database" property="database"/>
+        <result column="web" property="web"/>
+        <result column="name" property="name"/>
+        <result column="sort_by" property="sortBy"/>
+        <result column="launch" property="launch"/>
+        <result column="folder_path" property="folderPath"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <insert id="insertPlatform" parameterType="com.gamelist.model.Platform" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO platform (system, software, `database`, web, name, sort_by, launch, folder_path)
+        VALUES (#{system}, #{software}, #{database}, #{web}, #{name}, #{sortBy}, #{launch}, #{folderPath})
+    </insert>
+    
+    <select id="selectPlatformBySystem" resultMap="PlatformResultMap">
+        SELECT * FROM platform WHERE system = #{system}
+    </select>
+    
+    <select id="selectAllPlatforms" resultMap="PlatformResultMap">
+        SELECT * FROM platform
+    </select>
+    
+    <select id="selectPlatformById" resultMap="PlatformResultMap">
+        SELECT * FROM platform WHERE id = #{id}
+    </select>
+    
+    <update id="updatePlatform" parameterType="com.gamelist.model.Platform">
+        UPDATE platform SET
+            system = #{system},
+            software = #{software},
+            `database` = #{database},
+            web = #{web},
+            name = #{name},
+            sort_by = #{sortBy},
+            launch = #{launch},
+            folder_path = #{folderPath}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deletePlatform" parameterType="java.lang.Long">
+        DELETE FROM platform WHERE id = #{id}
+    </delete>
+</mapper>

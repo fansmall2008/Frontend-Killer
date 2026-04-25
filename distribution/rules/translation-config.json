@@ -1,0 +1,87 @@
+{
+  "variables": {
+    "google_api_key": "",
+    "microsoft_api_key": "YOUR_MICROSOFT_API_KEY",
+    "microsoft_region": "eastasia",
+    "deepseek_api_key": "YOUR_DEEPSEEK_API_KEY"
+  },
+  "translation": {
+    "services": [
+      {
+        "id": "google",
+        "name": "Google Translate",
+        "type": "google",
+        "url": "https://translation.googleapis.com/language/translate/v2",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "requestBody": {
+          "q": "{text}",
+          "source": "{sourceLang}",
+          "target": "{targetLang}",
+          "format": "text",
+          "key": "${google_api_key}"
+        },
+        "responsePath": "data.translations[0].translatedText",
+        "validation": {
+          "requiredVariables": ["google_api_key"]
+        }
+      },
+      {
+        "id": "microsoft",
+        "name": "Microsoft Translator",
+        "type": "microsoft",
+        "url": "https://api.cognitive.microsofttranslator.com/translate",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Ocp-Apim-Subscription-Key": "${microsoft_api_key}",
+          "Ocp-Apim-Subscription-Region": "${microsoft_region}"
+        },
+        "requestBody": [
+          {
+            "text": "{text}"
+          }
+        ],
+        "params": {
+          "api-version": "3.0",
+          "to": "{targetLang}"
+        },
+        "responsePath": "[0].translations[0].text",
+        "validation": {
+          "requiredVariables": ["microsoft_api_key", "microsoft_region"]
+        }
+      },
+      {
+        "id": "deepseek",
+        "name": "DeepSeek",
+        "type": "deepseek",
+        "url": "https://api.deepseek.com/chat/completions",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${deepseek_api_key}"
+        },
+        "requestBody": {
+          "model": "deepseek-chat",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a helpful assistant. Please translate the following text from {sourceLang} to {targetLang}."
+            },
+            {
+              "role": "user",
+              "content": "{text}"
+            }
+          ]
+        },
+        "responsePath": "choices[0].message.content",
+        "validation": {
+          "requiredVariables": ["deepseek_api_key"]
+        }
+      }
+    ],
+    "defaultService": "deepseek"
+  }
+}

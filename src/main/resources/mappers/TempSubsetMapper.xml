@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.TempSubsetMapper">
+    
+    <resultMap id="TempSubsetResultMap" type="com.gamelist.model.TempSubset">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <resultMap id="TempSubsetGameResultMap" type="com.gamelist.model.TempSubsetGame">
+        <id column="id" property="id"/>
+        <result column="subset_id" property="subsetId"/>
+        <result column="original_game_id" property="originalGameId"/>
+        <result column="game_id" property="gameId"/>
+        <result column="source" property="source"/>
+        <result column="path" property="path"/>
+        <result column="name" property="name"/>
+        <result column="desc" property="desc"/>
+        <result column="translated_name" property="translatedName"/>
+        <result column="translated_desc" property="translatedDesc"/>
+        <result column="image" property="image"/>
+        <result column="video" property="video"/>
+        <result column="marquee" property="marquee"/>
+        <result column="thumbnail" property="thumbnail"/>
+        <result column="manual" property="manual"/>
+        <result column="rating" property="rating"/>
+        <result column="releasedate" property="releasedate"/>
+        <result column="developer" property="developer"/>
+        <result column="publisher" property="publisher"/>
+        <result column="genre" property="genre"/>
+        <result column="players" property="players"/>
+        <result column="crc32" property="crc32"/>
+        <result column="lang" property="lang"/>
+        <result column="genreid" property="genreid"/>
+        <result column="sort_by" property="sortBy"/>
+        <result column="platform_id" property="platformId"/>
+        <result column="platform_path" property="platformPath"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 临时子集操作 -->
+    <insert id="insertTempSubset" parameterType="com.gamelist.model.TempSubset" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO temp_subset (name, description, creator_id, status)
+        VALUES (#{name}, #{description}, #{creatorId}, #{status})
+    </insert>
+    
+    <select id="selectTempSubsetById" parameterType="java.lang.Long" resultMap="TempSubsetResultMap">
+        SELECT * FROM temp_subset WHERE id = #{id}
+    </select>
+    
+    <select id="selectAllTempSubsets" resultMap="TempSubsetResultMap">
+        SELECT * FROM temp_subset ORDER BY created_at DESC
+    </select>
+    
+    <update id="updateTempSubset" parameterType="com.gamelist.model.TempSubset">
+        UPDATE temp_subset SET
+            name = #{name},
+            description = #{description},
+            status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteTempSubset" parameterType="java.lang.Long">
+        DELETE FROM temp_subset WHERE id = #{id}
+    </delete>
+    
+    <!-- 临时子集游戏操作 -->
+    <insert id="insertTempSubsetGame" parameterType="com.gamelist.model.TempSubsetGame" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO temp_subset_game (
+            subset_id, original_game_id, game_id, source, path, name, `desc`, 
+            translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            rating, releasedate, developer, publisher, genre, players, crc32, lang, genreid, sort_by, platform_id, platform_path
+        ) VALUES (
+            #{subsetId}, #{originalGameId}, #{gameId}, #{source}, #{path}, #{name}, #{desc}, 
+            #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
+            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{lang}, #{genreid}, #{sortBy}, #{platformId}, #{platformPath}
+        )
+    </insert>
+    
+    <insert id="insertTempSubsetGamesBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO temp_subset_game (
+            subset_id, original_game_id, game_id, source, path, name, `desc`, 
+            translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            rating, releasedate, developer, publisher, genre, players, crc32, lang, genreid, sort_by, platform_id, platform_path
+        ) VALUES
+        <foreach collection="list" item="game" separator=",">
+            (
+                #{game.subsetId}, #{game.originalGameId}, #{game.gameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, 
+                #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
+                #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.lang}, #{game.genreid}, #{game.sortBy}, #{game.platformId}, #{game.platformPath}
+            )
+        </foreach>
+    </insert>
+    
+    <select id="selectTempSubsetGamesBySubsetId" parameterType="java.lang.Long" resultMap="TempSubsetGameResultMap">
+        SELECT * FROM temp_subset_game WHERE subset_id = #{subsetId} ORDER BY name
+    </select>
+    
+    <select id="selectTempSubsetGameById" parameterType="java.lang.Long" resultMap="TempSubsetGameResultMap">
+        SELECT * FROM temp_subset_game WHERE id = #{id}
+    </select>
+    
+    <select id="selectTempSubsetGameByOriginalGameId" parameterType="java.lang.Long" resultMap="TempSubsetGameResultMap">
+        SELECT * FROM temp_subset_game WHERE original_game_id = #{originalGameId}
+    </select>
+    
+    <update id="updateTempSubsetGame" parameterType="com.gamelist.model.TempSubsetGame">
+        UPDATE temp_subset_game SET
+            name = #{name},
+            `desc` = #{desc},
+            translated_name = #{translatedName},
+            translated_desc = #{translatedDesc},
+            image = #{image},
+            video = #{video},
+            marquee = #{marquee},
+            thumbnail = #{thumbnail},
+            manual = #{manual},
+            rating = #{rating},
+            releasedate = #{releasedate},
+            developer = #{developer},
+            publisher = #{publisher},
+            genre = #{genre},
+            players = #{players},
+            crc32 = #{crc32},
+            lang = #{lang},
+            game_id = #{gameId},
+            source = #{source},
+            path = #{path},
+            genreid = #{genreid},
+            sort_by = #{sortBy},
+            platform_id = #{platformId},
+            platform_path = #{platformPath},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteTempSubsetGame" parameterType="java.lang.Long">
+        DELETE FROM temp_subset_game WHERE id = #{id}
+    </delete>
+    
+    <delete id="deleteTempSubsetGamesBySubsetId" parameterType="java.lang.Long">
+        DELETE FROM temp_subset_game WHERE subset_id = #{subsetId}
+    </delete>
+</mapper>

@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据文件导入</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 3px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        .btn:disabled {
+            background: linear-gradient(45deg, #666, #888);
+            color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .btn:disabled:hover {
+            transform: none;
+        }
+        
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        
+        /* 表单容器样式 */
+        .form-container {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-container:hover {
+            border-color: #00ffff;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* 表单组样式 */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #00ffff;
+            font-size: 1rem;
+        }
+        
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        /* 结果容器样式 */
+        .result-container {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .result-container:hover {
+            border-color: #00ffff;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        .result-container h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        /* 结果日志样式 */
+        #result {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #444;
+        }
+        
+        /* 日志样式 */
+        .log {
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-left: 3px solid transparent;
+            padding-left: 15px;
+        }
+        
+        .log.success {
+            color: #2ecc71;
+            border-left-color: #2ecc71;
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+        
+        .log.error {
+            color: #e74c3c;
+            border-left-color: #e74c3c;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        
+        .log.info {
+            color: #00ffff;
+            border-left-color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* 加载动画样式 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00ffff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 状态样式 */
+        .status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        /* 按钮组样式 */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        /* Pegasus按钮样式 */
+        #pegasusBtn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: #000;
+        }
+        
+        #pegasusBtn:hover {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 60px;
+            color: #888;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .version-info {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* 通知铃铛样式 */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 120px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .notification-bell:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            transform: scale(1.1);
+        }
+        .notification-bell .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff0000;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        }
+        
+        /* 通知弹窗样式 */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* 通知模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            margin: 10% auto;
+            padding: 40px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #00ffff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ff00ff;
+            transform: rotate(90deg);
+            text-decoration: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin: 40px 0 30px;
+                padding: 30px 15px;
+            }
+            
+            .language-selector {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .notification-bell {
+                top: 10px;
+                right: 100px;
+                font-size: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                margin-right: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+    
+    <!-- 通知铃铛 -->
+    <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
+        🔔
+        <span class="badge" style="display: none;">0</span>
+    </div>
+    
+    <script>
+        // 跨页面通知广播监听
+        const notificationChannel = new BroadcastChannel('taskNotifications');
+        
+        notificationChannel.onmessage = function(event) {
+            const data = event.data;
+            if (data && data.message) {
+                showNotification(data.message, data.type || 'info');
+            }
+        };
+        
+        // 监听任务完成通知
+        let previousTasks = {};
+        
+        function checkTaskCompletion() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    tasks.forEach(task => {
+                        const prevStatus = previousTasks[task.id];
+                        if (prevStatus && prevStatus !== task.status && 
+                            (task.status === 'COMPLETED' || task.status === 'FAILED')) {
+                            if (task.status === 'COMPLETED') {
+                                showNotification('任务已完成: ' + (task.description || task.type), 'success');
+                                notificationChannel.postMessage({
+                                    message: '任务已完成: ' + (task.description || task.type),
+                                    type: 'success'
+                                });
+                            } else {
+                                showNotification('任务失败: ' + (task.description || task.type), 'error');
+                                notificationChannel.postMessage({
+                                    message: '任务失败: ' + (task.description || task.type),
+                                    type: 'error'
+                                });
+                            }
+                        }
+                        previousTasks[task.id] = task.status;
+                    });
+                })
+                .catch(err => console.log('Task check error:', err));
+        }
+        
+        // 每5秒检查一次任务状态
+        setInterval(checkTaskCompletion, 5000);
+    </script>
+    
+    <!-- 通知模态框 -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 data-i18n="task_messages">任务消息</h2>
+            <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- 消息将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="import_title">数据文件导入</h1>
+                <p data-i18n="import_desc">扫描并导入游戏元数据文件，支持 gamelist.xml 和 metadata.pegasus.txt 格式</p>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <h2 data-i18n="scan_settings">扫描路径设置</h2>
+            <form id="scanForm">
+                <div class="form-group">
+                    <label for="path" data-i18n="scan_path_label">请输入要扫描的根路径：</label>
+                    <input type="text" id="path" name="path" placeholder="/data/roms" value="/data/roms" required>
+                    <button type="button" class="btn" style="margin-top: 10px;" onclick="browseDirectories()" data-i18n="browse_directories">浏览目录</button>
+                </div>
+                <div class="form-group" id="directoryList" style="display: none;">
+                    <label data-i18n="subdirectories">子目录：</label>
+                    <div id="directoryItems" style="max-height: 200px; overflow-y: auto; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 6px; border: 1px solid #444;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="scanDepth" data-i18n="scan_depth_label">扫描深度：</label>
+                    <select id="scanDepth" name="scanDepth" required>
+                        <option value="-1" data-i18n="scan_depth_all">递归所有子目录</option>
+                        <option value="0" data-i18n="scan_depth_current">仅当前目录</option>
+                        <option value="1" data-i18n="scan_depth_one">仅下一层</option>
+                        <option value="2" data-i18n="scan_depth_two">下两层</option>
+                        <option value="3" data-i18n="scan_depth_three">下三层</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="importMethod" data-i18n="import_method_label">导入方式：</label>
+                    <select id="importMethod" name="importMethod" onchange="toggleTemplateOptions()" required>
+                        <option value="traditional" data-i18n="import_method_traditional">传统方式</option>
+                        <option value="template" data-i18n="import_method_template">模板方式</option>
+                        <option value="noDataFile" data-i18n="import_method_no_data_file">无数据文件导入</option>
+                    </select>
+                </div>
+                <div class="form-group" id="noDataFileWarning" style="display: none;">
+                    <div style="background: rgba(255, 165, 0, 0.2); border: 2px solid #ffa500; border-radius: 8px; padding: 15px; margin-top: 10px;">
+                        <div style="color: #ffa500; font-weight: bold; margin-bottom: 10px; font-size: 1.1em;" data-i18n="no_data_file_warning_title"></div>
+                        <div style="color: #ffcc00; line-height: 1.8;">
+                            <div data-i18n="no_data_file_warning_1"></div>
+                            <div data-i18n="no_data_file_warning_2"></div>
+                            <div data-i18n="no_data_file_warning_3"></div>
+                            <div style="margin-left: 20px; color: #aaa;">
+                                <div data-i18n="no_data_file_warning_example"></div>
+                                <div>&nbsp;&nbsp;"media/{gameName}/wheel.{ext}" <span data-i18n="no_data_file_warning_example_text"></span></div>
+                                <div data-i18n="no_data_file_warning_other"></div>
+                            </div>
+                            <div style="color: #ff6666; margin-top: 5px;" data-i18n="no_data_file_warning_4"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="fileExtensionsGroup" style="display: none;">
+                    <label for="fileExtensions" data-i18n="file_extensions_label">文件扩展名（逗号分隔）：</label>
+                    <input type="text" id="fileExtensions" name="fileExtensions" value=".nes,.snes,.gba,.zip,.7z" placeholder=".nes,.snes,.gba,.zip,.7z">
+                </div>
+                <div class="form-group" id="templateOptions" style="display: none;">
+                    <label for="importTemplate" data-i18n="import_template_label">导入模板：</label>
+                    <select id="importTemplate" name="importTemplate" onchange="updateTemplateDescription()">
+                        <option value="pegasus.json" data-i18n="import_template_pegasus">Pegasus 标准模板</option>
+                        <option value="esde.json" data-i18n="import_template_esde">ES-DE 标准模板</option>
+                        <option value="generic.json" data-i18n="import_template_generic">通用模板</option>
+                    </select>
+                    <div id="templateDescription" style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 6px; border: 1px solid #444; color: #00ffff;"></div>
+                </div>
+                <div class="form-group" id="metadataOnlyOption">
+                    <label>
+                        <input type="checkbox" id="metadataOnly" name="metadataOnly" checked style="margin-right: 8px;">
+                        <span data-i18n="metadata_only_label">只使用数据文件标签（不进行自动匹配）</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="threadCount" data-i18n="thread_count_label">导入线程数：</label>
+                    <select id="threadCount" name="threadCount" required>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected data-i18n="thread_count_default">4（默认）</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn" id="submitBtn">
+                        <span id="loading" class="loading" style="display: none;"></span>
+                        <span id="btnText" data-i18n="start_scan">开始扫描并导入</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+
+        
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+        </div>
+    </div>
+    
+    <script>
+        // 通知系统变量
+        let notifications = [];
+        let unreadCount = 0;
+        
+        // 语言翻译映射
+        const translations = {
+            'zh-CN': {
+                'page_title': '数据文件导入 - 前端杀手',
+                'import_title': '数据文件导入',
+                'import_desc': '扫描并导入游戏元数据文件，支持 gamelist.xml 和 metadata.pegasus.txt 格式',
+                'scan_settings': '扫描路径设置',
+                'scan_path_label': '请输入要扫描的根路径：',
+                'task_messages': '任务消息',
+                'browse_directories': '浏览目录',
+                'subdirectories': '子目录：',
+                'back_to_parent_directory': '返回上层目录',
+                'scan_depth_label': '扫描深度：',
+                'scan_depth_all': '递归所有子目录',
+                'scan_depth_current': '仅当前目录',
+                'scan_depth_one': '仅下一层',
+                'scan_depth_two': '下两层',
+                'scan_depth_three': '下三层',
+                'import_method_label': '导入方式：',
+                'import_method_traditional': '传统方式',
+                'import_method_template': '模板方式',
+                'import_method_no_data_file': '无数据文件导入',
+                'import_template_label': '导入模板：',
+                'import_template_pegasus': 'Pegasus 标准模板',
+                'import_template_esde': 'ES-DE 标准模板',
+                'import_template_generic': '通用模板',
+                'no_data_file_label': '无数据文件导入（直接从游戏文件导入）',
+                'metadata_only_label': '只使用数据文件标签（不进行自动匹配媒体文件）',
+                'thread_count_label': '导入线程数：',
+                'thread_count_default': '4（默认）',
+                'file_extensions_label': '文件扩展名（逗号分隔）：',
+                'start_scan': '开始扫描并导入',
+                'scanning_path': '正在扫描路径...',
+                'scanning': '扫描中...',
+                'operation_result': '操作结果',
+                'waiting_operation': '等待操作...',
+                'operation_completed': '操作完成！',
+                'operation_failed': '操作失败！',
+                'request_failed': '请求失败！',
+                'network_error': '网络错误！',
+                'found_files': '成功找到 {0} 个数据文件',
+                'imported_files': '成功导入 {0} 个文件',
+                'details': '详细信息：',
+                'error_prefix': '错误：{0}',
+                'back_to_home': '返回首页',
+                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
+                'version': '版本：1.0 beta',
+                'no_data_file_warning_title': '⚠️ 重要提示',
+                'no_data_file_warning_1': '1. 必须选择包含单独游戏合集的文件夹作为扫描根目录。',
+                'no_data_file_warning_2': '2. 根目录将被视为一个平台，根目录下的每个子文件夹将被视为该平台下的一个游戏。',
+                'no_data_file_warning_3': '3. 媒体文件匹配规则严格按照所选模板中的 mediaRules 配置进行。',
+                'no_data_file_warning_example': '例如 ES-DE 模板中 wheel 的匹配规则为：',
+                'no_data_file_warning_example_text': '"media/{gameName}/wheel.{ext}" 表示在子文件夹内的 media 目录下查找 wheel.扩展名 文件',
+                'no_data_file_warning_other': '其他媒体文件（marquee、screenshot、video 等）同理。',
+                'no_data_file_warning_4': '4. 如果选择错误或混合了多种游戏合集的文件夹，导入结果将不可预料。'
+            },
+            'en-US': {
+                'page_title': 'Data File Import - Frontend Killer',
+                'import_title': 'Data File Import',
+                'import_desc': 'Scan and import game metadata files, supporting gamelist.xml and metadata.pegasus.txt formats',
+                'scan_settings': 'Scan Path Settings',
+                'scan_path_label': 'Please enter the root path to scan:',
+                'task_messages': 'Task Messages',
+                'browse_directories': 'Browse Directories',
+                'subdirectories': 'Subdirectories:',
+                'back_to_parent_directory': 'Back to parent directory',
+                'scan_depth_label': 'Scan Depth:',
+                'scan_depth_all': 'Recursive all subdirectories',
+                'scan_depth_current': 'Only current directory',
+                'scan_depth_one': 'Only next level',
+                'scan_depth_two': 'Next two levels',
+                'scan_depth_three': 'Next three levels',
+                'import_method_label': 'Import Method:',
+                'import_method_traditional': 'Traditional Method',
+                'import_method_template': 'Template Method',
+                'import_method_no_data_file': 'No Data File Import',
+                'import_template_label': 'Import Template:',
+                'import_template_pegasus': 'Pegasus Standard Template',
+                'import_template_esde': 'ES-DE Standard Template',
+                'import_template_generic': 'Generic Template',
+                'no_data_file_label': 'No Data File Import (Import directly from game files)',
+                'metadata_only_label': 'Use only metadata file tags (no automatic media matching)',
+                'thread_count_label': 'Import Thread Count:',
+                'thread_count_default': '4 (default)',
+                'file_extensions_label': 'File Extensions (comma separated):',
+                'start_scan': 'Start Scanning and Importing',
+                'scanning_path': 'Scanning path...',
+                'scanning': 'Scanning...',
+                'operation_result': 'Operation Result',
+                'waiting_operation': 'Waiting for operation...',
+                'operation_completed': 'Operation completed!',
+                'operation_failed': 'Operation failed!',
+                'request_failed': 'Request failed!',
+                'network_error': 'Network error!',
+                'found_files': 'Successfully found {0} data files',
+                'imported_files': 'Successfully imported {0} files',
+                'details': 'Details:',
+                'error_prefix': 'Error: {0}',
+                'back_to_home': 'Back to Home',
+                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
+                'version': 'Version: 1.0 beta',
+                'no_data_file_warning_title': '⚠️ Important Notice',
+                'no_data_file_warning_1': '1. You must select a folder containing individual game collections as the scan root directory.',
+                'no_data_file_warning_2': '2. The root directory will be treated as one platform, and each subfolder under the root directory will be treated as a game under that platform.',
+                'no_data_file_warning_3': '3. Media file matching rules strictly follow the mediaRules configuration in the selected template.',
+                'no_data_file_warning_example': 'For example, the wheel matching rule in ES-DE template is:',
+                'no_data_file_warning_example_text': '"media/{gameName}/wheel.{ext}" means looking for wheel.extension files in the media directory within the subfolder',
+                'no_data_file_warning_other': 'The same applies to other media files (marquee, screenshot, video, etc.).',
+                'no_data_file_warning_4': '4. If you select the wrong folder or mix multiple game collections, the import results will be unpredictable.'
+            },
+            'ja-JP': {
+                'page_title': 'データファイルインポート - フロントエンドキラー',
+                'import_title': 'データファイルインポート',
+                'import_desc': 'ゲームメタデータファイルをスキャンしてインポートし，gamelist.xml と metadata.pegasus.txt 形式をサポートします',
+                'scan_settings': 'スキャンパス設定',
+                'scan_path_label': 'スキャンするルートパスを入力してください：',
+                'task_messages': 'タスクメッセージ',
+                'browse_directories': 'ディレクトリを参照',
+                'subdirectories': 'サブディレクトリ：',
+                'back_to_parent_directory': '親ディレクトリに戻る',
+                'scan_depth_label': 'スキャン深度：',
+                'scan_depth_all': 'すべてのサブディレクトリを再帰',
+                'scan_depth_current': '現在のディレクトリのみ',
+                'scan_depth_one': '次のレベルのみ',
+                'scan_depth_two': '次の2つのレベル',
+                'scan_depth_three': '次の3つのレベル',
+                'import_method_label': 'インポート方法：',
+                'import_method_traditional': '従来の方法',
+                'import_method_template': 'テンプレート方法',
+                'import_method_no_data_file': 'データファイルなしインポート',
+                'import_template_label': 'インポートテンプレート：',
+                'import_template_pegasus': 'Pegasus 標準テンプレート',
+                'import_template_esde': 'ES-DE 標準テンプレート',
+                'import_template_generic': '汎用テンプレート',
+                'no_data_file_label': 'データファイルなしインポート（ゲームファイルから直接インポート）',
+                'metadata_only_label': 'メタデータファイルタグのみ使用（自動メディア照合なし）',
+                'thread_count_label': 'インポートスレッド数：',
+                'thread_count_default': '4（デフォルト）',
+                'file_extensions_label': 'ファイル拡張子（カンマ区切り）：',
+                'start_scan': 'スキャンとインポートを開始',
+                'scanning_path': 'パスをスキャン中...',
+                'scanning': 'スキャン中...',
+                'operation_result': '操作結果',
+                'waiting_operation': '操作を待っています...',
+                'operation_completed': '操作が完了しました！',
+                'operation_failed': '操作に失敗しました！',
+                'request_failed': 'リクエストに失敗しました！',
+                'network_error': 'ネットワークエラー！',
+                'found_files': '{0} 個のデータファイルを見つけました',
+                'imported_files': '{0} 個のファイルをインポートしました',
+                'details': '詳細：',
+                'error_prefix': 'エラー：{0}',
+                'back_to_home': 'ホームに戻る',
+                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
+                'version': 'バージョン：1.0 beta',
+                'no_data_file_warning_title': '⚠️ 重要なお知らせ',
+                'no_data_file_warning_1': '1. 個別のゲームコレクションを含むフォルダをスキャンのルートディレクトリとして選択する必要があります。',
+                'no_data_file_warning_2': '2. ルートディレクトリは1つのプラットフォームとして扱われ、ルートディレクトリ配下の各サブフォルダはそのプラットフォームのゲームとして扱われます。',
+                'no_data_file_warning_3': '3. メディアファイルのマッチングルールは、選択したテンプレートのmediaRules設定に厳密に従います。',
+                'no_data_file_warning_example': '例えば、ES-DEテンプレートのwheelのマッチングルールは：',
+                'no_data_file_warning_example_text': '"media/{gameName}/wheel.{ext}" はサブフォルダ内のmediaディレクトリでwheel.拡張子ファイルを検索することを意味します',
+                'no_data_file_warning_other': '他のメディアファイル（marquee、screenshot、videoなど）も同様です。',
+                'no_data_file_warning_4': '4. 間違ったフォルダを選択したり、複数のゲームコレクションを混在させたりすると、インポート結果は予測不能になります。'
+            }
+        };
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            const translation = translations[lang];
+            if (!translation) return;
+            
+            // 更新标题
+            document.title = translation['page_title'];
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+        
+        // 获取翻译文本
+        function getI18nText(key, ...args) {
+            const lang = getCurrentLanguage();
+            const translation = translations[lang][key] || key;
+            return formatString(translation, args);
+        }
+        
+        // 格式化字符串，支持{0}, {1}等占位符
+        function formatString(str, args) {
+            return str.replace(/\{(\d+)\}/g, (match, index) => {
+                return args[index] !== undefined ? args[index] : match;
+            });
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 添加到通知列表
+            notifications.unshift({
+                id: Date.now(),
+                message: message,
+                type: type,
+                time: new Date().toLocaleString(),
+                read: false
+            });
+            
+            unreadCount++;
+            updateNotificationBell();
+            
+            // 显示弹窗通知
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification notification-${type}`;
+            notificationElement.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: #fff;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            `;
+            
+            if (type === 'success') {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ff00, #008800)';
+            } else if (type === 'error') {
+                notificationElement.style.background = 'linear-gradient(45deg, #ff0000, #880000)';
+            } else {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ffff, #0088ff)';
+            }
+            
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notificationElement);
+                }, 300);
+            }, 3000);
+        }
+
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const bellIcon = document.getElementById('notificationBell');
+            if (bellIcon) {
+                const badge = bellIcon.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
+                }
+            }
+        }
+
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            // 生成通知列表
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #aaa;">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`;
+                    notificationItem.style.cssText = `
+                        padding: 15px;
+                        margin-bottom: 10px;
+                        border-radius: 8px;
+                        background: ${notification.read ? 'rgba(26, 26, 46, 0.8)' : 'rgba(0, 255, 255, 0.1)'};
+                        border-left: 4px solid ${notification.type === 'success' ? '#00ff00' : notification.type === 'error' ? '#ff0000' : '#00ffff'};
+                    `;
+                    
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
+                        <div style="font-size: 12px; color: #aaa;">${notification.time}</div>
+                    `;
+                    
+                    content.appendChild(notificationItem);
+                    
+                    // 标记为已读
+                    notification.read = true;
+                });
+                
+                unreadCount = 0;
+                updateNotificationBell();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            modal.style.display = 'none';
+        }
+
+        // 标记所有通知为已读
+        function markAllAsRead() {
+            notifications.forEach(notification => {
+                if (!notification.read) {
+                    notification.read = true;
+                }
+            });
+            unreadCount = 0;
+            updateNotificationBell();
+            openNotificationPanel(); // 刷新面板
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            document.getElementById('languageSelect').value = lang;
+            setLanguage(lang);
+        }
+        
+        // 语言选择器事件监听
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+        
+        // 更新模板描述
+        function updateTemplateDescription() {
+            const templateSelect = document.getElementById('importTemplate');
+            const descriptionDiv = document.getElementById('templateDescription');
+            const selectedTemplate = templateSelect.value;
+            
+            const descriptions = {
+                'pegasus.json': {
+                    'zh-CN': 'Pegasus 标准模板：适用于 Pegasus 前端，支持 metadata.pegasus.txt 格式的数据文件。使用冒号作为分隔符，支持多值字段和媒体文件路径配置。',
+                    'en-US': 'Pegasus Standard Template: Suitable for Pegasus frontend, supports metadata.pegasus.txt format data files. Uses colon as separator, supports multi-value fields and media file path configuration.',
+                    'ja-JP': 'Pegasus 標準テンプレート：Pegasus フロントエンドに適した、metadata.pegasus.txt 形式のデータファイルをサポートします。コロンを区切り文字として使用し、複数値フィールドとメディアファイルパスの設定をサポートします。'
+                },
+                'esde.json': {
+                    'zh-CN': 'ES-DE 标准模板：适用于 ES-DE 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
+                    'en-US': 'ES-DE Standard Template: Suitable for ES-DE frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
+                    'ja-JP': 'ES-DE 標準テンプレート：ES-DE フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                },
+                'generic.json': {
+                    'zh-CN': '通用模板：适用于一般情况，支持基本的游戏元数据导入。可根据需要自定义字段映射和媒体文件路径规则。',
+                    'en-US': 'Generic Template: Suitable for general cases, supports basic game metadata import. Can customize field mappings and media file path rules as needed.',
+                    'ja-JP': '汎用テンプレート：一般的なケースに適した、基本的なゲームメタデータのインポートをサポートします。必要に応じてフィールドマッピングとメディアファイルパスルールをカスタマイズできます。'
+                }
+            };
+            
+            const lang = getCurrentLanguage();
+            const description = descriptions[selectedTemplate][lang] || descriptions[selectedTemplate]['zh-CN'];
+            descriptionDiv.textContent = description;
+        }
+        
+        // 模板选项显示/隐藏
+        function toggleTemplateOptions() {
+            const importMethod = document.getElementById('importMethod').value;
+            const templateOptions = document.getElementById('templateOptions');
+            const metadataOnlyOption = document.getElementById('metadataOnlyOption');
+            const noDataFileWarning = document.getElementById('noDataFileWarning');
+            const fileExtensionsGroup = document.getElementById('fileExtensionsGroup');
+
+            if (importMethod === 'template') {
+                templateOptions.style.display = 'block';
+                metadataOnlyOption.style.display = 'none';
+                noDataFileWarning.style.display = 'none';
+                fileExtensionsGroup.style.display = 'none';
+            } else if (importMethod === 'noDataFile') {
+                templateOptions.style.display = 'block';
+                metadataOnlyOption.style.display = 'none';
+                noDataFileWarning.style.display = 'block';
+                fileExtensionsGroup.style.display = 'block';
+            } else {
+                templateOptions.style.display = 'none';
+                metadataOnlyOption.style.display = 'block';
+                noDataFileWarning.style.display = 'none';
+                fileExtensionsGroup.style.display = 'none';
+            }
+        }
+        
+        // 初始化模板选项
+        toggleTemplateOptions();
+        
+        // 初始化模板描述
+        updateTemplateDescription();
+        
+        // 浏览目录函数
+        async function browseDirectories() {
+            const path = document.getElementById('path').value;
+            const directoryItems = document.getElementById('directoryItems');
+            const directoryList = document.getElementById('directoryList');
+            
+            try {
+                // 显示加载状态
+                directoryItems.innerHTML = '<div class="loading" style="margin: 20px auto;"></div>';
+                directoryList.style.display = 'block';
+                
+                // 调用后端API获取目录列表
+                const response = await fetch('/api/scan/browse', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ path: path }),
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // 显示目录列表
+                    directoryItems.innerHTML = '';
+                    
+                    // 添加返回上层目录选项
+                    const currentPath = document.getElementById('path').value;
+                    if (currentPath && currentPath !== '/' && currentPath !== 'C:\\' && currentPath !== 'D:\\') {
+                        const parentDirElement = document.createElement('div');
+                        parentDirElement.style.cssText = `
+                            padding: 8px;
+                            margin: 5px 0;
+                            background: rgba(26, 26, 46, 0.8);
+                            border-radius: 4px;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        `;
+                        parentDirElement.innerHTML = `<span style="color: #ff00ff;">📁</span> .. (${getI18nText('back_to_parent_directory')})`;
+                        
+                        parentDirElement.addEventListener('click', () => {
+                            // 计算上层目录路径
+                            const pathParts = currentPath.split(/[\\/]/).filter(Boolean);
+                            pathParts.pop(); // 移除最后一个目录
+                            let parentPath = '';
+                            if (pathParts.length > 0) {
+                                if (currentPath.startsWith('/')) {
+                                    parentPath = '/' + pathParts.join('/');
+                                } else if (currentPath.match(/^[A-Za-z]:/)) {
+                                    // Windows 路径
+                                    parentPath = pathParts[0] + ':/' + pathParts.slice(1).join('/');
+                                } else {
+                                    parentPath = pathParts.join('/');
+                                }
+                            } else {
+                                if (currentPath.startsWith('/')) {
+                                    parentPath = '/';
+                                } else if (currentPath.match(/^[A-Za-z]:/)) {
+                                    // Windows 根目录
+                                    parentPath = currentPath.split(/[\\/]/)[0] + ':/';
+                                } else {
+                                    parentPath = '';
+                                }
+                            }
+                            document.getElementById('path').value = parentPath;
+                            browseDirectories(); // 浏览上层目录
+                        });
+                        
+                        parentDirElement.addEventListener('mouseover', () => {
+                            parentDirElement.style.background = 'rgba(255, 0, 255, 0.2)';
+                        });
+                        
+                        parentDirElement.addEventListener('mouseout', () => {
+                            parentDirElement.style.background = 'rgba(26, 26, 46, 0.8)';
+                        });
+                        
+                        directoryItems.appendChild(parentDirElement);
+                    }
+                    
+                    if (result.directories && result.directories.length > 0) {
+                        result.directories.forEach(dir => {
+                            const dirElement = document.createElement('div');
+                            dirElement.style.cssText = `
+                                padding: 8px;
+                                margin: 5px 0;
+                                background: rgba(26, 26, 46, 0.8);
+                                border-radius: 4px;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            `;
+                            dirElement.innerHTML = `<span style="color: #00ffff;">📁</span> ${dir}`;
+                            
+                            dirElement.addEventListener('click', () => {
+                                document.getElementById('path').value = dir;
+                                browseDirectories(); // 递归浏览子目录
+                            });
+                            
+                            dirElement.addEventListener('mouseover', () => {
+                                dirElement.style.background = 'rgba(0, 255, 255, 0.2)';
+                            });
+                            
+                            dirElement.addEventListener('mouseout', () => {
+                                dirElement.style.background = 'rgba(26, 26, 46, 0.8)';
+                            });
+                            
+                            directoryItems.appendChild(dirElement);
+                        });
+                    } else {
+                        directoryItems.innerHTML = '<p style="text-align: center; color: #aaa;">该目录下没有子目录</p>';
+                    }
+                } else {
+                    directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">${result.message || '无法浏览目录'}</p>`;
+                }
+            } catch (error) {
+                directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">浏览目录失败: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            // 自动填充游戏路径
+            const gamePath = localStorage.getItem('gamePath');
+            if (gamePath) {
+                document.getElementById('path').value = gamePath;
+            } else {
+                // 默认路径设置为 /data/roms
+                document.getElementById('path').value = '/data/roms';
+            }
+            
+            // 通知模态框关闭按钮
+            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('notificationModal');
+                if (e.target === modal) closeNotificationPanel();
+            });
+            
+            // 初始化通知铃铛
+            updateNotificationBell();
+            
+            // 初始化时浏览默认目录
+            browseDirectories();
+        });
+        
+        // 新的扫描功能：先扫描文件，然后导入作为后台任务
+        document.getElementById('scanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const path = document.getElementById('path').value;
+            const scanDepth = parseInt(document.getElementById('scanDepth').value);
+            const metadataOnly = document.getElementById('metadataOnly').checked;
+            const threadCount = parseInt(document.getElementById('threadCount').value);
+            const importMethod = document.getElementById('importMethod').value;
+            const importTemplate = document.getElementById('importTemplate').value;
+            const fileExtensions = document.getElementById('fileExtensions').value;
+            const noDataFile = importMethod === 'noDataFile';
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const btnText = document.getElementById('btnText');
+
+            localStorage.setItem('gamePath', path);
+
+            loading.style.display = 'inline-block';
+            btnText.textContent = getI18nText('scanning');
+            submitBtn.disabled = true;
+
+            try {
+                if (noDataFile) {
+                    showNotification('开始执行无数据文件导入任务...', 'info');
+                    const importResponse = await fetch('/api/scan/import', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            files: [],
+                            type: 'none',
+                            metadataOnly: false,
+                            threadCount: threadCount,
+                            importMethod: importMethod,
+                            importTemplate: importTemplate,
+                            noDataFile: true,
+                            fileExtensions: fileExtensions,
+                            scanPath: path
+                        }),
+                    });
+
+                    const importResult = await importResponse.json();
+
+                    if (importResponse.ok) {
+                        showNotification('导入任务已创建，正在后台执行', 'success');
+                        showNotification(`任务ID: ${importResult.id}`, 'info');
+                        showNotification('请前往任务管理页面查看执行情况', 'info');
+                    } else {
+                        showNotification(getI18nText('error_prefix', importResult.message || '创建导入任务失败'), 'error');
+                    }
+                } else {
+                    showNotification('开始扫描文件...', 'info');
+                    const scanResponse = await fetch('/api/scan/scan', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            path: path,
+                            depth: scanDepth,
+                            importMethod: importMethod,
+                            importTemplate: importTemplate
+                        }),
+                    });
+
+                    const scanResult = await scanResponse.json();
+
+                    if (!scanResponse.ok || !scanResult.success) {
+                        showNotification(getI18nText('error_prefix', scanResult.message || '扫描失败'), 'error');
+                        return;
+                    }
+
+                    if (scanResult.details && scanResult.details.length > 0) {
+                        const dataFiles = scanResult.details.filter(detail =>
+                            detail.type === 'gamelist.xml' || detail.type === 'metadata.pegasus.txt'
+                        );
+
+                        showNotification(getI18nText('found_files', dataFiles.length), 'success');
+
+                        if (dataFiles.length === 0) {
+                            showNotification('未找到数据文件', 'info');
+                            return;
+                        }
+
+                        showNotification('开始执行异步导入任务...', 'info');
+                        const importResponse = await fetch('/api/scan/import', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                files: dataFiles.map(detail => detail.filePath),
+                                type: dataFiles.length > 0 ? dataFiles[0].type : 'none',
+                                metadataOnly: metadataOnly,
+                                threadCount: threadCount,
+                                importMethod: importMethod,
+                                importTemplate: importTemplate,
+                                scanPath: path
+                            }),
+                        });
+
+                        const importResult = await importResponse.json();
+
+                        if (importResponse.ok) {
+                            showNotification('导入任务已创建，正在后台执行', 'success');
+                            showNotification(`任务ID: ${importResult.id}`, 'info');
+                            showNotification('请前往任务管理页面查看执行情况', 'info');
+                        } else {
+                            showNotification(getI18nText('error_prefix', importResult.message || '创建导入任务失败'), 'error');
+                        }
+                    } else {
+                        showNotification('未找到数据文件', 'info');
+                    }
+                }
+            } catch (error) {
+                showNotification(getI18nText('error_prefix', error.message), 'error');
+            } finally {
+                loading.style.display = 'none';
+                btnText.textContent = getI18nText('start_scan');
+                submitBtn.disabled = false;
+            }
+        });
+        
+
+    </script>
+</body>
+</html>

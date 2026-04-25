@@ -1,0 +1,3766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="page-title">游戏列表 - 平台管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        h1 {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+        }
+        
+        h1::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .back-btn {
+            padding: 8px 16px;
+            background: #1a1a2e;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .search-toggle-btn {
+            padding: 8px 16px;
+            background: #1a1a2e;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .search-toggle-btn:hover {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .stats {
+            font-size: 14px;
+            color: #00ffff;
+        }
+        
+        .stats strong {
+            color: #ff00ff;
+        }
+        
+        .game-table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .game-table-container::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .game-table-container::-webkit-scrollbar-track {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 8px;
+        }
+        
+        .game-table-container::-webkit-scrollbar-thumb {
+            background: #00ffff;
+            border-radius: 8px;
+        }
+        
+        .game-table-container::-webkit-scrollbar-thumb:hover {
+            background: #00cccc;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .page-size-selector label {
+            font-size: 14px;
+            color: #00ffff;
+        }
+        
+        .page-size-selector select {
+            padding: 6px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .page-navigation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .page-navigation button {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .page-navigation button:hover {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .page-navigation button:disabled {
+            background: #1a1a2e;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            font-size: 14px;
+            color: #00ffff;
+        }
+        
+        #mergeDiscsBtn {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        #mergeDiscsBtn:hover:not(:disabled) {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        #mergeDiscsBtn:disabled {
+            background: #1a1a2e;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+
+        #batchEditBtn {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #ff00ff;
+            border: 2px solid #ff00ff;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #batchEditBtn:hover:not(:disabled) {
+            background: #ff00ff;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        #batchEditBtn:disabled {
+            background: #1a1a2e;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+        
+        #migrateBtn {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #ff6600;
+            border: 1px solid #ff6600;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        #migrateBtn:hover:not(:disabled) {
+            background: #ff6600;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+        }
+        
+        #migrateBtn:disabled {
+            background: #1a1a2e;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+
+        #translateBtn {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+
+        #translateBtn:hover:not(:disabled) {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        #translateBtn:disabled {
+            background: #1a1a2e;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+
+        #addGameBtn {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+
+        #addGameBtn:hover {
+            background: #00ff00;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        #deleteSelectedBtn {
+            padding: 6px 12px;
+            background: #1a1a2e;
+            color: #f44336;
+            border: 2px solid #f44336;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+
+        #deleteSelectedBtn:hover:not(:disabled) {
+            background: #f44336;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+
+        #deleteSelectedBtn:disabled {
+            background: #1a1a2e;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+
+        .required {
+            color: #f44336;
+            font-weight: bold;
+            margin-left: 2px;
+        }
+        
+        .game-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            overflow: hidden;
+        }
+        
+        .game-table th,
+        .game-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        .game-table th {
+            background: rgba(26, 26, 46, 0.8);
+            font-weight: bold;
+            color: #00ffff;
+        }
+        
+        .game-table tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        
+        .game-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .game-table tbody tr {
+            cursor: pointer;
+        }
+        
+        .game-table tbody tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .modal-content {
+            background: rgba(0, 0, 0, 0.9);
+            margin: 15% auto;
+            padding: 20px;
+            border: 3px solid #00ffff;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #ff00ff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #fff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #00ffff;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            outline: none;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 2px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #1a1a2e;
+            color: #4CAF50;
+            border-color: #4CAF50;
+        }
+        
+        .btn-primary:hover {
+            background: #4CAF50;
+            color: #1a1a2e;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+        }
+        
+        .btn-secondary {
+            background: #1a1a2e;
+            color: #00ffff;
+            border-color: #00ffff;
+        }
+        
+        .btn-secondary:hover {
+            background: #00ffff;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            margin-right: 5px;
+            border: 2px solid;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-btn {
+            background: #1a1a2e;
+            color: #4CAF50;
+            border-color: #4CAF50;
+        }
+        
+        .edit-btn:hover {
+            background: #4CAF50;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+        
+        .delete-btn {
+            background: #1a1a2e;
+            color: #f44336;
+            border-color: #f44336;
+        }
+        
+        .delete-btn:hover {
+            background: #f44336;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border: 2px solid;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            z-index: 2000;
+            box-shadow: 0 0 15px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+        }
+        
+        .notification.error {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: #f44336;
+            box-shadow: 0 0 15px rgba(244, 67, 54, 0.6);
+        }
+        
+        .notification.info {
+            background: rgba(33, 150, 243, 0.2);
+            border-color: #2196F3;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.6);
+        }
+
+        /* 表格样式调整 */
+        .game-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .game-table th,
+        .game-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .game-table th {
+            background-color: rgba(26, 26, 46, 0.8);
+            color: #00ffff;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .game-table tr:hover {
+            background-color: rgba(0, 255, 255, 0.05);
+        }
+
+        /* 搜索区域样式 */
+        .search-area {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .search-area h3 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .search-input-group {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-input-group input {
+            padding: 10px;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            outline: none;
+            width: 300px;
+            flex: 1;
+        }
+        
+        .search-input-group input:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        .search-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .field-group label {
+            color: #00ffff;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .field-group input[type="date"] {
+            padding: 8px;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            outline: none;
+            width: 100%;
+        }
+        
+        .field-group input[type="date"]:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        .field-group select {
+            padding: 8px;
+            border: 2px solid #00ffff;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            outline: none;
+            width: 100%;
+            height: 120px;
+        }
+        
+        .field-group select:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        .field-group button {
+            padding: 10px 20px;
+            border: 2px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        
+        .field-group button:nth-child(2) {
+            background: #1a1a2e;
+            color: #4CAF50;
+            border-color: #4CAF50;
+        }
+        
+        .field-group button:nth-child(2):hover {
+            background: #4CAF50;
+            color: #1a1a2e;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+        }
+        
+        .field-group button:nth-child(3) {
+            background: #1a1a2e;
+            color: #f44336;
+            border-color: #f44336;
+        }
+        
+        .field-group button:nth-child(3):hover {
+            background: #f44336;
+            color: #1a1a2e;
+            box-shadow: 0 0 15px rgba(244, 67, 54, 0.6);
+        }
+        
+        /* 日期范围字段特殊处理 */
+        .date-range {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .date-range input[type="date"],
+        .date-range input[type="number"] {
+            padding: 5px;
+            background: #1a1a2e;
+            color: #00ffff;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            width: 100px;
+        }
+        
+        .date-range span {
+            color: #00ffff;
+            white-space: nowrap;
+        }
+        
+        /* 复选框组样式 */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #1a1a2e;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #00ffff;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            accent-color: #00ffff;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .game-table {
+                font-size: 12px;
+            }
+
+            .game-table th,
+            .game-table td {
+                padding: 8px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .pagination-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .game-table {
+                font-size: 14px;
+            }
+            
+            .game-table th,
+            .game-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>游戏列表</h1>
+        
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="goBack()" data-i18n="back-platform">返回平台管理</button>
+                <div class="stats" style="margin-left: 20px;">
+                    <span data-i18n="platform">平台</span>: <span id="platformName" data-i18n="loading">加载中...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="language-selector">
+                    <select id="langSelect" onchange="changeLanguage(this.value)">
+                        <option value="zh">中文</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                    </select>
+                </div>
+                <button class="search-toggle-btn" onclick="toggleSearch()" data-i18n="search">搜索</button>
+                <div class="stats">
+                    <span data-i18n="total-games">游戏总数</span>: <strong id="totalGames">0</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 搜索区域 -->
+        <div class="search-area" id="searchArea" style="display: none;">
+            <h3 data-i18n="search">搜索</h3>
+            <div class="search-fields">
+                <div class="field-group search-input-group">
+                    <input type="text" id="searchInput" placeholder="搜索游戏名称或路径...">
+                </div>
+                <div class="field-group">
+                    <label>发行日期范围:</label>
+                    <div class="date-range">
+                        <input type="number" id="startYear" placeholder="开始年份" min="1900" max="2100">
+                        <span>至</span>
+                        <input type="number" id="endYear" placeholder="结束年份" min="1900" max="2100">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>开发商:</label>
+                    <div class="checkbox-group" id="developerCheckboxes">
+                        <!-- 动态填充开发商复选框 -->
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>游戏类型:</label>
+                    <div class="checkbox-group" id="genreCheckboxes">
+                        <!-- 动态填充游戏类型复选框 -->
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>玩家数量:</label>
+                    <div class="checkbox-group" id="playersCheckboxes">
+                        <!-- 动态填充玩家数量复选框 -->
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>刮削状态:</label>
+                    <div class="checkbox-group" id="scrapeStatusCheckboxes">
+                        <label><input type="checkbox" value="fully_scraped"> 完全刮削</label>
+                        <label><input type="checkbox" value="partially_scraped"> 部分刮削</label>
+                        <label><input type="checkbox" value="not_scraped"> 未刮削</label>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <button onclick="searchGames()">搜索</button>
+                    <button onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pagination-controls">
+            <div class="page-size-selector">
+                <label for="pageSize" data-i18n="page-size">每页显示:</label>
+                <select id="pageSize" onchange="changePageSize()">
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <button id="addGameBtn" onclick="openAddGameModal()" data-i18n="add">新增</button>
+                <button id="deleteSelectedBtn" onclick="deleteSelectedGames()" disabled data-i18n="delete-selected">删除选中</button>
+                <button id="mergeDiscsBtn" onclick="mergeDiscs()" disabled data-i18n="merge-discs">合盘</button>
+                <button id="batchEditBtn" onclick="openBatchEditModal()" disabled data-i18n="batch-edit">批量修改</button>
+                <button id="translateBtn" onclick="openTranslateModal()" disabled data-i18n="translate">翻译</button>
+                <button id="migrateBtn" onclick="openMigrateModal()" disabled data-i18n="migrate">迁转</button>
+            </div>
+            <div class="page-navigation">
+                <button onclick="previousPage()" id="prevBtn" data-i18n="prev-page">上一页</button>
+                <span class="page-info" id="pageInfo" data-i18n="page-info">第 1 页，共 0 页</span>
+                <button onclick="nextPage()" id="nextBtn" data-i18n="next-page">下一页</button>
+            </div>
+        </div>
+        
+        <div class="game-table-container">
+            <table class="game-table" id="gameTable">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
+                        <th style="width: 50px;">ID</th>
+                        <th style="width: 150px;" data-i18n="game-name">游戏名称</th>
+                        <th style="width: 150px;" data-i18n="game-path">游戏路径</th>
+                        <th style="width: 150px;" data-i18n="platform-path">平台路径</th>
+                        <th style="width: 200px;" data-i18n="game-desc">游戏描述</th>
+                        <th style="width: 150px;" data-i18n="translated-name">翻译名称</th>
+                        <th style="width: 200px;" data-i18n="translated-desc">翻译描述</th>
+                        <th style="width: 120px;" data-i18n="developer">开发商</th>
+                        <th style="width: 120px;" data-i18n="publisher">发行商</th>
+                        <th style="width: 100px;" data-i18n="genre">游戏类型</th>
+                        <th style="width: 80px;" data-i18n="players">玩家数量</th>
+                        <th style="width: 100px;" data-i18n="release-date">发行日期</th>
+                        <th style="width: 60px;" data-i18n="rating">评分</th>
+                        <th style="width: 80px;" data-i18n="language">语言</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="14" style="text-align: center; color: #888;">加载游戏列表中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 批量编辑游戏模态框 -->
+    <div id="batchEditModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBatchEditModal()">&times;</span>
+            <h2 data-i18n="batch-edit-title">批量修改游戏</h2>
+            <form id="batchEditForm">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div class="form-group">
+                        <label for="batchDeveloper" data-i18n="batch-developer">开发商</label>
+                        <input type="text" id="batchDeveloper" data-i18n-placeholder="leave-blank-no-change" placeholder="留空则不修改">
+                    </div>
+                    <div class="form-group">
+                        <label for="batchPublisher" data-i18n="batch-publisher">发行商</label>
+                        <input type="text" id="batchPublisher" data-i18n-placeholder="leave-blank-no-change" placeholder="留空则不修改">
+                    </div>
+                    <div class="form-group">
+                        <label for="batchGenre" data-i18n="batch-genre">游戏类型</label>
+                        <input type="text" id="batchGenre" data-i18n-placeholder="leave-blank-no-change" placeholder="留空则不修改">
+                    </div>
+                    <div class="form-group">
+                        <label for="batchPlayers" data-i18n="batch-players">玩家数</label>
+                        <input type="text" id="batchPlayers" data-i18n-placeholder="leave-blank-no-change" placeholder="留空则不修改">
+                    </div>
+                    <div class="form-group">
+                        <label for="batchLang" data-i18n="batch-lang">语言</label>
+                        <input type="text" id="batchLang" data-i18n-placeholder="leave-blank-no-change" placeholder="留空则不修改">
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <p id="batchEditInfo" style="color: #00ffff; margin-bottom: 15px;" data-i18n="batch-edit-info">将修改 0 个游戏</p>
+                    <button type="button" onclick="submitBatchEdit()" class="action-btn" style="background: #00ffff; color: #1a1a2e;" data-i18n="confirm-edit">确认修改</button>
+                    <button type="button" onclick="closeBatchEditModal()" class="action-btn" style="margin-left: 10px;" data-i18n="cancel">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 迁转游戏模态框 -->
+    <div id="migrateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeMigrateModal()">&times;</span>
+            <h2 data-i18n="migrate-title">迁转游戏到其他平台</h2>
+            <form id="migrateForm">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <p id="migrateInfo" style="color: #ff6600; margin-bottom: 15px;" data-i18n="migrate-info">将迁转 0 个游戏到目标平台</p>
+                </div>
+                <div class="form-group">
+                    <label for="targetPlatform" data-i18n="target-platform">目标平台</label>
+                    <select id="targetPlatform" style="width: 100%; padding: 10px; background: #1a1a2e; color: #00ffff; border: 1px solid #00ffff; border-radius: 4px;">
+                        <option value="" data-i18n="select-target-platform">请选择目标平台</option>
+                    </select>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" onclick="submitMigrate()" class="action-btn" style="background: #ff6600; color: #1a1a2e;" data-i18n="confirm-migrate">确认迁转</button>
+                    <button type="button" onclick="closeMigrateModal()" class="action-btn" style="margin-left: 10px;" data-i18n="cancel">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 翻译游戏模态框 -->
+    <div id="translateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTranslateModal()">&times;</span>
+            <h2 data-i18n="translate-title">翻译游戏</h2>
+            <form id="translateForm">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <p id="translateInfo" style="color: #00ffff; margin-bottom: 15px;" data-i18n="translate-info">将翻译 0 个游戏</p>
+                </div>
+                <div class="form-group">
+                    <label for="translationSourceLang" data-i18n="source-lang">源语言</label>
+                    <select id="translationSourceLang" style="width: 100%; padding: 10px; background: #1a1a2e; color: #00ffff; border: 1px solid #00ffff; border-radius: 4px;">
+                        <option value="auto" data-i18n="auto-detect">自动检测</option>
+                        <option value="zh" data-i18n="chinese">中文</option>
+                        <option value="en" data-i18n="english">英文</option>
+                        <option value="ja" data-i18n="japanese">日文</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="translationTargetLang" data-i18n="target-lang">目标语言</label>
+                    <select id="translationTargetLang" style="width: 100%; padding: 10px; background: #1a1a2e; color: #00ffff; border: 1px solid #00ffff; border-radius: 4px;">
+                        <option value="zh" data-i18n="chinese">中文</option>
+                        <option value="en" data-i18n="english">英文</option>
+                        <option value="ja" data-i18n="japanese">日文</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="translationApi" data-i18n="select-translation-api">翻译API</label>
+                    <select id="translationApi" style="width: 100%; padding: 10px; background: #1a1a2e; color: #00ffff; border: 1px solid #00ffff; border-radius: 4px;">
+                        <option value="" data-i18n="select-api">请选择翻译API</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="translationType" data-i18n="translation-content">翻译内容</label>
+                    <select id="translationType" style="width: 100%; padding: 10px; background: #1a1a2e; color: #00ffff; border: 1px solid #00ffff; border-radius: 4px;">
+                        <option value="name" data-i18n="name-only">仅游戏名称</option>
+                        <option value="description" data-i18n="desc-only">仅游戏描述</option>
+                        <option value="both" data-i18n="name-and-desc">游戏名称和描述</option>
+                    </select>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" onclick="submitTranslate()" class="action-btn" style="background: #00ffff; color: #1a1a2e;" data-i18n="start-translate">开始翻译</button>
+                    <button type="button" onclick="closeTranslateModal()" class="action-btn" style="margin-left: 10px;" data-i18n="cancel">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 游戏编辑模态框 -->
+    <div id="editGameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditGameModal()">&times;</span>
+            <h2>编辑游戏</h2>
+            <form id="editGameForm">
+                <input type="hidden" id="gameId">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div class="form-group">
+                        <label for="gameName">游戏名称</label>
+                        <input type="text" id="gameName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePath">游戏路径</label>
+                        <input type="text" id="gamePath" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameDescription">游戏描述</label>
+                        <textarea id="gameDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="translatedName">翻译名称</label>
+                        <input type="text" id="translatedName">
+                    </div>
+                    <div class="form-group">
+                        <label for="translatedDescription">翻译描述</label>
+                        <textarea id="translatedDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameDeveloper">开发商</label>
+                        <input type="text" id="gameDeveloper">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePublisher">发行商</label>
+                        <input type="text" id="gamePublisher">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameType">游戏类型</label>
+                        <input type="text" id="gameType">
+                    </div>
+                    <div class="form-group">
+                        <label for="playerCount">玩家数</label>
+                        <input type="text" id="playerCount">
+                    </div>
+                    <div class="form-group">
+                        <label for="releaseDate">发布日期</label>
+                        <input type="text" id="releaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="rating">评分</label>
+                        <input type="text" id="rating">
+                    </div>
+                    <div class="form-group">
+                        <label for="language">语言</label>
+                        <input type="text" id="language">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameId">游戏ID</label>
+                        <input type="text" id="gameIdInput">
+                    </div>
+                    <div class="form-group">
+                        <label for="source">来源</label>
+                        <input type="text" id="source">
+                    </div>
+                    <div class="form-group">
+                        <label for="image">图片路径</label>
+                        <input type="text" id="image">
+                    </div>
+                    <div class="form-group">
+                        <label for="video">视频路径</label>
+                        <input type="text" id="video">
+                    </div>
+                    <div class="form-group">
+                        <label for="marquee">横幅路径</label>
+                        <input type="text" id="marquee">
+                    </div>
+                    <div class="form-group">
+                        <label for="thumbnail">缩略图路径</label>
+                        <input type="text" id="thumbnail">
+                    </div>
+                    <div class="form-group">
+                        <label for="manual">手册路径</label>
+                        <input type="text" id="manual">
+                    </div>
+                    <div class="form-group">
+                        <label for="boxFront">包装盒正面</label>
+                        <input type="text" id="boxFront">
+                    </div>
+                    <div class="form-group">
+                        <label for="boxBack">包装盒背面</label>
+                        <input type="text" id="boxBack">
+                    </div>
+                    <div class="form-group">
+                        <label for="boxSpine">包装盒侧脊</label>
+                        <input type="text" id="boxSpine">
+                    </div>
+                    <div class="form-group">
+                        <label for="boxFull">完整包装盒</label>
+                        <input type="text" id="boxFull">
+                    </div>
+                    <div class="form-group">
+                        <label for="cartridge">卡带/光盘</label>
+                        <input type="text" id="cartridge">
+                    </div>
+                    <div class="form-group">
+                        <label for="logo">游戏Logo</label>
+                        <input type="text" id="logo">
+                    </div>
+                    <div class="form-group">
+                        <label for="bezel">屏幕边框</label>
+                        <input type="text" id="bezel">
+                    </div>
+                    <div class="form-group">
+                        <label for="panel">控制台面板</label>
+                        <input type="text" id="panel">
+                    </div>
+                    <div class="form-group">
+                        <label for="cabinetLeft">街机左侧</label>
+                        <input type="text" id="cabinetLeft">
+                    </div>
+                    <div class="form-group">
+                        <label for="cabinetRight">街机右侧</label>
+                        <input type="text" id="cabinetRight">
+                    </div>
+                    <div class="form-group">
+                        <label for="tile">方形预览图</label>
+                        <input type="text" id="tile">
+                    </div>
+                    <div class="form-group">
+                        <label for="banner">横幅图</label>
+                        <input type="text" id="banner">
+                    </div>
+                    <div class="form-group">
+                        <label for="steam">Steam网格图标</label>
+                        <input type="text" id="steam">
+                    </div>
+                    <div class="form-group">
+                        <label for="poster">宣传海报</label>
+                        <input type="text" id="poster">
+                    </div>
+                    <div class="form-group">
+                        <label for="background">背景图像</label>
+                        <input type="text" id="background">
+                    </div>
+                    <div class="form-group">
+                        <label for="music">背景音乐</label>
+                        <input type="text" id="music">
+                    </div>
+                    <div class="form-group">
+                        <label for="screenshot">游戏截图</label>
+                        <input type="text" id="screenshot">
+                    </div>
+                    <div class="form-group">
+                        <label for="titlescreen">标题画面</label>
+                        <input type="text" id="titlescreen">
+                    </div>
+                    <div class="form-group">
+                        <label for="crc32">CRC32</label>
+                        <input type="text" id="crc32">
+                    </div>
+                    <div class="form-group">
+                        <label for="genreid">类型ID</label>
+                        <input type="text" id="genreid">
+                    </div>
+                    <div class="form-group">
+                        <label for="platformId">平台ID</label>
+                        <input type="text" id="platformIdInput">
+                    </div>
+                    <div class="form-group">
+                        <label for="platformPath">平台路径</label>
+                        <input type="text" id="platformPath">
+                    </div>
+                    <div class="form-group">
+                        <label for="sortBy">排序字段</label>
+                        <input type="text" id="sortBy">
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" onclick="saveGame()" class="btn btn-primary">保存修改</button>
+                    <button type="button" onclick="viewMediaFiles()" class="btn btn-info">查看媒体文件</button>
+                    <button type="button" onclick="closeEditGameModal()" class="btn btn-secondary">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 新增游戏模态框 -->
+    <div id="addGameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddGameModal()">&times;</span>
+            <h2>新增游戏</h2>
+            <form id="addGameForm">
+                <input type="hidden" id="addGamePlatformId">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div class="form-group">
+                        <label for="addGameName">游戏名称 <span class="required">*</span></label>
+                        <input type="text" id="addGameName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addGamePath">游戏路径 <span class="required">*</span></label>
+                        <input type="text" id="addGamePath" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addGameDescription">游戏描述</label>
+                        <textarea id="addGameDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="addTranslatedName">翻译名称</label>
+                        <input type="text" id="addTranslatedName">
+                    </div>
+                    <div class="form-group">
+                        <label for="addTranslatedDescription">翻译描述</label>
+                        <textarea id="addTranslatedDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="addGameDeveloper">开发商</label>
+                        <input type="text" id="addGameDeveloper">
+                    </div>
+                    <div class="form-group">
+                        <label for="addGamePublisher">发行商</label>
+                        <input type="text" id="addGamePublisher">
+                    </div>
+                    <div class="form-group">
+                        <label for="addGameType">游戏类型</label>
+                        <input type="text" id="addGameType">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlayerCount">玩家数</label>
+                        <input type="text" id="addPlayerCount">
+                    </div>
+                    <div class="form-group">
+                        <label for="addReleaseDate">发布日期</label>
+                        <input type="text" id="addReleaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="addRating">评分</label>
+                        <input type="text" id="addRating">
+                    </div>
+                    <div class="form-group">
+                        <label for="addLanguage">语言</label>
+                        <input type="text" id="addLanguage">
+                    </div>
+                    <div class="form-group">
+                        <label for="addGameId">游戏ID</label>
+                        <input type="text" id="addGameIdInput">
+                    </div>
+                    <div class="form-group">
+                        <label for="addSource">来源</label>
+                        <input type="text" id="addSource">
+                    </div>
+                    <div class="form-group">
+                        <label for="addImage">图片路径</label>
+                        <input type="text" id="addImage">
+                    </div>
+                    <div class="form-group">
+                        <label for="addVideo">视频路径</label>
+                        <input type="text" id="addVideo">
+                    </div>
+                    <div class="form-group">
+                        <label for="addMarquee">横幅路径</label>
+                        <input type="text" id="addMarquee">
+                    </div>
+                    <div class="form-group">
+                        <label for="addThumbnail">缩略图路径</label>
+                        <input type="text" id="addThumbnail">
+                    </div>
+                    <div class="form-group">
+                        <label for="addManual">手册路径</label>
+                        <input type="text" id="addManual">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBoxFront">包装盒正面</label>
+                        <input type="text" id="addBoxFront">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBoxBack">包装盒背面</label>
+                        <input type="text" id="addBoxBack">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBoxSpine">包装盒侧脊</label>
+                        <input type="text" id="addBoxSpine">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBoxFull">完整包装盒</label>
+                        <input type="text" id="addBoxFull">
+                    </div>
+                    <div class="form-group">
+                        <label for="addCartridge">卡带/光盘</label>
+                        <input type="text" id="addCartridge">
+                    </div>
+                    <div class="form-group">
+                        <label for="addLogo">游戏Logo</label>
+                        <input type="text" id="addLogo">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBezel">屏幕边框</label>
+                        <input type="text" id="addBezel">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPanel">控制台面板</label>
+                        <input type="text" id="addPanel">
+                    </div>
+                    <div class="form-group">
+                        <label for="addCabinetLeft">街机左侧</label>
+                        <input type="text" id="addCabinetLeft">
+                    </div>
+                    <div class="form-group">
+                        <label for="addCabinetRight">街机右侧</label>
+                        <input type="text" id="addCabinetRight">
+                    </div>
+                    <div class="form-group">
+                        <label for="addTile">方形预览图</label>
+                        <input type="text" id="addTile">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBanner">横幅图</label>
+                        <input type="text" id="addBanner">
+                    </div>
+                    <div class="form-group">
+                        <label for="addSteam">Steam网格图标</label>
+                        <input type="text" id="addSteam">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPoster">宣传海报</label>
+                        <input type="text" id="addPoster">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBackground">背景图像</label>
+                        <input type="text" id="addBackground">
+                    </div>
+                    <div class="form-group">
+                        <label for="addMusic">背景音乐</label>
+                        <input type="text" id="addMusic">
+                    </div>
+                    <div class="form-group">
+                        <label for="addScreenshot">游戏截图</label>
+                        <input type="text" id="addScreenshot">
+                    </div>
+                    <div class="form-group">
+                        <label for="addTitlescreen">标题画面</label>
+                        <input type="text" id="addTitlescreen">
+                    </div>
+                    <div class="form-group">
+                        <label for="addCrc32">CRC32</label>
+                        <input type="text" id="addCrc32">
+                    </div>
+                    <div class="form-group">
+                        <label for="addGenreid">类型ID</label>
+                        <input type="text" id="addGenreid">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlatformId">平台ID</label>
+                        <input type="text" id="addPlatformIdInput">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlatformPath">平台路径</label>
+                        <input type="text" id="addPlatformPath">
+                    </div>
+                    <div class="form-group">
+                        <label for="addSortBy">排序字段</label>
+                        <input type="text" id="addSortBy">
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-info" onclick="viewMediaFiles()">查看媒体文件</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddGameModal()">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddGame()">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 媒体文件查看模态框 -->
+    <div id="mediaViewModal" class="modal">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+            <span class="close" onclick="closeMediaViewModal()">&times;</span>
+            <h2>媒体文件查看</h2>
+            <div id="mediaContent" style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-height: 70vh; overflow-y: auto;">
+                <!-- 媒体文件将动态添加到这里 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 通知容器 -->
+    <div id="notificationContainer"></div>
+    
+    <script>
+        // 全局变量
+        let platformId = 0;
+        let subsetId = 0;
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalGames = 0;
+        let totalPages = 0;
+        
+        // 获取URL参数
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+        
+        // 返回平台管理页面
+        function goBack() {
+            window.location.href = 'platform-management.html';
+        }
+        
+        // 获取平台信息
+        function getPlatformInfo() {
+            fetch(`/api/platforms/${platformId}`)
+                .then(response => response.json())
+                .then(platform => {
+                    document.getElementById('platformName').textContent = platform.name;
+                })
+                .catch(error => console.error('Error fetching platform info:', error));
+        }
+        
+        // 获取子集信息
+        function getSubsetInfo() {
+            fetch(`/api/temp-subsets/${subsetId}`)
+                .then(response => response.json())
+                .then(subset => {
+                    document.getElementById('platformName').textContent = subset.name;
+                })
+                .catch(error => console.error('Error fetching subset info:', error));
+        }
+        
+        // 获取平台游戏列表
+        function loadGames() {
+            console.log('=== loadGames 开始 ===');
+            console.log('Loading games for platform:', platformId);
+            console.log('Loading games for subset:', subsetId);
+            console.log('Current page:', currentPage);
+            console.log('Page size:', pageSize);
+            
+            const tableBody = document.querySelector('#gameTable tbody');
+            console.log('tableBody:', tableBody);
+            
+            if (!tableBody) {
+                console.error('tableBody not found!');
+                return;
+            }
+            
+            tableBody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: #00ffff;">加载游戏列表中...</td></tr>';
+            
+            const totalGamesEl = document.getElementById('totalGames');
+            const pageInfoEl = document.getElementById('pageInfo');
+            
+            if (totalGamesEl) {
+                totalGamesEl.textContent = '加载中...';
+            }
+            if (pageInfoEl) {
+                pageInfoEl.textContent = '加载中...';
+            }
+            
+            let url = '';
+            if (platformId) {
+                url = `/api/gamelist/platforms/${platformId}/games?page=${currentPage}&pageSize=${pageSize}`;
+            } else if (subsetId) {
+                url = `/api/temp-subsets/${subsetId}/games`;
+            } else {
+                url = `/api/gamelist/games?page=${currentPage}&pageSize=${pageSize}`;
+            }
+            
+            console.log('Fetching URL:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('=== 收到响应 ===');
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    console.log('=== 原始响应 ===');
+                    console.log('Raw response text:', text);
+                    try {
+                        if (!text || text.trim() === '') {
+                            console.error('Response text is empty');
+                            return [];
+                        }
+                        const parsed = JSON.parse(text);
+                        console.log('=== 解析后的JSON ===');
+                        console.log('Parsed data:', parsed);
+                        return parsed;
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                        console.error('Response text causing error:', text);
+                        return [];
+                    }
+                })
+                .then(data => {
+                    console.log('=== 处理数据 ===');
+                    console.log('Parsed data:', data);
+                    console.log('Data type:', typeof data);
+                    console.log('Is array:', Array.isArray(data));
+                    
+                    let games = [];
+                    let totalElements = 0;
+                    let totalPagesCount = 0;
+                    
+                    // 检查返回的数据结构
+                    if (Array.isArray(data)) {
+                        console.log('=== 数据是数组 ===');
+                        // 直接返回游戏数组的情况（如子集游戏）
+                        games = data;
+                        totalElements = data.length;
+                        totalPagesCount = Math.ceil(totalElements / pageSize);
+                    } else if (data && typeof data === 'object') {
+                        console.log('=== 数据是对象 ===');
+                        // 返回包含分页信息的对象的情况
+                        if (data.games && Array.isArray(data.games)) {
+                            console.log('=== 对象包含games数组 ===');
+                            games = data.games;
+                            totalElements = data.totalElements || games.length;
+                            totalPagesCount = data.totalPages || Math.ceil(totalElements / pageSize);
+                        } else {
+                            console.error('Data structure not recognized:', data);
+                        }
+                    } else {
+                        console.error('Data is not an array or object:', data);
+                    }
+                    
+                    console.log('Games array:', games);
+                    console.log('Games length:', games.length);
+                    console.log('Total elements:', totalElements);
+                    console.log('Total pages:', totalPagesCount);
+                    
+                    totalGames = totalElements;
+                    totalPages = totalPagesCount;
+                    
+                    if (totalGamesEl) {
+                        totalGamesEl.textContent = totalGames;
+                    }
+                    if (pageInfoEl) {
+                        pageInfoEl.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+                    }
+                    
+                    tableBody.innerHTML = '';
+                    
+                    if (games.length === 0) {
+                        console.log('=== 没有游戏 ===');
+                        tableBody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: #888;">该平台暂无游戏</td></tr>';
+                    } else {
+                        console.log('=== 开始渲染游戏 ===');
+                        for (let i = 0; i < games.length; i++) {
+                            try {
+                                const game = games[i];
+                                console.log('Processing game', i, ':', game);
+                                
+                                const row = document.createElement('tr');
+                                row.setAttribute('data-game-id', game.id);
+                                row.onclick = function() {
+                                    openEditGameModal(game.id);
+                                };
+                                row.style.cursor = 'pointer';
+                                row.innerHTML = `
+                                    <td>${game.id || ''}</td>
+                                    <td>${game.name || ''}</td>
+                                    <td>${game.path || ''}</td>
+                                    <td>${game.desc || game.description || ''}</td>
+                                    <td>${game.translatedName || ''}</td>
+                                    <td>${game.translatedDesc || game.translatedDescription || ''}</td>
+                                    <td>${game.developer || ''}</td>
+                                    <td>${game.publisher || ''}</td>
+                                    <td>${game.genre || game.gameType || ''}</td>
+                                    <td>${game.players || game.playerCount || ''}</td>
+                                    <td>${game.releasedate || game.releaseDate || ''}</td>
+                                    <td>${game.rating || ''}</td>
+                                    <td>${game.lang || game.language || ''}</td>
+                                `;
+                                tableBody.appendChild(row);
+                            } catch (e) {
+                                console.error('Error processing game:', i, e);
+                            }
+                        }
+                        console.log('=== 游戏渲染完成 ===');
+                    }
+                    console.log('=== loadGames 正常结束 ===');
+                })
+                .catch(error => {
+                    console.error('=== loadGames 错误 ===');
+                    console.error('Error loading games:', error);
+                    if (totalGamesEl) {
+                        totalGamesEl.textContent = '0';
+                    }
+                    if (pageInfoEl) {
+                        pageInfoEl.textContent = '第 1 页，共 0 页';
+                    }
+                    tableBody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: #ff0088;">获取游戏列表失败，请重试: ' + error.message + '</td></tr>';
+                });
+        }
+        
+        // 打开批量编辑模态框
+        function openBatchEditModal() {
+            const selectedGames = getSelectedGameIds();
+            if (selectedGames.length === 0) {
+                alert('请先选择要修改的游戏');
+                return;
+            }
+            document.getElementById('batchEditInfo').textContent = `将修改 ${selectedGames.length} 个游戏`;
+            document.getElementById('batchDeveloper').value = '';
+            document.getElementById('batchPublisher').value = '';
+            document.getElementById('batchGenre').value = '';
+            document.getElementById('batchPlayers').value = '';
+            document.getElementById('batchLang').value = '';
+            document.getElementById('batchEditModal').style.display = 'block';
+        }
+        
+        // 关闭批量编辑模态框
+        function closeBatchEditModal() {
+            document.getElementById('batchEditModal').style.display = 'none';
+        }
+        
+        // 打开迁转模态框
+        function openMigrateModal() {
+            const selectedGames = getSelectedGameIds();
+            if (selectedGames.length === 0) {
+                alert('请先选择要迁转的游戏');
+                return;
+            }
+            document.getElementById('migrateInfo').textContent = `将迁转 ${selectedGames.length} 个游戏到目标平台`;
+            loadPlatformsForMigrate();
+            document.getElementById('migrateModal').style.display = 'block';
+        }
+        
+        // 加载平台列表用于迁转
+        function loadPlatformsForMigrate() {
+            const select = document.getElementById('targetPlatform');
+            select.innerHTML = '<option value="">请选择目标平台</option>';
+            
+            fetch('/api/platforms')
+                .then(response => response.json())
+                .then(platforms => {
+                    platforms.forEach(platform => {
+                        if (platform.id != platformId) {
+                            const option = document.createElement('option');
+                            option.value = platform.id;
+                            option.textContent = platform.name;
+                            select.appendChild(option);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('加载平台列表失败:', error);
+                    alert('加载平台列表失败');
+                });
+        }
+        
+        // 关闭迁转模态框
+        function closeMigrateModal() {
+            document.getElementById('migrateModal').style.display = 'none';
+        }
+        
+        // 提交迁转
+        function submitMigrate() {
+            const selectedGames = getSelectedGameIds();
+            if (selectedGames.length === 0) {
+                alert('请先选择要迁转的游戏');
+                return;
+            }
+            
+            const targetPlatformId = document.getElementById('targetPlatform').value;
+            if (!targetPlatformId) {
+                alert('请选择目标平台');
+                return;
+            }
+            
+            const request = {
+                gameIds: selectedGames,
+                targetPlatformId: parseInt(targetPlatformId)
+            };
+            
+            fetch('/api/gamelist/games/migrate', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`成功迁转 ${data.migratedCount} 个游戏到目标平台`);
+                    closeMigrateModal();
+                    loadGames(currentPage);
+                } else {
+                    alert('迁转失败：' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('迁转失败:', error);
+                alert('迁转失败：' + error.message);
+            });
+        }
+        
+        // 提交批量修改
+        function submitBatchEdit() {
+            const selectedGames = getSelectedGameIds();
+            if (selectedGames.length === 0) {
+                alert('请先选择要修改的游戏');
+                return;
+            }
+            
+            const updates = {};
+            const developer = document.getElementById('batchDeveloper').value.trim();
+            const publisher = document.getElementById('batchPublisher').value.trim();
+            const genre = document.getElementById('batchGenre').value.trim();
+            const players = document.getElementById('batchPlayers').value.trim();
+            const lang = document.getElementById('batchLang').value.trim();
+            
+            if (developer) updates.developer = developer;
+            if (publisher) updates.publisher = publisher;
+            if (genre) updates.genre = genre;
+            if (players) updates.players = players;
+            if (lang) updates.lang = lang;
+            
+            if (Object.keys(updates).length === 0) {
+                alert('请至少填写一项要修改的内容');
+                return;
+            }
+            
+            const request = {
+                gameIds: selectedGames,
+                updates: updates
+            };
+            
+            fetch('/api/gamelist/games/batch', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`成功修改 ${data.updatedCount} 个游戏`);
+                    closeBatchEditModal();
+                    loadGames(currentPage);
+                } else {
+                    alert('批量修改失败：' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('批量修改失败:', error);
+                alert('批量修改失败：' + error.message);
+            });
+        }
+        
+        // 获取选中的游戏ID列表
+        function getSelectedGameIds() {
+            const checkboxes = document.querySelectorAll('.game-checkbox:checked');
+            const gameIds = [];
+            checkboxes.forEach(checkbox => {
+                gameIds.push(parseInt(checkbox.value));
+            });
+            return gameIds;
+        }
+        
+        // 打开编辑游戏模态框
+        function openEditGameModal(gameId) {
+            let url = '';
+            if (platformId) {
+                url = `/api/gamelist/games/${gameId}`;
+            } else if (subsetId) {
+                url = `/api/temp-subsets/games/${gameId}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(game => {
+                    document.getElementById('gameId').value = game.id;
+                    document.getElementById('gameName').value = game.name;
+                    document.getElementById('gamePath').value = game.path;
+                    // 添加platformPath字段
+                    if (document.getElementById('platformPath')) {
+                        document.getElementById('platformPath').value = game.platformPath || '';
+                    }
+                    document.getElementById('gameDescription').value = game.description || game.desc || '';
+                    document.getElementById('translatedName').value = game.translatedName || '';
+                    document.getElementById('translatedDescription').value = game.translatedDescription || game.translatedDesc || '';
+                    document.getElementById('gameDeveloper').value = game.developer || '';
+                    document.getElementById('gamePublisher').value = game.publisher || '';
+                    document.getElementById('gameType').value = game.gameType || game.genre || '';
+                    document.getElementById('playerCount').value = game.playerCount || game.players || '';
+                    document.getElementById('releaseDate').value = game.releaseDate || game.releasedate || '';
+                    document.getElementById('rating').value = game.rating || '';
+                    document.getElementById('language').value = game.language || game.lang || '';
+                    document.getElementById('gameIdInput').value = game.gameId || '';
+                    document.getElementById('source').value = game.source || '';
+                    document.getElementById('image').value = game.image || '';
+                    document.getElementById('video').value = game.video || '';
+                    document.getElementById('marquee').value = game.marquee || '';
+                    document.getElementById('thumbnail').value = game.thumbnail || '';
+                    document.getElementById('manual').value = game.manual || '';
+                    document.getElementById('boxFront').value = game.boxFront || '';
+                    document.getElementById('boxBack').value = game.boxBack || '';
+                    document.getElementById('boxSpine').value = game.boxSpine || '';
+                    document.getElementById('boxFull').value = game.boxFull || '';
+                    document.getElementById('cartridge').value = game.cartridge || '';
+                    document.getElementById('logo').value = game.logo || '';
+                    document.getElementById('bezel').value = game.bezel || '';
+                    document.getElementById('panel').value = game.panel || '';
+                    document.getElementById('cabinetLeft').value = game.cabinetLeft || '';
+                    document.getElementById('cabinetRight').value = game.cabinetRight || '';
+                    document.getElementById('tile').value = game.tile || '';
+                    document.getElementById('banner').value = game.banner || '';
+                    document.getElementById('steam').value = game.steam || '';
+                    document.getElementById('poster').value = game.poster || '';
+                    document.getElementById('background').value = game.background || '';
+                    document.getElementById('music').value = game.music || '';
+                    document.getElementById('screenshot').value = game.screenshot || '';
+                    document.getElementById('titlescreen').value = game.titlescreen || '';
+                    document.getElementById('crc32').value = game.crc32 || '';
+                    document.getElementById('genreid').value = game.genreid || '';
+                    document.getElementById('platformIdInput').value = game.platformId || '';
+                    document.getElementById('sortBy').value = game.sortBy || '';
+                    document.getElementById('editGameModal').style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching game:', error));
+        }
+        
+        // 打开新增游戏模态框
+        function openAddGameModal() {
+            // 重置表单
+            document.getElementById('addGameName').value = '';
+            document.getElementById('addGamePath').value = '';
+            document.getElementById('addGameDescription').value = '';
+            document.getElementById('addTranslatedName').value = '';
+            document.getElementById('addTranslatedDescription').value = '';
+            document.getElementById('addGameDeveloper').value = '';
+            document.getElementById('addGamePublisher').value = '';
+            document.getElementById('addGameType').value = '';
+            document.getElementById('addPlayerCount').value = '';
+            document.getElementById('addReleaseDate').value = '';
+            document.getElementById('addRating').value = '';
+            document.getElementById('addLanguage').value = '';
+            document.getElementById('addGameIdInput').value = '';
+            document.getElementById('addSource').value = '';
+            document.getElementById('addImage').value = '';
+            document.getElementById('addVideo').value = '';
+            document.getElementById('addMarquee').value = '';
+            document.getElementById('addThumbnail').value = '';
+            document.getElementById('addManual').value = '';
+            document.getElementById('addBoxFront').value = '';
+            document.getElementById('addBoxBack').value = '';
+            document.getElementById('addBoxSpine').value = '';
+            document.getElementById('addBoxFull').value = '';
+            document.getElementById('addCartridge').value = '';
+            document.getElementById('addLogo').value = '';
+            document.getElementById('addBezel').value = '';
+            document.getElementById('addPanel').value = '';
+            document.getElementById('addCabinetLeft').value = '';
+            document.getElementById('addCabinetRight').value = '';
+            document.getElementById('addTile').value = '';
+            document.getElementById('addBanner').value = '';
+            document.getElementById('addSteam').value = '';
+            document.getElementById('addPoster').value = '';
+            document.getElementById('addBackground').value = '';
+            document.getElementById('addMusic').value = '';
+            document.getElementById('addScreenshot').value = '';
+            document.getElementById('addTitlescreen').value = '';
+            document.getElementById('addCrc32').value = '';
+            document.getElementById('addGenreid').value = '';
+            document.getElementById('addPlatformIdInput').value = platformId || '';
+            document.getElementById('addPlatformPath').value = '';
+            document.getElementById('addSortBy').value = '';
+            
+            // 设置平台ID
+            document.getElementById('addGamePlatformId').value = platformId;
+            
+            // 显示模态框
+            document.getElementById('addGameModal').style.display = 'block';
+        }
+        
+        // 关闭新增游戏模态框
+        function closeAddGameModal() {
+            document.getElementById('addGameModal').style.display = 'none';
+        }
+        
+        // 提交新增游戏
+        function submitAddGame() {
+            const platformId = document.getElementById('addGamePlatformId').value;
+            
+            if (!platformId) {
+                showNotification('无法新增游戏，缺少平台信息', 'error');
+                return;
+            }
+            
+            const gameData = {
+                name: document.getElementById('addGameName').value,
+                path: document.getElementById('addGamePath').value,
+                platformPath: document.getElementById('addPlatformPath').value,
+                desc: document.getElementById('addGameDescription').value,
+                translatedName: document.getElementById('addTranslatedName').value,
+                translatedDesc: document.getElementById('addTranslatedDescription').value,
+                developer: document.getElementById('addGameDeveloper').value,
+                publisher: document.getElementById('addGamePublisher').value,
+                genre: document.getElementById('addGameType').value,
+                players: document.getElementById('addPlayerCount').value,
+                releasedate: document.getElementById('addReleaseDate').value,
+                rating: document.getElementById('addRating').value,
+                lang: document.getElementById('addLanguage').value,
+                gameId: document.getElementById('addGameIdInput').value,
+                source: document.getElementById('addSource').value,
+                image: document.getElementById('addImage').value,
+                video: document.getElementById('addVideo').value,
+                marquee: document.getElementById('addMarquee').value,
+                thumbnail: document.getElementById('addThumbnail').value,
+                manual: document.getElementById('addManual').value,
+                boxFront: document.getElementById('addBoxFront').value,
+                boxBack: document.getElementById('addBoxBack').value,
+                boxSpine: document.getElementById('addBoxSpine').value,
+                boxFull: document.getElementById('addBoxFull').value,
+                cartridge: document.getElementById('addCartridge').value,
+                logo: document.getElementById('addLogo').value,
+                bezel: document.getElementById('addBezel').value,
+                panel: document.getElementById('addPanel').value,
+                cabinetLeft: document.getElementById('addCabinetLeft').value,
+                cabinetRight: document.getElementById('addCabinetRight').value,
+                tile: document.getElementById('addTile').value,
+                banner: document.getElementById('addBanner').value,
+                steam: document.getElementById('addSteam').value,
+                poster: document.getElementById('addPoster').value,
+                background: document.getElementById('addBackground').value,
+                music: document.getElementById('addMusic').value,
+                screenshot: document.getElementById('addScreenshot').value,
+                titlescreen: document.getElementById('addTitlescreen').value,
+                crc32: document.getElementById('addCrc32').value,
+                genreid: document.getElementById('addGenreid').value,
+                platformId: parseInt(platformId),
+                sortBy: document.getElementById('addSortBy').value
+            };
+            
+            fetch('/api/gamelist/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gameData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(message => {
+                document.getElementById('addGameModal').style.display = 'none';
+                loadGames();
+                showNotification('游戏新增成功', 'success');
+            })
+            .catch(error => {
+                console.error('Error adding game:', error);
+                showNotification('保存失败: ' + error.message, 'error');
+            });
+        }
+        
+        // 删除选中的游戏
+        function deleteSelectedGames() {
+            const selectedGameIds = getSelectedGameIds();
+            
+            if (selectedGameIds.length === 0) {
+                showNotification('请先选择要删除的游戏', 'info');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedGameIds.length} 个游戏吗？`)) {
+                fetch('/api/gamelist/games/batch-delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ gameIds: selectedGameIds })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        loadGames();
+                        showNotification(`成功删除 ${data.deletedCount} 个游戏`, 'success');
+                    } else {
+                        showNotification('删除失败：' + (data.error || '未知错误'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting games:', error);
+                    showNotification('删除失败: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // 关闭编辑游戏模态框
+        function closeEditGameModal() {
+            document.getElementById('editGameModal').style.display = 'none';
+        }
+        
+        // 查看媒体文件
+        function viewMediaFiles() {
+            const gameId = document.getElementById('gameId').value;
+            const gamePath = document.getElementById('gamePath').value;
+            const platformPath = document.getElementById('platformPath') ? document.getElementById('platformPath').value : null;
+            const mediaFiles = [
+                { type: 'image', path: document.getElementById('image').value, name: '图片', displayType: 'image' },
+                { type: 'video', path: document.getElementById('video').value, name: '视频', displayType: 'video' },
+                { type: 'marquee', path: document.getElementById('marquee').value, name: '横幅', displayType: 'image' },
+                { type: 'thumbnail', path: document.getElementById('thumbnail').value, name: '缩略图', displayType: 'image' },
+                { type: 'manual', path: document.getElementById('manual').value, name: '手册', displayType: 'manual' },
+                // 新增媒体类型
+                { type: 'boxFront', path: document.getElementById('boxFront').value, name: '包装盒正面', displayType: 'image' },
+                { type: 'boxBack', path: document.getElementById('boxBack').value, name: '包装盒背面', displayType: 'image' },
+                { type: 'boxSpine', path: document.getElementById('boxSpine').value, name: '包装盒侧脊', displayType: 'image' },
+                { type: 'boxFull', path: document.getElementById('boxFull').value, name: '完整包装盒', displayType: 'image' },
+                { type: 'cartridge', path: document.getElementById('cartridge').value, name: '卡带/光盘', displayType: 'image' },
+                { type: 'logo', path: document.getElementById('logo').value, name: '游戏Logo', displayType: 'image' },
+                { type: 'bezel', path: document.getElementById('bezel').value, name: '屏幕边框', displayType: 'image' },
+                { type: 'panel', path: document.getElementById('panel').value, name: '控制台面板', displayType: 'image' },
+                { type: 'cabinetLeft', path: document.getElementById('cabinetLeft').value, name: '街机左侧', displayType: 'image' },
+                { type: 'cabinetRight', path: document.getElementById('cabinetRight').value, name: '街机右侧', displayType: 'image' },
+                { type: 'tile', path: document.getElementById('tile').value, name: '方形预览图', displayType: 'image' },
+                { type: 'banner', path: document.getElementById('banner').value, name: '横幅图', displayType: 'image' },
+                { type: 'steam', path: document.getElementById('steam').value, name: 'Steam网格图标', displayType: 'image' },
+                { type: 'poster', path: document.getElementById('poster').value, name: '宣传海报', displayType: 'image' },
+                { type: 'background', path: document.getElementById('background').value, name: '背景图像', displayType: 'image' },
+                { type: 'music', path: document.getElementById('music').value, name: '背景音乐', displayType: 'audio' },
+                { type: 'screenshot', path: document.getElementById('screenshot').value, name: '游戏截图', displayType: 'image' },
+                { type: 'titlescreen', path: document.getElementById('titlescreen').value, name: '标题画面', displayType: 'image' }
+            ];
+            
+            const mediaContent = document.getElementById('mediaContent');
+            mediaContent.innerHTML = '';
+            mediaContent.style.display = 'flex';
+            mediaContent.style.flexDirection = 'column';
+            mediaContent.style.gap = '20px';
+            mediaContent.style.overflowY = 'auto';
+            
+            // 生成媒体文件的相对路径（确保以 ./ 开头）
+            function getMediaFullPath(relativePath) {
+                if (!relativePath) return null;
+                
+                // 如果已经是绝对路径或Windows路径，直接返回
+                if (relativePath.startsWith('/') || relativePath.match(/^[A-Za-z]:.*/)) {
+                    return relativePath;
+                }
+                
+                // 确保以 ./ 开头
+                if (!relativePath.startsWith('./')) {
+                    return './' + relativePath;
+                }
+                
+                return relativePath;
+            }
+            
+            // 通用下载函数
+            function downloadMediaFile(fullPath, mediaElement, statusElement, downloadBtn, displayType, manualContent = null) {
+                downloadBtn.disabled = true;
+                downloadBtn.textContent = '加载中...';
+                
+                // 传递 platformId, gameId 和 platformPath 到后端
+                const url = `/api/media/view?localPath=${encodeURIComponent(fullPath)}&platformId=${platformId}&gameId=${gameId}&platformPath=${encodeURIComponent(platformPath || '')}`;
+                
+                // 直接使用查看接口
+                if (displayType === 'image') {
+                    mediaElement.src = url;
+                    mediaElement.style.display = 'block';
+                    statusElement.textContent = '已加载';
+                    statusElement.style.color = 'blue';
+                    downloadBtn.textContent = '下载';
+                    downloadBtn.style.backgroundColor = '#4CAF50';
+                    downloadBtn.style.color = 'white';
+                    downloadBtn.disabled = false;
+                    
+                    // 添加下载功能
+                    downloadBtn.onclick = function() {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fullPath.split('/').pop() || 'media_file';
+                        link.click();
+                    };
+                } else if (displayType === 'video') {
+                    const source = mediaElement.querySelector('source');
+                    source.src = url;
+                    mediaElement.load();
+                    mediaElement.style.display = 'block';
+                    statusElement.textContent = '已加载';
+                    statusElement.style.color = 'blue';
+                    downloadBtn.textContent = '下载';
+                    downloadBtn.style.backgroundColor = '#4CAF50';
+                    downloadBtn.style.color = 'white';
+                    downloadBtn.disabled = false;
+                    
+                    // 添加下载功能
+                    downloadBtn.onclick = function() {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fullPath.split('/').pop() || 'video_file';
+                        link.click();
+                    };
+                } else if (displayType === 'manual' && manualContent) {
+                    manualContent.innerHTML = `
+                        <a href="${url}" target="_blank" style="padding: 8px 16px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">查看手册</a>
+                        <a href="${url}" download style="padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px;">下载手册</a>
+                    `;
+                    statusElement.textContent = '已加载';
+                    statusElement.style.color = 'blue';
+                    downloadBtn.textContent = '下载';
+                    downloadBtn.style.backgroundColor = '#4CAF50';
+                    downloadBtn.style.color = 'white';
+                    downloadBtn.disabled = false;
+                    
+                    // 添加下载功能
+                    downloadBtn.onclick = function() {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fullPath.split('/').pop() || 'manual_file';
+                        link.click();
+                    };
+                }
+            }
+            
+            // 处理媒体文件
+            const hasMediaFiles = mediaFiles.some(file => file.path);
+            
+            if (!hasMediaFiles) {
+                mediaContent.innerHTML = '<p style="text-align: center; color: #666;">没有媒体文件</p>';
+                document.getElementById('mediaViewModal').style.display = 'block';
+                return;
+            }
+            
+            // 显示每个媒体文件
+            mediaFiles.forEach(mediaFile => {
+                if (!mediaFile.path) return;
+                
+                const fullPath = getMediaFullPath(mediaFile.path);
+                const mediaDiv = document.createElement('div');
+                mediaDiv.style.border = '2px solid #00ffff';
+                mediaDiv.style.borderRadius = '8px';
+                mediaDiv.style.padding = '20px';
+                mediaDiv.style.backgroundColor = 'rgba(26, 26, 46, 0.8)';
+                mediaDiv.style.width = '100%';
+                mediaDiv.style.boxSizing = 'border-box';
+                
+                let mediaContentHTML = `
+                    <h3 style="margin-top: 0; color: #ff00ff;">${mediaFile.name}</h3>
+                `;
+                
+                if (mediaFile.displayType === 'image') {
+                    mediaContentHTML += `
+                        <div style="margin: 15px 0; text-align: center; width: 100%;">
+                            <img src="" alt="${mediaFile.name}" style="max-width: 100%; max-height: 300px; display: none; border: 2px solid #00ffff; border-radius: 4px;">
+                        </div>
+                    `;
+                } else if (mediaFile.displayType === 'video') {
+                    mediaContentHTML += `
+                        <div style="margin: 15px 0; text-align: center; width: 100%;">
+                            <video controls style="max-width: 100%; max-height: 300px; display: none; border: 2px solid #00ffff; border-radius: 4px; background: rgba(0, 0, 0, 0.5);">
+                                <source src="" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                        </div>
+                    `;
+                } else if (mediaFile.displayType === 'manual') {
+                    mediaContentHTML += `
+                        <div style="margin: 15px 0; text-align: center; width: 100%;">
+                            <div id="${mediaFile.type}Content">
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                mediaContentHTML += `
+                    <p id="${mediaFile.type}Status" style="margin: 10px 0; color: #ff9800; font-size: 14px; font-family: 'Consolas', 'Courier New', monospace;">检查中...</p>
+                    <button id="download${mediaFile.type.charAt(0).toUpperCase() + mediaFile.type.slice(1)}Btn" style="margin-top: 10px; padding: 8px 16px; background: #1a1a2e; color: #4CAF50; border: 2px solid #4CAF50; border-radius: 4px; cursor: pointer; font-family: 'Consolas', 'Courier New', monospace; transition: all 0.3s ease;">下载${mediaFile.name}</button>
+                `;
+                
+                mediaDiv.innerHTML = mediaContentHTML;
+                mediaContent.appendChild(mediaDiv);
+                
+                // 获取元素
+                let mediaElement = null;
+                let statusElement = mediaDiv.querySelector(`#${mediaFile.type}Status`);
+                let downloadBtn = mediaDiv.querySelector(`#download${mediaFile.type.charAt(0).toUpperCase() + mediaFile.type.slice(1)}Btn`);
+                let manualContent = null;
+                
+                if (mediaFile.displayType === 'image') {
+                    mediaElement = mediaDiv.querySelector('img');
+                } else if (mediaFile.displayType === 'video') {
+                    mediaElement = mediaDiv.querySelector('video');
+                } else if (mediaFile.displayType === 'manual') {
+                    manualContent = mediaDiv.querySelector(`#${mediaFile.type}Content`);
+                }
+                
+                // 自动加载
+                downloadMediaFile(fullPath, mediaElement, statusElement, downloadBtn, mediaFile.displayType, manualContent);
+                
+                // 手动下载按钮事件
+                downloadBtn.addEventListener('click', () => {
+                    downloadMediaFile(fullPath, mediaElement, statusElement, downloadBtn, mediaFile.displayType, manualContent);
+                });
+            });
+            
+            document.getElementById('mediaViewModal').style.display = 'block';
+            // 禁止背景页面滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 关闭媒体文件查看模态框
+        function closeMediaViewModal() {
+            document.getElementById('mediaViewModal').style.display = 'none';
+            // 恢复背景页面的滚动
+            document.body.style.overflow = 'auto';
+        }
+        
+        // 阻止模态框内的滚动事件冒泡
+        document.getElementById('mediaViewModal').addEventListener('wheel', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 当模态框打开时，禁止背景页面滚动
+        document.getElementById('mediaViewModal').addEventListener('show', function() {
+            document.body.style.overflow = 'hidden';
+        });
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                color: white;
+                font-size: 14px;
+                z-index: 2000;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.backgroundColor = '#4CAF50';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#f44336';
+            } else {
+                notification.style.backgroundColor = '#2196F3';
+            }
+            
+            document.body.appendChild(notification);
+            
+            // 显示通知
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // 保存游戏修改
+        function saveGame() {
+            const gameId = document.getElementById('gameId').value;
+            let gameData = {};
+            
+            if (platformId && platformId !== 0) {
+                // 平台游戏数据
+                gameData = {
+                    id: parseInt(gameId),
+                    name: document.getElementById('gameName').value,
+                    path: document.getElementById('gamePath').value,
+                    platformPath: document.getElementById('platformPath').value,
+                    desc: document.getElementById('gameDescription').value,
+                    translatedName: document.getElementById('translatedName').value,
+                    translatedDesc: document.getElementById('translatedDescription').value,
+                    developer: document.getElementById('gameDeveloper').value,
+                    publisher: document.getElementById('gamePublisher').value,
+                    genre: document.getElementById('gameType').value,
+                    players: document.getElementById('playerCount').value,
+                    releasedate: document.getElementById('releaseDate').value,
+                    rating: document.getElementById('rating').value,
+                    lang: document.getElementById('language').value,
+                    gameId: document.getElementById('gameIdInput').value,
+                    source: document.getElementById('source').value,
+                    image: document.getElementById('image').value,
+                    video: document.getElementById('video').value,
+                    marquee: document.getElementById('marquee').value,
+                    thumbnail: document.getElementById('thumbnail').value,
+                    manual: document.getElementById('manual').value,
+                    boxFront: document.getElementById('boxFront').value,
+                    boxBack: document.getElementById('boxBack').value,
+                    boxSpine: document.getElementById('boxSpine').value,
+                    boxFull: document.getElementById('boxFull').value,
+                    cartridge: document.getElementById('cartridge').value,
+                    logo: document.getElementById('logo').value,
+                    bezel: document.getElementById('bezel').value,
+                    panel: document.getElementById('panel').value,
+                    cabinetLeft: document.getElementById('cabinetLeft').value,
+                    cabinetRight: document.getElementById('cabinetRight').value,
+                    tile: document.getElementById('tile').value,
+                    banner: document.getElementById('banner').value,
+                    steam: document.getElementById('steam').value,
+                    poster: document.getElementById('poster').value,
+                    background: document.getElementById('background').value,
+                    music: document.getElementById('music').value,
+                    screenshot: document.getElementById('screenshot').value,
+                    titlescreen: document.getElementById('titlescreen').value,
+                    crc32: document.getElementById('crc32').value,
+                    genreid: document.getElementById('genreid').value,
+                    platformId: document.getElementById('platformIdInput').value,
+                    sortBy: document.getElementById('sortBy').value,
+                    edited: true
+                };
+            } else if (subsetId && subsetId !== 0) {
+                // 子集游戏数据
+                gameData = {
+                    id: parseInt(gameId),
+                    name: document.getElementById('gameName').value,
+                    path: document.getElementById('gamePath').value,
+                    platformPath: document.getElementById('platformPath').value,
+                    desc: document.getElementById('gameDescription').value,
+                    translatedName: document.getElementById('translatedName').value,
+                    translatedDesc: document.getElementById('translatedDescription').value,
+                    developer: document.getElementById('gameDeveloper').value,
+                    publisher: document.getElementById('gamePublisher').value,
+                    genre: document.getElementById('gameType').value,
+                    players: document.getElementById('playerCount').value,
+                    releasedate: document.getElementById('releaseDate').value,
+                    rating: document.getElementById('rating').value,
+                    lang: document.getElementById('language').value,
+                    gameId: document.getElementById('gameIdInput').value,
+                    source: document.getElementById('source').value,
+                    image: document.getElementById('image').value,
+                    video: document.getElementById('video').value,
+                    marquee: document.getElementById('marquee').value,
+                    thumbnail: document.getElementById('thumbnail').value,
+                    manual: document.getElementById('manual').value,
+                    boxFront: document.getElementById('boxFront').value,
+                    boxBack: document.getElementById('boxBack').value,
+                    boxSpine: document.getElementById('boxSpine').value,
+                    boxFull: document.getElementById('boxFull').value,
+                    cartridge: document.getElementById('cartridge').value,
+                    logo: document.getElementById('logo').value,
+                    bezel: document.getElementById('bezel').value,
+                    panel: document.getElementById('panel').value,
+                    cabinetLeft: document.getElementById('cabinetLeft').value,
+                    cabinetRight: document.getElementById('cabinetRight').value,
+                    tile: document.getElementById('tile').value,
+                    banner: document.getElementById('banner').value,
+                    steam: document.getElementById('steam').value,
+                    poster: document.getElementById('poster').value,
+                    background: document.getElementById('background').value,
+                    music: document.getElementById('music').value,
+                    screenshot: document.getElementById('screenshot').value,
+                    titlescreen: document.getElementById('titlescreen').value,
+                    crc32: document.getElementById('crc32').value,
+                    genreid: document.getElementById('genreid').value,
+                    platformId: document.getElementById('platformIdInput').value,
+                    sortBy: document.getElementById('sortBy').value,
+                    edited: true
+                };
+            }
+            
+            let url = '';
+            let method = 'PUT';
+            if (platformId && platformId !== 0) {
+                url = '/api/gamelist/games';
+                method = 'PUT';
+            } else if (subsetId && subsetId !== 0) {
+                url = '/api/temp-subsets/games/update';
+                method = 'POST';
+            }
+            
+            if (url) {
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gameData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(message => {
+                    document.getElementById('editGameModal').style.display = 'none';
+                    loadGames();
+                    showNotification('游戏修改成功', 'success');
+                })
+                .catch(error => {
+                    console.error('Error updating game:', error);
+                    showNotification('保存失败: ' + error.message, 'error');
+                });
+            } else {
+                showNotification('无法保存游戏，缺少平台或子集信息', 'error');
+            }
+        }
+        
+        // 绑定保存按钮点击事件
+        document.getElementById('editGameForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveGame();
+        });
+        
+        // 搜索游戏
+        function searchGames() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            // 获取高级搜索参数
+            const startYear = document.getElementById('startYear').value;
+            const endYear = document.getElementById('endYear').value;
+            
+            // 获取选中的开发商
+            const developers = Array.from(document.querySelectorAll('#developerCheckboxes input:checked')).map(input => input.value);
+            
+            // 获取选中的游戏类型
+            const genres = Array.from(document.querySelectorAll('#genreCheckboxes input:checked')).map(input => input.value);
+            
+            // 获取选中的玩家数量
+            const players = Array.from(document.querySelectorAll('#playersCheckboxes input:checked')).map(input => input.value);
+            
+            // 获取选中的刮削状态
+            const scrapeStatuses = Array.from(document.querySelectorAll('#scrapeStatusCheckboxes input:checked')).map(input => input.value);
+            
+            // 构建搜索参数
+            const searchParams = {
+                startYear: startYear,
+                endYear: endYear,
+                developers: developers,
+                genres: genres,
+                players: players,
+                scrapeStatuses: scrapeStatuses
+            };
+            
+            // 加载游戏列表并应用搜索参数
+            loadGames(1, searchTerm, searchParams);
+        }
+        
+        // 重置搜索
+        function resetSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('startYear').value = '';
+            document.getElementById('endYear').value = '';
+            
+            // 重置开发商复选框
+            document.querySelectorAll('#developerCheckboxes input').forEach(input => input.checked = false);
+            
+            // 重置游戏类型复选框
+            document.querySelectorAll('#genreCheckboxes input').forEach(input => input.checked = false);
+            
+            // 重置玩家数量复选框
+            document.querySelectorAll('#playersCheckboxes input').forEach(input => input.checked = false);
+            
+            // 重置刮削状态复选框
+            document.querySelectorAll('#scrapeStatusCheckboxes input').forEach(input => input.checked = false);
+            
+            loadGames();
+        }
+        
+        // 切换搜索框显示/隐藏
+        function toggleSearch() {
+            const searchArea = document.getElementById('searchArea');
+            
+            if (searchArea.style.display === 'none' || searchArea.style.display === '') {
+                searchArea.style.display = 'block';
+            } else {
+                searchArea.style.display = 'none';
+            }
+        }
+        
+        // 填充下拉框选项
+        function populateDropdowns() {
+            // 这里可以从后端获取数据，或者从当前游戏列表中提取唯一值
+            const games = window.currentGames || [];
+            
+            // 提取唯一值
+            const developers = [...new Set(games.map(game => game.developer).filter(Boolean))];
+            const genres = [...new Set(games.map(game => game.genre).filter(Boolean))];
+            const players = [...new Set(games.map(game => game.players).filter(Boolean))];
+            
+            // 填充开发商复选框
+            const developerCheckboxes = document.getElementById('developerCheckboxes');
+            developerCheckboxes.innerHTML = '';
+            developers.forEach(developer => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = developer;
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(developer));
+                developerCheckboxes.appendChild(label);
+            });
+            
+            // 填充游戏类型复选框
+            const genreCheckboxes = document.getElementById('genreCheckboxes');
+            genreCheckboxes.innerHTML = '';
+            genres.forEach(genre => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = genre;
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(genre));
+                genreCheckboxes.appendChild(label);
+            });
+            
+            // 填充玩家数量复选框
+            const playersCheckboxes = document.getElementById('playersCheckboxes');
+            playersCheckboxes.innerHTML = '';
+            players.forEach(player => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = player;
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(player));
+                playersCheckboxes.appendChild(label);
+            });
+        }
+        
+        // 修改loadGames函数以支持搜索参数
+        function loadGames(page = 1, searchTerm = null, searchParams = null) {
+            const pageSize = document.getElementById('pageSize').value;
+            let url = '';
+            
+            if (platformId && platformId !== 0) {
+                url = `/api/gamelist/platforms/${platformId}/games?page=${page}&pageSize=${pageSize}`;
+            } else if (subsetId && subsetId !== 0) {
+                url = `/api/temp-subsets/${subsetId}/games?page=${page}&pageSize=${pageSize}`;
+            } else {
+                url = `/api/gamelist/games?page=${page}&pageSize=${pageSize}`;
+            }
+            
+            // 添加搜索参数
+            if (searchTerm) {
+                url += `&search=${encodeURIComponent(searchTerm)}`;
+            }
+            
+            if (searchParams) {
+                if (searchParams.startYear) {
+                    url += `&startYear=${encodeURIComponent(searchParams.startYear)}`;
+                }
+                if (searchParams.endYear) {
+                    url += `&endYear=${encodeURIComponent(searchParams.endYear)}`;
+                }
+                if (searchParams.developers && searchParams.developers.length > 0) {
+                    searchParams.developers.forEach(developer => {
+                        url += `&developers=${encodeURIComponent(developer)}`;
+                    });
+                }
+                if (searchParams.genres && searchParams.genres.length > 0) {
+                    searchParams.genres.forEach(genre => {
+                        url += `&genres=${encodeURIComponent(genre)}`;
+                    });
+                }
+                if (searchParams.players && searchParams.players.length > 0) {
+                    searchParams.players.forEach(player => {
+                        url += `&players=${encodeURIComponent(player)}`;
+                    });
+                }
+                if (searchParams.scrapeStatuses && searchParams.scrapeStatuses.length > 0) {
+                    searchParams.scrapeStatuses.forEach(status => {
+                        url += `&scrapeStatuses=${encodeURIComponent(status)}`;
+                    });
+                }
+            }
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('=== 搜索结果数据 ===');
+                    console.log('Data:', data);
+                    
+                    // 检查数据结构
+                    if (Array.isArray(data)) {
+                        // 直接返回游戏数组的情况（如子集游戏）
+                        window.currentGames = data;
+                        populateDropdowns();
+                        displayGames(data, page, Math.ceil(data.length / pageSize), data.length);
+                    } else if (data && typeof data === 'object') {
+                        // 返回包含分页信息的对象的情况
+                        const games = data.games || [];
+                        window.currentGames = games;
+                        populateDropdowns();
+                        displayGames(games, page, data.totalPages || 1, data.totalElements || games.length);
+                    } else {
+                        // 其他情况
+                        console.error('Unexpected data structure:', data);
+                        window.currentGames = [];
+                        populateDropdowns();
+                        displayGames([], page, 1, 0);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading games:', error);
+                    document.getElementById('totalGames').textContent = '0';
+                    document.getElementById('pageInfo').textContent = '第 1 页，共 0 页';
+                    const tableBody = document.querySelector('#gameTable tbody');
+                    if (tableBody) {
+                        tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; color: #ff0088;">获取游戏列表失败，请重试: ' + error.message + '</td></tr>';
+                    }
+                });
+        }
+        
+        // 上一页
+        function previousPage() {
+            if (window.currentPage > 1) {
+                window.currentPage--;
+                loadGames(window.currentPage);
+            }
+        }
+        
+        // 下一页
+        function nextPage() {
+            if (window.currentPage < window.totalPages) {
+                window.currentPage++;
+                loadGames(window.currentPage);
+            }
+        }
+        
+        // 更改每页显示数量
+        function changePageSize() {
+            window.pageSize = parseInt(document.getElementById('pageSize').value);
+            window.currentPage = 1;
+            loadGames(window.currentPage);
+        }
+        
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const checkboxes = document.querySelectorAll('.game-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            updateSelectedGames();
+        }
+        
+        // 记录选中游戏的顺序
+        let selectedGamesOrder = [];
+        
+        // 更新选中游戏列表
+        function updateSelectedGames() {
+            const checkboxes = document.querySelectorAll('.game-checkbox:checked');
+            const selectedGameIds = Array.from(checkboxes).map(checkbox => parseInt(checkbox.value));
+            const mergeDiscsBtn = document.getElementById('mergeDiscsBtn');
+            const batchEditBtn = document.getElementById('batchEditBtn');
+            const migrateBtn = document.getElementById('migrateBtn');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            const translateBtn = document.getElementById('translateBtn');
+            mergeDiscsBtn.disabled = selectedGameIds.length < 2;
+            batchEditBtn.disabled = selectedGameIds.length === 0;
+            migrateBtn.disabled = selectedGameIds.length === 0;
+            deleteSelectedBtn.disabled = selectedGameIds.length === 0;
+            translateBtn.disabled = selectedGameIds.length === 0;
+        }
+        
+        // 监听复选框点击事件，记录选择顺序
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('game-checkbox')) {
+                const gameId = parseInt(e.target.value);
+                if (e.target.checked) {
+                    // 添加到选择顺序
+                    selectedGamesOrder.push(gameId);
+                } else {
+                    // 从选择顺序中移除
+                    selectedGamesOrder = selectedGamesOrder.filter(id => id !== gameId);
+                }
+                updateSelectedGames();
+            }
+        });
+        
+        // 合盘操作
+        function mergeDiscs() {
+            const checkboxes = document.querySelectorAll('.game-checkbox:checked');
+            const selectedGameIds = Array.from(checkboxes).map(checkbox => parseInt(checkbox.value));
+            
+            if (selectedGameIds.length < 2) {
+                alert('请至少选择两个游戏进行合盘操作');
+                return;
+            }
+            
+            if (confirm('确定要将选中的游戏合盘吗？这将创建一个新的游戏条目，并删除选中的游戏条目。')) {
+                // 发送合盘请求到后端，使用选中的顺序
+                const gameIdsToSend = selectedGamesOrder.length > 0 ? selectedGamesOrder : selectedGameIds;
+                console.log('合盘游戏ID顺序:', gameIdsToSend);
+                
+                fetch('/api/gamelist/merge-discs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        gameIds: gameIdsToSend
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('合盘操作成功！');
+                        // 清空选择顺序
+                        selectedGamesOrder = [];
+                        // 刷新页面，保持当前页码
+                        loadGames(currentPage);
+                    } else {
+                        alert('合盘操作失败：' + (data.errorMessage || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error merging discs:', error);
+                    alert('合盘操作失败：' + error.message);
+                });
+            }
+        }
+        
+        // 显示游戏列表
+        function displayGames(games, page, totalPages, totalElements) {
+            const tableBody = document.querySelector('#gameTable tbody');
+            
+            window.totalGames = totalElements;
+            window.totalPages = totalPages;
+            window.currentPage = page;
+            
+            document.getElementById('totalGames').textContent = window.totalGames;
+            document.getElementById('pageInfo').textContent = `第 ${window.currentPage} 页，共 ${window.totalPages} 页`;
+            
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            if (prevBtn) {
+                prevBtn.disabled = window.currentPage <= 1;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = window.currentPage >= window.totalPages;
+            }
+            
+            tableBody.innerHTML = '';
+            
+            if (games.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; color: #888;">该平台暂无游戏</td></tr>';
+            } else {
+                for (let i = 0; i < games.length; i++) {
+                    try {
+                        const game = games[i];
+                        
+                        const row = document.createElement('tr');
+                        row.setAttribute('data-game-id', game.id);
+                        row.onclick = function(e) {
+                            // 避免点击复选框时打开编辑模态框
+                            if (!e.target.closest('input[type="checkbox"]')) {
+                                openEditGameModal(game.id);
+                            }
+                        };
+                        row.style.cursor = 'pointer';
+                        row.innerHTML = `
+                            <td style="cursor: default;"><input type="checkbox" class="game-checkbox" value="${game.id}" onchange="updateSelectedGames()"></td>
+                            <td>${game.id}</td>
+                            <td>${game.name}</td>
+                            <td>${game.path}</td>
+                            <td>${game.platformPath || ''}</td>
+                            <td>${game.desc || ''}</td>
+                            <td>${game.translatedName || ''}</td>
+                            <td>${game.translatedDesc || ''}</td>
+                            <td>${game.developer || ''}</td>
+                            <td>${game.publisher || ''}</td>
+                            <td>${game.genre || ''}</td>
+                            <td>${game.players || ''}</td>
+                            <td>${game.releasedate || ''}</td>
+                            <td>${game.rating || ''}</td>
+                            <td>${game.lang || ''}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    } catch (e) {
+                        console.error('Error processing game:', e);
+                    }
+                }
+            }
+        }
+        
+        // 显示通知
+        function showNotification(message, type) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => container.removeChild(notification), 300);
+            }, 3000);
+        }
+        
+        // 初始化语言
+        function initLanguage() {
+            const savedLang = localStorage.getItem('uiLanguage') || 'zh';
+            document.getElementById('langSelect').value = savedLang;
+            changeLanguage(savedLang);
+        }
+
+        // 切换页面语言
+        function changeLanguage(lang) {
+            localStorage.setItem('uiLanguage', lang);
+            const translations = {
+                'zh': {
+                    'page-title': '游戏列表 - 平台管理系统',
+                    'game-list': '游戏列表',
+                    'back-platform': '返回平台管理',
+                    'platform': '平台',
+                    'loading': '加载中...',
+                    'total-games': '游戏总数',
+                    'search': '搜索',
+                    'search-placeholder': '搜索游戏名称或路径...',
+                    'release-date-range': '发行日期范围',
+                    'start-year': '开始年份',
+                    'end-year': '结束年份',
+                    'to': '至',
+                    'developer': '开发商',
+                    'genre': '游戏类型',
+                    'players': '玩家数量',
+                    'scrape-status': '刮削状态',
+                    'fully-scraped': '完全刮削',
+                    'partially-scraped': '部分刮削',
+                    'not-scraped': '未刮削',
+                    'search-btn': '搜索',
+                    'reset-btn': '重置',
+                    'page-size': '每页显示',
+                    'add': '新增',
+                    'delete-selected': '删除选中',
+                    'merge-discs': '合盘',
+                    'batch-edit': '批量修改',
+                    'translate': '翻译',
+                    'migrate': '迁转',
+                    'prev-page': '上一页',
+                    'next-page': '下一页',
+                    'page-info': '第 {current} 页，共 {total} 页',
+                    'game-name': '游戏名称',
+                    'game-path': '游戏路径',
+                    'platform-path': '平台路径',
+                    'game-desc': '游戏描述',
+                    'translated-name': '翻译名称',
+                    'translated-desc': '翻译描述',
+                    'publisher': '发行商',
+                    'release-date': '发行日期',
+                    'rating': '评分',
+                    'language': '语言',
+                    'loading-games': '加载游戏列表中...',
+                    'batch-edit-title': '批量修改游戏',
+                    'batch-developer': '开发商',
+                    'batch-publisher': '发行商',
+                    'batch-genre': '游戏类型',
+                    'batch-players': '玩家数',
+                    'batch-lang': '语言',
+                    'leave-blank-no-change': '留空则不修改',
+                    'batch-edit-info': '将修改 {count} 个游戏',
+                    'confirm-edit': '确认修改',
+                    'cancel': '取消',
+                    'migrate-title': '迁转游戏到其他平台',
+                    'migrate-info': '将迁转 {count} 个游戏到目标平台',
+                    'target-platform': '目标平台',
+                    'select-target-platform': '请选择目标平台',
+                    'confirm-migrate': '确认迁转',
+                    'translate-title': '翻译游戏',
+                    'translate-info': '将翻译 {count} 个游戏',
+                    'source-lang': '源语言',
+                    'target-lang': '目标语言',
+                    'auto-detect': '自动检测',
+                    'chinese': '中文',
+                    'english': '英文',
+                    'japanese': '日文',
+                    'select-translation-api': '请选择翻译API',
+                    'translation-content': '翻译内容',
+                    'name-only': '仅游戏名称',
+                    'desc-only': '仅游戏描述',
+                    'name-and-desc': '游戏名称和描述',
+                    'start-translate': '开始翻译',
+                    'add-game-title': '添加游戏',
+                    'edit-game-title': '编辑游戏',
+                    'name': '名称',
+                    'path': '路径',
+                    'desc': '描述',
+                    'translated-name-label': '翻译名称',
+                    'translated-desc-label': '翻译描述',
+                    'developer-label': '开发商',
+                    'publisher-label': '发行商',
+                    'genre-label': '游戏类型',
+                    'players-label': '玩家数',
+                    'release-date-label': '发行日期',
+                    'rating-label': '评分',
+                    'save': '保存',
+                    'close': '关闭',
+                    'confirm-delete': '确定要删除这个游戏吗？',
+                    'delete-success': '删除成功',
+                    'delete-fail': '删除失败',
+                    'select-platform': '请选择平台',
+                    'merge-discs-title': '合盘',
+                    'merge-target': '合到',
+                    'merge-info': '将 {count} 个游戏合盘',
+                    'confirm-merge': '确认合盘',
+                    'scrape': '刮削',
+                    'scrape-all': '刮削全部',
+                    'scraped': '已刮削',
+                    'not-scraped-status': '未刮削',
+                    'scraping': '刮削中...',
+                    'scrape-complete': '刮削完成',
+                    'scrape-failed': '刮削失败',
+                    'no-games-selected': '请先选择要翻译的游戏',
+                    'select-api': '请选择翻译API',
+                    'translation-started': '翻译任务已开始',
+                    'translation-failed': '翻译任务失败',
+                    'network-error': '网络错误',
+                    'select-platform-scrape': '请选择要刮削的平台',
+                    'scanning': '扫描中...',
+                    'scan-complete': '扫描完成',
+                    'found-games': '发现 {count} 个游戏',
+                    'add-all': '添加全部',
+                    'import': '导入',
+                    'import-games': '导入游戏',
+                    'export': '导出',
+                    'export-games': '导出游戏',
+                    'settings': '设置',
+                    'refresh': '刷新',
+                    'select-all': '全选',
+                    'deselect-all': '取消全选'
+                },
+                'en': {
+                    'page-title': 'Game List - Platform Management',
+                    'game-list': 'Game List',
+                    'back-platform': 'Back to Platform',
+                    'platform': 'Platform',
+                    'loading': 'Loading...',
+                    'total-games': 'Total Games',
+                    'search': 'Search',
+                    'search-placeholder': 'Search game name or path...',
+                    'release-date-range': 'Release Date Range',
+                    'start-year': 'Start Year',
+                    'end-year': 'End Year',
+                    'to': 'to',
+                    'developer': 'Developer',
+                    'genre': 'Genre',
+                    'players': 'Players',
+                    'scrape-status': 'Scrape Status',
+                    'fully-scraped': 'Fully Scraped',
+                    'partially-scraped': 'Partially Scraped',
+                    'not-scraped': 'Not Scraped',
+                    'search-btn': 'Search',
+                    'reset-btn': 'Reset',
+                    'page-size': 'Page Size',
+                    'add': 'Add',
+                    'delete-selected': 'Delete Selected',
+                    'merge-discs': 'Merge Discs',
+                    'batch-edit': 'Batch Edit',
+                    'translate': 'Translate',
+                    'migrate': 'Migrate',
+                    'prev-page': 'Previous',
+                    'next-page': 'Next',
+                    'page-info': 'Page {current} of {total}',
+                    'game-name': 'Game Name',
+                    'game-path': 'Game Path',
+                    'platform-path': 'Platform Path',
+                    'game-desc': 'Description',
+                    'translated-name': 'Translated Name',
+                    'translated-desc': 'Translated Description',
+                    'publisher': 'Publisher',
+                    'release-date': 'Release Date',
+                    'rating': 'Rating',
+                    'language': 'Language',
+                    'loading-games': 'Loading games...',
+                    'batch-edit-title': 'Batch Edit Games',
+                    'batch-developer': 'Developer',
+                    'batch-publisher': 'Publisher',
+                    'batch-genre': 'Genre',
+                    'batch-players': 'Players',
+                    'batch-lang': 'Language',
+                    'leave-blank-no-change': 'Leave blank to keep unchanged',
+                    'batch-edit-info': 'Will edit {count} games',
+                    'confirm-edit': 'Confirm Edit',
+                    'cancel': 'Cancel',
+                    'migrate-title': 'Migrate Games to Other Platform',
+                    'migrate-info': 'Will migrate {count} games to target platform',
+                    'target-platform': 'Target Platform',
+                    'select-target-platform': 'Select target platform',
+                    'confirm-migrate': 'Confirm Migrate',
+                    'translate-title': 'Translate Games',
+                    'translate-info': 'Will translate {count} games',
+                    'source-lang': 'Source Language',
+                    'target-lang': 'Target Language',
+                    'auto-detect': 'Auto Detect',
+                    'chinese': 'Chinese',
+                    'english': 'English',
+                    'japanese': 'Japanese',
+                    'select-translation-api': 'Select Translation API',
+                    'translation-content': 'Translation Content',
+                    'name-only': 'Name Only',
+                    'desc-only': 'Description Only',
+                    'name-and-desc': 'Name and Description',
+                    'start-translate': 'Start Translate',
+                    'add-game-title': 'Add Game',
+                    'edit-game-title': 'Edit Game',
+                    'name': 'Name',
+                    'path': 'Path',
+                    'desc': 'Description',
+                    'translated-name-label': 'Translated Name',
+                    'translated-desc-label': 'Translated Description',
+                    'developer-label': 'Developer',
+                    'publisher-label': 'Publisher',
+                    'genre-label': 'Genre',
+                    'players-label': 'Players',
+                    'release-date-label': 'Release Date',
+                    'rating-label': 'Rating',
+                    'save': 'Save',
+                    'close': 'Close',
+                    'confirm-delete': 'Are you sure you want to delete this game?',
+                    'delete-success': 'Delete successful',
+                    'delete-fail': 'Delete failed',
+                    'select-platform': 'Please select a platform',
+                    'merge-discs-title': 'Merge Discs',
+                    'merge-target': 'Merge to',
+                    'merge-info': 'Will merge {count} games',
+                    'confirm-merge': 'Confirm Merge',
+                    'scrape': 'Scrape',
+                    'scrape-all': 'Scrape All',
+                    'scraped': 'Scraped',
+                    'not-scraped-status': 'Not Scraped',
+                    'scraping': 'Scraping...',
+                    'scrape-complete': 'Scrape Complete',
+                    'scrape-failed': 'Scrape Failed',
+                    'no-games-selected': 'Please select games to translate',
+                    'select-api': 'Please select translation API',
+                    'translation-started': 'Translation task started',
+                    'translation-failed': 'Translation task failed',
+                    'network-error': 'Network error',
+                    'select-platform-scrape': 'Please select platform to scrape',
+                    'scanning': 'Scanning...',
+                    'scan-complete': 'Scan Complete',
+                    'found-games': 'Found {count} games',
+                    'add-all': 'Add All',
+                    'import': 'Import',
+                    'import-games': 'Import Games',
+                    'export': 'Export',
+                    'export-games': 'Export Games',
+                    'settings': 'Settings',
+                    'refresh': 'Refresh',
+                    'select-all': 'Select All',
+                    'deselect-all': 'Deselect All'
+                },
+                'ja': {
+                    'page-title': 'ゲームリスト - プラットフォーム管理',
+                    'game-list': 'ゲームリスト',
+                    'back-platform': 'プラットフォームに戻る',
+                    'platform': 'プラットフォーム',
+                    'loading': '読み込み中...',
+                    'total-games': 'ゲーム総数',
+                    'search': '検索',
+                    'search-placeholder': 'ゲーム名またはパスを検索...',
+                    'release-date-range': '発売日範囲',
+                    'start-year': '開始年',
+                    'end-year': '終了年',
+                    'to': '至',
+                    'developer': '開発者',
+                    'genre': 'ジャンル',
+                    'players': 'プレイヤー数',
+                    'scrape-status': 'スクレイプ状態',
+                    'fully-scraped': '完全スクレイプ',
+                    'partially-scraped': '部分スクレイプ',
+                    'not-scraped': '未スクレイプ',
+                    'search-btn': '検索',
+                    'reset-btn': 'リセット',
+                    'page-size': 'ページサイズ',
+                    'add': '追加',
+                    'delete-selected': '選択を削除',
+                    'merge-discs': 'ディスク統合',
+                    'batch-edit': '一括編集',
+                    'translate': '翻訳',
+                    'migrate': '移行',
+                    'prev-page': '前へ',
+                    'next-page': '次へ',
+                    'page-info': 'ページ {current} / {total}',
+                    'game-name': 'ゲーム名',
+                    'game-path': 'ゲームパス',
+                    'platform-path': '平台パス',
+                    'game-desc': '説明',
+                    'translated-name': '翻訳名',
+                    'translated-desc': '翻訳説明',
+                    'publisher': '発売元',
+                    'release-date': '発売日',
+                    'rating': '評価',
+                    'language': '言語',
+                    'loading-games': 'ゲームを読み込み中...',
+                    'batch-edit-title': 'ゲーム一括編集',
+                    'batch-developer': '開発者',
+                    'batch-publisher': '発売元',
+                    'batch-genre': 'ジャンル',
+                    'batch-players': 'プレイヤー数',
+                    'batch-lang': '言語',
+                    'leave-blank-no-change': '空欄は変更なし',
+                    'batch-edit-info': '{count}個のゲームを編集します',
+                    'confirm-edit': '編集確認',
+                    'cancel': 'キャンセル',
+                    'migrate-title': 'ゲームを他のプラットフォームに移行',
+                    'migrate-info': '{count}個のゲームを対象プラットフォームに移行します',
+                    'target-platform': '対象プラットフォーム',
+                    'select-target-platform': '対象プラットフォームを選択',
+                    'confirm-migrate': '移行確認',
+                    'translate-title': 'ゲーム翻訳',
+                    'translate-info': '{count}個のゲームを翻訳します',
+                    'source-lang': 'ソース言語',
+                    'target-lang': 'ターゲット言語',
+                    'auto-detect': '自動検出',
+                    'chinese': '中国語',
+                    'english': '英語',
+                    'japanese': '日本語',
+                    'select-translation-api': '翻訳APIを選択',
+                    'translation-content': '翻訳内容',
+                    'name-only': 'ゲーム名のみ',
+                    'desc-only': '説明のみ',
+                    'name-and-desc': 'ゲーム名と説明',
+                    'start-translate': '翻訳開始',
+                    'add-game-title': 'ゲーム追加',
+                    'edit-game-title': 'ゲーム編集',
+                    'name': '名前',
+                    'path': 'パス',
+                    'desc': '説明',
+                    'translated-name-label': '翻訳名',
+                    'translated-desc-label': '翻訳説明',
+                    'developer-label': '開発者',
+                    'publisher-label': '発売元',
+                    'genre-label': 'ジャンル',
+                    'players-label': 'プレイヤー数',
+                    'release-date-label': '発売日',
+                    'rating-label': '評価',
+                    'save': '保存',
+                    'close': '閉じる',
+                    'confirm-delete': 'このゲームを削除してもよろしいですか？',
+                    'delete-success': '削除成功',
+                    'delete-fail': '削除失敗',
+                    'select-platform': 'プラットフォームを選択してください',
+                    'merge-discs-title': 'ディスク統合',
+                    'merge-target': '統合先',
+                    'merge-info': '{count}個のゲームを統合します',
+                    'confirm-merge': '統合確認',
+                    'scrape': 'スクレイプ',
+                    'scrape-all': '全てスクレイプ',
+                    'scraped': 'スクレイプ済み',
+                    'not-scraped-status': '未スクレイプ',
+                    'scraping': 'スクレイプ中...',
+                    'scrape-complete': 'スクレイプ完了',
+                    'scrape-failed': 'スクレイプ失敗',
+                    'no-games-selected': '翻訳するゲームを選択してください',
+                    'select-api': '翻訳APIを選択してください',
+                    'translation-started': '翻訳タスクが開始されました',
+                    'translation-failed': '翻訳タスク失敗',
+                    'network-error': 'ネットワークエラー',
+                    'select-platform-scrape': 'スクレイプするプラットフォームを選択してください',
+                    'scanning': 'スキャン中...',
+                    'scan-complete': 'スキャン完了',
+                    'found-games': '{count}個のゲーム被发现',
+                    'add-all': '全て追加',
+                    'import': 'インポート',
+                    'import-games': 'ゲームインポート',
+                    'export': 'エクスポート',
+                    'export-games': 'ゲームエクスポート',
+                    'settings': '設定',
+                    'refresh': '更新',
+                    'select-all': '全選択',
+                    'deselect-all': '選択解除'
+                }
+            };
+
+            const t = translations[lang] || translations['zh'];
+
+            function applyTranslation(key, element) {
+                if (element) {
+                    let text = t[key] || key;
+                    element.textContent = text;
+                }
+            }
+
+            function applyTranslationAttr(key, element, attr) {
+                if (element) {
+                    let text = t[key] || key;
+                    element.setAttribute(attr, text);
+                }
+            }
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    el.textContent = t[key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    el.placeholder = t[key];
+                }
+            });
+
+            document.title = t['page-title'] || 'Game List';
+        }
+        
+        // 初始化通知
+        function initNotifications() {
+            // 通知初始化逻辑
+        }
+        
+        // 页面加载时初始化
+        window.onload = function() {
+            console.log('=== 页面初始化开始 ===');
+            const platformIdParam = getUrlParameter('platformId');
+            const subsetIdParam = getUrlParameter('subsetId');
+            console.log('platformIdParam:', platformIdParam);
+            console.log('subsetIdParam:', subsetIdParam);
+            
+            platformId = platformIdParam ? parseInt(platformIdParam) : 0;
+            subsetId = subsetIdParam ? parseInt(subsetIdParam) : 0;
+            
+            console.log('Initial platform ID:', platformId);
+            console.log('Initial subset ID:', subsetId);
+            
+            if (platformId) {
+                console.log('=== 加载平台游戏 ===');
+                getPlatformInfo();
+                loadGames();
+            } else if (subsetId) {
+                console.log('=== 加载子集游戏 ===');
+                const headerLeft = document.querySelector('.header-left');
+                console.log('headerLeft:', headerLeft);
+                if (headerLeft) {
+                    headerLeft.innerHTML = '<button class="back-btn" onclick="goBack()">返回平台管理</button><div class="stats">子集: <span id="platformName">加载中...</span></div>';
+                    console.log('Header updated');
+                }
+                getSubsetInfo();
+                loadGames();
+            } else {
+                console.log('=== 加载全部游戏 ===');
+                // 既没有platformId也没有subsetId，加载所有游戏
+                const headerLeft = document.querySelector('.header-left');
+                if (headerLeft) {
+                    headerLeft.innerHTML = '<button class="back-btn" onclick="goBack()">返回平台管理</button><div class="stats">全部游戏</div>';
+                }
+                loadGames();
+            }
+            initLanguage();
+            initNotifications();
+            console.log('=== 页面初始化结束 ===');
+        };
+        
+        // 删除游戏
+        function deleteGame(gameId) {
+            if (platformId) {
+                if (confirm('确定要删除这个游戏吗？')) {
+                    fetch(`/api/gamelist/games/${gameId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.text();
+                    })
+                    .then(message => {
+                        loadGames();
+                        showNotification('游戏删除成功', 'success');
+                    })
+                    .catch(error => console.error('Error deleting game:', error));
+                }
+            } else if (subsetId) {
+                showNotification('删除单个子集游戏的功能暂不支持', 'info');
+            }
+        }
+        
+        // 打开翻译模态框
+        function openTranslateModal() {
+            const selectedGames = getSelectedGameIds();
+            if (selectedGames.length === 0) {
+                showNotification('请先选择要翻译的游戏', 'info');
+                return;
+            }
+            document.getElementById('translateInfo').textContent = `将翻译 ${selectedGames.length} 个游戏`;
+            loadValidTranslationServices();
+            document.getElementById('translateModal').style.display = 'block';
+        }
+        
+        // 关闭翻译模态框
+        function closeTranslateModal() {
+            document.getElementById('translateModal').style.display = 'none';
+        }
+        
+        // 加载有效的翻译服务列表
+        function loadValidTranslationServices() {
+            fetch('/api/translation/services')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        const apiSelect = document.getElementById('translationApi');
+                        apiSelect.innerHTML = '';
+                        
+                        // 添加默认选项
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '-- 请选择翻译API --';
+                        apiSelect.appendChild(defaultOption);
+                        
+                        // 添加有效的翻译服务
+                        result.services.forEach(service => {
+                            const option = document.createElement('option');
+                            option.value = service.id;
+                            option.textContent = service.name;
+                            apiSelect.appendChild(option);
+                        });
+                    } else {
+                        console.error('Failed to load translation services:', result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading translation services:', error);
+                });
+        }
+        
+        // 提交翻译请求
+        function submitTranslate() {
+            const selectedGames = getSelectedGameIds();
+            if (selectedGames.length === 0) {
+                showNotification('请先选择要翻译的游戏', 'info');
+                return;
+            }
+            
+            const sourceLang = document.getElementById('translationSourceLang').value;
+            const targetLang = document.getElementById('translationTargetLang').value;
+            const apiType = document.getElementById('translationApi').value;
+            const translateType = document.getElementById('translationType').value;
+            
+            if (!apiType) {
+                showNotification('请选择翻译API', 'info');
+                return;
+            }
+            
+            // 发送翻译请求
+            fetch('/api/translation/translate/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    gameIds: selectedGames,
+                    apiType: apiType,
+                    sourceLang: sourceLang,
+                    targetLang: targetLang,
+                    translateType: translateType,
+                    apiKey: localStorage.getItem(apiType + 'ApiKey') || ''
+                }),
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showNotification('翻译任务已开始', 'success');
+                    document.getElementById('translateModal').style.display = 'none';
+                    // 显示翻译进度
+                    showTranslationProgress(result.taskId);
+                } else {
+                    showNotification('翻译任务失败: ' + (result.message || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error starting translation:', error);
+                showNotification('翻译任务失败: 网络错误', 'error');
+            });
+        }
+        
+        // 显示翻译进度
+        function showTranslationProgress(taskId) {
+            const progressModal = document.createElement('div');
+            progressModal.className = 'modal';
+            progressModal.style.display = 'block';
+            progressModal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>翻译进度</h2>
+                    <div class="progress-section">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill" style="width: 0%;">0%</div>
+                        </div>
+                        <div class="progress-info">
+                            <div class="progress-item">
+                                <label>总游戏数</label>
+                                <value id="totalGames">0</value>
+                            </div>
+                            <div class="progress-item">
+                                <label>已完成</label>
+                                <value id="completedGames">0</value>
+                            </div>
+                            <div class="progress-item">
+                                <label>成功</label>
+                                <value id="successGames">0</value>
+                            </div>
+                            <div class="progress-item">
+                                <label>失败</label>
+                                <value id="failedGames">0</value>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="translationReport" style="margin-top: 30px; display: none;">
+                        <h4 style="color: #00ffff; margin-bottom: 15px;">翻译报告</h4>
+                        <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                            <p style="margin-bottom: 10px;"><strong>任务状态:</strong> <span id="reportStatus">已完成</span></p>
+                            <p style="margin-bottom: 10px;"><strong>成功数量:</strong> <span id="reportSuccessCount">0</span></p>
+                            <p style="margin-bottom: 10px;"><strong>失败数量:</strong> <span id="reportFailedCount">0</span></p>
+                            <p style="margin-bottom: 10px;"><strong>成功率:</strong> <span id="reportSuccessRate">0%</span></p>
+                        </div>
+                        <div id="errorList" style="display: none;">
+                            <h5 style="color: #ff0088; margin-bottom: 15px;">翻译错误列表</h5>
+                            <div style="background: rgba(255, 0, 136, 0.1); border: 1px solid #ff0088; border-radius: 8px; padding: 20px; max-height: 400px; overflow-y: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #444;">
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;">游戏ID</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;">游戏名称</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;">错误类型</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;">错误信息</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="errorTableBody">
+                                        <!-- 错误条目将通过JavaScript动态添加 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <button id="createErrorSubsetBtn" class="btn" style="background: linear-gradient(45deg, #ff0088, #ff00ff);">
+                                    创建错误条目子集
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(progressModal);
+            
+            // 关闭按钮事件
+            progressModal.querySelector('.close').addEventListener('click', function() {
+                document.body.removeChild(progressModal);
+            });
+            
+            // 点击模态框外部关闭
+            progressModal.addEventListener('click', function(event) {
+                if (event.target === progressModal) {
+                    document.body.removeChild(progressModal);
+                }
+            });
+            
+            // 定期获取翻译进度
+            const interval = setInterval(() => {
+                fetch(`/api/translation/progress/${taskId}`)
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            const progress = result.progress;
+                            
+                            // 更新进度条
+                            const progressFill = progressModal.querySelector('#progressFill');
+                            const totalGames = progressModal.querySelector('#totalGames');
+                            const completedGames = progressModal.querySelector('#completedGames');
+                            const successGames = progressModal.querySelector('#successGames');
+                            const failedGames = progressModal.querySelector('#failedGames');
+                            
+                            totalGames.textContent = progress.total;
+                            completedGames.textContent = progress.completed;
+                            successGames.textContent = progress.success;
+                            failedGames.textContent = progress.failed;
+                            
+                            const percentage = Math.round((progress.completed / progress.total) * 100);
+                            progressFill.style.width = percentage + '%';
+                            progressFill.textContent = percentage + '%';
+                            
+                            // 检查任务是否完成
+                            if (progress.status === 'completed') {
+                                clearInterval(interval);
+                                
+                                // 显示翻译报告
+                                const translationReport = progressModal.querySelector('#translationReport');
+                                const reportStatus = progressModal.querySelector('#reportStatus');
+                                const reportSuccessCount = progressModal.querySelector('#reportSuccessCount');
+                                const reportFailedCount = progressModal.querySelector('#reportFailedCount');
+                                const reportSuccessRate = progressModal.querySelector('#reportSuccessRate');
+                                
+                                translationReport.style.display = 'block';
+                                reportStatus.textContent = '已完成';
+                                reportSuccessCount.textContent = progress.success;
+                                reportFailedCount.textContent = progress.failed;
+                                
+                                const successRate = progress.total > 0 ? Math.round((progress.success / progress.total) * 100) : 0;
+                                reportSuccessRate.textContent = successRate + '%';
+                                
+                                // 显示错误列表
+                                if (progress.errors && progress.errors.length > 0) {
+                                    const errorList = progressModal.querySelector('#errorList');
+                                    const errorTableBody = progressModal.querySelector('#errorTableBody');
+                                    
+                                    errorList.style.display = 'block';
+                                    errorTableBody.innerHTML = '';
+                                    
+                                    progress.errors.forEach(error => {
+                                        const row = document.createElement('tr');
+                                        row.innerHTML = `
+                                            <td>${error.gameId}</td>
+                                            <td>${error.gameName}</td>
+                                            <td>${error.errorType}</td>
+                                            <td>${error.errorMessage}</td>
+                                        `;
+                                        errorTableBody.appendChild(row);
+                                    });
+                                    
+                                    // 创建错误条目子集按钮
+                                    const createErrorSubsetBtn = progressModal.querySelector('#createErrorSubsetBtn');
+                                    createErrorSubsetBtn.addEventListener('click', function() {
+                                        fetch(`/api/translation/create-error-subset/${taskId}`, {
+                                            method: 'POST'
+                                        })
+                                        .then(response => response.json())
+                                        .then(result => {
+                                            if (result.success) {
+                                                showNotification('错误条目子集创建成功', 'success');
+                                            } else {
+                                                showNotification('错误条目子集创建失败: ' + (result.message || '未知错误'), 'error');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error creating error subset:', error);
+                                            showNotification('错误条目子集创建失败: 网络错误', 'error');
+                                        });
+                                    });
+                                }
+                            }
+                        } else {
+                            clearInterval(interval);
+                            showNotification('获取翻译进度失败: ' + (result.message || '未知错误'), 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching translation progress:', error);
+                        clearInterval(interval);
+                        showNotification('获取翻译进度失败: 网络错误', 'error');
+                    });
+            }, 2000);
+        }
+        
+        // 获取选中的游戏ID列表
+        function getSelectedGameIds() {
+            const checkboxes = document.querySelectorAll('.game-checkbox:checked');
+            const gameIds = [];
+            checkboxes.forEach(checkbox => {
+                gameIds.push(parseInt(checkbox.value));
+            });
+            return gameIds;
+        }
+        
+        // 打开分离模态框
+        function openSeparationModal(gameId) {
+            // 这里可以实现分离功能的模态框
+            alert('分离功能开发中');
+        }
+        
+        // 查看游戏详情
+        function viewGameDetails(gameId) {
+            // 这里可以实现查看游戏详情的功能
+            openEditGameModal(gameId);
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editGameModal');
+            const addModal = document.getElementById('addGameModal');
+            const batchEditModal = document.getElementById('batchEditModal');
+            const migrateModal = document.getElementById('migrateModal');
+            const translateModal = document.getElementById('translateModal');
+            if (event.target == editModal) {
+                editModal.style.display = 'none';
+            }
+            if (event.target == addModal) {
+                addModal.style.display = 'none';
+            }
+            if (event.target == batchEditModal) {
+                batchEditModal.style.display = 'none';
+            }
+            if (event.target == migrateModal) {
+                migrateModal.style.display = 'none';
+            }
+            if (event.target == translateModal) {
+                translateModal.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>

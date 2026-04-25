@@ -1,0 +1,113 @@
+{
+  "name": "ES-DE 标准模板",
+  "description": "适用于 ES-DE 前端的 XML 格式数据文件导入模板",
+  "type": "xml",
+  "dataFile": "gamelist.xml",
+  "delimiter": "",
+  "header": {
+    "enabled": true,
+    "format": "xml",
+    "startMarker": "<provider>",
+    "endMarker": "</provider>",
+    "fieldMappings": {
+      "platformName": {
+        "fields": ["System", "platform"],
+        "isMultiValue": false
+      },
+      "platformSoftware": {
+        "fields": ["software"],
+        "isMultiValue": false
+      },
+      "platformDatabase": {
+        "fields": ["database"],
+        "isMultiValue": false
+      },
+      "platformWeb": {
+        "fields": ["web"],
+        "isMultiValue": false
+      }
+    }
+  },
+  "fieldMappings": {
+    "name": {
+      "fields": ["name"],
+      "isMultiValue": false
+    },
+    "description": {
+      "fields": ["desc"],
+      "isMultiValue": false
+    },
+    "releaseDate": {
+      "fields": ["releasedate"],
+      "isMultiValue": false
+    },
+    "developer": {
+      "fields": ["developer"],
+      "isMultiValue": false
+    },
+    "publisher": {
+      "fields": ["publisher"],
+      "isMultiValue": false
+    },
+    "genre": {
+      "fields": ["genre"],
+      "isMultiValue": false
+    },
+    "players": {
+      "fields": ["players"],
+      "isMultiValue": false
+    },
+    "files": {
+      "fields": ["path"],
+      "isMultiValue": false
+    }
+  },
+  "mediaRules": {
+    "box2dfront": [
+      "media/{gameName}/boxFront.{ext}",
+      "media/{gameName}/box_front.{ext}",
+      "media/boxFront/{gameName}.{ext}",
+      "media/images/{gameName}.{ext}"
+    ],
+    "box2dback": [
+      "media/{gameName}/boxBack.{ext}",
+      "media/{gameName}/box_back.{ext}",
+      "media/boxBack/{gameName}.{ext}"
+    ],
+    "box3d": [
+      "media/{gameName}/box3d.{ext}",
+      "media/box3d/{gameName}.{ext}"
+    ],
+    "screenshot": [
+      "media/{gameName}/screenshot.{ext}",
+      "media/{gameName}/screen.{ext}",
+      "media/screenshots/{gameName}.{ext}",
+      "media/screens/{gameName}.{ext}"
+    ],
+    "video": [
+      "media/{gameName}/video.{ext}",
+      "media/{gameName}/trailer.{ext}",
+      "media/videos/{gameName}.{ext}",
+      "media/{gameName}.{ext}"
+    ],
+    "wheel": [
+      "media/{gameName}/wheel.{ext}",
+      "media/wheel/{gameName}.{ext}"
+    ],
+    "marquee": [
+      "media/{gameName}/marquee.{ext}",
+      "media/{gameName}/logo.{ext}",
+      "media/logos/{gameName}.{ext}",
+      "media/marquees/{gameName}.{ext}"
+    ],
+    "fanart": [
+      "media/{gameName}/fanart.{ext}",
+      "media/fanart/{gameName}.{ext}"
+    ]
+  },
+  "extensions": {
+    "image": ["png", "jpg", "jpeg", "gif", "webp"],
+    "video": ["mp4", "mkv", "avi", "wmv", "webm"]
+  },
+  "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds"]
+}

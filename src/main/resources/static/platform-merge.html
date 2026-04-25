@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平台合并 - 前端杀手</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        
+        /* 表单样式 */
+        .form-container {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .warning {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0088;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #ff0088;
+            box-shadow: 0 0 10px rgba(255, 0, 136, 0.2);
+        }
+        
+        .info {
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+        
+        .info ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .info li {
+            margin-bottom: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ff00ff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            position: relative;
+            z-index: 2;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .success {
+            background-color: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+        
+        .error {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0088;
+            color: #ff0088;
+            box-shadow: 0 0 10px rgba(255, 0, 136, 0.2);
+        }
+        
+        /* 通知铃铛样式 */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 150px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .notification-bell:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            transform: scale(1.1);
+        }
+        
+        .notification-bell .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff0000;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        }
+        
+        /* 通知弹窗样式 */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            margin: 10% auto;
+            padding: 40px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #00ffff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ff00ff;
+            transform: rotate(90deg);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 60px;
+            color: #888;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .version-info {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin: 40px 0 30px;
+                padding: 30px 15px;
+            }
+            
+            .language-selector {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .notification-bell {
+                top: 10px;
+                right: 120px;
+                font-size: 20px;
+            }
+            
+            .form-container {
+                padding: 20px;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+
+    <!-- 通知铃铛 -->
+    <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
+        🔔
+        <span class="badge" style="display: none;">0</span>
+    </div>
+    
+    <script>
+        // 跨页面通知广播监听
+        const notificationChannel = new BroadcastChannel('taskNotifications');
+        
+        notificationChannel.onmessage = function(event) {
+            const data = event.data;
+            if (data && data.message) {
+                showNotification(data.message, data.type || 'info');
+            }
+        };
+        
+        // 监听任务完成通知
+        let previousTasks = {};
+        
+        function checkTaskCompletion() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    tasks.forEach(task => {
+                        const prevStatus = previousTasks[task.id];
+                        if (prevStatus && prevStatus !== task.status && 
+                            (task.status === 'COMPLETED' || task.status === 'FAILED')) {
+                            if (task.status === 'COMPLETED') {
+                                showNotification('任务已完成: ' + (task.description || task.type), 'success');
+                                notificationChannel.postMessage({
+                                    message: '任务已完成: ' + (task.description || task.type),
+                                    type: 'success'
+                                });
+                            } else {
+                                showNotification('任务失败: ' + (task.description || task.type), 'error');
+                                notificationChannel.postMessage({
+                                    message: '任务失败: ' + (task.description || task.type),
+                                    type: 'error'
+                                });
+                            }
+                        }
+                        previousTasks[task.id] = task.status;
+                    });
+                })
+                .catch(err => console.log('Task check error:', err));
+        }
+        
+        // 每5秒检查一次任务状态
+        setInterval(checkTaskCompletion, 5000);
+    </script>
+    
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="platform_merge_title">平台合并</h1>
+                <p data-i18n="platform_merge_desc">将多个平台合并为一个新平台，源平台保持不变</p>
+            </div>
+        </div>
+        
+        <a href="platform-management.html" class="btn back-btn" data-i18n="back_to_platform_management">返回平台管理</a>
+        
+        <div class="form-container">
+
+            
+            <div class="form-group">
+                <label data-i18n="source_platforms">源平台（可多选）：</label>
+                <select id="sourcePlatforms" name="sourcePlatforms" multiple style="height: 150px; padding: 10px; font-size: 14px;">
+                    <option value="" data-i18n="select_platform">请选择平台（按住Ctrl键可多选）</option>
+                </select>
+                <small style="color: #00ffff; display: block; margin-top: 5px; font-size: 12px;" data-i18n="platform_selection_tip">提示：按住Ctrl键可选择多个平台，按住Shift键可选择连续范围的平台</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="newPlatformName" data-i18n="new_platform_name">新平台名称：</label>
+                <input type="text" id="newPlatformName" name="newPlatformName" placeholder="请输入新平台名称">
+            </div>
+            
+            <div class="form-group">
+                <label for="newPlatformFolderPath" data-i18n="new_platform_folder_path">新平台文件夹路径：</label>
+                <p style="color: #aaa; font-size: 14px; margin-bottom: 5px;" data-i18n="platform_folder_path_tip">导出功能的前置条件，非必填</p>
+                <input type="text" id="newPlatformFolderPath" name="newPlatformFolderPath" placeholder="请输入新平台文件夹的绝对路径">
+            </div>
+            
+            <button id="startMerge" class="submit-btn" data-i18n="start_merge">开始合并</button>
+            
+            <div id="result" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 页脚 -->
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+        </div>
+    </div>
+    
+    <!-- 通知模态框 -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 data-i18n="task_messages">任务消息</h2>
+            <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- 消息将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 国际化翻译
+        const translations = {
+            'zh-CN': {
+                'platform_merge_title': '平台合并',
+                'platform_merge_desc': '将多个平台合并为一个新平台，源平台保持不变',
+                'back_to_platform_management': '返回平台管理',
+                'source_platforms': '源平台（可多选）：',
+                'new_platform_name': '新平台名称：',
+                'new_platform_folder_path': '新平台文件夹路径：',
+                'platform_folder_path_tip': '导出功能的前置条件，非必填',
+                'platform_selection_tip': '提示：按住Ctrl键可选择多个平台，按住Shift键可选择连续范围的平台',
+                'select_platform': '请选择平台',
+                'start_merge': '开始合并',
+                'loading_platforms': '正在加载平台...',
+                'platforms_loaded': '平台加载完成',
+                'please_select_platforms': '请选择两个不同的平台',
+                'merge_started': '合并任务已启动，请等待...',
+                'merge_failed': '合并任务启动失败',
+                'log_task_started': '任务已启动，任务ID：',
+                'log_check_task_status': '请在任务管理页面查看任务状态',
+                'log_conflict_resolution': '如有冲突，将在任务完成后生成冲突解决页面链接',
+                'task_messages': '任务消息',
+                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
+                'version': '版本：1.0 beta'
+            },
+            'en-US': {
+                'platform_merge_title': 'Platform Merge',
+                'platform_merge_desc': 'Merge multiple platforms into a new platform, source platforms remain unchanged',
+                'back_to_platform_management': 'Back to Platform Management',
+                'source_platforms': 'Source Platforms (Multiple selection allowed):',
+                'new_platform_name': 'New Platform Name:',
+                'new_platform_folder_path': 'New Platform Folder Path:',
+                'platform_folder_path_tip': 'Prerequisite for export functionality, not required',
+                'platform_selection_tip': 'Tip: Hold Ctrl to select multiple platforms, hold Shift to select a range of platforms',
+                'select_platform': 'Please select platform',
+                'start_merge': 'Start Merge',
+                'loading_platforms': 'Loading platforms...',
+                'platforms_loaded': 'Platforms loaded successfully',
+                'please_select_platforms': 'Please select two different platforms',
+                'merge_started': 'Merge task has been started, please wait...',
+                'merge_failed': 'Failed to start merge task',
+                'log_task_started': 'Task started, Task ID:',
+                'log_check_task_status': 'Please check task status in Task Management page',
+                'log_conflict_resolution': 'If there are conflicts, a conflict resolution page link will be generated after task completion',
+                'task_messages': 'Task Messages',
+                'copyright': '© 2024 Frontend Killer | Emulation Game Metadata Management Platform',
+                'version': 'Version: 1.0 beta'
+            },
+            'ja-JP': {
+                'platform_merge_title': 'プラットフォームの統合',
+                'platform_merge_desc': '複数のプラットフォームを新しいプラットフォームに統合し、ソースプラットフォームは変更されません',
+                'back_to_platform_management': 'プラットフォーム管理に戻る',
+                'source_platforms': 'ソースプラットフォーム（複数選択可）:',
+                'new_platform_name': '新しいプラットフォーム名:',
+                'new_platform_folder_path': '新しいプラットフォームフォルダパス:',
+                'platform_folder_path_tip': 'エクスポート機能の前提条件、必須ではない',
+                'platform_selection_tip': 'ヒント: Ctrlキーを押しながら複数のプラットフォームを選択し、Shiftキーを押しながら連続した範囲のプラットフォームを選択します',
+                'select_platform': 'プラットフォームを選択',
+                'start_merge': '統合を開始',
+                'loading_platforms': 'プラットフォームを読み込んでいます...',
+                'platforms_loaded': 'プラットフォームの読み込みに成功',
+                'please_select_platforms': '2つの異なるプラットフォームを選択してください',
+                'merge_started': '統合タスクが開始されました、お待ちください...',
+                'merge_failed': '統合タスクの開始に失敗',
+                'log_task_started': 'タスク開始、タスクID:',
+                'log_check_task_status': 'タスク管理ページでタスクステータスを確認してください',
+                'log_conflict_resolution': '競合がある場合は、タスク完了後に競合解決ページのリンクが生成されます',
+                'task_messages': 'タスクメッセージ',
+                'copyright': '© 2024 フロントエンドキラー | エミュレーションゲームメタデータ管理プラットフォーム',
+                'version': 'バージョン: 1.0 beta'
+            }
+        };
+        
+        // 获取当前语言
+        function getCurrentLanguage() {
+            const lang = localStorage.getItem('language') || 'zh-CN';
+            return lang;
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            applyI18n();
+        }
+        
+        // 获取国际化文本
+        function getI18nText(key) {
+            const lang = getCurrentLanguage();
+            const langTranslations = translations[lang] || translations['zh-CN'];
+            return langTranslations[key] || key;
+        }
+        
+        // 应用国际化
+        function applyI18n() {
+            $('[data-i18n]').each(function() {
+                const key = $(this).data('i18n');
+                $(this).text(getI18nText(key));
+            });
+        }
+        
+        // 加载平台列表
+        function loadPlatforms() {
+            console.log(getI18nText('loading_platforms'));
+            $.ajax({
+                url: '/api/platforms',
+                type: 'GET',
+                success: function(platforms) {
+                    console.log(getI18nText('platforms_loaded'));
+                    const sourceSelect = $('#sourcePlatforms');
+                    
+                    // 清空现有选项
+                    sourceSelect.empty();
+                    
+                    // 添加平台选项
+                    platforms.forEach(function(platform) {
+                        sourceSelect.append('<option value="' + platform.id + '">' + platform.name + '</option>');
+                    });
+                },
+                error: function() {
+                    console.error('Failed to load platforms');
+                }
+            });
+        }
+        
+        // 开始合并
+        function startMerge() {
+            const sourcePlatforms = $('#sourcePlatforms').val();
+            const newPlatformName = $('#newPlatformName').val();
+            const newPlatformFolderPath = $('#newPlatformFolderPath').val();
+            
+            if (!sourcePlatforms || sourcePlatforms.length < 2) {
+                showResult('请至少选择两个源平台', 'error');
+                return;
+            }
+            
+            if (!newPlatformName) {
+                showResult('请输入新平台名称', 'error');
+                return;
+            }
+            
+            console.log(getI18nText('merge_started'));
+            
+            $.ajax({
+                url: '/api/platforms/merge',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    sourcePlatformIds: sourcePlatforms,
+                    newPlatformName: newPlatformName,
+                    newPlatformFolderPath: newPlatformFolderPath || ''
+                }),
+                success: function(response) {
+                    console.log(getI18nText('log_task_started'), response.taskId);
+                    console.log(getI18nText('log_check_task_status'));
+                    console.log(getI18nText('log_conflict_resolution'));
+                    
+                    showResult(
+                        getI18nText('merge_started') + '<br>' +
+                        getI18nText('log_task_started') + ' ' + response.taskId + '<br>' +
+                        getI18nText('log_check_task_status'),
+                        'success'
+                    );
+                },
+                error: function() {
+                    console.error(getI18nText('merge_failed'));
+                    showResult(getI18nText('merge_failed'), 'error');
+                }
+            });
+        }
+        
+        // 显示结果
+        function showResult(message, type) {
+            const resultDiv = $('#result');
+            resultDiv.html(message);
+            resultDiv.removeClass('success error');
+            resultDiv.addClass(type);
+            resultDiv.show();
+        }
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.style.backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+        
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #888;">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                    notificationItem.style.padding = '10px';
+                    notificationItem.style.marginBottom = '10px';
+                    notificationItem.style.borderRadius = '5px';
+                    notificationItem.style.backgroundColor = notification.read ? 'rgba(0, 0, 0, 0.05)' : 'rgba(24, 144, 255, 0.1)';
+                    notificationItem.style.borderLeft = notification.read ? '3px solid #ddd' : '3px solid #1890ff';
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
+                        <div style="font-size: 12px; color: #888;">${notification.time}</div>
+                    `;
+                    content.appendChild(notificationItem);
+                    
+                    if (!notification.read) {
+                        notification.read = true;
+                        unreadCount--;
+                    }
+                });
+            }
+            
+            updateNotificationBell();
+            modal.style.display = 'block';
+        }
+        
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+        
+        // 页面加载完成后执行
+        $(document).ready(function() {
+            // 设置语言选择器
+            const languageSelect = document.getElementById('languageSelect');
+            languageSelect.value = getCurrentLanguage();
+            languageSelect.addEventListener('change', function() {
+                setLanguage(this.value);
+            });
+            
+            applyI18n();
+            loadPlatforms();
+            
+            // 绑定事件
+            $('#startMerge').click(startMerge);
+            
+            // 通知模态框关闭按钮
+            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                const modal = document.getElementById('notificationModal');
+                if (event.target == modal) {
+                    closeNotificationPanel();
+                }
+            };
+            
+            // 初始化通知系统
+            updateNotificationBell();
+        });
+    </script>
+</body>
+</html>

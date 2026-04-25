@@ -1,0 +1,58 @@
+# Docker Compose Configuration Template
+# Frontend Killer - Emulator Game Metadata Management Platform
+
+version: '3'
+
+services:
+  webgamelistoper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: webgamelistoper:latest
+    container_name: webgamelistoper
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/data/logs
+      - /path/to/roms:/data/roms
+      - /path/to/output:/data/output
+      - /path/to/rules:/data/rules
+      - /path/to/input:/data/input
+      - ./backup:/data/backup
+      - ./database:/data/database
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_TOMCAT_BASEDIR=/data
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+# networks:
+#   default:
+#     name: webgamelistoper-network
+#     driver: bridge
+
+# Notes:
+# 1. Please replace /path/to/ with actual local directory paths
+# 2. On first run, the system will automatically create default rule files in the rules directory
+# 3. It is recommended to enable backup mechanisms for important data directories
+# 4. For custom configuration, please modify the corresponding environment variables
+# 5. Access address: http://localhost:8080
+# 6. H2 Database Console: http://localhost:8080/h2-console
+#    - JDBC URL: jdbc:h2:file:/data/database
+#    - Username: sa
+#    - Password: (default empty)

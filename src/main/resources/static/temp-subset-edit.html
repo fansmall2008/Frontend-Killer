@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>临时子集修改 - 前端杀手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* 游戏风格背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(50, 100, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(200, 50, 100, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #00ffff;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .language-selector select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* 游戏风格标题 */
+        .header {
+            text-align: center;
+            margin: 60px 0 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #ff00ff;
+            margin: 30px 0 15px 0;
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        h3 {
+            color: #00ffff;
+            margin: 20px 0 10px 0;
+            font-size: 18px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff0088);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+        }
+        
+        .btn:disabled {
+            background: linear-gradient(45deg, #444, #666);
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .back-btn {
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        
+        /* 表单容器样式 */
+        .form-container {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 临时子集列表样式 */
+        .subset-list {
+            margin: 20px 0;
+        }
+        
+        .subset-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .subset-item:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .subset-item.selected {
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+        
+        .subset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .subset-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ffff;
+        }
+        
+        .subset-info {
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        /* 游戏列表样式 */
+        .game-list {
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .game-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .game-item:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .game-item.selected {
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .game-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .game-meta {
+            color: #ccc;
+            font-size: 12px;
+        }
+        
+        /* 游戏编辑表单样式 */
+        .game-edit-form {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ff00ff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #444;
+            border-radius: 4px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* 操作按钮区域 */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        /* 结果容器样式 */
+        .result-container {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .result-success {
+            border-left: 4px solid #00ff88;
+        }
+        
+        .result-error {
+            border-left: 4px solid #ff0088;
+        }
+        
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .result-success .result-title {
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        
+        .result-error .result-title {
+            color: #ff0088;
+            text-shadow: 0 0 15px rgba(255, 0, 136, 0.5);
+        }
+        
+        .result-content {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            color: #ccc;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 60px;
+            color: #888;
+        }
+        
+        .version-info {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* 加载动画样式 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 通知铃铛样式 */
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 120px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .notification-bell:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            transform: scale(1.1);
+        }
+        .notification-bell .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff0000;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+        }
+        
+        /* 通知弹窗样式 */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            margin: 10% auto;
+            padding: 40px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 6s linear infinite;
+        }
+        
+        .close {
+            color: #00ffff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ff00ff;
+            transform: rotate(90deg);
+            text-decoration: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin: 40px 0 30px;
+                padding: 30px 15px;
+            }
+            
+            .language-selector {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .notification-bell {
+                top: 10px;
+                right: 100px;
+                font-size: 20px;
+            }
+            
+            .form-container,
+            .result-container {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .subset-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="zh-CN">中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+    </div>
+    
+    <!-- 通知铃铛 -->
+    <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
+        🔔
+        <span class="badge" style="display: none;">0</span>
+    </div>
+    
+    <div class="container">
+        <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
+        
+        <div class="header">
+            <div class="header-content">
+                <h1 data-i18n="temp_subset_edit_title">临时子集修改</h1>
+                <p data-i18n="temp_subset_edit_desc">修改临时子集中的游戏值并选择同步到主集或成为新平台</p>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <h2 data-i18n="select_temp_subset">选择临时子集</h2>
+            <div id="subsetList" class="subset-list">
+                <p data-i18n="loading_subsets">加载临时子集列表中...</p>
+            </div>
+        </div>
+        
+        <div class="form-container" id="gameListContainer" style="display: none;">
+            <h2 data-i18n="subset_games">子集中的游戏</h2>
+            <div id="gameList" class="game-list">
+                <p data-i18n="loading_games">加载游戏列表中...</p>
+            </div>
+        </div>
+        
+        <div class="form-container" id="gameEditContainer" style="display: none;">
+            <h2 data-i18n="edit_game">编辑游戏</h2>
+            <div class="game-edit-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gameName" data-i18n="game_name">游戏名称</label>
+                        <input type="text" id="gameName" placeholder="请输入游戏名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePath" data-i18n="game_path">游戏路径</label>
+                        <input type="text" id="gamePath" placeholder="请输入游戏路径">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameDesc" data-i18n="game_description">游戏描述</label>
+                        <textarea id="gameDesc" placeholder="请输入游戏描述"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameTranslatedName" data-i18n="translated_name">翻译名称</label>
+                        <input type="text" id="gameTranslatedName" placeholder="请输入翻译名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameTranslatedDesc" data-i18n="translated_description">翻译描述</label>
+                        <textarea id="gameTranslatedDesc" placeholder="请输入翻译描述"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameDeveloper" data-i18n="developer">开发商</label>
+                        <input type="text" id="gameDeveloper" placeholder="请输入开发商">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePublisher" data-i18n="publisher">发行商</label>
+                        <input type="text" id="gamePublisher" placeholder="请输入发行商">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameGenre" data-i18n="genre">游戏类型</label>
+                        <input type="text" id="gameGenre" placeholder="请输入游戏类型">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePlayers" data-i18n="players">玩家数</label>
+                        <input type="text" id="gamePlayers" placeholder="请输入玩家数">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameReleasedate" data-i18n="release_date">发布日期</label>
+                        <input type="text" id="gameReleasedate" placeholder="请输入发布日期">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameRating" data-i18n="rating">评分</label>
+                        <input type="text" id="gameRating" placeholder="请输入评分">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameLanguage" data-i18n="language">语言</label>
+                        <input type="text" id="gameLanguage" placeholder="请输入语言">
+                    </div>
+                </div>
+                <button class="btn" id="saveGameBtn" data-i18n="save_game">保存修改</button>
+            </div>
+        </div>
+        
+        <div class="form-container" id="actionContainer" style="display: none;">
+            <h2 data-i18n="subset_actions">子集操作</h2>
+            <div class="form-group">
+                <label for="newPlatformName" data-i18n="new_platform_name">新平台名称</label>
+                <input type="text" id="newPlatformName" placeholder="请输入新平台名称">
+            </div>
+            <div class="action-buttons">
+                <button class="btn" id="syncToMainBtn" data-i18n="sync_to_main">同步到主集</button>
+                <button class="btn" id="createPlatformBtn" data-i18n="create_new_platform">创建新平台</button>
+                <button class="btn" id="deleteSubsetBtn" data-i18n="delete_subset">删除子集</button>
+            </div>
+        </div>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+        
+        <div class="footer">
+            <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
+            <p class="version-info" data-i18n="version">版本：0.6.0</p>
+        </div>
+    </div>
+    
+    <!-- 通知模态框 -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>任务消息</h2>
+            <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- 消息将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 语言翻译映射
+        const translations = {
+            'zh-CN': {
+                'temp_subset_edit_title': '临时子集修改',
+                'temp_subset_edit_desc': '修改临时子集中的游戏值并选择同步到主集或成为新平台',
+                'back_to_home': '返回首页',
+                'select_temp_subset': '选择临时子集',
+                'loading_subsets': '加载临时子集列表中...',
+                'subset_games': '子集中的游戏',
+                'loading_games': '加载游戏列表中...',
+                'edit_game': '编辑游戏',
+                'game_name': '游戏名称',
+                'game_path': '游戏路径',
+                'game_description': '游戏描述',
+                'translated_name': '翻译名称',
+                'translated_description': '翻译描述',
+                'developer': '开发商',
+                'publisher': '发行商',
+                'genre': '游戏类型',
+                'players': '玩家数',
+                'release_date': '发布日期',
+                'rating': '评分',
+                'language': '语言',
+                'save_game': '保存修改',
+                'subset_actions': '子集操作',
+                'new_platform_name': '新平台名称',
+                'sync_to_main': '同步到主集',
+                'create_new_platform': '创建新平台',
+                'delete_subset': '删除子集',
+                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
+                'version': '版本：0.6.0',
+                'subset_not_found': '未找到临时子集',
+                'games_not_found': '子集中未找到游戏',
+                'save_success': '保存成功',
+                'save_error': '保存失败',
+                'sync_success': '同步成功',
+                'sync_error': '同步失败',
+                'create_platform_success': '创建平台成功',
+                'create_platform_error': '创建平台失败',
+                'delete_success': '删除成功',
+                'delete_error': '删除失败',
+                'enter_platform_name': '请输入新平台名称',
+                'confirm_delete': '确定要删除此临时子集吗？',
+                'no_subsets': '暂无临时子集',
+                'subset_name': '子集名称',
+                'subset_description': '子集描述',
+                'game_count': '游戏数量',
+                'created_at': '创建时间'
+            },
+            'en-US': {
+                'temp_subset_edit_title': 'Temporary Subset Edit',
+                'temp_subset_edit_desc': 'Modify game values in temporary subsets and choose to sync to main set or create new platform',
+                'back_to_home': 'Back to Home',
+                'select_temp_subset': 'Select Temporary Subset',
+                'loading_subsets': 'Loading temporary subsets...',
+                'subset_games': 'Games in Subset',
+                'loading_games': 'Loading games...',
+                'edit_game': 'Edit Game',
+                'game_name': 'Game Name',
+                'game_path': 'Game Path',
+                'game_description': 'Game Description',
+                'translated_name': 'Translated Name',
+                'translated_description': 'Translated Description',
+                'developer': 'Developer',
+                'publisher': 'Publisher',
+                'genre': 'Genre',
+                'players': 'Players',
+                'release_date': 'Release Date',
+                'rating': 'Rating',
+                'language': 'Language',
+                'save_game': 'Save Changes',
+                'subset_actions': 'Subset Actions',
+                'new_platform_name': 'New Platform Name',
+                'sync_to_main': 'Sync to Main Set',
+                'create_new_platform': 'Create New Platform',
+                'delete_subset': 'Delete Subset',
+                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
+                'version': 'Version: 0.6.0',
+                'subset_not_found': 'Temporary subset not found',
+                'games_not_found': 'No games found in subset',
+                'save_success': 'Save successful',
+                'save_error': 'Save failed',
+                'sync_success': 'Sync successful',
+                'sync_error': 'Sync failed',
+                'create_platform_success': 'Platform creation successful',
+                'create_platform_error': 'Platform creation failed',
+                'delete_success': 'Delete successful',
+                'delete_error': 'Delete failed',
+                'enter_platform_name': 'Please enter new platform name',
+                'confirm_delete': 'Are you sure you want to delete this temporary subset?',
+                'no_subsets': 'No temporary subsets available',
+                'subset_name': 'Subset Name',
+                'subset_description': 'Subset Description',
+                'game_count': 'Game Count',
+                'created_at': 'Created At'
+            },
+            'ja-JP': {
+                'temp_subset_edit_title': '一時サブセット編集',
+                'temp_subset_edit_desc': '一時サブセットのゲーム値を変更し、メインセットに同期するか新しいプラットフォームを作成するかを選択',
+                'back_to_home': 'ホームに戻る',
+                'select_temp_subset': '一時サブセットを選択',
+                'loading_subsets': '一時サブセットを読み込んでいます...',
+                'subset_games': 'サブセット内のゲーム',
+                'loading_games': 'ゲームを読み込んでいます...',
+                'edit_game': 'ゲームを編集',
+                'game_name': 'ゲーム名',
+                'game_path': 'ゲームパス',
+                'game_description': 'ゲームの説明',
+                'translated_name': '翻訳名',
+                'translated_description': '翻訳説明',
+                'developer': '開発者',
+                'publisher': '発行者',
+                'genre': 'ジャンル',
+                'players': 'プレイヤー数',
+                'release_date': 'リリース日',
+                'rating': '評価',
+                'language': '言語',
+                'save_game': '変更を保存',
+                'subset_actions': 'サブセットアクション',
+                'new_platform_name': '新しいプラットフォーム名',
+                'sync_to_main': 'メインセットに同期',
+                'create_new_platform': '新しいプラットフォームを作成',
+                'delete_subset': 'サブセットを削除',
+                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
+                'version': 'バージョン：0.6.0',
+                'subset_not_found': '一時サブセットが見つかりません',
+                'games_not_found': 'サブセット内にゲームが見つかりません',
+                'save_success': '保存に成功',
+                'save_error': '保存に失敗',
+                'sync_success': '同期に成功',
+                'sync_error': '同期に失敗',
+                'create_platform_success': 'プラットフォームの作成に成功',
+                'create_platform_error': 'プラットフォームの作成に失敗',
+                'delete_success': '削除に成功',
+                'delete_error': '削除に失敗',
+                'enter_platform_name': '新しいプラットフォーム名を入力してください',
+                'confirm_delete': 'この一時サブセットを削除してもよろしいですか？',
+                'no_subsets': '一時サブセットはありません',
+                'subset_name': 'サブセット名',
+                'subset_description': 'サブセットの説明',
+                'game_count': 'ゲーム数',
+                'created_at': '作成日時'
+            }
+        };
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            const translation = translations[lang];
+            if (!translation) return;
+            
+            // 更新标题
+            document.title = translation['temp_subset_edit_title'] + ' - 前端杀手';
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+        
+        // 获取翻译文本
+        function getI18nText(key) {
+            const lang = getCurrentLanguage();
+            return translations[lang][key] || key;
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            document.getElementById('languageSelect').value = lang;
+            setLanguage(lang);
+        }
+        
+        // 语言选择器事件监听
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+        
+        // 加载临时子集列表
+        function loadSubsets() {
+            const subsetList = document.getElementById('subsetList');
+            showLoading('subsetList', getI18nText('loading_subsets'));
+            
+            fetchWithErrorHandling('/api/temp-subsets')
+                .then(data => {
+                    subsetList.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        subsetList.innerHTML = '<p style="color: #aaa;">' + getI18nText('no_subsets') + '</p>';
+                        return;
+                    }
+                    
+                    data.forEach(subset => {
+                        const subsetItem = document.createElement('div');
+                        subsetItem.className = 'subset-item';
+                        subsetItem.dataset.id = subset.id;
+                        subsetItem.innerHTML = `
+                            <div class="subset-header">
+                                <div class="subset-name">${subset.name}</div>
+                                <div class="subset-info">加载中... 个游戏</div>
+                            </div>
+                            <div class="subset-info">${subset.description || ''}</div>
+                            <div class="subset-info" style="font-size: 12px; color: #888;">${new Date(subset.createdAt).toLocaleString()}</div>
+                        `;
+                        subsetList.appendChild(subsetItem);
+                        
+                        // 获取游戏数量
+                        fetchWithErrorHandling(`/api/temp-subsets/${subset.id}/games`)
+                            .then(games => {
+                                const gameCountElement = subsetItem.querySelector('.subset-header .subset-info');
+                                if (gameCountElement) {
+                                    gameCountElement.textContent = `${games.length} 个游戏`;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('获取游戏数量失败:', error);
+                                const gameCountElement = subsetItem.querySelector('.subset-header .subset-info');
+                                if (gameCountElement) {
+                                    gameCountElement.textContent = '获取游戏数量失败，请刷新页面重试';
+                                }
+                            });
+                        
+                        // 添加点击事件
+                        subsetItem.addEventListener('click', () => {
+                            selectSubset(subset.id);
+                        });
+                    });
+                })
+                .catch(error => {
+                    showError('subsetList', '加载失败');
+                });
+        }
+        
+        // 选择临时子集
+        function selectSubset(subsetId) {
+            // 移除其他子集的选中状态
+            document.querySelectorAll('.subset-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 添加当前子集的选中状态
+            const selectedItem = document.querySelector(`.subset-item[data-id="${subsetId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+            
+            // 加载子集中的游戏
+            loadSubsetGames(subsetId);
+        }
+        
+        // 加载子集中的游戏
+        function loadSubsetGames(subsetId) {
+            const gameListContainer = document.getElementById('gameListContainer');
+            const gameList = document.getElementById('gameList');
+            
+            gameListContainer.style.display = 'block';
+            showLoading('gameList', getI18nText('loading_games'));
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}/games`)
+                .then(data => {
+                    gameList.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        gameList.innerHTML = '<p style="color: #aaa;">' + getI18nText('games_not_found') + '</p>';
+                        return;
+                    }
+                    
+                    data.forEach(game => {
+                        const gameItem = document.createElement('div');
+                        gameItem.className = 'game-item';
+                        gameItem.dataset.id = game.id;
+                        gameItem.innerHTML = `
+                            <div class="game-header">
+                                <div class="game-name">${game.name || '未知游戏'}</div>
+                                <div class="game-meta">${game.path ? game.path.split('/').pop() : ''}</div>
+                            </div>
+                            <div class="game-meta">${game.desc ? (game.desc.length > 100 ? game.desc.substring(0, 100) + '...' : game.desc) : ''}</div>
+                            <div class="game-meta" style="font-size: 10px; color: #888;">ID: ${game.id}, Original ID: ${game.originalGameId}</div>
+                        `;
+                        gameList.appendChild(gameItem);
+                        
+                        // 添加点击事件
+                        gameItem.addEventListener('click', () => {
+                            console.log('点击游戏，ID:', game.id, 'Original ID:', game.originalGameId);
+                            // 使用game.id来编辑游戏
+                            editGame(game.id);
+                        });
+                    });
+                })
+                .catch(error => {
+                    showError('gameList', '加载失败');
+                });
+            
+            // 显示操作容器
+            document.getElementById('actionContainer').style.display = 'block';
+        }
+        
+        // 编辑游戏
+        function editGame(gameId) {
+            const gameEditContainer = document.getElementById('gameEditContainer');
+            
+            gameEditContainer.style.display = 'block';
+            
+            // 加载游戏详情
+            fetchWithErrorHandling(`/api/temp-subsets/games/${gameId}`)
+                .then(game => {
+                    document.getElementById('gameName').value = game.name || '';
+                    document.getElementById('gamePath').value = game.path || '';
+                    document.getElementById('gameDesc').value = game.desc || '';
+                    document.getElementById('gameTranslatedName').value = game.translatedName || '';
+                    document.getElementById('gameTranslatedDesc').value = game.translatedDesc || '';
+                    document.getElementById('gameDeveloper').value = game.developer || '';
+                    document.getElementById('gamePublisher').value = game.publisher || '';
+                    document.getElementById('gameGenre').value = game.genre || '';
+                    document.getElementById('gamePlayers').value = game.players || '';
+                    document.getElementById('gameReleasedate').value = game.releasedate || '';
+                    document.getElementById('gameRating').value = game.rating || '';
+                    document.getElementById('gameLanguage').value = game.lang || '';
+                    
+                    // 保存当前编辑的游戏ID
+                    sessionStorage.setItem('currentEditingGameId', game.id);
+                })
+                .catch(error => {
+                    console.error('加载游戏失败:', error);
+                    showResult(false, getI18nText('save_error'), '加载游戏失败');
+                });
+        }
+        
+        // 保存游戏修改
+        function saveGame() {
+            const gameId = sessionStorage.getItem('currentEditingGameId');
+            if (!gameId) {
+                showResult(false, getI18nText('save_error'), '请先选择要编辑的游戏');
+                return;
+            }
+            
+            const gameData = {
+                id: gameId,
+                name: document.getElementById('gameName').value,
+                path: document.getElementById('gamePath').value,
+                desc: document.getElementById('gameDesc').value,
+                translatedName: document.getElementById('gameTranslatedName').value,
+                translatedDesc: document.getElementById('gameTranslatedDesc').value,
+                developer: document.getElementById('gameDeveloper').value,
+                publisher: document.getElementById('gamePublisher').value,
+                genre: document.getElementById('gameGenre').value,
+                players: document.getElementById('gamePlayers').value,
+                releasedate: document.getElementById('gameReleasedate').value,
+                rating: document.getElementById('gameRating').value,
+                lang: document.getElementById('gameLanguage').value
+            };
+            
+            fetchWithErrorHandling('/api/temp-subsets/games/update', {
+                method: 'POST',
+                body: JSON.stringify(gameData)
+            })
+            .then(result => {
+                showResult(result.success, result.success ? getI18nText('save_success') : getI18nText('save_error'), result.message || '');
+            })
+            .catch(error => {
+                showResult(false, getI18nText('save_error'), '保存失败');
+            });
+        }
+        
+        // 同步到主集
+        function syncToMain() {
+            const selectedSubset = document.querySelector('.subset-item.selected');
+            if (!selectedSubset) {
+                showResult(false, getI18nText('sync_error'), '请先选择一个临时子集');
+                return;
+            }
+            
+            const subsetId = selectedSubset.dataset.id;
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}/sync-to-main`, {
+                method: 'POST'
+            })
+            .then(result => {
+                showResult(result.success, result.success ? getI18nText('sync_success') : getI18nText('sync_error'), result.message || '');
+            })
+            .catch(error => {
+                showResult(false, getI18nText('sync_error'), '同步失败');
+            });
+        }
+        
+        // 创建新平台
+        function createNewPlatform() {
+            const selectedSubset = document.querySelector('.subset-item.selected');
+            if (!selectedSubset) {
+                showResult(false, getI18nText('create_platform_error'), '请先选择一个临时子集');
+                return;
+            }
+            
+            const subsetId = selectedSubset.dataset.id;
+            const platformName = document.getElementById('newPlatformName').value;
+            
+            if (!platformName) {
+                showResult(false, getI18nText('create_platform_error'), getI18nText('enter_platform_name'));
+                return;
+            }
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}/create-platform`, {
+                method: 'POST',
+                body: JSON.stringify({ platformName })
+            })
+            .then(result => {
+                showResult(result.success, result.success ? getI18nText('create_platform_success') : getI18nText('create_platform_error'), result.message || '');
+            })
+            .catch(error => {
+                showResult(false, getI18nText('create_platform_error'), '创建失败');
+            });
+        }
+        
+        // 删除临时子集
+        function deleteSubset() {
+            const selectedSubset = document.querySelector('.subset-item.selected');
+            if (!selectedSubset) {
+                showResult(false, getI18nText('delete_error'), '请先选择一个临时子集');
+                return;
+            }
+            
+            if (!confirm(getI18nText('confirm_delete'))) {
+                return;
+            }
+            
+            const subsetId = selectedSubset.dataset.id;
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}`, {
+                method: 'DELETE'
+            })
+            .then(result => {
+                if (result.success) {
+                    showResult(true, getI18nText('delete_success'), '删除成功');
+                    // 重新加载子集列表
+                    setTimeout(() => {
+                        loadSubsets();
+                        document.getElementById('gameListContainer').style.display = 'none';
+                        document.getElementById('gameEditContainer').style.display = 'none';
+                        document.getElementById('actionContainer').style.display = 'none';
+                    }, 1500);
+                } else {
+                    showResult(false, getI18nText('delete_error'), '删除失败');
+                }
+            })
+            .catch(error => {
+                showResult(false, getI18nText('delete_error'), '删除失败');
+            });
+        }
+        
+        // 显示结果
+        function showResult(success, title, content) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContainer.style.display = 'block';
+            resultContainer.className = 'result-container ' + (success ? 'result-success' : 'result-error');
+            resultTitle.textContent = title;
+            resultContent.textContent = content;
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                resultContainer.style.display = 'none';
+            }, 3000);
+        }
+        
+        // API调用工具函数
+        function fetchWithErrorHandling(url, options = {}) {
+            return fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error(`API调用失败 (${url}):`, error);
+                throw error;
+            });
+        }
+        
+        // 显示加载状态
+        function showLoading(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<p style="color: #00ffff;">${message || '加载中...'}</p>`;
+            }
+        }
+        
+        // 显示错误信息
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<p style="color: #ff0088;">${message}</p>`;
+            }
+        }
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.style.backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">暂无通知消息</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.style.padding = '12px';
+                    notificationItem.style.borderBottom = '1px solid #444';
+                    notificationItem.style.cursor = 'pointer';
+                    notificationItem.style.transition = 'background-color 0.2s ease';
+                    notificationItem.style.backgroundColor = notification.read ? 'transparent' : 'rgba(0, 255, 255, 0.1)';
+                    
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 4px; color: ${notification.type === 'success' ? '#00ff88' : notification.type === 'error' ? '#ff0088' : '#00ffff'}">
+                            ${notification.message}
+                        </div>
+                        <div style="font-size: 12px; color: #888;">${notification.time}</div>
+                    `;
+                    
+                    notificationItem.addEventListener('click', () => {
+                        notification.read = true;
+                        notificationItem.style.backgroundColor = 'transparent';
+                        if (!notification.read) {
+                            unreadCount--;
+                            updateNotificationBell();
+                        }
+                    });
+                    
+                    content.appendChild(notificationItem);
+                });
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭通知面板
+        document.querySelector('.close').addEventListener('click', function() {
+            document.getElementById('notificationModal').style.display = 'none';
+        });
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('notificationModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化语言
+            initLanguage();
+            
+            // 加载临时子集列表
+            loadSubsets();
+            
+            // 保存游戏按钮事件
+            document.getElementById('saveGameBtn').addEventListener('click', saveGame);
+            
+            // 同步到主集按钮事件
+            document.getElementById('syncToMainBtn').addEventListener('click', syncToMain);
+            
+            // 创建新平台按钮事件
+            document.getElementById('createPlatformBtn').addEventListener('click', createNewPlatform);
+            
+            // 删除子集按钮事件
+            document.getElementById('deleteSubsetBtn').addEventListener('click', deleteSubset);
+        });
+    </script>
+</body>
+</html>
