@@ -60,3 +60,4 @@ database/
 # Distribution
 distribution/*.jar
 !distribution/rules/
+distribution/
