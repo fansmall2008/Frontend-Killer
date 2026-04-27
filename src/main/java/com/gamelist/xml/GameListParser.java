@@ -28,7 +28,9 @@ public class GameListParser {
         // 尝试读取文件的前几行，检查文件内容
         try {
             logger.info("尝试读取文件内容...");
-            try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(xmlFile))) {
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(xmlFile);
+                 java.io.InputStreamReader isr = new java.io.InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8);
+                 java.io.BufferedReader br = new java.io.BufferedReader(isr)) {
                 String line;
                 int lineCount = 0;
                 while ((line = br.readLine()) != null && lineCount < 10) {
@@ -43,8 +45,9 @@ public class GameListParser {
             logger.error("读取文件内容失败: {}", e.getMessage(), e);
         }
         
-        // 直接使用FileInputStream读取文件，避免Reader可能的编码问题
-        try (java.io.FileInputStream fis = new java.io.FileInputStream(xmlFile)) {
+        // 使用InputStreamReader并指定UTF-8编码，确保正确处理中文
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(xmlFile);
+             java.io.InputStreamReader isr = new java.io.InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8)) {
             logger.info("创建JAXB上下文...");
             JAXBContext jaxbContext = JAXBContext.newInstance(GameListXml.class);
             logger.info("JAXB上下文创建成功: {}", jaxbContext);
@@ -55,7 +58,10 @@ public class GameListParser {
             
             logger.info("开始解组XML...");
             try {
-                Object unmarshalledObject = jaxbUnmarshaller.unmarshal(fis);
+                // 在解组前检查流的状态
+                logger.info("InputStreamReader ready: {}", isr.ready());
+                
+                Object unmarshalledObject = jaxbUnmarshaller.unmarshal(isr);
                 logger.info("解组完成，结果类型: {}", unmarshalledObject.getClass().getName());
                 
                 if (!(unmarshalledObject instanceof GameListXml)) {

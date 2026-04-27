@@ -8,9 +8,10 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gamelist.util.PathUtil;
 
 public class ConfigManager {
-    private static final String CONFIG_FILE_PATH = "/data/rules/translation-config.json";
+    private static final String CONFIG_FILE_PATH = PathUtil.getRulesPath() + "/translation-config.json";
     private static ConfigManager instance;
     private JsonNode config;
     private Map<String, String> variables;

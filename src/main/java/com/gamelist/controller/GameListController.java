@@ -502,4 +502,46 @@ public class GameListController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
         }
     }
+    
+    /**
+     * 获取导入模板列表
+     */
+    @GetMapping("/import/templates")
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getImportTemplates() {
+        try {
+            // 读取导入模板目录
+            java.io.File templatesDir = new java.io.File("/data/rules/import");
+            java.util.List<java.util.Map<String, Object>> templates = new java.util.ArrayList<>();
+            
+            if (templatesDir.exists() && templatesDir.isDirectory()) {
+                java.io.File[] templateFiles = templatesDir.listFiles((dir, name) -> name.endsWith(".json"));
+                if (templateFiles != null) {
+                    for (java.io.File file : templateFiles) {
+                        try {
+                            // 解析JSON文件
+                            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                            java.util.Map<String, Object> templateData = objectMapper.readValue(file, java.util.Map.class);
+                            
+                            // 创建模板信息对象
+                            java.util.Map<String, Object> templateInfo = new java.util.HashMap<>();
+                            templateInfo.put("fileName", file.getName());
+                            templateInfo.put("name", templateData.getOrDefault("name", file.getName()));
+                            templateInfo.put("frontend", templateData.get("frontend"));
+                            templateInfo.put("version", templateData.get("version"));
+                            templateInfo.put("description", templateData.get("description"));
+                            
+                            templates.add(templateInfo);
+                        } catch (Exception e) {
+                            logger.warn("解析模板文件失败: {}", file.getName(), e);
+                        }
+                    }
+                }
+            }
+            
+            return ResponseEntity.ok(templates);
+        } catch (Exception e) {
+            logger.error("获取导入模板列表失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

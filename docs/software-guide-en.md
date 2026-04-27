@@ -546,8 +546,77 @@ A: Check if the H2 console JDBC URL configuration is correct, the default should
 
 ## 10. Version Information
 
-**Current Version**: 1.0-beta
-**Last Updated**: 2026-04-24
+**Current Version**: 1.0.2-beta
+**Last Updated**: 2026-04-26
+
+## 11. Docker Deployment Guide
+
+### 11.1 Deploy using docker-compose (Recommended)
+
+```bash
+# Create data directories
+mkdir -p logs roms output rules input backup database
+
+# Start services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+### 11.2 Deploy using docker run
+
+```bash
+# Create data directories
+mkdir -p logs roms output rules input backup database
+
+# Run container
+docker run -d \
+  --name webgamelistoper \
+  -p 8080:8080 \
+  -v $(pwd)/logs:/data/logs \
+  -v /path/to/roms:/data/roms \
+  -v $(pwd)/output:/data/output \
+  -v $(pwd)/rules:/data/rules \
+  -v $(pwd)/backup:/data/backup \
+  -v $(pwd)/database:/data/database \
+  -e SPRING_PROFILES_ACTIVE=default \
+  -e SERVER_TOMCAT_BASEDIR=/data \
+  -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  --restart unless-stopped \
+  fansmall/webgamelistoper:1.0.2-beta
+```
+
+### 11.3 Common Docker Commands
+
+```bash
+# View container status
+docker ps -a | grep webgamelistoper
+
+# View logs
+docker logs -f webgamelistoper
+
+# Enter container
+docker exec -it webgamelistoper bash
+
+# Stop container
+docker stop webgamelistoper
+
+# Remove container
+docker rm webgamelistoper
+
+# Restart container
+docker restart webgamelistoper
+```
+
+### 11.4 Docker Hub Image
+
+- **Repository**: https://hub.docker.com/r/fansmall/webgamelistoper
+- **Version Tag**: `fansmall/webgamelistoper:1.0.2-beta`
 
 ---
 

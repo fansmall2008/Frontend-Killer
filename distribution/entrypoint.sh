@@ -3,8 +3,8 @@ set -e
 
 DEFAULT_RULES_DIR="/app/default-rules"
 RULES_DIR="/data/rules"
-EXPORT_RULES_DIR="/data/rules/export-rules"
-IMPORT_TEMPLATES_DIR="/data/rules/import-templates"
+EXPORT_RULES_DIR="/data/rules/export"
+IMPORT_TEMPLATES_DIR="/data/rules/import"
 TRANSLATION_CONFIG="/data/rules/translation-config.json"
 LOG_DIR="/data/logs"
 
@@ -27,6 +27,7 @@ fi
 
 mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR"
 
+# 复制默认规则
 if [ -d "$DEFAULT_RULES_DIR" ]; then
     if [ -z "$(ls -A "$EXPORT_RULES_DIR" 2>/dev/null)" ]; then
         log "导出规则目录为空，复制默认规则..."
@@ -36,6 +37,14 @@ if [ -d "$DEFAULT_RULES_DIR" ]; then
     if [ ! -f "$TRANSLATION_CONFIG" ] && [ -f "$DEFAULT_RULES_DIR/translation-config.json" ]; then
         log "翻译配置文件不存在，复制默认配置..."
         cp "$DEFAULT_RULES_DIR/translation-config.json" "$TRANSLATION_CONFIG"
+    fi
+fi
+
+# 复制默认文档
+if [ -d "$DEFAULT_DOCS_DIR" ]; then
+    if [ -z "$(ls -A "$DOCS_DIR" 2>/dev/null)" ]; then
+        log "文档目录为空，复制默认文档..."
+        cp -r "$DEFAULT_DOCS_DIR/"* "$DOCS_DIR/" 2>/dev/null || true
     fi
 fi
 

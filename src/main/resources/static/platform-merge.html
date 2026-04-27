@@ -741,34 +741,40 @@
                 return;
             }
             
-            console.log(getI18nText('merge_started'));
-            
-            $.ajax({
-                url: '/api/platforms/merge',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    sourcePlatformIds: sourcePlatforms,
-                    newPlatformName: newPlatformName,
-                    newPlatformFolderPath: newPlatformFolderPath || ''
-                }),
-                success: function(response) {
-                    console.log(getI18nText('log_task_started'), response.taskId);
-                    console.log(getI18nText('log_check_task_status'));
-                    console.log(getI18nText('log_conflict_resolution'));
-                    
-                    showResult(
-                        getI18nText('merge_started') + '<br>' +
-                        getI18nText('log_task_started') + ' ' + response.taskId + '<br>' +
-                        getI18nText('log_check_task_status'),
-                        'success'
-                    );
-                },
-                error: function() {
-                    console.error(getI18nText('merge_failed'));
-                    showResult(getI18nText('merge_failed'), 'error');
-                }
-            });
+            // 显示覆盖确认弹窗
+            if (confirm('合并过程中可能会遇到文件已存在的情况，是否覆盖已存在的文件？')) {
+                console.log(getI18nText('merge_started'));
+                
+                $.ajax({
+                    url: '/api/platforms/merge',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        sourcePlatformIds: sourcePlatforms,
+                        newPlatformName: newPlatformName,
+                        newPlatformFolderPath: newPlatformFolderPath || '',
+                        overwrite: true
+                    }),
+                    success: function(response) {
+                        console.log(getI18nText('log_task_started'), response.taskId);
+                        console.log(getI18nText('log_check_task_status'));
+                        console.log(getI18nText('log_conflict_resolution'));
+                        
+                        showResult(
+                            getI18nText('merge_started') + '<br>' +
+                            getI18nText('log_task_started') + ' ' + response.taskId + '<br>' +
+                            getI18nText('log_check_task_status'),
+                            'success'
+                        );
+                    },
+                    error: function() {
+                        console.error(getI18nText('merge_failed'));
+                        showResult(getI18nText('merge_failed'), 'error');
+                    }
+                });
+            } else {
+                showResult('合并操作已取消', 'error');
+            }
         }
         
         // 显示结果

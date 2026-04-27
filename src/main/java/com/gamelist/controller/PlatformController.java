@@ -128,8 +128,9 @@ public class PlatformController {
             
             String newPlatformName = (String) request.get("newPlatformName");
             String newPlatformFolderPath = (String) request.get("newPlatformFolderPath");
+            Boolean overwrite = (Boolean) request.get("overwrite");
             
-            Map<String, Object> result = platformService.mergePlatforms(sourcePlatformIds, newPlatformName, newPlatformFolderPath);
+            Map<String, Object> result = platformService.mergePlatforms(sourcePlatformIds, newPlatformName, newPlatformFolderPath, overwrite);
             
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {

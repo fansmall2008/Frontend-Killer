@@ -21,6 +21,7 @@ import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
 import com.gamelist.service.GameService;
 import com.gamelist.service.PlatformService;
+import com.gamelist.service.TaskService;
 import com.gamelist.service.TranslationException;
 import com.gamelist.service.TranslationService;
 import com.gamelist.service.impl.TranslationServiceFactory;
@@ -42,10 +43,15 @@ public class TranslationController {
     @Autowired
     private PlatformService platformService;
     
+    @Autowired
+    private TaskService taskService;
+    
     // 翻译进度存储
     private final Map<String, Map<String, Object>> translationProgress = new HashMap<>();
     // 翻译错误记录存储
     private final Map<String, List<Map<String, Object>>> translationErrors = new HashMap<>();
+    // 任务ID映射
+    private final Map<String, Long> taskIdMap = new HashMap<>();
     
     /**
      * 获取所有平台
@@ -124,6 +130,11 @@ public class TranslationController {
             List<Map<String, Object>> errorList = new ArrayList<>();
             translationErrors.put(taskId, errorList);
             
+            // 创建后台任务
+            String taskDescription = "翻译平台: " + platform.getName() + " (" + games.size() + " 个游戏)";
+            Long backgroundTaskId = taskService.createTask("TRANSLATE", taskDescription).getId();
+            taskIdMap.put(taskId, backgroundTaskId);
+            
             // 异步执行翻译
             new Thread(() -> {
                 AtomicInteger completed = new AtomicInteger(0);
@@ -132,23 +143,31 @@ public class TranslationController {
                 
                 for (Game game : games) {
                     try {
-                        // 翻译游戏名称
-                        if (translateType.equals("name") || translateType.equals("both")) {
+                        // 翻译游戏名称和描述
+                        if (translateType.equals("name")) {
                             if (game.getName() != null && !game.getName().isEmpty()) {
                                 String translatedName = translationService.translate(
                                         game.getName(), sourceLang, targetLang
                                 );
                                 game.setTranslatedName(translatedName);
                             }
-                        }
-                        
-                        // 翻译游戏描述
-                        if (translateType.equals("desc") || translateType.equals("both")) {
+                        } else if (translateType.equals("desc")) {
                             if (game.getDesc() != null && !game.getDesc().isEmpty()) {
                                 String translatedDesc = translationService.translate(
                                         game.getDesc(), sourceLang, targetLang
                                 );
                                 game.setTranslatedDesc(translatedDesc);
+                            }
+                        } else if (translateType.equals("both")) {
+                            // 使用translateGame方法同时翻译游戏名称和描述
+                            TranslationService.TranslationResult translationResult = translationService.translateGame(
+                                    game.getName(), game.getDesc(), sourceLang, targetLang
+                            );
+                            if (translationResult.getGameName() != null) {
+                                game.setTranslatedName(translationResult.getGameName());
+                            }
+                            if (translationResult.getGameDescription() != null) {
+                                game.setTranslatedDesc(translationResult.getGameDescription());
                             }
                         }
                         
@@ -182,10 +201,19 @@ public class TranslationController {
                             progressInfo.put("completed", current);
                             progressInfo.put("success", successCount.get());
                             progressInfo.put("failed", failedCount.get());
+                            
+                            // 更新后台任务进度
+                            int percentProgress = (int) ((current * 100.0) / games.size());
+                            taskService.updateTaskProgress(backgroundTaskId, percentProgress, "翻译游戏: " + game.getName(), current, games.size());
+                            
                             if (current >= games.size()) {
                                 progressInfo.put("status", "completed");
                                 // 任务完成时，将错误信息添加到进度信息中
                                 progressInfo.put("errors", errorList);
+                                
+                                // 完成后台任务
+                                String taskResult = "翻译完成: " + successCount.get() + " 成功, " + failedCount.get() + " 失败";
+                                taskService.completeTask(backgroundTaskId, taskResult, taskResult);
                             }
                         }
                     }
@@ -347,6 +375,11 @@ public class TranslationController {
             List<Map<String, Object>> errorList = new ArrayList<>();
             translationErrors.put(taskId, errorList);
 
+            // 创建后台任务
+            String taskDescription = "批量翻译游戏: " + games.size() + " 个游戏";
+            Long backgroundTaskId = taskService.createTask("TRANSLATE", taskDescription).getId();
+            taskIdMap.put(taskId, backgroundTaskId);
+
             // 异步执行翻译
             new Thread(() -> {
                 AtomicInteger completed = new AtomicInteger(0);
@@ -355,23 +388,31 @@ public class TranslationController {
 
                 for (Game game : games) {
                     try {
-                        // 翻译游戏名称
-                        if (translateType.equals("name") || translateType.equals("both")) {
+                        // 翻译游戏名称和描述
+                        if (translateType.equals("name")) {
                             if (game.getName() != null && !game.getName().isEmpty()) {
                                 String translatedName = translationService.translate(
                                         game.getName(), sourceLang, targetLang
                                 );
                                 game.setTranslatedName(translatedName);
                             }
-                        }
-
-                        // 翻译游戏描述
-                        if (translateType.equals("desc") || translateType.equals("both")) {
+                        } else if (translateType.equals("desc")) {
                             if (game.getDesc() != null && !game.getDesc().isEmpty()) {
                                 String translatedDesc = translationService.translate(
                                         game.getDesc(), sourceLang, targetLang
                                 );
                                 game.setTranslatedDesc(translatedDesc);
+                            }
+                        } else if (translateType.equals("both")) {
+                            // 使用translateGame方法同时翻译游戏名称和描述
+                            TranslationService.TranslationResult translationResult = translationService.translateGame(
+                                    game.getName(), game.getDesc(), sourceLang, targetLang
+                            );
+                            if (translationResult.getGameName() != null) {
+                                game.setTranslatedName(translationResult.getGameName());
+                            }
+                            if (translationResult.getGameDescription() != null) {
+                                game.setTranslatedDesc(translationResult.getGameDescription());
                             }
                         }
 
@@ -405,10 +446,19 @@ public class TranslationController {
                             progressInfo.put("completed", current);
                             progressInfo.put("success", successCount.get());
                             progressInfo.put("failed", failedCount.get());
+                            
+                            // 更新后台任务进度
+                            int percentProgress = (int) ((current * 100.0) / games.size());
+                            taskService.updateTaskProgress(backgroundTaskId, percentProgress, "翻译游戏: " + game.getName(), current, games.size());
+                            
                             if (current >= games.size()) {
                                 progressInfo.put("status", "completed");
                                 // 任务完成时，将错误信息添加到进度信息中
                                 progressInfo.put("errors", errorList);
+                                
+                                // 完成后台任务
+                                String taskResult = "翻译完成: " + successCount.get() + " 成功, " + failedCount.get() + " 失败";
+                                taskService.completeTask(backgroundTaskId, taskResult, taskResult);
                             }
                         }
                     }

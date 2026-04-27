@@ -546,8 +546,77 @@ A: 检查H2控制台的JDBC URL配置是否正确，默认应为 `jdbc:h2:file:/
 
 ## 10. 版本信息
 
-**当前版本**：1.0-beta
-**最后更新**：2026-04-24
+**当前版本**：1.0.2-beta
+**最后更新**：2026-04-26
+
+## 11. Docker 部署指南
+
+### 11.1 使用 docker-compose 部署（推荐）
+
+```bash
+# 创建数据目录
+mkdir -p logs roms output rules input backup database
+
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+### 11.2 使用 docker run 部署
+
+```bash
+# 创建数据目录
+mkdir -p logs roms output rules input backup database
+
+# 运行容器
+docker run -d \
+  --name webgamelistoper \
+  -p 8080:8080 \
+  -v $(pwd)/logs:/data/logs \
+  -v /path/to/roms:/data/roms \
+  -v $(pwd)/output:/data/output \
+  -v $(pwd)/rules:/data/rules \
+  -v $(pwd)/backup:/data/backup \
+  -v $(pwd)/database:/data/database \
+  -e SPRING_PROFILES_ACTIVE=default \
+  -e SERVER_TOMCAT_BASEDIR=/data \
+  -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  --restart unless-stopped \
+  fansmall/webgamelistoper:1.0.2-beta
+```
+
+### 11.3 常用 Docker 命令
+
+```bash
+# 查看容器状态
+docker ps -a | grep webgamelistoper
+
+# 查看日志
+docker logs -f webgamelistoper
+
+# 进入容器
+docker exec -it webgamelistoper bash
+
+# 停止容器
+docker stop webgamelistoper
+
+# 删除容器
+docker rm webgamelistoper
+
+# 重新启动
+docker restart webgamelistoper
+```
+
+### 11.4 Docker Hub 镜像地址
+
+- **镜像仓库**：https://hub.docker.com/r/fansmall/webgamelistoper
+- **版本标签**：`fansmall/webgamelistoper:1.0.2-beta`
 
 ---
 

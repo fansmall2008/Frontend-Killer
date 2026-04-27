@@ -1,0 +1,207 @@
+{
+  "frontend": "retrobat",
+  "name": "RetroBat",
+  "version": "1.0",
+  "description": "Template for Exporting Data and Media Files for the RetroBat Frontend.Including Path Types",
+  "rules": {
+    "media": {
+      "box2dback": {
+        "source": "box2dback",
+        "target": "{mediaPath}/box2dback/{filename}.png",
+        "dataFileTag": "box2dback"
+      },
+      "box2dfront": {
+        "source": "box2dfront",
+        "target": "{mediaPath}/box2dfront/{filename}.png",
+        "dataFileTag": "box2dfront"
+      },
+      "box2dside": {
+        "source": "box2dside",
+        "target": "{mediaPath}/box2dside/{filename}.png",
+        "dataFileTag": "box2dside"
+      },
+      "box3d": {
+        "source": "box3d",
+        "target": "{mediaPath}/box3d/{filename}.png",
+        "dataFileTag": "box3d"
+      },
+      "boxtexture": {
+        "source": "boxtexture",
+        "target": "{mediaPath}/boxtexture/{filename}.png",
+        "dataFileTag": "boxtexture"
+      },
+      "fanart": {
+        "source": "fanart",
+        "target": "{mediaPath}/fanart/{filename}.png",
+        "dataFileTag": "fanart"
+      },
+      "screenmarquee": {
+        "source": "screenmarquee",
+        "target": "{mediaPath}/screenmarquee/{filename}.png",
+        "dataFileTag": "screenmarquee"
+      },
+      "screenmarquesmall": {
+        "source": "screenmarquesmall",
+        "target": "{mediaPath}/screenmarquesmall/{filename}.png",
+        "dataFileTag": "screenmarquesmall"
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "target": "{mediaPath}/screenshot/{filename}.png",
+        "dataFileTag": "screenshot"
+      },
+      "screentitle": {
+        "source": "screentitle",
+        "target": "{mediaPath}/screentitle/{filename}.png",
+        "dataFileTag": "screentitle"
+      },
+      "steamgrid": {
+        "source": "steamgrid",
+        "target": "{mediaPath}/steamgrid/{filename}.png",
+        "dataFileTag": "steamgrid"
+      },
+      "support": {
+        "source": "support",
+        "target": "{mediaPath}/support/{filename}.png",
+        "dataFileTag": "support"
+      },
+      "supporttexture": {
+        "source": "supporttexture",
+        "target": "{mediaPath}/supporttexture/{filename}.png",
+        "dataFileTag": "supporttexture"
+      },
+      "video": {
+        "source": "video",
+        "target": "{mediaPath}/videos/{filename}.mp4",
+        "dataFileTag": "video"
+      },
+      "wheel": {
+        "source": "wheel",
+        "target": "{mediaPath}/wheel/{filename}.png",
+        "dataFileTag": "wheel"
+      },
+      "wheelcarbon": {
+        "source": "wheelcarbon",
+        "target": "{mediaPath}/wheelcarbon/{filename}.png",
+        "dataFileTag": "wheelcarbon"
+      },
+      "wheelsteel": {
+        "source": "wheelsteel",
+        "target": "{mediaPath}/wheelsteel/{filename}.png",
+        "dataFileTag": "wheelsteel"
+      },
+      "boxFull": {
+        "source": "boxFull",
+        "target": "{mediaPath}/boxFull/{filename}.png",
+        "dataFileTag": "boxFull"
+      },
+      "banner": {
+        "source": "banner",
+        "target": "{mediaPath}/banner/{filename}.png",
+        "dataFileTag": "banner"
+      },
+      "cartridge": {
+        "source": "cartridge",
+        "target": "{mediaPath}/cartridge/{filename}.png",
+        "dataFileTag": "cartridge"
+      },
+      "bezel": {
+        "source": "bezel",
+        "target": "{mediaPath}/bezel/{filename}.png",
+        "dataFileTag": "bezel"
+      },
+      "panel": {
+        "source": "panel",
+        "target": "{mediaPath}/panel/{filename}.png",
+        "dataFileTag": "panel"
+      },
+      "cabinetLeft": {
+        "source": "cabinetLeft",
+        "target": "{mediaPath}/cabinetLeft/{filename}.png",
+        "dataFileTag": "cabinetLeft"
+      },
+      "cabinetRight": {
+        "source": "cabinetRight",
+        "target": "{mediaPath}/cabinetRight/{filename}.png",
+        "dataFileTag": "cabinetRight"
+      },
+      "tile": {
+        "source": "tile",
+        "target": "{mediaPath}/tile/{filename}.png",
+        "dataFileTag": "tile"
+      },
+      "steam": {
+        "source": "steam",
+        "target": "{mediaPath}/steam/{filename}.png",
+        "dataFileTag": "steam"
+      },
+      "poster": {
+        "source": "poster",
+        "target": "{mediaPath}/poster/{filename}.png",
+        "dataFileTag": "poster"
+      },
+      "background": {
+        "source": "background",
+        "target": "{mediaPath}/background/{filename}.png",
+        "dataFileTag": "background"
+      },
+      "music": {
+        "source": "music",
+        "target": "{mediaPath}/music/{filename}.mp3",
+        "dataFileTag": "music"
+      },
+      "manual": {
+        "source": "manual",
+        "target": "{mediaPath}/manuals/{filename}.pdf",
+        "dataFileTag": "manual"
+      },
+      "images": {
+        "source": "images",
+        "target": "{mediaPath}/images/{filename}.png",
+        "dataFileTag": "images"
+      }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "absoluteWithDot",
+      "header": {
+        "structure": [
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<gameList>",
+          "  <provider>",
+          "    <System>{platform.system}</System>",
+          "    <software>{platform.software}</software>",
+          "    <database>{platform.database}</database>",
+          "    <web>{platform.web}</web>",
+          "  </provider>"
+        ],
+        "fields": {
+          "platform.system": "system",
+          "platform.software": "software",
+          "platform.database": "database",
+          "platform.web": "web"
+        }
+      },
+      "footer": [
+        "</gameList>"
+      ],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "description",
+        "rating": "rating",
+        "releaseDate": "releaseYear",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players",
+        "region": "region"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/{platform}",
+      "media": "{outputPath}/{platform}/media"
+    }
+  }
+}

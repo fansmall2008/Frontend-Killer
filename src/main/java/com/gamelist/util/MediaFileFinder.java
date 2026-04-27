@@ -871,7 +871,7 @@ public class MediaFileFinder {
             if (relativePath.startsWith("/")) {
                 relativePath = relativePath.substring(1);
             }
-            return "./" + relativePath;
+            return relativePath;
         }
         return fullPath;
     }

@@ -16,7 +16,9 @@ public class PegasusMetadataParser {
         PegasusMetadata metadata = new PegasusMetadata();
         List<PegasusMetadata.Collection> collections = new ArrayList<>();
         
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
+             java.io.InputStreamReader isr = new java.io.InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8);
+             BufferedReader reader = new BufferedReader(isr)) {
             String line;
             PegasusMetadata.Collection currentCollection = null;
             PegasusMetadata.Game currentGame = null;

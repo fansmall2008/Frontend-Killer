@@ -6,7 +6,7 @@
 
     <groupId>com.gamelist</groupId>
     <artifactId>webGamelistOper</artifactId>
-    <version>1.0.2-beta</version>
+    <version>1.0.4-beta</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -103,13 +103,6 @@
                 <configuration>
                     <mainClass>com.gamelist.Application</mainClass>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

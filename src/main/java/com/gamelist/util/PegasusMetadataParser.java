@@ -286,7 +286,9 @@ public class PegasusMetadataParser {
         GameCollection currentCollection = null;
         Game currentGame = null;
         
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
+             java.io.InputStreamReader isr = new java.io.InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8);
+             BufferedReader reader = new BufferedReader(isr)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();

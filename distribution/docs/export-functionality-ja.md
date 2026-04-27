@@ -169,7 +169,137 @@
 - **EmulationStation DE**: `esde.json`
 - **RetroBat**: `retrobat.json`
 
-### 2.9 M3Uファイルの処理
+### 2.8 ゲームファイルのリネーム設定（`gameFile`）
+
+ルール設定ファイルでは、`gameFile`セクションを介してエクスポート時のゲームファイルのリネーム規則を設定できます：
+
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}"
+}
+```
+
+- `enabled`: ゲームファイルのリネームを有効にするかどうか（デフォルト `false`）
+- `template`: ファイル名テンプレート。以下の変数をサポート：
+
+| 変数 | 説明 | 例 |
+|------|------|-----|
+| `{platform}` | プラットフォーム名 | nes, snes, genesis |
+| `{filename}` | 拡張子なしの元のファイル名 | supermario |
+| `{name}` | ゲーム名（不正な文字は自動フィルタ） | Super Mario Bros |
+| `{ext}` | ファイル拡張子 | nes, sfc, md |
+
+**使用例**：
+
+1. 「プラットフォーム_ファイル名」形式にリネーム：
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}"
+}
+```
+結果：`nes_supermario.nes`
+
+2. ゲーム名にリネーム：
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{name}"
+}
+```
+結果：`Super Mario Bros.nes`
+
+3. プレフィックスとサフィックスを追加：
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}_usa"
+}
+```
+結果：`nes_supermario_usa.nes`
+
+### 2.9 フィールド変換設定（`fieldTransforms`）
+
+ルール設定ファイルの `dataFile` セクションでは、`fieldTransforms` を介してエクスポート時のフィールド値変換規則を設定できます：
+
+```json
+"dataFile": {
+  "fields": {
+    "files": "path",
+    "title": "name"
+  },
+  "fieldTransforms": {
+    "files": {
+      "path": "no"
+    },
+    "title": {
+      "trim": true,
+      "case": "upper",
+      "replace": {
+        "from": " ",
+        "to": "_"
+      }
+    }
+  }
+}
+```
+
+**サポートされる変換オプション**：
+
+| オプション | 説明 | 値 |
+|------------|------|-----|
+| `path` | パス形式変換 | `no`（`./` なし）、`yes`（`./` あり）、`keep`（元のまま） |
+| `trim` | 先頭と末尾のスペースをトリムするかどうか | `true`、`false` |
+| `case` | 大文字小文字変換 | `upper`（大文字）、`lower`（小文字）、`none`（変換なし） |
+| `replace` | 文字列置換 | `from` と `to` フィールドを持つオブジェクト |
+
+**使用例**：
+
+1. パス変換（`./` プレフィックスを削除）：
+```json
+"fieldTransforms": {
+  "files": {
+    "path": "no"
+  }
+}
+```
+結果：`roms/supermario.nes`
+
+2. パス変換（`./` プレフィックスを追加）：
+```json
+"fieldTransforms": {
+  "path": {
+    "path": "yes"
+  }
+}
+```
+結果：`./roms/supermario.nes`
+
+3. 文字列置換和大文字小文字変換：
+```json
+"fieldTransforms": {
+  "title": {
+    "trim": true,
+    "case": "upper",
+    "replace": {
+      "from": " ",
+      "to": "_"
+    }
+  }
+}
+```
+結果：`SUPER_MARIO_BROS`
+
+**組み込みエクスポートテンプレートのパス形式設定**：
+
+システムでは、各フロントエンドに対して異なるパス形式を事前設定しています：
+- **Pegasus**: パス出力時に `./` プレフィックスなし（`path: "no"`）
+- **RetroBat / ESDE**: パス出力時に `./` プレフィックスあり（`path: "yes"`）
+
+これにより、エクスポートされたデータファイルが各フロントエンドの形式要件に準拠することが保証されます。
+
+### 2.9.1 M3U処理の設定
 
 システムはM3U形式のプレイリストファイルの処理をサポートしています。M3Uファイルに遭遇すると、ファイル内で参照されているすべてのファイルが自動的にコピーされます。
 

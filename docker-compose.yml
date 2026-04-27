@@ -6,10 +6,9 @@ services:
       - "8080:8080"
     volumes:
       - ./logs:/data/logs
-      - D:\:/data/roms
-      - D:\test:/data/output
+      - ./roms:/data/roms
+      - ./output:/data/output
       - ./rules:/data/rules
-      - ./input:/data/input
       - ./backup:/data/backup
       - ./database:/data/database
     environment:

@@ -44,9 +44,9 @@ public class MediaController {
             
             // 获取源文件，处理Windows路径映射
             String processedPath = localPath;
-            // 处理Windows路径映射（D:\3do -> /data/roms）
-            if (processedPath.startsWith("D:\\3do")) {
-                processedPath = processedPath.replace("D:\\3do", "/data/roms");
+            // 处理Windows路径映射（D:\3do -> /roms）
+            if (processedPath.contains("D:\\3do")) {
+                processedPath = processedPath.replace("D:\\3do", "/roms");
             }
             // 处理Windows路径分隔符
             processedPath = processedPath.replace("\\", "/");
@@ -151,26 +151,26 @@ public class MediaController {
             
             // 如果没有平台ID或平台路径不存在，尝试其他路径
             if (sourcePath == null || !Files.exists(sourcePath)) {
-                // 处理Windows路径映射（D:\3do -> /data/roms）
-                if (processedPath.startsWith("D:/3do")) {
-                    processedPath = processedPath.replace("D:/3do", "/data/roms");
+                // 处理Windows路径映射（D:\3do -> /roms）
+                if (processedPath.contains("D:/3do")) {
+                    processedPath = processedPath.replace("D:/3do", "/roms");
                     System.out.println("映射后路径: " + processedPath);
                 }
                 
-                // 确保路径以 /data/roms 开头
-                if (!processedPath.startsWith("/data/roms")) {
-                    // 尝试直接添加 /data/roms 前缀
-                    String testPath = "/data/roms" + (processedPath.startsWith("/") ? "" : "/") + processedPath;
+                // 确保路径以 /roms 开头
+                if (!processedPath.startsWith("/roms")) {
+                    // 尝试直接添加 /roms 前缀
+                    String testPath = "/roms" + (processedPath.startsWith("/") ? "" : "/") + processedPath;
                     Path testPathObj = Paths.get(testPath);
                     if (Files.exists(testPathObj)) {
                         processedPath = testPath;
-                        System.out.println("添加 /data/roms 前缀: " + processedPath);
+                        System.out.println("添加 /roms 前缀: " + processedPath);
                     } else {
                         // 尝试移除所有前缀，直接使用媒体文件路径
                         int mediaIndex = processedPath.lastIndexOf("/media/");
                         if (mediaIndex > 0) {
                             String mediaPath = processedPath.substring(mediaIndex);
-                            String directPath = "/data/roms" + mediaPath;
+                            String directPath = "/roms" + mediaPath;
                             Path directPathObj = Paths.get(directPath);
                             if (Files.exists(directPathObj)) {
                                 processedPath = directPath;

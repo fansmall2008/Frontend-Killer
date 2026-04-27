@@ -1,0 +1,556 @@
+{
+  "frontend": "pegasus",
+  "name": "Pegasus",
+  "version": "1.0",
+  "description": "Template for Importing Data and Media Files for the Pegasus Frontend.Including All Known Path Types",
+  "type": "text",
+  "dataFile": "metadata.pegasus.txt",
+  "delimiter": ":",
+  "rules": {
+    "header": {
+      "enabled": true,
+      "format": "key-value",
+      "startMarker": "collection:",
+      "endMarker": "",
+      "structure": [
+        "collection: {platform.name}",
+        "sort-by: {platform.sortBy}",
+        "launch: {platform.launch}"
+      ],
+      "fields": {
+        "platform.name": {
+          "fields": ["name", "title", "platform", "collection"],
+          "isMultiValue": false
+        },
+        "platform.description": {
+          "fields": ["description", "desc"],
+          "isMultiValue": false
+        },
+        "platform.launch": {
+          "fields": ["launch", "command"],
+          "isMultiValue": false
+        },
+        "platform.sortBy": {
+          "fields": ["sort-by", "sort"],
+          "isMultiValue": false
+        }
+      }
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["title", "name", "game"],
+        "isMultiValue": false
+      },
+      "description": {
+        "fields": ["description", "desc"],
+        "isMultiValue": false
+      },
+      "releaseDate": {
+        "fields": ["release", "releasedate", "date"],
+        "isMultiValue": false
+      },
+      "developer": {
+        "fields": ["developer", "dev"],
+        "isMultiValue": false
+      },
+      "publisher": {
+        "fields": ["publisher", "pub"],
+        "isMultiValue": false
+      },
+      "genre": {
+        "fields": ["genre", "category"],
+        "isMultiValue": false
+      },
+      "players": {
+        "fields": ["players", "player"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["files", "file"],
+        "isMultiValue": true,
+        "valuePrefix": "  ",
+        "transform": {
+          "path": "no"
+        }
+      },
+      "rating": {
+        "fields": ["rating"],
+        "isMultiValue": false
+      },
+      "image": {
+        "fields": ["image", "boxFront"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "fields": ["video"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "thumbnail": {
+        "fields": ["thumbnail"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "fields": ["marquee"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxBack": {
+        "fields": ["boxBack"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxSpine": {
+        "fields": ["boxSpine"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxFull": {
+        "fields": ["boxFull"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "box3d": {
+        "fields": ["box3d"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "screenshot": {
+        "fields": ["screenshot"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "wheel": {
+        "fields": ["wheel"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "fanart": {
+        "fields": ["fanart"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "titlescreen": {
+        "fields": ["titlescreen"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "banner": {
+        "fields": ["banner"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cartridge": {
+        "fields": ["cartridge"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "logo": {
+        "fields": ["logo"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "bezel": {
+        "fields": ["bezel"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "panel": {
+        "fields": ["panel"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cabinetLeft": {
+        "fields": ["cabinetLeft"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cabinetRight": {
+        "fields": ["cabinetRight"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "tile": {
+        "fields": ["tile"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "steam": {
+        "fields": ["steam"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "poster": {
+        "fields": ["poster"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "background": {
+        "fields": ["background"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "music": {
+        "fields": ["music"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "rules": [
+          "media/{filename}/boxFront.{ext}",
+          "media/{filename}/box_front.{ext}",
+          "media/boxFront/{filename}.{ext}",
+          "media/box2dfront/{filename}.{ext}",
+          "media/images/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxBack": {
+        "source": "boxBack",
+        "rules": [
+          "media/{filename}/boxBack.{ext}",
+          "media/{filename}/box_back.{ext}",
+          "media/boxBack/{filename}.{ext}",
+          "media/box2dback/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "box3d": {
+        "source": "box3d",
+        "rules": [
+          "media/{filename}/box3d.{ext}",
+          "media/box3d/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "rules": [
+          "media/{filename}/screenshot.{ext}",
+          "media/{filename}/screen.{ext}",
+          "media/screenshots/{filename}.{ext}",
+          "media/screens/{filename}.{ext}",
+          "media/screenshot/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "source": "video",
+        "rules": [
+          "media/{filename}/video.{ext}",
+          "media/{filename}/trailer.{ext}",
+          "media/videos/{filename}.{ext}",
+          "media/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "wheel": {
+        "source": "wheel",
+        "rules": [
+          "media/{filename}/wheel.{ext}",
+          "media/wheel/{filename}.{ext}",
+          "media/wheelcarbon/{filename}.{ext}",
+          "media/wheelsteel/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "source": "marquee",
+        "rules": [
+          "media/{filename}/marquee.{ext}",
+          "media/{filename}/logo.{ext}",
+          "media/logos/{filename}.{ext}",
+          "media/marquees/{filename}.{ext}",
+          "media/screenmarquee/{filename}.{ext}",
+          "media/screenmarquesmall/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "fanart": {
+        "source": "fanart",
+        "rules": [
+          "media/{filename}/fanart.{ext}",
+          "media/fanart/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "rules": [
+          "media/{filename}/titlescreen.{ext}",
+          "media/titlescreen/{filename}.{ext}",
+          "media/screentitle/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "banner": {
+        "source": "banner",
+        "rules": [
+          "media/{filename}/banner.{ext}",
+          "media/banner/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxFull": {
+        "source": "boxFull",
+        "rules": [
+          "media/{filename}/boxFull.{ext}",
+          "media/boxFull/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxSpine": {
+        "source": "boxSpine",
+        "rules": [
+          "media/{filename}/boxSpine.{ext}",
+          "media/{filename}/box_spine.{ext}",
+          "media/boxSpine/{filename}.{ext}",
+          "media/box_spine/{filename}.{ext}",
+          "media/boxspine/{filename}.{ext}",
+          "media/box2dside/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cartridge": {
+        "source": "cartridge",
+        "rules": [
+          "media/{filename}/cartridge.{ext}",
+          "media/cartridge/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "bezel": {
+        "source": "bezel",
+        "rules": [
+          "media/{filename}/bezel.{ext}",
+          "media/bezel/{filename}.{ext}",
+          "media/bezels/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "panel": {
+        "source": "panel",
+        "rules": [
+          "media/{filename}/panel.{ext}",
+          "media/panel/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cabinetLeft": {
+        "source": "cabinetLeft",
+        "rules": [
+          "media/{filename}/cabinetLeft.{ext}",
+          "media/{filename}/cabinet_left.{ext}",
+          "media/cabinetLeft/{filename}.{ext}",
+          "media/cabinet_left/{filename}.{ext}",
+          "media/cabs/left/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cabinetRight": {
+        "source": "cabinetRight",
+        "rules": [
+          "media/{filename}/cabinetRight.{ext}",
+          "media/{filename}/cabinet_right.{ext}",
+          "media/cabinetRight/{filename}.{ext}",
+          "media/cabinet_right/{filename}.{ext}",
+          "media/cabs/right/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "tile": {
+        "source": "tile",
+        "rules": [
+          "media/{filename}/tile.{ext}",
+          "media/tile/{filename}.{ext}",
+          "media/tiles/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "steam": {
+        "source": "steam",
+        "rules": [
+          "media/{filename}/steam.{ext}",
+          "media/steam/{filename}.{ext}",
+          "media/steamgrid/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "poster": {
+        "source": "poster",
+        "rules": [
+          "media/{filename}/poster.{ext}",
+          "media/poster/{filename}.{ext}",
+          "media/posters/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "background": {
+        "source": "background",
+        "rules": [
+          "media/{filename}/background.{ext}",
+          "media/background/{filename}.{ext}",
+          "media/bg/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "music": {
+        "source": "music",
+        "rules": [
+          "media/{filename}/music.{ext}",
+          "media/music/{filename}.{ext}",
+          "media/snd/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxtexture": {
+        "source": "boxtexture",
+        "rules": [
+          "media/{filename}/boxTexture.{ext}",
+          "media/boxTexture/{filename}.{ext}",
+          "media/boxtexture/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "supporttexture": {
+        "source": "supporttexture",
+        "rules": [
+          "media/{filename}/supportTexture.{ext}",
+          "media/supportTexture/{filename}.{ext}",
+          "media/supporttexture/{filename}.{ext}",
+          "media/support/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "manual": {
+        "source": "manual",
+        "rules": [
+          "media/{filename}/manual.{ext}",
+          "media/manual/{filename}.{ext}",
+          "media/manuals/{filename}.{ext}",
+          "media/{filename}/manual.pdf"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "steamgrid": {
+        "source": "steamgrid",
+        "rules": [
+          "media/{filename}/steamgrid.{ext}",
+          "media/steamgrid/{filename}.{ext}",
+          "media/grids/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"],
+      "video": ["mp4", "mkv", "avi", "wmv", "webm"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds"]
+  }
+}

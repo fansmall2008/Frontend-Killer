@@ -650,10 +650,11 @@ public class PlatformServiceImpl implements PlatformService {
     }
     
     @Override
-    public Map<String, Object> mergePlatforms(List<Long> sourcePlatformIds, String newPlatformName, String newPlatformFolderPath) {
+    public Map<String, Object> mergePlatforms(List<Long> sourcePlatformIds, String newPlatformName, String newPlatformFolderPath, Boolean overwrite) {
         logger.info("开始平台合并，源平台数量: {}", sourcePlatformIds.size());
         logger.info("新平台名称: {}", newPlatformName);
         logger.info("新平台文件夹路径: {}", newPlatformFolderPath);
+        logger.info("是否覆盖已存在文件: {}", overwrite);
         
         try {
             // 验证源平台是否存在
@@ -682,7 +683,7 @@ public class PlatformServiceImpl implements PlatformService {
             BackgroundTask task = taskService.createTask("MERGE", taskDescription);
             
             // 异步执行平台合并
-            mergePlatformsAsync(task.getId(), sourcePlatforms, newPlatform);
+            mergePlatformsAsync(task.getId(), sourcePlatforms, newPlatform, overwrite);
             
             // 返回任务ID给前端
             Map<String, Object> result = new java.util.HashMap<>();
@@ -752,7 +753,7 @@ public class PlatformServiceImpl implements PlatformService {
      * 异步执行多平台合并到新平台操作
      */
     @Async
-    private void mergePlatformsAsync(Long taskId, List<Platform> sourcePlatforms, Platform newPlatform) {
+    private void mergePlatformsAsync(Long taskId, List<Platform> sourcePlatforms, Platform newPlatform, Boolean overwrite) {
         try {
             taskService.updateTaskProgress(taskId, 10, "开始平台合并操作", 0, 100);
             
@@ -784,9 +785,29 @@ public class PlatformServiceImpl implements PlatformService {
                 logger.debug("添加到新平台，游戏名称: {}", sourceGame.getName());
                 // 添加详细日志到任务
                 taskService.updateTaskLog(taskId, "合并游戏: " + sourceGame.getName() + " (" + sourceGame.getPath() + ") 到新平台 " + newPlatform.getName());
-                com.gamelist.model.Game newGame = createGameCopy(sourceGame, newPlatform.getId());
-                gameMapper.insertGame(newGame);
-                addedCount++;
+                
+                // 检查游戏是否已存在
+                com.gamelist.model.Game existingGame = findExistingGame(newPlatform.getId(), sourceGame);
+                if (existingGame != null) {
+                    if (overwrite != null && overwrite) {
+                        // 覆盖已存在的游戏
+                        logger.debug("游戏已存在，执行覆盖操作: {}", sourceGame.getName());
+                        taskService.updateTaskLog(taskId, "游戏已存在，执行覆盖操作: " + sourceGame.getName());
+                        com.gamelist.model.Game updatedGame = createGameCopy(sourceGame, newPlatform.getId());
+                        updatedGame.setId(existingGame.getId());
+                        gameMapper.updateGame(updatedGame);
+                        addedCount++;
+                    } else {
+                        // 跳过已存在的游戏
+                        logger.debug("游戏已存在，跳过: {}", sourceGame.getName());
+                        taskService.updateTaskLog(taskId, "游戏已存在，跳过: " + sourceGame.getName());
+                    }
+                } else {
+                    // 添加新游戏
+                    com.gamelist.model.Game newGame = createGameCopy(sourceGame, newPlatform.getId());
+                    gameMapper.insertGame(newGame);
+                    addedCount++;
+                }
             }
             
             logger.info("平台合并完成");

@@ -32,51 +32,75 @@ public class ExportRuleServiceImpl implements ExportRuleService {
     private final Map<String, ExportRule> rules = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    @Value("${app.export.rules.path:/data/rules/export-rules}")
+    @Value("${app.export.rules.path:#{T(com.gamelist.util.PathUtil).getRulesPath() + '/export'}}")
     private String rulesPath;
-    
-    @Value("${app.rules.directory:/data/rules}")
+
+    @Value("${app.rules.directory:#{T(com.gamelist.util.PathUtil).getRulesPath()}}")
     private String rulesDirectory;
 
     @PostConstruct
     @Override
     public void loadRules() {
+        logger.info("=== ExportRuleService loadRules() called ===");
+        logger.info("rulesPath value: {}", rulesPath);
+        logger.info("rulesDirectory value: {}", rulesDirectory);
+
         boolean loaded = false;
-        
-        // 首先尝试从外部路径加载
+
+        // 首先从外部路径加载
         File externalRulesDir = new File(rulesPath);
+        logger.info("Checking externalRulesDir: {}, exists: {}, isDirectory: {}",
+                    externalRulesDir.getAbsolutePath(),
+                    externalRulesDir.exists(),
+                    externalRulesDir.isDirectory());
+
         if (externalRulesDir.exists() && externalRulesDir.isDirectory()) {
             logger.info("Loading export rules from external path: {}", rulesPath);
             loaded = loadRulesFromDirectory(externalRulesDir.toPath());
+            logger.info("loadRulesFromDirectory returned: {}, rules size: {}", loaded, rules.size());
+        } else {
+            logger.warn("External rules directory does not exist or is not a directory: {}", externalRulesDir.getAbsolutePath());
         }
-        
-        // 如果外部路径没有找到规则文件，尝试从classpath加载
+
+        // 如果外部路径没有加载到规则，尝试从 classpath 加载默认规则
         if (!loaded) {
-            logger.info("Trying to load export rules from classpath");
+            logger.info("No rules found in external path, trying classpath");
             loaded = loadRulesFromClasspath();
+            logger.info("loadRulesFromClasspath returned: {}, rules size: {}", loaded, rules.size());
         }
-        
+
         if (!loaded) {
-            logger.warn("No export rules loaded from any source");
+            logger.warn("No export rules loaded. Final rules size: {}", rules.size());
+        } else {
+            logger.info("Export rules loaded successfully. Total rules: {}", rules.size());
         }
     }
     
     private boolean loadRulesFromDirectory(Path rulesDirPath) {
         try {
             logger.info("Scanning directory for rules: {}", rulesDirPath);
-            
+
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(rulesDirPath, "*.json")) {
+                int loadedCount = 0;
                 for (Path path : stream) {
+                    logger.info("Processing rule file: {}", path.getFileName());
                     try (InputStream is = Files.newInputStream(path)) {
                         ExportRule rule = objectMapper.readValue(is, ExportRule.class);
+                        logger.info("Parsed rule - frontend: {}, name: {}", rule.getFrontend(), rule.getName());
                         if (rule != null && rule.getFrontend() != null) {
                             rules.put(rule.getFrontend(), rule);
                             logger.info("Loaded export rule from file: {} -> {}", path.getFileName(), rule.getFrontend());
+                            loadedCount++;
+                        } else {
+                            logger.warn("Rule file {} has null frontend, skipping", path.getFileName());
                         }
                     } catch (IOException e) {
-                        logger.error("Failed to load rule file: {}", path.getFileName(), e);
+                        logger.error("Failed to load rule file: {} - {}", path.getFileName(), e.getMessage());
+                    } catch (Exception e) {
+                        logger.error("Failed to parse rule file: {} - {}", path.getFileName(), e.getMessage());
                     }
                 }
+                logger.info("Total rules loaded from {}: {}/{}", rulesDirPath, loadedCount, rules.size());
             }
             return !rules.isEmpty();
         } catch (IOException e) {

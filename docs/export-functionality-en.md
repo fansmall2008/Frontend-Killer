@@ -169,7 +169,137 @@ The following are the media file source fields, which can be used in the `source
 - **EmulationStation DE**: `esde.json`
 - **RetroBat**: `retrobat.json`
 
-### 2.9 M3U File Processing
+### 2.8 Game File Rename Configuration (`gameFile`)
+
+In the rule configuration file, you can configure game file renaming rules during export through the `gameFile` section:
+
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}"
+}
+```
+
+- `enabled`: Whether to enable game file renaming (default `false`)
+- `template`: File name template, supporting the following variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{platform}` | Platform name | nes, snes, genesis |
+| `{filename}` | Original filename without extension | supermario |
+| `{name}` | Game name (illegal characters automatically filtered) | Super Mario Bros |
+| `{ext}` | File extension | nes, sfc, md |
+
+**Usage Examples**:
+
+1. Rename to "platform_filename" format:
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}"
+}
+```
+Result: `nes_supermario.nes`
+
+2. Rename to game name:
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{name}"
+}
+```
+Result: `Super Mario Bros.nes`
+
+3. Add prefix and suffix:
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}_usa"
+}
+```
+Result: `nes_supermario_usa.nes`
+
+### 2.9 Field Transform Configuration (`fieldTransforms`)
+
+In the rule configuration file's `dataFile` section, you can configure field value transformation rules during export through `fieldTransforms`:
+
+```json
+"dataFile": {
+  "fields": {
+    "files": "path",
+    "title": "name"
+  },
+  "fieldTransforms": {
+    "files": {
+      "path": "no"
+    },
+    "title": {
+      "trim": true,
+      "case": "upper",
+      "replace": {
+        "from": " ",
+        "to": "_"
+      }
+    }
+  }
+}
+```
+
+**Supported Transform Options**:
+
+| Option | Description | Values |
+|--------|-------------|--------|
+| `path` | Path format transformation | `no` (without `./`), `yes` (with `./`), `keep` (keep original) |
+| `trim` | Whether to trim leading/trailing spaces | `true`, `false` |
+| `case` | Case conversion | `upper`, `lower`, `none` |
+| `replace` | String replacement | Object with `from` and `to` fields |
+
+**Usage Examples**:
+
+1. Path transformation (remove `./` prefix):
+```json
+"fieldTransforms": {
+  "files": {
+    "path": "no"
+  }
+}
+```
+Result: `roms/supermario.nes`
+
+2. Path transformation (add `./` prefix):
+```json
+"fieldTransforms": {
+  "path": {
+    "path": "yes"
+  }
+}
+```
+Result: `./roms/supermario.nes`
+
+3. String replacement and case conversion:
+```json
+"fieldTransforms": {
+  "title": {
+    "trim": true,
+    "case": "upper",
+    "replace": {
+      "from": " ",
+      "to": "_"
+    }
+  }
+}
+```
+Result: `SUPER_MARIO_BROS`
+
+**Built-in Export Template Path Format Configuration**:
+
+The system pre-configures different path formats for each frontend:
+- **Pegasus**: Path output without `./` prefix (`path: "no"`)
+- **RetroBat / ESDE**: Path output with `./` prefix (`path: "yes"`)
+
+This ensures exported data files conform to each frontend's format requirements.
+
+### 2.9.1 M3U Processing Configuration
 
 The system supports processing M3U format playlist files. When encountering an M3U file, it will automatically copy all files referenced in the file.
 

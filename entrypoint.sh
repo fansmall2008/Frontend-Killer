@@ -27,6 +27,14 @@ fi
 
 mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR"
 
+# 释放data文件夹到挂载目录
+if [ -d "/app/data" ]; then
+    log "检查并释放data文件夹到挂载目录..."
+    # 复制data目录下的所有内容到/data目录
+    cp -r /app/data/* /data/ 2>/dev/null || true
+    log "data文件夹释放完成"
+fi
+
 if [ -d "$DEFAULT_RULES_DIR" ]; then
     if [ -z "$(ls -A "$EXPORT_RULES_DIR" 2>/dev/null)" ]; then
         log "导出规则目录为空，复制默认规则..."

@@ -453,6 +453,136 @@ XML 格式，支持正确的 XML 标签处理：
 
 系统支持处理 M3U 格式的播放列表文件，当遇到 M3U 文件时，会自动复制文件中引用的所有文件。
 
+#### 2.8 游戏文件重命名配置 (`gameFile`)
+
+在规则配置文件中，可以通过 `gameFile` 部分配置导出时游戏文件的重命名规则：
+
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}"
+}
+```
+
+- `enabled`: 是否启用游戏文件重命名（默认 `false`）
+- `template`: 文件名模板，支持以下变量：
+
+| 变量 | 说明 | 示例 |
+|------|------|------|
+| `{platform}` | 平台名称 | nes, snes, genesis |
+| `{filename}` | 不带扩展名的原文件名 | supermario |
+| `{name}` | 游戏名称（自动过滤非法字符） | Super Mario Bros |
+| `{ext}` | 文件扩展名 | nes, sfc, md |
+
+**使用示例**：
+
+1. 重命名为 "平台_文件名" 格式：
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}"
+}
+```
+结果：`nes_supermario.nes`
+
+2. 重命名为游戏名：
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{name}"
+}
+```
+结果：`Super Mario Bros.nes`
+
+3. 添加前缀和后缀：
+```json
+"gameFile": {
+  "enabled": true,
+  "template": "{platform}_{filename}_usa"
+}
+```
+结果：`nes_supermario_usa.nes`
+
+#### 2.9 字段转换配置 (`fieldTransforms`)
+
+在规则配置文件的 `dataFile` 部分，可以通过 `fieldTransforms` 配置导出时字段值的转换规则：
+
+```json
+"dataFile": {
+  "fields": {
+    "files": "path",
+    "title": "name"
+  },
+  "fieldTransforms": {
+    "files": {
+      "path": "no"
+    },
+    "title": {
+      "trim": true,
+      "case": "upper",
+      "replace": {
+        "from": " ",
+        "to": "_"
+      }
+    }
+  }
+}
+```
+
+**支持的转换选项**：
+
+| 选项 | 说明 | 可选值 |
+|------|------|--------|
+| `path` | 路径格式转换 | `no`（不带 `./`）、`yes`（带 `./`）、`keep`（保持原样） |
+| `trim` | 是否去除首尾空格 | `true`、`false` |
+| `case` | 大小写转换 | `upper`（转大写）、`lower`（转小写）、`none`（不转换） |
+| `replace` | 字符串替换 | 对象包含 `from` 和 `to` 字段 |
+
+**使用示例**：
+
+1. 路径转换（去除 `./` 前缀）：
+```json
+"fieldTransforms": {
+  "files": {
+    "path": "no"
+  }
+}
+```
+结果：`roms/supermario.nes`
+
+2. 路径转换（添加 `./` 前缀）：
+```json
+"fieldTransforms": {
+  "path": {
+    "path": "yes"
+  }
+}
+```
+结果：`./roms/supermario.nes`
+
+3. 字符串替换和大小写转换：
+```json
+"fieldTransforms": {
+  "title": {
+    "trim": true,
+    "case": "upper",
+    "replace": {
+      "from": " ",
+      "to": "_"
+    }
+  }
+}
+```
+結果：`SUPER_MARIO_BROS`
+
+**内置导出模板的路径格式配置**：
+
+系统为各前端预设了不同的路径格式：
+- **Pegasus**：路径输出时不带 `./` 前缀（`path: "no"`）
+- **RetroBat / ESDE**：路径输出时带 `./` 前缀（`path: "yes"`）
+
+这样可以确保导出的数据文件符合各前端的格式要求。
+
 #### 2.9.1 M3U 处理配置
 
 在规则配置文件中，可以通过 `m3u` 部分配置 M3U 文件的处理方式：

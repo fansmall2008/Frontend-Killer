@@ -15,6 +15,7 @@ public class ExportRule {
         private DataFileRule dataFile;
         private DirectoryRule directory;
         private M3URule m3u;
+        private GameFileRule gameFile;
 
         public Map<String, MediaRule> getMedia() {
             return media;
@@ -46,6 +47,14 @@ public class ExportRule {
 
         public void setM3u(M3URule m3u) {
             this.m3u = m3u;
+        }
+
+        public GameFileRule getGameFile() {
+            return gameFile;
+        }
+
+        public void setGameFile(GameFileRule gameFile) {
+            this.gameFile = gameFile;
         }
     }
 
@@ -87,7 +96,8 @@ public class ExportRule {
         private List<String> footer;
         private String fieldSeparator;
         private String entrySeparator;
-        private String pathFormat; // 路径格式：relative (默认，不带./) 或 absoluteWithDot (带./前缀)
+        private String pathFormat;
+        private Map<String, TransformRule> fieldTransforms;
 
         public String getFilename() {
             return filename;
@@ -152,6 +162,40 @@ public class ExportRule {
         public void setPathFormat(String pathFormat) {
             this.pathFormat = pathFormat;
         }
+
+        public Map<String, TransformRule> getFieldTransforms() {
+            return fieldTransforms;
+        }
+
+        public void setFieldTransforms(Map<String, TransformRule> fieldTransforms) {
+            this.fieldTransforms = fieldTransforms;
+        }
+    }
+
+    public static class TransformRule {
+        private String path;
+        private String caseType;
+        private boolean trim;
+        private ReplaceRule replace;
+
+        public String getPath() { return path; }
+        public void setPath(String path) { this.path = path; }
+        public String getCaseType() { return caseType; }
+        public void setCaseType(String caseType) { this.caseType = caseType; }
+        public boolean isTrim() { return trim; }
+        public void setTrim(boolean trim) { this.trim = trim; }
+        public ReplaceRule getReplace() { return replace; }
+        public void setReplace(ReplaceRule replace) { this.replace = replace; }
+    }
+
+    public static class ReplaceRule {
+        private String from;
+        private String to;
+
+        public String getFrom() { return from; }
+        public void setFrom(String from) { this.from = from; }
+        public String getTo() { return to; }
+        public void setTo(String to) { this.to = to; }
     }
 
     public static class HeaderRule {
@@ -214,6 +258,27 @@ public class ExportRule {
 
         public void setTarget(String target) {
             this.target = target;
+        }
+    }
+
+    public static class GameFileRule {
+        private boolean enabled;
+        private String template;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getTemplate() {
+            return template;
+        }
+
+        public void setTemplate(String template) {
+            this.template = template;
         }
     }
 

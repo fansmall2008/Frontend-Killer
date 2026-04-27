@@ -1,31 +1,31 @@
-# 第一阶段：构建应用
-FROM maven:3.9-eclipse-temurin-17 AS builder
-
-WORKDIR /build
-
-COPY pom.xml .
-COPY src ./src
-
-RUN mvn clean package -DskipTests
-
-# 第二阶段：运行应用
-FROM eclipse-temurin:17-jre-alpine
+# 运行应用
+FROM openjdk:27-ea-17-jdk-slim
 
 # 安装必要的工具（用于健康检查和日志轮转）
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     wget \
     logrotate \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apt/*
 
 # 设置工作目录
 WORKDIR /app
 
-# 从构建阶段复制JAR文件
-COPY --from=builder /build/target/webGamelistOper-1.0-beta.jar app.jar
+# 复制本地构建的JAR文件
+COPY target/webGamelistOper-1.0.4-beta.jar app.jar
 
 # 复制默认规则文件
-COPY rules/ /app/default-rules/
+COPY src/main/resources/export-rules/ /app/default-rules/export-rules/
+COPY src/main/resources/import-templates/ /app/default-rules/import-templates/
+
+# 复制自定义文件到特定路径（可根据需要修改）
+# 示例：复制config目录到/app/config/
+# COPY config/ /app/config/
+# 示例：复制单个文件到/app/config/
+# COPY config.properties /app/config/
+
+# 复制data文件夹到容器中
+COPY data/ /app/data/
 
 # 复制entrypoint脚本
 COPY entrypoint.sh /entrypoint.sh

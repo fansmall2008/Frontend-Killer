@@ -19,7 +19,7 @@ public interface PlatformService {
     int addPlatform(Platform platform);
     Platform createPlatformWithGames(String name, java.util.Map<String, Object> filterParams);
     Map<String, Object> mergePlatforms(Long primaryPlatformId, Long secondaryPlatformId);
-    Map<String, Object> mergePlatforms(List<Long> sourcePlatformIds, String newPlatformName, String newPlatformFolderPath);
+    Map<String, Object> mergePlatforms(List<Long> sourcePlatformIds, String newPlatformName, String newPlatformFolderPath, Boolean overwrite);
     int getGameCountByPlatformId(Long platformId);
     
     // 临时子集相关方法

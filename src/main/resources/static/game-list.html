@@ -942,42 +942,42 @@
                     <input type="text" id="searchInput" placeholder="搜索游戏名称或路径...">
                 </div>
                 <div class="field-group">
-                    <label>发行日期范围:</label>
+                    <label data-i18n="release-date-range">发行日期范围:</label>
                     <div class="date-range">
                         <input type="number" id="startYear" placeholder="开始年份" min="1900" max="2100">
-                        <span>至</span>
+                        <span data-i18n="to">至</span>
                         <input type="number" id="endYear" placeholder="结束年份" min="1900" max="2100">
                     </div>
                 </div>
                 <div class="field-group">
-                    <label>开发商:</label>
+                    <label data-i18n="developer">开发商:</label>
                     <div class="checkbox-group" id="developerCheckboxes">
                         <!-- 动态填充开发商复选框 -->
                     </div>
                 </div>
                 <div class="field-group">
-                    <label>游戏类型:</label>
+                    <label data-i18n="genre">游戏类型:</label>
                     <div class="checkbox-group" id="genreCheckboxes">
                         <!-- 动态填充游戏类型复选框 -->
                     </div>
                 </div>
                 <div class="field-group">
-                    <label>玩家数量:</label>
+                    <label data-i18n="players">玩家数量:</label>
                     <div class="checkbox-group" id="playersCheckboxes">
                         <!-- 动态填充玩家数量复选框 -->
                     </div>
                 </div>
                 <div class="field-group">
-                    <label>刮削状态:</label>
+                    <label data-i18n="scrape-status">刮削状态:</label>
                     <div class="checkbox-group" id="scrapeStatusCheckboxes">
-                        <label><input type="checkbox" value="fully_scraped"> 完全刮削</label>
-                        <label><input type="checkbox" value="partially_scraped"> 部分刮削</label>
-                        <label><input type="checkbox" value="not_scraped"> 未刮削</label>
+                        <label><input type="checkbox" value="fully_scraped" data-i18n="fully-scraped"> 完全刮削</label>
+                        <label><input type="checkbox" value="partially_scraped" data-i18n="partially-scraped"> 部分刮削</label>
+                        <label><input type="checkbox" value="not_scraped" data-i18n="not-scraped"> 未刮削</label>
                     </div>
                 </div>
                 <div class="field-group">
-                    <button onclick="searchGames()">搜索</button>
-                    <button onclick="resetSearch()">重置</button>
+                    <button onclick="searchGames()" data-i18n="search">搜索</button>
+                    <button onclick="resetSearch()" data-i18n="reset">重置</button>
                 </div>
             </div>
         </div>
@@ -1146,183 +1146,183 @@
     <div id="editGameModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeEditGameModal()">&times;</span>
-            <h2>编辑游戏</h2>
+            <h2 data-i18n="edit-game-title">编辑游戏</h2>
             <form id="editGameForm">
                 <input type="hidden" id="gameId">
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
                     <div class="form-group">
-                        <label for="gameName">游戏名称</label>
+                        <label for="gameName" data-i18n="game-name">游戏名称</label>
                         <input type="text" id="gameName" required>
                     </div>
                     <div class="form-group">
-                        <label for="gamePath">游戏路径</label>
+                        <label for="gamePath" data-i18n="game-path">游戏路径</label>
                         <input type="text" id="gamePath" required>
                     </div>
                     <div class="form-group">
-                        <label for="gameDescription">游戏描述</label>
+                        <label for="gameDescription" data-i18n="game-desc">游戏描述</label>
                         <textarea id="gameDescription"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="translatedName">翻译名称</label>
+                        <label for="translatedName" data-i18n="translated-name">翻译名称</label>
                         <input type="text" id="translatedName">
                     </div>
                     <div class="form-group">
-                        <label for="translatedDescription">翻译描述</label>
+                        <label for="translatedDescription" data-i18n="translated-desc">翻译描述</label>
                         <textarea id="translatedDescription"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="gameDeveloper">开发商</label>
+                        <label for="gameDeveloper" data-i18n="developer">开发商</label>
                         <input type="text" id="gameDeveloper">
                     </div>
                     <div class="form-group">
-                        <label for="gamePublisher">发行商</label>
+                        <label for="gamePublisher" data-i18n="publisher">发行商</label>
                         <input type="text" id="gamePublisher">
                     </div>
                     <div class="form-group">
-                        <label for="gameType">游戏类型</label>
+                        <label for="gameType" data-i18n="genre">游戏类型</label>
                         <input type="text" id="gameType">
                     </div>
                     <div class="form-group">
-                        <label for="playerCount">玩家数</label>
+                        <label for="playerCount" data-i18n="players">玩家数</label>
                         <input type="text" id="playerCount">
                     </div>
                     <div class="form-group">
-                        <label for="releaseDate">发布日期</label>
+                        <label for="releaseDate" data-i18n="release-date">发布日期</label>
                         <input type="text" id="releaseDate">
                     </div>
                     <div class="form-group">
-                        <label for="rating">评分</label>
+                        <label for="rating" data-i18n="rating">评分</label>
                         <input type="text" id="rating">
                     </div>
                     <div class="form-group">
-                        <label for="language">语言</label>
+                        <label for="language" data-i18n="language">语言</label>
                         <input type="text" id="language">
                     </div>
                     <div class="form-group">
-                        <label for="gameId">游戏ID</label>
+                        <label for="gameId" data-i18n="game-id">游戏ID</label>
                         <input type="text" id="gameIdInput">
                     </div>
                     <div class="form-group">
-                        <label for="source">来源</label>
+                        <label for="source" data-i18n="source">来源</label>
                         <input type="text" id="source">
                     </div>
                     <div class="form-group">
-                        <label for="image">图片路径</label>
+                        <label for="image" data-i18n="image-path">图片路径</label>
                         <input type="text" id="image">
                     </div>
                     <div class="form-group">
-                        <label for="video">视频路径</label>
+                        <label for="video" data-i18n="video-path">视频路径</label>
                         <input type="text" id="video">
                     </div>
                     <div class="form-group">
-                        <label for="marquee">横幅路径</label>
+                        <label for="marquee" data-i18n="marquee-path">横幅路径</label>
                         <input type="text" id="marquee">
                     </div>
                     <div class="form-group">
-                        <label for="thumbnail">缩略图路径</label>
+                        <label for="thumbnail" data-i18n="thumbnail-path">缩略图路径</label>
                         <input type="text" id="thumbnail">
                     </div>
                     <div class="form-group">
-                        <label for="manual">手册路径</label>
+                        <label for="manual" data-i18n="manual-path">手册路径</label>
                         <input type="text" id="manual">
                     </div>
                     <div class="form-group">
-                        <label for="boxFront">包装盒正面</label>
+                        <label for="boxFront" data-i18n="box-front">包装盒正面</label>
                         <input type="text" id="boxFront">
                     </div>
                     <div class="form-group">
-                        <label for="boxBack">包装盒背面</label>
+                        <label for="boxBack" data-i18n="box-back">包装盒背面</label>
                         <input type="text" id="boxBack">
                     </div>
                     <div class="form-group">
-                        <label for="boxSpine">包装盒侧脊</label>
+                        <label for="boxSpine" data-i18n="box-spine">包装盒侧脊</label>
                         <input type="text" id="boxSpine">
                     </div>
                     <div class="form-group">
-                        <label for="boxFull">完整包装盒</label>
+                        <label for="boxFull" data-i18n="box-full">完整包装盒</label>
                         <input type="text" id="boxFull">
                     </div>
                     <div class="form-group">
-                        <label for="cartridge">卡带/光盘</label>
+                        <label for="cartridge" data-i18n="cartridge">卡带/光盘</label>
                         <input type="text" id="cartridge">
                     </div>
                     <div class="form-group">
-                        <label for="logo">游戏Logo</label>
+                        <label for="logo" data-i18n="logo">游戏Logo</label>
                         <input type="text" id="logo">
                     </div>
                     <div class="form-group">
-                        <label for="bezel">屏幕边框</label>
+                        <label for="bezel" data-i18n="bezel">屏幕边框</label>
                         <input type="text" id="bezel">
                     </div>
                     <div class="form-group">
-                        <label for="panel">控制台面板</label>
+                        <label for="panel" data-i18n="panel">控制台面板</label>
                         <input type="text" id="panel">
                     </div>
                     <div class="form-group">
-                        <label for="cabinetLeft">街机左侧</label>
+                        <label for="cabinetLeft" data-i18n="cabinet-left">街机左侧</label>
                         <input type="text" id="cabinetLeft">
                     </div>
                     <div class="form-group">
-                        <label for="cabinetRight">街机右侧</label>
+                        <label for="cabinetRight" data-i18n="cabinet-right">街机右侧</label>
                         <input type="text" id="cabinetRight">
                     </div>
                     <div class="form-group">
-                        <label for="tile">方形预览图</label>
+                        <label for="tile" data-i18n="tile">方形预览图</label>
                         <input type="text" id="tile">
                     </div>
                     <div class="form-group">
-                        <label for="banner">横幅图</label>
+                        <label for="banner" data-i18n="banner">横幅图</label>
                         <input type="text" id="banner">
                     </div>
                     <div class="form-group">
-                        <label for="steam">Steam网格图标</label>
+                        <label for="steam" data-i18n="steam">Steam网格图标</label>
                         <input type="text" id="steam">
                     </div>
                     <div class="form-group">
-                        <label for="poster">宣传海报</label>
+                        <label for="poster" data-i18n="poster">宣传海报</label>
                         <input type="text" id="poster">
                     </div>
                     <div class="form-group">
-                        <label for="background">背景图像</label>
+                        <label for="background" data-i18n="background">背景图像</label>
                         <input type="text" id="background">
                     </div>
                     <div class="form-group">
-                        <label for="music">背景音乐</label>
+                        <label for="music" data-i18n="music">背景音乐</label>
                         <input type="text" id="music">
                     </div>
                     <div class="form-group">
-                        <label for="screenshot">游戏截图</label>
+                        <label for="screenshot" data-i18n="screenshot">游戏截图</label>
                         <input type="text" id="screenshot">
                     </div>
                     <div class="form-group">
-                        <label for="titlescreen">标题画面</label>
+                        <label for="titlescreen" data-i18n="titlescreen">标题画面</label>
                         <input type="text" id="titlescreen">
                     </div>
                     <div class="form-group">
-                        <label for="crc32">CRC32</label>
+                        <label for="crc32" data-i18n="crc32">CRC32</label>
                         <input type="text" id="crc32">
                     </div>
                     <div class="form-group">
-                        <label for="genreid">类型ID</label>
+                        <label for="genreid" data-i18n="genre-id">类型ID</label>
                         <input type="text" id="genreid">
                     </div>
                     <div class="form-group">
-                        <label for="platformId">平台ID</label>
+                        <label for="platformId" data-i18n="platform-id">平台ID</label>
                         <input type="text" id="platformIdInput">
                     </div>
                     <div class="form-group">
-                        <label for="platformPath">平台路径</label>
+                        <label for="platformPath" data-i18n="platform-path">平台路径</label>
                         <input type="text" id="platformPath">
                     </div>
                     <div class="form-group">
-                        <label for="sortBy">排序字段</label>
+                        <label for="sortBy" data-i18n="sort-by">排序字段</label>
                         <input type="text" id="sortBy">
                     </div>
                 </div>
                 <div class="form-actions" style="margin-top: 20px;">
-                    <button type="button" onclick="saveGame()" class="btn btn-primary">保存修改</button>
-                    <button type="button" onclick="viewMediaFiles()" class="btn btn-info">查看媒体文件</button>
-                    <button type="button" onclick="closeEditGameModal()" class="btn btn-secondary">取消</button>
+                    <button type="button" onclick="saveGame()" class="btn btn-primary" data-i18n="save-changes">保存修改</button>
+                    <button type="button" onclick="viewMediaFiles()" class="btn btn-info" data-i18n="view-media">查看媒体文件</button>
+                    <button type="button" onclick="closeEditGameModal()" class="btn btn-secondary" data-i18n="cancel">取消</button>
                 </div>
             </form>
         </div>
@@ -1332,183 +1332,183 @@
     <div id="addGameModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeAddGameModal()">&times;</span>
-            <h2>新增游戏</h2>
+            <h2 data-i18n="add-game-title">新增游戏</h2>
             <form id="addGameForm">
                 <input type="hidden" id="addGamePlatformId">
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
                     <div class="form-group">
-                        <label for="addGameName">游戏名称 <span class="required">*</span></label>
+                        <label for="addGameName" data-i18n="game-name">游戏名称 <span class="required">*</span></label>
                         <input type="text" id="addGameName" required>
                     </div>
                     <div class="form-group">
-                        <label for="addGamePath">游戏路径 <span class="required">*</span></label>
+                        <label for="addGamePath" data-i18n="game-path">游戏路径 <span class="required">*</span></label>
                         <input type="text" id="addGamePath" required>
                     </div>
                     <div class="form-group">
-                        <label for="addGameDescription">游戏描述</label>
+                        <label for="addGameDescription" data-i18n="game-desc">游戏描述</label>
                         <textarea id="addGameDescription"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="addTranslatedName">翻译名称</label>
+                        <label for="addTranslatedName" data-i18n="translated-name">翻译名称</label>
                         <input type="text" id="addTranslatedName">
                     </div>
                     <div class="form-group">
-                        <label for="addTranslatedDescription">翻译描述</label>
+                        <label for="addTranslatedDescription" data-i18n="translated-desc">翻译描述</label>
                         <textarea id="addTranslatedDescription"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="addGameDeveloper">开发商</label>
+                        <label for="addGameDeveloper" data-i18n="developer">开发商</label>
                         <input type="text" id="addGameDeveloper">
                     </div>
                     <div class="form-group">
-                        <label for="addGamePublisher">发行商</label>
+                        <label for="addGamePublisher" data-i18n="publisher">发行商</label>
                         <input type="text" id="addGamePublisher">
                     </div>
                     <div class="form-group">
-                        <label for="addGameType">游戏类型</label>
+                        <label for="addGameType" data-i18n="genre">游戏类型</label>
                         <input type="text" id="addGameType">
                     </div>
                     <div class="form-group">
-                        <label for="addPlayerCount">玩家数</label>
+                        <label for="addPlayerCount" data-i18n="players">玩家数</label>
                         <input type="text" id="addPlayerCount">
                     </div>
                     <div class="form-group">
-                        <label for="addReleaseDate">发布日期</label>
+                        <label for="addReleaseDate" data-i18n="release-date">发布日期</label>
                         <input type="text" id="addReleaseDate">
                     </div>
                     <div class="form-group">
-                        <label for="addRating">评分</label>
+                        <label for="addRating" data-i18n="rating">评分</label>
                         <input type="text" id="addRating">
                     </div>
                     <div class="form-group">
-                        <label for="addLanguage">语言</label>
+                        <label for="addLanguage" data-i18n="language">语言</label>
                         <input type="text" id="addLanguage">
                     </div>
                     <div class="form-group">
-                        <label for="addGameId">游戏ID</label>
+                        <label for="addGameId" data-i18n="game-id">游戏ID</label>
                         <input type="text" id="addGameIdInput">
                     </div>
                     <div class="form-group">
-                        <label for="addSource">来源</label>
+                        <label for="addSource" data-i18n="source">来源</label>
                         <input type="text" id="addSource">
                     </div>
                     <div class="form-group">
-                        <label for="addImage">图片路径</label>
+                        <label for="addImage" data-i18n="image-path">图片路径</label>
                         <input type="text" id="addImage">
                     </div>
                     <div class="form-group">
-                        <label for="addVideo">视频路径</label>
+                        <label for="addVideo" data-i18n="video-path">视频路径</label>
                         <input type="text" id="addVideo">
                     </div>
                     <div class="form-group">
-                        <label for="addMarquee">横幅路径</label>
+                        <label for="addMarquee" data-i18n="marquee-path">横幅路径</label>
                         <input type="text" id="addMarquee">
                     </div>
                     <div class="form-group">
-                        <label for="addThumbnail">缩略图路径</label>
+                        <label for="addThumbnail" data-i18n="thumbnail-path">缩略图路径</label>
                         <input type="text" id="addThumbnail">
                     </div>
                     <div class="form-group">
-                        <label for="addManual">手册路径</label>
+                        <label for="addManual" data-i18n="manual-path">手册路径</label>
                         <input type="text" id="addManual">
                     </div>
                     <div class="form-group">
-                        <label for="addBoxFront">包装盒正面</label>
+                        <label for="addBoxFront" data-i18n="box-front">包装盒正面</label>
                         <input type="text" id="addBoxFront">
                     </div>
                     <div class="form-group">
-                        <label for="addBoxBack">包装盒背面</label>
+                        <label for="addBoxBack" data-i18n="box-back">包装盒背面</label>
                         <input type="text" id="addBoxBack">
                     </div>
                     <div class="form-group">
-                        <label for="addBoxSpine">包装盒侧脊</label>
+                        <label for="addBoxSpine" data-i18n="box-spine">包装盒侧脊</label>
                         <input type="text" id="addBoxSpine">
                     </div>
                     <div class="form-group">
-                        <label for="addBoxFull">完整包装盒</label>
+                        <label for="addBoxFull" data-i18n="box-full">完整包装盒</label>
                         <input type="text" id="addBoxFull">
                     </div>
                     <div class="form-group">
-                        <label for="addCartridge">卡带/光盘</label>
+                        <label for="addCartridge" data-i18n="cartridge">卡带/光盘</label>
                         <input type="text" id="addCartridge">
                     </div>
                     <div class="form-group">
-                        <label for="addLogo">游戏Logo</label>
+                        <label for="addLogo" data-i18n="logo">游戏Logo</label>
                         <input type="text" id="addLogo">
                     </div>
                     <div class="form-group">
-                        <label for="addBezel">屏幕边框</label>
+                        <label for="addBezel" data-i18n="bezel">屏幕边框</label>
                         <input type="text" id="addBezel">
                     </div>
                     <div class="form-group">
-                        <label for="addPanel">控制台面板</label>
+                        <label for="addPanel" data-i18n="panel">控制台面板</label>
                         <input type="text" id="addPanel">
                     </div>
                     <div class="form-group">
-                        <label for="addCabinetLeft">街机左侧</label>
+                        <label for="addCabinetLeft" data-i18n="cabinet-left">街机左侧</label>
                         <input type="text" id="addCabinetLeft">
                     </div>
                     <div class="form-group">
-                        <label for="addCabinetRight">街机右侧</label>
+                        <label for="addCabinetRight" data-i18n="cabinet-right">街机右侧</label>
                         <input type="text" id="addCabinetRight">
                     </div>
                     <div class="form-group">
-                        <label for="addTile">方形预览图</label>
+                        <label for="addTile" data-i18n="tile">方形预览图</label>
                         <input type="text" id="addTile">
                     </div>
                     <div class="form-group">
-                        <label for="addBanner">横幅图</label>
+                        <label for="addBanner" data-i18n="banner">横幅图</label>
                         <input type="text" id="addBanner">
                     </div>
                     <div class="form-group">
-                        <label for="addSteam">Steam网格图标</label>
+                        <label for="addSteam" data-i18n="steam">Steam网格图标</label>
                         <input type="text" id="addSteam">
                     </div>
                     <div class="form-group">
-                        <label for="addPoster">宣传海报</label>
+                        <label for="addPoster" data-i18n="poster">宣传海报</label>
                         <input type="text" id="addPoster">
                     </div>
                     <div class="form-group">
-                        <label for="addBackground">背景图像</label>
+                        <label for="addBackground" data-i18n="background">背景图像</label>
                         <input type="text" id="addBackground">
                     </div>
                     <div class="form-group">
-                        <label for="addMusic">背景音乐</label>
+                        <label for="addMusic" data-i18n="music">背景音乐</label>
                         <input type="text" id="addMusic">
                     </div>
                     <div class="form-group">
-                        <label for="addScreenshot">游戏截图</label>
+                        <label for="addScreenshot" data-i18n="screenshot">游戏截图</label>
                         <input type="text" id="addScreenshot">
                     </div>
                     <div class="form-group">
-                        <label for="addTitlescreen">标题画面</label>
+                        <label for="addTitlescreen" data-i18n="titlescreen">标题画面</label>
                         <input type="text" id="addTitlescreen">
                     </div>
                     <div class="form-group">
-                        <label for="addCrc32">CRC32</label>
+                        <label for="addCrc32" data-i18n="crc32">CRC32</label>
                         <input type="text" id="addCrc32">
                     </div>
                     <div class="form-group">
-                        <label for="addGenreid">类型ID</label>
+                        <label for="addGenreid" data-i18n="genre-id">类型ID</label>
                         <input type="text" id="addGenreid">
                     </div>
                     <div class="form-group">
-                        <label for="addPlatformId">平台ID</label>
+                        <label for="addPlatformId" data-i18n="platform-id">平台ID</label>
                         <input type="text" id="addPlatformIdInput">
                     </div>
                     <div class="form-group">
-                        <label for="addPlatformPath">平台路径</label>
+                        <label for="addPlatformPath" data-i18n="platform-path">平台路径</label>
                         <input type="text" id="addPlatformPath">
                     </div>
                     <div class="form-group">
-                        <label for="addSortBy">排序字段</label>
+                        <label for="addSortBy" data-i18n="sort-by">排序字段</label>
                         <input type="text" id="addSortBy">
                     </div>
                 </div>
                 <div class="form-actions" style="margin-top: 20px;">
-                    <button type="button" class="btn btn-info" onclick="viewMediaFiles()">查看媒体文件</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeAddGameModal()">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="submitAddGame()">保存</button>
+                    <button type="button" onclick="addGame()" class="btn btn-primary" data-i18n="add-game">添加游戏</button>
+                    <button type="button" class="btn btn-info" onclick="viewMediaFiles()" data-i18n="view-media">查看媒体文件</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddGameModal()" data-i18n="cancel">取消</button>
                 </div>
             </form>
         </div>
@@ -1518,7 +1518,7 @@
     <div id="mediaViewModal" class="modal">
         <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
             <span class="close" onclick="closeMediaViewModal()">&times;</span>
-            <h2>媒体文件查看</h2>
+            <h2 data-i18n="view-media-files">媒体文件查看</h2>
             <div id="mediaContent" style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-height: 70vh; overflow-y: auto;">
                 <!-- 媒体文件将动态添加到这里 -->
             </div>
@@ -2154,30 +2154,30 @@
             const gamePath = document.getElementById('gamePath').value;
             const platformPath = document.getElementById('platformPath') ? document.getElementById('platformPath').value : null;
             const mediaFiles = [
-                { type: 'image', path: document.getElementById('image').value, name: '图片', displayType: 'image' },
-                { type: 'video', path: document.getElementById('video').value, name: '视频', displayType: 'video' },
-                { type: 'marquee', path: document.getElementById('marquee').value, name: '横幅', displayType: 'image' },
-                { type: 'thumbnail', path: document.getElementById('thumbnail').value, name: '缩略图', displayType: 'image' },
-                { type: 'manual', path: document.getElementById('manual').value, name: '手册', displayType: 'manual' },
+                { type: 'image', path: document.getElementById('image').value, name: getI18nText('image'), displayType: 'image' },
+                { type: 'video', path: document.getElementById('video').value, name: getI18nText('video'), displayType: 'video' },
+                { type: 'marquee', path: document.getElementById('marquee').value, name: getI18nText('marquee'), displayType: 'image' },
+                { type: 'thumbnail', path: document.getElementById('thumbnail').value, name: getI18nText('thumbnail'), displayType: 'image' },
+                { type: 'manual', path: document.getElementById('manual').value, name: getI18nText('manual'), displayType: 'manual' },
                 // 新增媒体类型
-                { type: 'boxFront', path: document.getElementById('boxFront').value, name: '包装盒正面', displayType: 'image' },
-                { type: 'boxBack', path: document.getElementById('boxBack').value, name: '包装盒背面', displayType: 'image' },
-                { type: 'boxSpine', path: document.getElementById('boxSpine').value, name: '包装盒侧脊', displayType: 'image' },
-                { type: 'boxFull', path: document.getElementById('boxFull').value, name: '完整包装盒', displayType: 'image' },
-                { type: 'cartridge', path: document.getElementById('cartridge').value, name: '卡带/光盘', displayType: 'image' },
-                { type: 'logo', path: document.getElementById('logo').value, name: '游戏Logo', displayType: 'image' },
-                { type: 'bezel', path: document.getElementById('bezel').value, name: '屏幕边框', displayType: 'image' },
-                { type: 'panel', path: document.getElementById('panel').value, name: '控制台面板', displayType: 'image' },
-                { type: 'cabinetLeft', path: document.getElementById('cabinetLeft').value, name: '街机左侧', displayType: 'image' },
-                { type: 'cabinetRight', path: document.getElementById('cabinetRight').value, name: '街机右侧', displayType: 'image' },
-                { type: 'tile', path: document.getElementById('tile').value, name: '方形预览图', displayType: 'image' },
-                { type: 'banner', path: document.getElementById('banner').value, name: '横幅图', displayType: 'image' },
-                { type: 'steam', path: document.getElementById('steam').value, name: 'Steam网格图标', displayType: 'image' },
-                { type: 'poster', path: document.getElementById('poster').value, name: '宣传海报', displayType: 'image' },
-                { type: 'background', path: document.getElementById('background').value, name: '背景图像', displayType: 'image' },
-                { type: 'music', path: document.getElementById('music').value, name: '背景音乐', displayType: 'audio' },
-                { type: 'screenshot', path: document.getElementById('screenshot').value, name: '游戏截图', displayType: 'image' },
-                { type: 'titlescreen', path: document.getElementById('titlescreen').value, name: '标题画面', displayType: 'image' }
+                { type: 'boxFront', path: document.getElementById('boxFront').value, name: getI18nText('box-front'), displayType: 'image' },
+                { type: 'boxBack', path: document.getElementById('boxBack').value, name: getI18nText('box-back'), displayType: 'image' },
+                { type: 'boxSpine', path: document.getElementById('boxSpine').value, name: getI18nText('box-spine'), displayType: 'image' },
+                { type: 'boxFull', path: document.getElementById('boxFull').value, name: getI18nText('box-full'), displayType: 'image' },
+                { type: 'cartridge', path: document.getElementById('cartridge').value, name: getI18nText('cartridge'), displayType: 'image' },
+                { type: 'logo', path: document.getElementById('logo').value, name: getI18nText('logo'), displayType: 'image' },
+                { type: 'bezel', path: document.getElementById('bezel').value, name: getI18nText('bezel'), displayType: 'image' },
+                { type: 'panel', path: document.getElementById('panel').value, name: getI18nText('panel'), displayType: 'image' },
+                { type: 'cabinetLeft', path: document.getElementById('cabinetLeft').value, name: getI18nText('cabinet-left'), displayType: 'image' },
+                { type: 'cabinetRight', path: document.getElementById('cabinetRight').value, name: getI18nText('cabinet-right'), displayType: 'image' },
+                { type: 'tile', path: document.getElementById('tile').value, name: getI18nText('tile'), displayType: 'image' },
+                { type: 'banner', path: document.getElementById('banner').value, name: getI18nText('banner'), displayType: 'image' },
+                { type: 'steam', path: document.getElementById('steam').value, name: getI18nText('steam'), displayType: 'image' },
+                { type: 'poster', path: document.getElementById('poster').value, name: getI18nText('poster'), displayType: 'image' },
+                { type: 'background', path: document.getElementById('background').value, name: getI18nText('background'), displayType: 'image' },
+                { type: 'music', path: document.getElementById('music').value, name: getI18nText('music'), displayType: 'audio' },
+                { type: 'screenshot', path: document.getElementById('screenshot').value, name: getI18nText('screenshot'), displayType: 'image' },
+                { type: 'titlescreen', path: document.getElementById('titlescreen').value, name: getI18nText('titlescreen'), displayType: 'image' }
             ];
             
             const mediaContent = document.getElementById('mediaContent');
@@ -2216,9 +2216,9 @@
                 if (displayType === 'image') {
                     mediaElement.src = url;
                     mediaElement.style.display = 'block';
-                    statusElement.textContent = '已加载';
+                    statusElement.textContent = getI18nText('loaded');
                     statusElement.style.color = 'blue';
-                    downloadBtn.textContent = '下载';
+                    downloadBtn.textContent = getI18nText('download');
                     downloadBtn.style.backgroundColor = '#4CAF50';
                     downloadBtn.style.color = 'white';
                     downloadBtn.disabled = false;
@@ -2235,9 +2235,9 @@
                     source.src = url;
                     mediaElement.load();
                     mediaElement.style.display = 'block';
-                    statusElement.textContent = '已加载';
+                    statusElement.textContent = getI18nText('loaded');
                     statusElement.style.color = 'blue';
-                    downloadBtn.textContent = '下载';
+                    downloadBtn.textContent = getI18nText('download');
                     downloadBtn.style.backgroundColor = '#4CAF50';
                     downloadBtn.style.color = 'white';
                     downloadBtn.disabled = false;
@@ -2251,12 +2251,12 @@
                     };
                 } else if (displayType === 'manual' && manualContent) {
                     manualContent.innerHTML = `
-                        <a href="${url}" target="_blank" style="padding: 8px 16px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">查看手册</a>
-                        <a href="${url}" download style="padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px;">下载手册</a>
+                        <a href="${url}" target="_blank" style="padding: 8px 16px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">${getI18nText('view-manual')}</a>
+                        <a href="${url}" download style="padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px;">${getI18nText('download-manual')}</a>
                     `;
-                    statusElement.textContent = '已加载';
+                    statusElement.textContent = getI18nText('loaded');
                     statusElement.style.color = 'blue';
-                    downloadBtn.textContent = '下载';
+                    downloadBtn.textContent = getI18nText('download');
                     downloadBtn.style.backgroundColor = '#4CAF50';
                     downloadBtn.style.color = 'white';
                     downloadBtn.disabled = false;
@@ -2275,7 +2275,7 @@
             const hasMediaFiles = mediaFiles.some(file => file.path);
             
             if (!hasMediaFiles) {
-                mediaContent.innerHTML = '<p style="text-align: center; color: #666;">没有媒体文件</p>';
+                mediaContent.innerHTML = `<p style="text-align: center; color: #666;">${getI18nText('no-media-files')}</p>`;
                 document.getElementById('mediaViewModal').style.display = 'block';
                 return;
             }
@@ -2308,7 +2308,7 @@
                         <div style="margin: 15px 0; text-align: center; width: 100%;">
                             <video controls style="max-width: 100%; max-height: 300px; display: none; border: 2px solid #00ffff; border-radius: 4px; background: rgba(0, 0, 0, 0.5);">
                                 <source src="" type="video/mp4">
-                                您的浏览器不支持视频播放。
+                                ${getI18nText('browser-no-video')}
                             </video>
                         </div>
                     `;
@@ -2316,15 +2316,15 @@
                     mediaContentHTML += `
                         <div style="margin: 15px 0; text-align: center; width: 100%;">
                             <div id="${mediaFile.type}Content">
-                                <p>加载中...</p>
+                                <p>${getI18nText('loading')}</p>
                             </div>
                         </div>
                     `;
                 }
                 
                 mediaContentHTML += `
-                    <p id="${mediaFile.type}Status" style="margin: 10px 0; color: #ff9800; font-size: 14px; font-family: 'Consolas', 'Courier New', monospace;">检查中...</p>
-                    <button id="download${mediaFile.type.charAt(0).toUpperCase() + mediaFile.type.slice(1)}Btn" style="margin-top: 10px; padding: 8px 16px; background: #1a1a2e; color: #4CAF50; border: 2px solid #4CAF50; border-radius: 4px; cursor: pointer; font-family: 'Consolas', 'Courier New', monospace; transition: all 0.3s ease;">下载${mediaFile.name}</button>
+                    <p id="${mediaFile.type}Status" style="margin: 10px 0; color: #ff9800; font-size: 14px; font-family: 'Consolas', 'Courier New', monospace;">${getI18nText('checking')}</p>
+                    <button id="download${mediaFile.type.charAt(0).toUpperCase() + mediaFile.type.slice(1)}Btn" style="margin-top: 10px; padding: 8px 16px; background: #1a1a2e; color: #4CAF50; border: 2px solid #4CAF50; border-radius: 4px; cursor: pointer; font-family: 'Consolas', 'Courier New', monospace; transition: all 0.3s ease;">${getI18nText('download')}${mediaFile.name}</button>
                 `;
                 
                 mediaDiv.innerHTML = mediaContentHTML;
@@ -3092,7 +3092,60 @@
                     'settings': '设置',
                     'refresh': '刷新',
                     'select-all': '全选',
-                    'deselect-all': '取消全选'
+                    'deselect-all': '取消全选',
+                    'select-games-modify': '请先选择要修改的游戏',
+                    'select-games-migrate': '请先选择要迁转的游戏',
+                    'load-platform-fail': '加载平台列表失败',
+                    'select-target-platform': '请选择目标平台',
+                    'migrate-fail': '迁转失败：',
+                    'fill-at-least-one': '请至少填写一项要修改的内容',
+                    'batch-edit-fail': '批量修改失败：',
+                    'select-at-least-two': '请至少选择两个游戏进行合盘操作',
+                    'merge-success': '合盘操作成功！',
+                    'merge-fail': '合盘操作失败：',
+                    'split-developing': '分离功能开发中',
+                    'save-changes': '保存修改',
+                    'view-media': '查看媒体文件',
+                    'view-media-files': '媒体文件查看',
+                    'add-game': '添加游戏',
+                    'game-id': '游戏ID',
+                    'source': '来源',
+                    'image-path': '图片路径',
+                    'video-path': '视频路径',
+                    'marquee-path': '横幅路径',
+                    'thumbnail-path': '缩略图路径',
+                    'manual-path': '手册路径',
+                    'box-front': '包装盒正面',
+                    'box-back': '包装盒背面',
+                    'box-spine': '包装盒侧脊',
+                    'box-full': '完整包装盒',
+                    'cartridge': '卡带/光盘',
+                    'logo': '游戏Logo',
+                    'bezel': '屏幕边框',
+                    'panel': '控制台面板',
+                    'cabinet-left': '街机左侧',
+                    'cabinet-right': '街机右侧',
+                    'tile': '方形预览图',
+                    'banner': '横幅图',
+                    'steam': 'Steam网格图标',
+                    'poster': '宣传海报',
+                    'background': '背景图像',
+                    'music': '背景音乐',
+                    'screenshot': '游戏截图',
+                    'titlescreen': '标题画面',
+                    'crc32': 'CRC32',
+                    'genre-id': '类型ID',
+                    'platform-id': '平台ID',
+                    'sort-by': '排序字段',
+                    'image': '图片',
+                    'video': '视频',
+                    'loaded': '已加载',
+                    'download': '下载',
+                    'download-manual': '下载手册',
+                    'browser-no-video': '您的浏览器不支持视频播放。',
+                    'view-manual': '查看手册',
+                    'no-media-files': '没有媒体文件',
+                    'checking': '检查中...'
                 },
                 'en': {
                     'page-title': 'Game List - Platform Management',
@@ -3213,7 +3266,60 @@
                     'settings': 'Settings',
                     'refresh': 'Refresh',
                     'select-all': 'Select All',
-                    'deselect-all': 'Deselect All'
+                    'deselect-all': 'Deselect All',
+                    'select-games-modify': 'Please select games to modify',
+                    'select-games-migrate': 'Please select games to migrate',
+                    'load-platform-fail': 'Failed to load platform list',
+                    'select-target-platform': 'Please select target platform',
+                    'migrate-fail': 'Migration failed: ',
+                    'fill-at-least-one': 'Please fill at least one field to modify',
+                    'batch-edit-fail': 'Batch edit failed: ',
+                    'select-at-least-two': 'Please select at least two games for merging',
+                    'merge-success': 'Merge operation successful!',
+                    'merge-fail': 'Merge operation failed: ',
+                    'split-developing': 'Split feature in development',
+                    'save-changes': 'Save Changes',
+                    'view-media': 'View Media',
+                    'view-media-files': 'View Media Files',
+                    'add-game': 'Add Game',
+                    'game-id': 'Game ID',
+                    'source': 'Source',
+                    'image-path': 'Image Path',
+                    'video-path': 'Video Path',
+                    'marquee-path': 'Marquee Path',
+                    'thumbnail-path': 'Thumbnail Path',
+                    'manual-path': 'Manual Path',
+                    'box-front': 'Box Front',
+                    'box-back': 'Box Back',
+                    'box-spine': 'Box Spine',
+                    'box-full': 'Full Box',
+                    'cartridge': 'Cartridge/Disc',
+                    'logo': 'Game Logo',
+                    'bezel': 'Bezel',
+                    'panel': 'Control Panel',
+                    'cabinet-left': 'Cabinet Left',
+                    'cabinet-right': 'Cabinet Right',
+                    'tile': 'Tile',
+                    'banner': 'Banner',
+                    'steam': 'Steam Grid',
+                    'poster': 'Poster',
+                    'background': 'Background',
+                    'music': 'Music',
+                    'screenshot': 'Screenshot',
+                    'titlescreen': 'Title Screen',
+                    'crc32': 'CRC32',
+                    'genre-id': 'Genre ID',
+                    'platform-id': 'Platform ID',
+                    'sort-by': 'Sort By',
+                    'image': 'Image',
+                    'video': 'Video',
+                    'loaded': 'Loaded',
+                    'download': 'Download',
+                    'download-manual': 'Download Manual',
+                    'browser-no-video': 'Your browser does not support video playback.',
+                    'view-manual': 'View Manual',
+                    'no-media-files': 'No media files',
+                    'checking': 'Checking...'
                 },
                 'ja': {
                     'page-title': 'ゲームリスト - プラットフォーム管理',
@@ -3334,11 +3440,68 @@
                     'settings': '設定',
                     'refresh': '更新',
                     'select-all': '全選択',
-                    'deselect-all': '選択解除'
+                    'deselect-all': '選択解除',
+                    'select-games-modify': '変更するゲームを選択してください',
+                    'select-games-migrate': '移行するゲームを選択してください',
+                    'load-platform-fail': 'プラットフォームリストの読み込みに失敗しました',
+                    'select-target-platform': '目標プラットフォームを選択してください',
+                    'migrate-fail': '移行失敗：',
+                    'fill-at-least-one': '変更する項目を少なくとも1つ入力してください',
+                    'batch-edit-fail': '一括編集失敗：',
+                    'select-at-least-two': '統合するために少なくとも2つのゲームを選択してください',
+                    'merge-success': '統合操作成功！',
+                    'merge-fail': '統合操作失敗：',
+                    'split-developing': '分割機能開発中',
+                    'save-changes': '変更を保存',
+                    'view-media': 'メディアを表示',
+                    'view-media-files': 'メディアファイル表示',
+                    'add-game': 'ゲーム追加',
+                    'game-id': 'ゲームID',
+                    'source': 'ソース',
+                    'image-path': '画像パス',
+                    'video-path': '動画パス',
+                    'marquee-path': 'マーキーパス',
+                    'thumbnail-path': 'サムネイルパス',
+                    'manual-path': 'マニュアルパス',
+                    'box-front': 'ボックス正面',
+                    'box-back': 'ボックス背面',
+                    'box-spine': 'ボックス側面',
+                    'box-full': '完全ボックス',
+                    'cartridge': 'カートリッジ/ディスク',
+                    'logo': 'ゲームロゴ',
+                    'bezel': 'ベゼル',
+                    'panel': 'コントロールパネル',
+                    'cabinet-left': 'キャビネット左',
+                    'cabinet-right': 'キャビネット右',
+                    'tile': 'タイル',
+                    'banner': 'バナー',
+                    'steam': 'Steamグリッド',
+                    'poster': 'ポスター',
+                    'background': '背景',
+                    'music': '音楽',
+                    'screenshot': 'スクリーンショット',
+                    'titlescreen': 'タイトル画面',
+                    'crc32': 'CRC32',
+                    'genre-id': 'ジャンルID',
+                    'platform-id': 'プラットフォームID',
+                    'sort-by': 'ソート',
+                    'image': '画像',
+                    'video': 'ビデオ',
+                    'loaded': '読み込み済み',
+                    'download': 'ダウンロード',
+                    'download-manual': 'マニュアルをダウンロード',
+                    'browser-no-video': 'ブラウザがビデオ再生をサポートしていません。',
+                    'view-manual': 'マニュアルを表示',
+                    'no-media-files': 'メディアファイルがありません',
+                    'checking': '確認中...'
                 }
             };
 
             const t = translations[lang] || translations['zh'];
+
+            window.getI18nText = function(key) {
+                return t[key] || key;
+            }
 
             function applyTranslation(key, element) {
                 if (element) {

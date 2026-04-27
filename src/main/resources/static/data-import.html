@@ -574,7 +574,7 @@
             <form id="scanForm">
                 <div class="form-group">
                     <label for="path" data-i18n="scan_path_label">请输入要扫描的根路径：</label>
-                    <input type="text" id="path" name="path" placeholder="/data/roms" value="/data/roms" required>
+                    <input type="text" id="path" name="path" placeholder="/roms" value="/roms" required>
                     <button type="button" class="btn" style="margin-top: 10px;" onclick="browseDirectories()" data-i18n="browse_directories">浏览目录</button>
                 </div>
                 <div class="form-group" id="directoryList" style="display: none;">
@@ -622,9 +622,7 @@
                 <div class="form-group" id="templateOptions" style="display: none;">
                     <label for="importTemplate" data-i18n="import_template_label">导入模板：</label>
                     <select id="importTemplate" name="importTemplate" onchange="updateTemplateDescription()">
-                        <option value="pegasus.json" data-i18n="import_template_pegasus">Pegasus 标准模板</option>
-                        <option value="esde.json" data-i18n="import_template_esde">ES-DE 标准模板</option>
-                        <option value="generic.json" data-i18n="import_template_generic">通用模板</option>
+                        <option value="" data-i18n="loading_templates">加载模板中...</option>
                     </select>
                     <div id="templateDescription" style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 6px; border: 1px solid #444; color: #00ffff;"></div>
                 </div>
@@ -880,6 +878,44 @@
             });
         }
         
+        // 从服务器获取模板列表
+        function loadTemplates() {
+            const importTemplateSelect = document.getElementById('importTemplate');
+            importTemplateSelect.innerHTML = '<option value="" data-i18n="loading_templates">加载模板中...</option>';
+            
+            console.log('开始加载模板...');
+            
+            fetch('/api/gamelist/import/templates')
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(templates => {
+                    console.log('Templates received:', templates);
+                    importTemplateSelect.innerHTML = '';
+                    if (templates && templates.length > 0) {
+                        templates.forEach(template => {
+                            const option = document.createElement('option');
+                            option.value = template.fileName;
+                            option.textContent = template.name || template.fileName;
+                            importTemplateSelect.appendChild(option);
+                        });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = '无可用模板';
+                        importTemplateSelect.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading templates:', error);
+                    importTemplateSelect.innerHTML = '<option value="" data-i18n="error_loading_templates">加载模板失败</option>';
+                });
+        }
+        
         // 显示通知
         function showNotification(message, type = 'info') {
             // 添加到通知列表
@@ -1024,6 +1060,11 @@
                     'en-US': 'Pegasus Standard Template: Suitable for Pegasus frontend, supports metadata.pegasus.txt format data files. Uses colon as separator, supports multi-value fields and media file path configuration.',
                     'ja-JP': 'Pegasus 標準テンプレート：Pegasus フロントエンドに適した、metadata.pegasus.txt 形式のデータファイルをサポートします。コロンを区切り文字として使用し、複数値フィールドとメディアファイルパスの設定をサポートします。'
                 },
+                'retrobat.json': {
+                    'zh-CN': 'RetroBat 标准模板：适用于 RetroBat 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
+                    'en-US': 'RetroBat Standard Template: Suitable for RetroBat frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
+                    'ja-JP': 'RetroBat 標準テンプレート：RetroBat フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                },
                 'esde.json': {
                     'zh-CN': 'ES-DE 标准模板：适用于 ES-DE 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
                     'en-US': 'ES-DE Standard Template: Suitable for ES-DE frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
@@ -1037,8 +1078,12 @@
             };
             
             const lang = getCurrentLanguage();
-            const description = descriptions[selectedTemplate][lang] || descriptions[selectedTemplate]['zh-CN'];
-            descriptionDiv.textContent = description;
+            if (descriptions[selectedTemplate]) {
+                const description = descriptions[selectedTemplate][lang] || descriptions[selectedTemplate]['zh-CN'];
+                descriptionDiv.textContent = description;
+            } else {
+                descriptionDiv.textContent = '暂无模板描述';
+            }
         }
         
         // 模板选项显示/隐藏
@@ -1054,11 +1099,13 @@
                 metadataOnlyOption.style.display = 'none';
                 noDataFileWarning.style.display = 'none';
                 fileExtensionsGroup.style.display = 'none';
+                loadTemplates(); // 加载模板列表
             } else if (importMethod === 'noDataFile') {
                 templateOptions.style.display = 'block';
                 metadataOnlyOption.style.display = 'none';
                 noDataFileWarning.style.display = 'block';
                 fileExtensionsGroup.style.display = 'block';
+                loadTemplates(); // 加载模板列表
             } else {
                 templateOptions.style.display = 'none';
                 metadataOnlyOption.style.display = 'block';
@@ -1123,7 +1170,7 @@
                                     parentPath = '/' + pathParts.join('/');
                                 } else if (currentPath.match(/^[A-Za-z]:/)) {
                                     // Windows 路径
-                                    parentPath = pathParts[0] + ':/' + pathParts.slice(1).join('/');
+                                    parentPath = pathParts[0] + (pathParts.slice(1).length > 0 ? '/' : '') + pathParts.slice(1).join('/');
                                 } else {
                                     parentPath = pathParts.join('/');
                                 }
@@ -1132,7 +1179,7 @@
                                     parentPath = '/';
                                 } else if (currentPath.match(/^[A-Za-z]:/)) {
                                     // Windows 根目录
-                                    parentPath = currentPath.split(/[\\/]/)[0] + ':/';
+                                    parentPath = currentPath.split(/[\\/]/)[0] + '/';
                                 } else {
                                     parentPath = '';
                                 }
@@ -1199,8 +1246,8 @@
             if (gamePath) {
                 document.getElementById('path').value = gamePath;
             } else {
-                // 默认路径设置为 /data/roms
-                document.getElementById('path').value = '/data/roms';
+                // 默认路径设置为 /roms
+                document.getElementById('path').value = '/roms';
             }
             
             // 通知模态框关闭按钮

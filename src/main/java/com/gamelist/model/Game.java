@@ -15,6 +15,7 @@ public class Game {
     private String video;
     private String marquee;
     private String thumbnail;
+    private String wheel;
     private String manual;
     private String boxFront;
     private String boxBack;
@@ -155,6 +156,14 @@ public class Game {
 
     public void setThumbnail(String thumbnail) {
         this.thumbnail = thumbnail;
+    }
+
+    public String getWheel() {
+        return wheel;
+    }
+
+    public void setWheel(String wheel) {
+        this.wheel = wheel;
     }
 
     public String getManual() {

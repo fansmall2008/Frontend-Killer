@@ -54,13 +54,21 @@ public class TextDataFileGenerator implements DataFileGenerator {
     public void generateGameEntry(StringBuilder content, Game game, ExportRule rule, Platform platform, Map<String, String> variables, Path basePath) {
         ExportRule.DataFileRule dataFileRule = rule.getRules().getDataFile();
         Map<String, String> fields = dataFileRule.getFields();
-        
+        Map<String, ExportRule.TransformRule> fieldTransforms = dataFileRule.getFieldTransforms();
+
         // 处理字段
         for (Map.Entry<String, String> entry : fields.entrySet()) {
             String targetField = entry.getKey();
             String sourceField = entry.getValue();
             String value = getGameFieldValue(game, sourceField, dataFileRule.getPathFormat());
-            
+
+            // 应用字段转换规则
+            if (fieldTransforms != null && fieldTransforms.containsKey(targetField)) {
+                ExportRule.TransformRule transformRule = fieldTransforms.get(targetField);
+                TransformRule textTransform = convertToTextTransform(transformRule);
+                value = applyTransform(value, textTransform);
+            }
+
             if (value != null && !value.isEmpty()) {
                 content.append(targetField).append(": ").append(value).append(getFieldSeparator(dataFileRule));
             }
@@ -75,7 +83,12 @@ public class TextDataFileGenerator implements DataFileGenerator {
                 if (mediaFilePath != null && !mediaFilePath.isEmpty()) {
                     // 构建媒体文件路径
                     Map<String, String> mediaVariables = new HashMap<>(variables);
-                    mediaVariables.put("gameName", game.getName());
+                    // 使用 filename 替代 gameName
+                    String filename = getSingleGameFieldValue(game, "filename", null);
+                    if (filename == null) {
+                        filename = game.getName();
+                    }
+                    mediaVariables.put("gameName", filename);
                     String targetPathStr = replaceVariables(mediaRule.getTarget(), mediaVariables);
                     Path targetFilePath = Paths.get(targetPathStr);
                     
@@ -303,5 +316,85 @@ public class TextDataFileGenerator implements DataFileGenerator {
 
     private String replaceVariables(String template, Map<String, String> variables) {
         return VariableReplacer.replaceVariables(template, variables);
+    }
+
+    public static class TransformRule {
+        private String path;
+        private String caseType;
+        private boolean trim;
+        private ReplaceRule replace;
+
+        public String getPath() { return path; }
+        public void setPath(String path) { this.path = path; }
+        public String getCaseType() { return caseType; }
+        public void setCaseType(String caseType) { this.caseType = caseType; }
+        public boolean isTrim() { return trim; }
+        public void setTrim(boolean trim) { this.trim = trim; }
+        public ReplaceRule getReplace() { return replace; }
+        public void setReplace(ReplaceRule replace) { this.replace = replace; }
+    }
+
+    public static class ReplaceRule {
+        private String from;
+        private String to;
+
+        public String getFrom() { return from; }
+        public void setFrom(String from) { this.from = from; }
+        public String getTo() { return to; }
+        public void setTo(String to) { this.to = to; }
+    }
+
+    private String applyTransform(String value, TransformRule transform) {
+        if (value == null || transform == null) return value;
+
+        if (transform.isTrim()) {
+            value = value.trim();
+        }
+
+        if ("upper".equals(transform.getCaseType())) {
+            value = value.toUpperCase();
+        } else if ("lower".equals(transform.getCaseType())) {
+            value = value.toLowerCase();
+        }
+
+        if (transform.getPath() != null) {
+            value = transformPath(value, transform.getPath());
+        }
+
+        if (transform.getReplace() != null) {
+            value = value.replace(transform.getReplace().getFrom(), transform.getReplace().getTo());
+        }
+
+        return value;
+    }
+
+    private String transformPath(String path, String mode) {
+        if (path == null) return null;
+
+        if ("yes".equals(mode)) {
+            if (!path.startsWith("./") && !path.startsWith(".\\") && !path.matches("^[A-Za-z]:.*") && !path.startsWith("/") && !path.startsWith("\\")) {
+                return "./" + path;
+            }
+        } else if ("no".equals(mode)) {
+            if (path.startsWith("./") || path.startsWith(".\\")) {
+                return path.substring(2);
+            }
+        }
+        return path;
+    }
+
+    private TransformRule convertToTextTransform(ExportRule.TransformRule exportTransform) {
+        if (exportTransform == null) return null;
+        TransformRule textTransform = new TransformRule();
+        textTransform.setPath(exportTransform.getPath());
+        textTransform.setCaseType(exportTransform.getCaseType());
+        textTransform.setTrim(exportTransform.isTrim());
+        if (exportTransform.getReplace() != null) {
+            ReplaceRule replaceRule = new ReplaceRule();
+            replaceRule.setFrom(exportTransform.getReplace().getFrom());
+            replaceRule.setTo(exportTransform.getReplace().getTo());
+            textTransform.setReplace(replaceRule);
+        }
+        return textTransform;
     }
 }

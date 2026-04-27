@@ -54,6 +54,35 @@
         }
       },
       {
+        "id": "microsoft-both",
+        "name": "Microsoft Translator (both  name and  description)",
+        "type": "microsoft",
+        "url": "https://api.cognitive.microsofttranslator.com/translate",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Ocp-Apim-Subscription-Key": "${microsoft_api_key}",
+          "Ocp-Apim-Subscription-Region": "${microsoft_region}"
+        },
+        "requestBody": [
+          {
+            "text": "{gameName}"
+          },
+          {
+            "text": "{gameDescription}"
+          }
+        ],
+        "params": {
+          "api-version": "3.0",
+          "to": "{targetLang}"
+        },
+        "responsePath": "[0].translations[0].text",
+        "responseParser": "microsoftGameNameDescription",
+        "validation": {
+          "requiredVariables": ["microsoft_api_key", "microsoft_region"]
+        }
+      },
+      {
         "id": "deepseek",
         "name": "DeepSeek",
         "type": "deepseek",
@@ -68,15 +97,48 @@
           "messages": [
             {
               "role": "system",
-              "content": "You are a helpful assistant. Please translate the following text from {sourceLang} to {targetLang}."
+              "content": "你是一名专业的游戏本地化专家。请严格遵循以下规则：\n1. 游戏名称翻译要求：信、达、雅，保留原标题的风格和气势\n2. 游戏描述翻译：保留游戏术语（如RPG、FPS、技能名等），语句流畅自然\n3. 只返回翻译结果，不要添加任何解释或注释\n4. 输出格式：只输出翻译后的文本，不要添加任何前缀或后缀"
             },
             {
               "role": "user",
-              "content": "{text}"
+              "content": "将以下内容翻译成{targetLang}：{text}"
             }
-          ]
+          ],
+          "temperature": 0.1,
+          "max_tokens": 50
         },
         "responsePath": "choices[0].message.content",
+        "validation": {
+          "requiredVariables": ["deepseek_api_key"]
+        }
+      },
+      {
+        "id": "deepseek-both",
+        "name": "DeepSeek (both  name and  description)",
+        "type": "deepseek",
+        "url": "https://api.deepseek.com/chat/completions",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${deepseek_api_key}"
+        },
+        "requestBody": {
+          "model": "deepseek-chat",
+          "messages": [
+            {
+              "role": "system",
+              "content": "你是一名专业的游戏本地化专家。请严格遵循以下规则：\n1. 游戏名称翻译要求：信、达、雅，保留原标题的风格和气势\n2. 游戏描述翻译：保留游戏术语（如RPG、FPS、技能名等），语句流畅自然\n3. 只返回翻译结果，不要添加任何解释或注释\n4. 输出格式：游戏名称：[翻译]\\n游戏描述：[翻译]"
+            },
+            {
+              "role": "user",
+              "content": "目标语言：{targetLang}\n---待翻译内容---\n游戏名称：{gameName}\n游戏描述：{gameDescription}"
+            }
+          ],
+          "temperature": 0.1,
+          "max_tokens": 500
+        },
+        "responsePath": "choices[0].message.content",
+        "responseParser": "gameNameDescription",
         "validation": {
           "requiredVariables": ["deepseek_api_key"]
         }

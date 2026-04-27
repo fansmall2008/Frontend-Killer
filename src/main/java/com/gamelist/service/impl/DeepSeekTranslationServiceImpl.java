@@ -18,11 +18,11 @@ public class DeepSeekTranslationServiceImpl implements TranslationService {
     private final String apiKey;
     private final String apiUrl = "https://api.deepseek.com/chat/completions";
     private final OkHttpClient client = new OkHttpClient();
-    
+
     public DeepSeekTranslationServiceImpl(String apiKey) {
         this.apiKey = apiKey;
     }
-    
+
     @Override
     public String translate(String text, String sourceLang, String targetLang) throws TranslationException {
         try {
@@ -30,30 +30,30 @@ public class DeepSeekTranslationServiceImpl implements TranslationService {
             if (apiKey == null || apiKey.trim().isEmpty()) {
                 throw new TranslationException("DeepSeek API key is empty");
             }
-            
+
             // 构建请求体
             JSONObject requestBody = new JSONObject();
             requestBody.put("model", "deepseek-chat");
-            
+
             // 构建消息数组
             JSONArray messages = new JSONArray();
-            
-            // 系统消息
+
+            // 系统消息 - 明确要求只输出简洁的游戏名称翻译
             JSONObject systemMessage = new JSONObject();
             systemMessage.put("role", "system");
-            systemMessage.put("content", "你是一个专业的翻译助手，请将用户输入的文本翻译成" + getLanguageName(targetLang) + "，直接输出翻译结果，不要添加任何解释或额外信息。");
+            systemMessage.put("content", "你是一个专业的游戏名称翻译助手。只输出翻译后的游戏名称，不要添加任何解释、选项、标点符号、书名号或其他额外信息。游戏名称翻译应该简洁、流畅，符合目标语言的表达习惯。如果无法翻译或不确定，请直接返回原始文本。");
             messages.put(systemMessage);
-            
+
             // 用户消息
             JSONObject userMessage = new JSONObject();
             userMessage.put("role", "user");
-            userMessage.put("content", "将以下文本翻译成" + getLanguageName(targetLang) + "：" + text);
+            userMessage.put("content", text);
             messages.put(userMessage);
-            
+
             requestBody.put("messages", messages);
-            requestBody.put("temperature", 0.3);
-            requestBody.put("max_tokens", 1000);
-            
+            requestBody.put("temperature", 0.1);
+            requestBody.put("max_tokens", 50);
+
             // 构建请求
             Request request = new Request.Builder()
                 .url(apiUrl)
@@ -64,24 +64,24 @@ public class DeepSeekTranslationServiceImpl implements TranslationService {
                     MediaType.parse("application/json; charset=utf-8")
                 ))
                 .build();
-            
+
             // 发送请求
             Response response = client.newCall(request).execute();
-            
+
             // 解析响应
             if (!response.isSuccessful()) {
                 // 读取错误响应内容
                 String errorBody = response.body() != null ? response.body().string() : "No response body";
                 throw new TranslationException("DeepSeek API request failed: " + response.code() + " " + response.message() + ". Response: " + errorBody);
             }
-            
+
             JSONObject responseBody = new JSONObject(response.body().string());
-            
+
             // 检查错误
             if (responseBody.has("error")) {
                 throw new TranslationException("DeepSeek API error: " + responseBody.getJSONObject("error").getString("message"));
             }
-            
+
             // 获取翻译结果
             JSONObject choice = responseBody.getJSONArray("choices").getJSONObject(0);
             return choice.getJSONObject("message").getString("content").trim();
@@ -91,7 +91,7 @@ public class DeepSeekTranslationServiceImpl implements TranslationService {
             throw new TranslationException("Translation error: " + e.getMessage(), e);
         }
     }
-    
+
     private String getLanguageName(String langCode) {
         switch (langCode) {
             case "en":

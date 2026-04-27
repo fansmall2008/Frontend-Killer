@@ -265,6 +265,39 @@ public class ExportServiceImpl implements ExportService {
                                 if (targetFileName == null || targetFileName.isEmpty()) {
                                     targetFileName = sourcePath.getFileName().toString();
                                 }
+                                
+                                // 检查是否配置了游戏文件重命名
+                                if (rule != null && rule.getRules() != null && rule.getRules().getGameFile() != null && rule.getRules().getGameFile().isEnabled()) {
+                                    String template = rule.getRules().getGameFile().getTemplate();
+                                    if (template != null && !template.isEmpty()) {
+                                        // 构建变量映射
+                                        Map<String, String> renameVariables = new HashMap<>();
+                                        renameVariables.put("platform", platformName);
+                                        renameVariables.put("name", game.getName() != null ? game.getName().replaceAll("[<>\"/\\|?*]", "_") : "");
+                                        renameVariables.put("filename", getSingleGameFieldValue(game, "filename") != null ? getSingleGameFieldValue(game, "filename") : "");
+                                        // 获取扩展名
+                                        String ext = "";
+                                        if (targetFileName.contains(".")) {
+                                            ext = targetFileName.substring(targetFileName.lastIndexOf(".") + 1);
+                                        }
+                                        renameVariables.put("ext", ext);
+                                        
+                                        // 替换模板中的变量
+                                        String newFileName = template;
+                                        for (Map.Entry<String, String> entry : renameVariables.entrySet()) {
+                                            if (entry.getValue() != null) {
+                                                newFileName = newFileName.replace("{" + entry.getKey() + "}", entry.getValue());
+                                            }
+                                        }
+                                        // 确保扩展名正确
+                                        if (!newFileName.endsWith("." + ext)) {
+                                            newFileName = newFileName + "." + ext;
+                                        }
+                                        targetFileName = newFileName;
+                                        logger.info("Game file renamed: {} -> {}", sourcePath.getFileName(), targetFileName);
+                                    }
+                                }
+                                
                                 Path targetFilePath = Paths.get(romsPath, targetFileName);
                                 copyFile(sourcePath, targetFilePath);
                                 logger.info("Copied game file: {} -> {}", sourcePath.getFileName(), targetFileName);
@@ -366,8 +399,13 @@ public class ExportServiceImpl implements ExportService {
                         try {
                             // 创建线程局部的变量映射，避免线程安全问题
                             Map<String, String> threadVariables = new HashMap<>(variables);
-                            String gameName = game.getName();
-                            threadVariables.put("gameName", gameName);
+                            // 使用 filename 替代 gameName
+                            String filename = getSingleGameFieldValue(game, "filename");
+                            if (filename == null) {
+                                filename = game.getName();
+                            }
+                            threadVariables.put("filename", filename);
+                            threadVariables.put("gameName", filename);
                             
                             // 处理每种媒体类型
                             for (Map.Entry<String, ExportRule.MediaRule> entry : rule.getRules().getMedia().entrySet()) {
@@ -752,7 +790,12 @@ public class ExportServiceImpl implements ExportService {
                     Map<String, String> variables = new HashMap<>();
                     variables.put("romsPath", romsPath);
                     if (game != null) {
-                        variables.put("gameName", game.getName());
+                        // 使用 filename 替代 gameName
+                        String filename = getSingleGameFieldValue(game, "filename");
+                        if (filename == null) {
+                            filename = game.getName();
+                        }
+                        variables.put("filename", filename);
                     }
                     String targetTemplate = rule.getRules().getM3u().getTarget();
                     String resolvedTarget = replaceVariables(targetTemplate, variables);
