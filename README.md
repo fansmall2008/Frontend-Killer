@@ -1,36 +1,32 @@
 # Web GameList Oper
 
-一个用于管理游戏列表的 Web 应用程序，支持游戏数据的导入、导出、翻译和管理。
+---
 
-## 功能特性
+## English
 
-- 🎮 游戏列表管理（增删改查）
-- 📥 支持多种前端模板导入（Pegasus、RetroBat 等）
-- 📤 支持多种前端模板导出
-- 🌐 多语言国际化支持（中文、英文、日文）
-- 🖼️ 媒体文件管理（图片、视频）
-- 🔄 平台合并与数据迁移
+### Features
+- 🎮 Game list management (CRUD)
+- 📥 Import from multiple frontend templates (Pegasus, RetroBat, etc.)
+- 📤 Export to multiple frontend templates
+- 🌐 Multi-language support (Chinese, English, Japanese)
+- 🖼️ Media file management (images, videos)
+- 🔄 Platform merge and data migration
 
-## 技术栈
-
+### Tech Stack
 - Java 17
 - Spring Boot 3.2.x
-- SQLite 数据库
+- SQLite Database
 - HTML5 + JavaScript
 - Docker
 
-## 部署方式
+### Deployment
 
-### 方式一：Docker 部署（推荐）
-
+#### Option 1: Docker (Recommended)
 ```bash
-# 拉取镜像
 docker pull fansmall/webgamelistoper:1.0.4-beta
 
-# 创建数据目录
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
 
-# 运行容器
 docker run -d \
   --name webgamelistoper \
   -p 8080:8080 \
@@ -40,10 +36,8 @@ docker run -d \
   fansmall/webgamelistoper:1.0.4-beta
 ```
 
-### 方式二：Docker Compose 部署
-
-创建 `docker-compose.yml` 文件：
-
+#### Option 2: Docker Compose
+Create `docker-compose.yml`:
 ```yaml
 version: '3.8'
 services:
@@ -58,92 +52,143 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
 ```
+Run: `docker-compose up -d`
 
-运行命令：
-
+#### Option 3: JAR File
 ```bash
-# 创建数据目录
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-
-# 启动服务
-docker-compose up -d
-```
-
-### 方式三：JAR 包运行
-
-```bash
-# 下载或编译 JAR 包
-# 编译命令：mvn clean package -DskipTests
-
-# 创建数据目录
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-
-# 运行 JAR 包
 java -jar webGamelistOper-1.0.4-beta.jar
 ```
 
-## 访问地址
-
-启动成功后，访问：http://localhost:8080
-
-## 目录结构
-
-```
-./
-├── data/                    # 数据目录
-│   ├── rules/               # 规则文件目录
-│   │   ├── export/          # 导出规则
-│   │   └── import/          # 导入模板
-│   ├── roms/                # 游戏 ROM 目录
-│   └── database/            # SQLite 数据库
-├── output/                  # 导出输出目录
-├── logs/                    # 日志目录
-└── backup/                  # 备份目录
-```
-
-## 环境变量
-
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| `APP_PORT` | 服务端口 | 8080 |
-| `DATA_PATH` | 数据目录 | /data |
-| `OUTPUT_PATH` | 输出目录 | /output |
-| `ROMS_PATH` | ROM 目录 | /data/roms |
-
-## 规则文件
-
-### 导出规则
-
-放置于 `data/rules/export/` 目录：
-- pegasus.json - Pegasus 前端导出规则
-- retrobat.json - RetroBat 前端导出规则
-
-### 导入模板
-
-放置于 `data/rules/import/` 目录：
-- pegasus.json - Pegasus 前端导入模板
-- retrobat.json - RetroBat 前端导入模板
-
-## 国际化
-
-支持三种语言：
-- 中文（默认）
-- English
-- 日本語
-
-在页面右上角可切换语言。
-
-## 注意事项
-
-1. 首次启动时，应用会自动创建必要的目录结构
-2. 确保挂载的目录具有读写权限
-3. 建议定期备份 `data/database/` 目录
-4. 日志文件位于 `logs/` 目录，可用于排查问题
-
-## 技术支持
-
-如有问题，请提交 Issue 或联系开发者。
+### Access
+http://localhost:8080
 
 ---
 
-**版本**: 1.0.4-beta
+## 中文
+
+### 功能特性
+- 🎮 游戏列表管理（增删改查）
+- 📥 支持多种前端模板导入（Pegasus、RetroBat 等）
+- 📤 支持多种前端模板导出
+- 🌐 多语言国际化支持（中文、英文、日文）
+- 🖼️ 媒体文件管理（图片、视频）
+- 🔄 平台合并与数据迁移
+
+### 技术栈
+- Java 17
+- Spring Boot 3.2.x
+- SQLite 数据库
+- HTML5 + JavaScript
+- Docker
+
+### 部署方式
+
+#### 方式一：Docker 部署（推荐）
+```bash
+docker pull fansmall/webgamelistoper:1.0.4-beta
+
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+
+docker run -d \
+  --name webgamelistoper \
+  -p 8080:8080 \
+  -v $(pwd)/data:/data \
+  -v $(pwd)/output:/output \
+  -v $(pwd)/logs:/app/logs \
+  fansmall/webgamelistoper:1.0.4-beta
+```
+
+#### 方式二：Docker Compose 部署
+创建 `docker-compose.yml` 文件：
+```yaml
+version: '3.8'
+services:
+  webgamelistoper:
+    image: fansmall/webgamelistoper:1.0.4-beta
+    container_name: webgamelistoper
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+      - ./output:/output
+      - ./logs:/app/logs
+    restart: unless-stopped
+```
+运行：`docker-compose up -d`
+
+#### 方式三：JAR 包运行
+```bash
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+java -jar webGamelistOper-1.0.4-beta.jar
+```
+
+### 访问地址
+http://localhost:8080
+
+---
+
+## 日本語
+
+### 機能特徴
+- 🎮 ゲームリスト管理（追加、削除、更新、検索）
+- 📥 複数のフロントエンドテンプレートからのインポート（Pegasus、RetroBat など）
+- 📤 複数のフロントエンドテンプレートへのエクスポート
+- 🌐 多言語国際化サポート（中国語、英語、日本語）
+- 🖼️ メディアファイル管理（画像、動画）
+- 🔄 プラットフォーム統合とデータ移行
+
+### 技術スタック
+- Java 17
+- Spring Boot 3.2.x
+- SQLite データベース
+- HTML5 + JavaScript
+- Docker
+
+### デプロイ方法
+
+#### オプション1：Docker（推奨）
+```bash
+docker pull fansmall/webgamelistoper:1.0.4-beta
+
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+
+docker run -d \
+  --name webgamelistoper \
+  -p 8080:8080 \
+  -v $(pwd)/data:/data \
+  -v $(pwd)/output:/output \
+  -v $(pwd)/logs:/app/logs \
+  fansmall/webgamelistoper:1.0.4-beta
+```
+
+#### オプション2：Docker Compose
+`docker-compose.yml` を作成：
+```yaml
+version: '3.8'
+services:
+  webgamelistoper:
+    image: fansmall/webgamelistoper:1.0.4-beta
+    container_name: webgamelistoper
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+      - ./output:/output
+      - ./logs:/app/logs
+    restart: unless-stopped
+```
+実行：`docker-compose up -d`
+
+#### オプション3：JARファイル
+```bash
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+java -jar webGamelistOper-1.0.4-beta.jar
+```
+
+### アクセスアドレス
+http://localhost:8080
+
+---
+
+**Version**: 1.0.4-beta
