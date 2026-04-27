@@ -6,14 +6,30 @@ Get started with Web GameList Oper in just a few minutes!
 
 ### Using Docker (Recommended)
 
+First, create necessary directories:
+```bash
+mkdir -p ./data ./output ./logs ./backup
+```
+
+Then run the container:
 ```bash
 docker run -d \
   --name webgamelistoper \
   -p 8081:8080 \
+  -v /path/to/output:/data/output \
+  -v /path/to/roms:/data/roms \
+  -v ./logs:/app/logs \
   -v ./data:/data \
-  -v ./output:/data/output \
+  -v ./backup:/data/backup \
+  -e SPRING_PROFILES_ACTIVE=default \
+  -e SERVER_TOMCAT_BASEDIR=/data \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  --restart unless-stopped \
   fansmall/webgamelistoper:1.0.4-beta
 ```
+
+**Note:** Replace `/path/to/output` and `/path/to/roms` with your actual paths.
 
 ### Using JAR File
 

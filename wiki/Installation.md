@@ -22,9 +22,10 @@ mkdir -p ./data ./output ./logs ./backup
 docker run -d \
   --name webgamelistoper \
   -p 8081:8080 \
-  -v ./data:/data \
-  -v ./output:/data/output \
+  -v /path/to/output:/data/output \
+  -v /path/to/roms:/data/roms \
   -v ./logs:/app/logs \
+  -v ./data:/data \
   -v ./backup:/data/backup \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
@@ -47,9 +48,10 @@ services:
     ports:
       - "8081:8080"
     volumes:
-      - ./data:/data
-      - ./output:/data/output
+      - /path/to/output:/data/output
+      - /path/to/roms:/data/roms
       - ./logs:/app/logs
+      - ./data:/data
       - ./backup:/data/backup
     environment:
       - SPRING_PROFILES_ACTIVE=default

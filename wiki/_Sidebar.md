@@ -1,4 +1,4 @@
-**Web GameList Oper**
+**Frontend-Killer**
 
 ---
 
@@ -14,6 +14,9 @@
 
 - [Features](Features)
 - [Configuration](Configuration)
+- [Import Templates](Import)
+- [Export Rules](Export)
+- [Translation Config](Translation)
 - [API Reference](API)
 
 ---

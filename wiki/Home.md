@@ -1,6 +1,8 @@
-# Web GameList Oper
+# Frontend-Killer
 
-Welcome to the Web GameList Oper Wiki! This is a web application for managing game lists with support for multiple frontend templates.
+*(formerly known as Web GameList Oper)*
+
+Welcome to the Frontend-Killer Wiki! This is a web application for managing game lists with support for multiple frontend templates.
 
 ## Features
 
