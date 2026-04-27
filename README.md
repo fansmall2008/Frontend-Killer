@@ -25,14 +25,21 @@
 ```bash
 docker pull fansmall/webgamelistoper:1.0.4-beta
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
 docker run -d \
   --name webgamelistoper \
-  -p 8080:8080 \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/output:/output \
-  -v $(pwd)/logs:/app/logs \
+  -p 8081:8080 \
+  -v /path/to/output:/data/output \
+  -v /path/to/roms:/data/roms \
+  -v ./logs:/app/logs \
+  -v ./data:/data \
+  -v ./backup:/data/backup \
+  -e SPRING_PROFILES_ACTIVE=default \
+  -e SERVER_TOMCAT_BASEDIR=/data \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  --restart unless-stopped \
   fansmall/webgamelistoper:1.0.4-beta
 ```
 
@@ -45,11 +52,18 @@ services:
     image: fansmall/webgamelistoper:1.0.4-beta
     container_name: webgamelistoper
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
-      - ./data:/data
-      - ./output:/output
+      - /path/to/output:/data/output
+      - /path/to/roms:/data/roms
       - ./logs:/app/logs
+      - ./data:/data
+      - ./backup:/data/backup
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_TOMCAT_BASEDIR=/data
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
 ```
 Run: `docker-compose up -d`
@@ -61,7 +75,7 @@ java -jar webGamelistOper-1.0.4-beta.jar
 ```
 
 ### Access
-http://localhost:8080
+http://localhost:8081
 
 ---
 
@@ -88,14 +102,21 @@ http://localhost:8080
 ```bash
 docker pull fansmall/webgamelistoper:1.0.4-beta
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
 docker run -d \
   --name webgamelistoper \
-  -p 8080:8080 \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/output:/output \
-  -v $(pwd)/logs:/app/logs \
+  -p 8081:8080 \
+  -v /path/to/output:/data/output \
+  -v /path/to/roms:/data/roms \
+  -v ./logs:/app/logs \
+  -v ./data:/data \
+  -v ./backup:/data/backup \
+  -e SPRING_PROFILES_ACTIVE=default \
+  -e SERVER_TOMCAT_BASEDIR=/data \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  --restart unless-stopped \
   fansmall/webgamelistoper:1.0.4-beta
 ```
 
@@ -108,11 +129,18 @@ services:
     image: fansmall/webgamelistoper:1.0.4-beta
     container_name: webgamelistoper
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
-      - ./data:/data
-      - ./output:/output
+      - /path/to/output:/data/output
+      - /path/to/roms:/data/roms
       - ./logs:/app/logs
+      - ./data:/data
+      - ./backup:/data/backup
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_TOMCAT_BASEDIR=/data
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
 ```
 运行：`docker-compose up -d`
@@ -124,7 +152,7 @@ java -jar webGamelistOper-1.0.4-beta.jar
 ```
 
 ### 访问地址
-http://localhost:8080
+http://localhost:8081
 
 ---
 
@@ -151,14 +179,21 @@ http://localhost:8080
 ```bash
 docker pull fansmall/webgamelistoper:1.0.4-beta
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
 docker run -d \
   --name webgamelistoper \
-  -p 8080:8080 \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/output:/output \
-  -v $(pwd)/logs:/app/logs \
+  -p 8081:8080 \
+  -v /path/to/output:/data/output \
+  -v /path/to/roms:/data/roms \
+  -v ./logs:/app/logs \
+  -v ./data:/data \
+  -v ./backup:/data/backup \
+  -e SPRING_PROFILES_ACTIVE=default \
+  -e SERVER_TOMCAT_BASEDIR=/data \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  --restart unless-stopped \
   fansmall/webgamelistoper:1.0.4-beta
 ```
 
@@ -171,11 +206,18 @@ services:
     image: fansmall/webgamelistoper:1.0.4-beta
     container_name: webgamelistoper
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
-      - ./data:/data
-      - ./output:/output
+      - /path/to/output:/data/output
+      - /path/to/roms:/data/roms
       - ./logs:/app/logs
+      - ./data:/data
+      - ./backup:/data/backup
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_TOMCAT_BASEDIR=/data
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
 ```
 実行：`docker-compose up -d`
@@ -187,7 +229,7 @@ java -jar webGamelistOper-1.0.4-beta.jar
 ```
 
 ### アクセスアドレス
-http://localhost:8080
+http://localhost:8081
 
 ---
 
