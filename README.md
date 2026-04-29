@@ -1,5 +1,27 @@
 # Web GameList Oper
 
+⚠️ **Important Notice**: This is a **beta/test version**. We welcome bug reports and feedback to help improve the project!
+
+---
+
+## Recent Updates
+
+### v1.0.5-beta (2026-04-30)
+- Fixed page internationalization logic in multiple HTML files
+- Corrected numerous untranslated internationalization entries
+- Fixed translation keys not being applied after dynamic content updates
+- Resolved language switching issues in game-list.html, task-management.html, and other pages
+- Added complete multi-language support (Chinese, English, Japanese)
+- Improved updateTranslations() function to properly handle dynamically generated content
+
+### v1.0.5-beta
+- Initial public release
+- Game list management (CRUD)
+- Import from multiple frontend templates (Pegasus, RetroBat, etc.)
+- Export to multiple frontend templates
+- Media file management (images, videos)
+- Platform merge and data migration
+
 ---
 
 ## English
@@ -23,7 +45,7 @@
 
 #### Option 1: Docker (Recommended)
 ```bash
-docker pull fansmall/webgamelistoper:1.0.4-beta
+docker pull fansmall/webgamelistoper:1.0.5-beta
 
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
@@ -40,7 +62,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.4-beta
+  fansmall/webgamelistoper:1.0.5-beta
 ```
 
 #### Option 2: Docker Compose
@@ -49,7 +71,7 @@ Create `docker-compose.yml`:
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.4-beta
+    image: fansmall/webgamelistoper:1.0.5-beta
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -71,7 +93,7 @@ Run: `docker-compose up -d`
 #### Option 3: JAR File
 ```bash
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-java -jar webGamelistOper-1.0.4-beta.jar
+java -jar webGamelistOper-1.0.5-beta.jar
 ```
 
 ### Access
@@ -100,7 +122,7 @@ http://localhost:8081
 
 #### 方式一：Docker 部署（推荐）
 ```bash
-docker pull fansmall/webgamelistoper:1.0.4-beta
+docker pull fansmall/webgamelistoper:1.0.5-beta
 
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
@@ -117,7 +139,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.4-beta
+  fansmall/webgamelistoper:1.0.5-beta
 ```
 
 #### 方式二：Docker Compose 部署
@@ -126,7 +148,7 @@ docker run -d \
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.4-beta
+    image: fansmall/webgamelistoper:1.0.5-beta
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -148,7 +170,7 @@ services:
 #### 方式三：JAR 包运行
 ```bash
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-java -jar webGamelistOper-1.0.4-beta.jar
+java -jar webGamelistOper-1.0.5-beta.jar
 ```
 
 ### 访问地址
@@ -177,7 +199,7 @@ http://localhost:8081
 
 #### オプション1：Docker（推奨）
 ```bash
-docker pull fansmall/webgamelistoper:1.0.4-beta
+docker pull fansmall/webgamelistoper:1.0.5-beta
 
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
@@ -194,7 +216,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.4-beta
+  fansmall/webgamelistoper:1.0.5-beta
 ```
 
 #### オプション2：Docker Compose
@@ -203,7 +225,7 @@ docker run -d \
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.4-beta
+    image: fansmall/webgamelistoper:1.0.5-beta
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -225,7 +247,7 @@ services:
 #### オプション3：JARファイル
 ```bash
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-java -jar webGamelistOper-1.0.4-beta.jar
+java -jar webGamelistOper-1.0.5-beta.jar
 ```
 
 ### アクセスアドレス
@@ -233,4 +255,4 @@ http://localhost:8081
 
 ---
 
-**Version**: 1.0.4-beta
+**Version**: 1.0.5-beta
