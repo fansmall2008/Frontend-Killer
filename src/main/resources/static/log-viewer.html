@@ -41,36 +41,6 @@
             padding: 20px;
         }
         
-        /* 语言选择器样式 */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-        
         /* 游戏风格标题 */
         .header {
             text-align: center;
@@ -430,11 +400,6 @@
                 padding: 20px;
             }
             
-            .language-selector {
-                top: 10px;
-                right: 10px;
-            }
-            
             .notification-bell {
                 top: 10px;
                 right: 100px;
@@ -442,18 +407,9 @@
             }
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
-<body>
-    <!-- 语言选择器 -->
-    <div class="language-selector">
-        <select id="languageSelect">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-    
-    <!-- 通知铃铛 -->
+<body><!-- 通知铃铛 -->
     <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
         🔔
         <span class="badge" style="display: none;">0</span>
@@ -516,50 +472,7 @@
     
     <script>
         // 语言翻译映射
-        const translations = {
-            'zh-CN': {
-                'log_viewer_title': '日志查看器',
-                'log_viewer_subtitle': '实时查看系统日志，方便排查错误',
-                'nav_home': '返回首页',
-                'nav_tasks': '任务管理',
-                'realtime_log_title': '实时系统日志',
-                'log_lines_label': '显示行数:',
-                'refresh_log_btn': '刷新',
-                'auto_refresh_label': '自动刷新',
-                'realtime_log_content_title': '日志内容',
-                'realtime_log_empty': '暂无实时日志',
-                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-                'version': '版本：1.0 beta'
-            },
-            'en-US': {
-                'log_viewer_title': 'Log Viewer',
-                'log_viewer_subtitle': 'View real-time system logs for error troubleshooting',
-                'nav_home': 'Back to Home',
-                'nav_tasks': 'Task Management',
-                'realtime_log_title': 'Realtime System Logs',
-                'log_lines_label': 'Display Lines:',
-                'refresh_log_btn': 'Refresh',
-                'auto_refresh_label': 'Auto Refresh',
-                'realtime_log_content_title': 'Log Content',
-                'realtime_log_empty': 'No realtime logs available',
-                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta'
-            },
-            'ja-JP': {
-                'log_viewer_title': 'ログビューア',
-                'log_viewer_subtitle': 'リアルタイムでシステムログを表示し，エラーのトラブルシューティングを容易にします',
-                'nav_home': 'ホームに戻る',
-                'nav_tasks': 'タスク管理',
-                'realtime_log_title': 'リアルタイムシステムログ',
-                'log_lines_label': '表示行数:',
-                'refresh_log_btn': '更新',
-                'auto_refresh_label': '自動更新',
-                'realtime_log_content_title': 'ログコンテンツ',
-                'realtime_log_empty': 'リアルタイムログはありません',
-                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン：1.0 beta'
-            }
-        };
+        ;
         
         // 获取当前语言设置
         function getCurrentLanguage() {
@@ -575,17 +488,20 @@
         
         // 更新页面翻译
         function updateTranslations(lang) {
-            const translation = translations[lang];
-            if (!translation) return;
+            // 确保语言已设置
+            if (I18n.setLanguage) {
+                I18n.setLanguage(lang);
+            }
             
             // 更新标题
-            document.title = `${translation['log_viewer_title']} - 前端杀手`;
+            document.title = `${I18n.t('log_viewer_title')} - 前端杀手`;
             
             // 更新所有带有data-i18n属性的元素
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
-                if (translation[key]) {
-                    element.textContent = translation[key];
+                const translatedText = I18n.t(key);
+                if (translatedText && translatedText !== key) {
+                    element.textContent = translatedText;
                 }
             });
         }
@@ -593,14 +509,8 @@
         // 初始化语言设置
         function initLanguage() {
             const lang = getCurrentLanguage();
-            document.getElementById('languageSelect').value = lang;
             setLanguage(lang);
         }
-        
-        // 语言选择器事件监听
-        document.getElementById('languageSelect').addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-        });
         
         // 显示日志内容
         function displayLogContent(content) {

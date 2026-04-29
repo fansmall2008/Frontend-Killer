@@ -40,35 +40,6 @@
             padding: 20px;
         }
 
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-
         .header {
             text-align: center;
             margin: 60px 0 40px;
@@ -401,16 +372,9 @@
             color: #888;
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
 <body>
-    <div class="language-selector">
-        <select id="languageSelect" onchange="changeLanguage(this.value)">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-
     <div class="container">
         <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
 
@@ -491,131 +455,18 @@
     </div>
 
     <script>
-        const translations = {
-            'zh-CN': {
-                'report_details_title': '合并报告详情',
-                'report_details_desc': '查看平台合并的详细信息',
-                'back_to_home': '返回首页',
-                'report_details': '报告详情',
-                'back_to_list': '返回列表',
-                'complete_report': '完成报告',
-                'loading': '加载中...',
-                'report_name': '报告名称',
-                'status': '状态',
-                'total_games': '总游戏数',
-                'added_games': '已添加',
-                'conflict_games': '冲突游戏',
-                'created_time': '创建时间',
-                'source_platforms': '源平台',
-                'conflict_list': '冲突列表',
-                'no_conflicts': '暂无冲突',
-                'source_game_name': '源游戏名称',
-                'source_file_name': '源文件名',
-                'conflict_type': '冲突类型',
-                'conflict_status': '状态',
-                'name_conflict': '名称冲突',
-                'file_conflict': '文件冲突',
-                'both_conflict': '双重冲突',
-                'pending': '待处理',
-                'resolved': '已解决',
-                'skipped': '已跳过',
-                'processing': '处理中',
-                'completed': '已完成',
-                'confirm_complete': '确定要完成此报告吗？完成后将无法再进行操作。',
-                'report_completed': '报告已完成',
-                'complete_failed': '完成失败',
-                'load_failed': '加载报告详情失败',
-                'report_not_exist': '报告不存在'
-            },
-            'en-US': {
-                'report_details_title': 'Merge Report Details',
-                'report_details_desc': 'View detailed information about platform merge',
-                'back_to_home': 'Back to Home',
-                'report_details': 'Report Details',
-                'back_to_list': 'Back to List',
-                'complete_report': 'Complete Report',
-                'loading': 'Loading...',
-                'report_name': 'Report Name',
-                'status': 'Status',
-                'total_games': 'Total Games',
-                'added_games': 'Added',
-                'conflict_games': 'Conflicts',
-                'created_time': 'Created Time',
-                'source_platforms': 'Source Platforms',
-                'conflict_list': 'Conflict List',
-                'no_conflicts': 'No conflicts',
-                'source_game_name': 'Source Game Name',
-                'source_file_name': 'Source File Name',
-                'conflict_type': 'Conflict Type',
-                'conflict_status': 'Status',
-                'name_conflict': 'Name Conflict',
-                'file_conflict': 'File Conflict',
-                'both_conflict': 'Both Conflicts',
-                'pending': 'Pending',
-                'resolved': 'Resolved',
-                'skipped': 'Skipped',
-                'processing': 'Processing',
-                'completed': 'Completed',
-                'confirm_complete': 'Are you sure you want to complete this report? You will not be able to make further changes.',
-                'report_completed': 'Report completed',
-                'complete_failed': 'Failed to complete',
-                'load_failed': 'Failed to load report details',
-                'report_not_exist': 'Report does not exist'
-            },
-            'ja-JP': {
-                'report_details_title': 'マージレポート詳細',
-                'report_details_desc': 'プラットフォームマージの詳細情報を表示',
-                'back_to_home': 'ホームに戻る',
-                'report_details': 'レポート詳細',
-                'back_to_list': '一覧に戻る',
-                'complete_report': 'レポートを完了',
-                'loading': '読み込み中...',
-                'report_name': 'レポート名',
-                'status': 'ステータス',
-                'total_games': '総ゲーム数',
-                'added_games': '追加済み',
-                'conflict_games': '競合ゲーム',
-                'created_time': '作成時間',
-                'source_platforms': 'ソースプラットフォーム',
-                'conflict_list': '競合一覧',
-                'no_conflicts': '競合なし',
-                'source_game_name': 'ソースゲーム名',
-                'source_file_name': 'ソースファイル名',
-                'conflict_type': '競合タイプ',
-                'conflict_status': 'ステータス',
-                'name_conflict': '名前競合',
-                'file_conflict': 'ファイル競合',
-                'both_conflict': '複合競合',
-                'pending': '保留中',
-                'resolved': '解決済み',
-                'skipped': 'スキップ済み',
-                'processing': '処理中',
-                'completed': '完了',
-                'confirm_complete': 'このレポートを完了してもよろしいですか？以降的操作ができなくなります。',
-                'report_completed': 'レポートが完了しました',
-                'complete_failed': '完了に失敗しました',
-                'load_failed': 'レポート詳細の読み込みに失敗しました',
-                'report_not_exist': 'レポートが存在しません'
-            }
-        };
+        ;
 
-        let currentLanguage = localStorage.getItem('language') || 'zh-CN';
 
-        function getI18nText(key) {
-            return translations[currentLanguage][key] || key;
+        window.getI18nText = function(key) {
+            return I18n.t(key);
         }
 
-        function changeLanguage(lang) {
-            currentLanguage = lang;
-            localStorage.setItem('language', lang);
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                el.textContent = getI18nText(key);
-            });
+        async function changeLanguage(lang) {
+            await I18n.setLanguage(lang);
         }
 
         function initLanguage() {
-            document.getElementById('languageSelect').value = currentLanguage;
             changeLanguage(currentLanguage);
         }
 

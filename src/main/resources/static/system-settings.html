@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系统设置 - 前端杀手</title>
+    <title data-i18n="system_settings_title">系统设置 - 前端杀手</title>
     <style>
         * {
             margin: 0;
@@ -41,35 +41,7 @@
             padding: 20px;
         }
         
-        /* 语言选择器样式 */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
+
         
         /* 游戏风格标题 */
         .header {
@@ -454,6 +426,40 @@
             text-decoration: none;
         }
         
+        /* 语言设置样式 */
+        .language-settings {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .language-settings label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #00ffff;
+        }
+        
+        .language-settings select {
+            padding: 10px 15px;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            min-width: 180px;
+        }
+        
+        .language-settings select:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
             h1 {
@@ -472,7 +478,7 @@
             
             .notification-bell {
                 top: 10px;
-                right: 100px;
+                right: 10px;
                 font-size: 20px;
             }
             
@@ -486,17 +492,9 @@
             }
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
 <body>
-    <!-- 语言选择器 -->
-    <div class="language-selector">
-        <select id="languageSelect">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-    
     <!-- 通知铃铛 -->
     <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
         🔔
@@ -514,6 +512,20 @@
         <div id="message" class="message" style="display: none;"></div>
         
 
+        
+        <!-- 语言设置 -->
+        <div class="settings-section">
+            <h2 data-i18n="language_settings">语言设置</h2>
+            <div class="language-settings">
+                <label for="languageSelect" data-i18n="select_language">选择语言：</label>
+                <select id="languageSelect" onchange="setLanguage(this.value)">
+                    <option value="zh-CN" data-i18n="lang_chinese">中文</option>
+                    <option value="en-US" data-i18n="lang_english">English</option>
+                    <option value="ja-JP" data-i18n="lang_japanese">日本語</option>
+                </select>
+                <p data-i18n="language_tip" style="margin-top: 10px; color: #888; font-size: 14px;">语言设置将在页面刷新后生效。</p>
+            </div>
+        </div>
         
         <!-- 数据库备份 -->
         <div class="settings-section">
@@ -544,7 +556,7 @@
     <div id="notificationModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>任务消息</h2>
+            <h2 data-i18n="task_messages">任务消息</h2>
             <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
                 <!-- 消息将通过JavaScript动态填充 -->
             </div>
@@ -552,109 +564,6 @@
     </div>
     
     <script>
-        // 语言翻译映射
-        const translations = {
-            'zh-CN': {
-                'system_settings_title': '系统设置',
-                'system_settings_desc': '配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。',
-                'back_to_home': '返回首页',
-                'database_backup': '数据库备份',
-                'backup_database': '备份数据库',
-                'restore_database': '恢复数据库',
-            'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-            'version': '版本：1.0 beta',
-            'settings_saved': '设置保存成功！',
-            'backup_success': '备份成功！',
-            'restore_success': '恢复成功！',
-            'error': '操作失败，请重试。',
-            'select_backup': '请选择备份文件',
-            'confirm_restore': '确定要恢复此备份吗？这将覆盖当前数据。',
-            'no_backups': '暂无备份文件',
-            'select_backup_file': '选择备份文件',
-            'backup_date': '备份日期',
-            'actions': '操作',
-            'translation_api_settings': '翻译API设置',
-            'google_api_key': 'Google翻译API密钥',
-            'baidu_app_id': '百度翻译APP ID',
-            'baidu_app_key': '百度翻译APP密钥',
-
-            'execute_init': '执行初始化',
-            'database_init_desc': '执行数据库初始化操作将重建表结构并清空所有数据。此操作不可逆，请谨慎执行！',
-            'init_confirm': '确定要执行数据库初始化吗？此操作将清空所有数据，不可逆！',
-            'init_processing': '正在执行数据库初始化...',
-            'init_failed': '初始化失败：',
-                'enter_backup_filename': '请输入备份文件名:',
-                'log_save_translation_settings_error': '保存翻译API设置失败:',
-                'log_backup_error': '备份失败:',
-                'log_restore_error': '恢复失败:',
-                'log_load_backups_error': '加载备份列表失败:'
-            },
-            'en-US': {
-
-                'system_settings_title': 'System Settings',
-                'system_settings_desc': 'Configure system parameters, database connections and other advanced settings to optimize system performance and functionality.',
-                'back_to_home': 'Back to Home',
-                'database_backup': 'Database Backup',
-                'backup_database': 'Backup Database',
-                'restore_database': 'Restore Database',
-
-                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta',
-                'settings_saved': 'Settings saved successfully!',
-                'backup_success': 'Backup successful!',
-                'restore_success': 'Restore successful!',
-                'error': 'Operation failed, please try again.',
-                'select_backup': 'Please select a backup file',
-                'confirm_restore': 'Are you sure you want to restore this backup? This will overwrite current data.',
-                'no_backups': 'No backup files available',
-                'select_backup_file': 'Select backup file',
-                'backup_date': 'Backup Date',
-                'actions': 'Actions',
-                'execute_init': 'Execute Initialization',
-                'database_init_desc': 'Performing database initialization will rebuild table structures and clear all data. This operation is irreversible, please proceed with caution!',
-                'init_confirm': 'Are you sure you want to perform database initialization? This operation will clear all data and is irreversible!',
-                'init_processing': 'Performing database initialization...',
-                'init_failed': 'Initialization failed: ',
-                'enter_backup_filename': 'Please enter backup filename:',
-                'log_save_translation_settings_error': 'Failed to save translation API settings:',
-                'log_backup_error': 'Backup failed:',
-                'log_restore_error': 'Restore failed:',
-                'log_load_backups_error': 'Failed to load backup list:'
-            },
-            'ja-JP': {
-                'system_settings_title': 'システム設定',
-                'system_settings_desc': 'システムパフォーマンスと機能を最適化するために，システムパラメータ，データベース接続，その他の高度な設定を構成します。',
-                'back_to_home': 'ホームに戻る',
-                'database_backup': 'データベースバックアップ',
-                'backup_database': 'データベースをバックアップ',
-                'restore_database': 'データベースを復元',
-
-                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン：1.0 beta',
-                'settings_saved': '設定が正常に保存されました！',
-                'backup_success': 'バックアップが成功しました！',
-                'restore_success': '復元が成功しました！',
-                'error': '操作に失敗しました，もう一度お試しください。',
-                'select_backup': 'バックアップファイルを選択してください',
-                'confirm_restore': 'このバックアップを復元しますか？現在のデータが上書きされます。',
-                'no_backups': '利用可能なバックアップファイルはありません',
-                'select_backup_file': 'バックアップファイルを選択',
-                'backup_date': 'バックアップ日時',
-                'actions': '操作',
-
-                'execute_init': '初期化を実行',
-                'database_init_desc': 'データベースの初期化を実行すると，テーブル構造が再構築され，すべてのデータが消去されます．この操作は元に戻せませんので，慎重に実行してください！',
-                'init_confirm': 'データベースの初期化を実行しますか？この操作はすべてのデータを消去し，元に戻せません！',
-                'init_processing': 'データベースの初期化を実行中...',
-                'init_failed': '初期化に失敗しました：',
-                'enter_backup_filename': 'バックアップファイル名を入力してください：',
-                'log_save_translation_settings_error': '翻訳API設定の保存に失敗しました：',
-                'log_backup_error': 'バックアップに失敗しました：',
-                'log_restore_error': '復元に失敗しました：',
-                'log_load_backups_error': 'バックアップリストの読み込みに失敗しました：'
-            }
-        };
-        
         // 获取当前语言设置
         function getCurrentLanguage() {
             return localStorage.getItem('language') || 'zh-CN';
@@ -667,42 +576,45 @@
             updateTranslations(lang);
         }
         
+        // 获取翻译文本
+        function getI18nText(key) {
+            return I18n.t(key) || key;
+        }
+        
         // 更新页面翻译
         function updateTranslations(lang) {
-            const translation = translations[lang];
-            if (!translation) return;
+            if (I18n.setLanguage) {
+                I18n.setLanguage(lang);
+            }
             
             // 更新标题
-            document.title = translation['system_settings_title'] + ' - 前端杀手';
+            const titleKey = document.querySelector('title')?.getAttribute('data-i18n');
+            if (titleKey) {
+                document.title = I18n.t(titleKey) + ' - 前端杀手';
+            }
             
             // 更新所有带有data-i18n属性的元素
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
-                if (translation[key]) {
-                    element.textContent = translation[key];
+                const translatedText = I18n.t(key);
+                if (translatedText && translatedText !== key) {
+                    element.textContent = translatedText;
                 }
             });
             
-            // 更新所有带有data-placeholder-i18n属性的元素
-            document.querySelectorAll('[data-placeholder-i18n]').forEach(element => {
-                const key = element.getAttribute('data-placeholder-i18n');
-                if (translation[key]) {
-                    element.placeholder = translation[key];
+            // 更新动态生成的备份按钮
+            document.querySelectorAll('.btn-sm').forEach(btn => {
+                if (btn.textContent === 'Restore Database') {
+                    btn.textContent = I18n.t('restore_database');
                 }
             });
-        }
-        
-        // 获取翻译文本
-        function getI18nText(key) {
-            const lang = getCurrentLanguage();
-            return translations[lang][key] || key;
         }
         
         // 初始化语言设置
         function initLanguage() {
             const lang = getCurrentLanguage();
             document.getElementById('languageSelect').value = lang;
-            setLanguage(lang);
+            updateTranslations(lang);
         }
         
         // 显示消息
@@ -962,7 +874,7 @@
             content.innerHTML = '';
             
             if (notifications.length === 0) {
-                content.innerHTML = '<p style="text-align: center; color: #888;">暂无通知</p>';
+                content.innerHTML = `<p style="text-align: center; color: #888;">${getI18nText('no_notifications')}</p>`;
             } else {
                 notifications.forEach(notification => {
                     const notificationItem = document.createElement('div');
@@ -1000,7 +912,7 @@
             loadDatabaseBackups();
             
             // 语言选择器事件监听
-            document.getElementById('languageSelect').addEventListener('change', (e) => {
+            document.getElementById('languageSelect').addEventListener('change', async (e) => {
                 setLanguage(e.target.value);
                 loadDatabaseBackups();
             });

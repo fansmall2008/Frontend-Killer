@@ -42,36 +42,6 @@
             padding: 20px;
         }
         
-        /* 语言选择器样式 */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-        
         /* 游戏风格标题 */
         .header {
             text-align: center;
@@ -464,11 +434,6 @@
                 padding: 30px 15px;
             }
             
-            .language-selector {
-                top: 10px;
-                right: 10px;
-            }
-            
             .notification-bell {
                 top: 10px;
                 right: 120px;
@@ -481,18 +446,9 @@
             }
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
-<body>
-    <!-- 语言选择器 -->
-    <div class="language-selector">
-        <select id="languageSelect">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-
-    <!-- 通知铃铛 -->
+<body><!-- 通知铃铛 -->
     <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
         🔔
         <span class="badge" style="display: none;">0</span>
@@ -602,77 +558,7 @@
     
     <script>
         // 国际化翻译
-        const translations = {
-            'zh-CN': {
-                'platform_merge_title': '平台合并',
-                'platform_merge_desc': '将多个平台合并为一个新平台，源平台保持不变',
-                'back_to_platform_management': '返回平台管理',
-                'source_platforms': '源平台（可多选）：',
-                'new_platform_name': '新平台名称：',
-                'new_platform_folder_path': '新平台文件夹路径：',
-                'platform_folder_path_tip': '导出功能的前置条件，非必填',
-                'platform_selection_tip': '提示：按住Ctrl键可选择多个平台，按住Shift键可选择连续范围的平台',
-                'select_platform': '请选择平台',
-                'start_merge': '开始合并',
-                'loading_platforms': '正在加载平台...',
-                'platforms_loaded': '平台加载完成',
-                'please_select_platforms': '请选择两个不同的平台',
-                'merge_started': '合并任务已启动，请等待...',
-                'merge_failed': '合并任务启动失败',
-                'log_task_started': '任务已启动，任务ID：',
-                'log_check_task_status': '请在任务管理页面查看任务状态',
-                'log_conflict_resolution': '如有冲突，将在任务完成后生成冲突解决页面链接',
-                'task_messages': '任务消息',
-                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-                'version': '版本：1.0 beta'
-            },
-            'en-US': {
-                'platform_merge_title': 'Platform Merge',
-                'platform_merge_desc': 'Merge multiple platforms into a new platform, source platforms remain unchanged',
-                'back_to_platform_management': 'Back to Platform Management',
-                'source_platforms': 'Source Platforms (Multiple selection allowed):',
-                'new_platform_name': 'New Platform Name:',
-                'new_platform_folder_path': 'New Platform Folder Path:',
-                'platform_folder_path_tip': 'Prerequisite for export functionality, not required',
-                'platform_selection_tip': 'Tip: Hold Ctrl to select multiple platforms, hold Shift to select a range of platforms',
-                'select_platform': 'Please select platform',
-                'start_merge': 'Start Merge',
-                'loading_platforms': 'Loading platforms...',
-                'platforms_loaded': 'Platforms loaded successfully',
-                'please_select_platforms': 'Please select two different platforms',
-                'merge_started': 'Merge task has been started, please wait...',
-                'merge_failed': 'Failed to start merge task',
-                'log_task_started': 'Task started, Task ID:',
-                'log_check_task_status': 'Please check task status in Task Management page',
-                'log_conflict_resolution': 'If there are conflicts, a conflict resolution page link will be generated after task completion',
-                'task_messages': 'Task Messages',
-                'copyright': '© 2024 Frontend Killer | Emulation Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta'
-            },
-            'ja-JP': {
-                'platform_merge_title': 'プラットフォームの統合',
-                'platform_merge_desc': '複数のプラットフォームを新しいプラットフォームに統合し、ソースプラットフォームは変更されません',
-                'back_to_platform_management': 'プラットフォーム管理に戻る',
-                'source_platforms': 'ソースプラットフォーム（複数選択可）:',
-                'new_platform_name': '新しいプラットフォーム名:',
-                'new_platform_folder_path': '新しいプラットフォームフォルダパス:',
-                'platform_folder_path_tip': 'エクスポート機能の前提条件、必須ではない',
-                'platform_selection_tip': 'ヒント: Ctrlキーを押しながら複数のプラットフォームを選択し、Shiftキーを押しながら連続した範囲のプラットフォームを選択します',
-                'select_platform': 'プラットフォームを選択',
-                'start_merge': '統合を開始',
-                'loading_platforms': 'プラットフォームを読み込んでいます...',
-                'platforms_loaded': 'プラットフォームの読み込みに成功',
-                'please_select_platforms': '2つの異なるプラットフォームを選択してください',
-                'merge_started': '統合タスクが開始されました、お待ちください...',
-                'merge_failed': '統合タスクの開始に失敗',
-                'log_task_started': 'タスク開始、タスクID:',
-                'log_check_task_status': 'タスク管理ページでタスクステータスを確認してください',
-                'log_conflict_resolution': '競合がある場合は、タスク完了後に競合解決ページのリンクが生成されます',
-                'task_messages': 'タスクメッセージ',
-                'copyright': '© 2024 フロントエンドキラー | エミュレーションゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン: 1.0 beta'
-            }
-        };
+        ;
         
         // 获取当前语言
         function getCurrentLanguage() {
@@ -689,7 +575,7 @@
         // 获取国际化文本
         function getI18nText(key) {
             const lang = getCurrentLanguage();
-            const langTranslations = translations[lang] || translations['zh-CN'];
+            const langTranslations = I18n.t(lang) || I18n.t('zh-CN');
             return langTranslations[key] || key;
         }
         
@@ -859,13 +745,6 @@
         
         // 页面加载完成后执行
         $(document).ready(function() {
-            // 设置语言选择器
-            const languageSelect = document.getElementById('languageSelect');
-            languageSelect.value = getCurrentLanguage();
-            languageSelect.addEventListener('change', function() {
-                setLanguage(this.value);
-            });
-            
             applyI18n();
             loadPlatforms();
             

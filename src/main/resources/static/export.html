@@ -40,35 +40,6 @@
             padding: 20px;
         }
         
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-        
         .header {
             text-align: center;
             margin: 60px 0 40px;
@@ -349,17 +320,13 @@
             font-weight: bold;
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
 <body>
-    <div class="language-selector">
-        <select id="languageSelect" onchange="changeLanguage(this.value)">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-    
     <script>
+        // 当前语言设置
+        let currentLanguage = 'zh-CN';
+        
         // 跨页面通知广播监听
         const notificationChannel = new BroadcastChannel('taskNotifications');
         
@@ -382,15 +349,15 @@
                         if (prevStatus && prevStatus !== task.status && 
                             (task.status === 'COMPLETED' || task.status === 'FAILED')) {
                             if (task.status === 'COMPLETED') {
-                                showNotification('任务已完成: ' + (task.description || task.type), 'success');
+                                showNotification(getI18nText('task_completed') + ': ' + (task.description || task.type), 'success');
                                 notificationChannel.postMessage({
-                                    message: '任务已完成: ' + (task.description || task.type),
+                                    message: getI18nText('task_completed') + ': ' + (task.description || task.type),
                                     type: 'success'
                                 });
                             } else {
-                                showNotification('任务失败: ' + (task.description || task.type), 'error');
+                                showNotification(getI18nText('task_failed') + ': ' + (task.description || task.type), 'error');
                                 notificationChannel.postMessage({
-                                    message: '任务失败: ' + (task.description || task.type),
+                                    message: getI18nText('task_failed') + ': ' + (task.description || task.type),
                                     type: 'error'
                                 });
                             }
@@ -480,97 +447,11 @@
     </div>
     
     <script>
-        const translations = {
-            'zh-CN': {
-                'export_title': '导出平台',
-                'export_desc': '将游戏平台数据导出到指定路径',
-                'back_to_home': '返回首页',
-                'select_platform': '选择平台',
-                'select_frontend': '选择前端',
-                'export_range': '导出范围',
-                'game_files': '游戏文件',
-                'media_files': '媒体文件',
-                'data_files': '数据文件',
-                'export_path': '导出路径',
-                'default_path_tip': '默认路径: /data/output',
-                'thread_count': '线程数',
-                'thread_count_tip': '默认4线程，最高10线程',
-                'export': '导出',
-                'export_log': '导出日志',
-                'please_select': '请选择平台',
-                'please_select_frontend': '请选择前端',
-                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-                'version': '版本：1.0 beta',
-                'loading_platforms': '正在加载平台...',
-                'loading_frontends': '正在加载前端规则...',
-                'platforms_loaded': '平台加载完成',
-                'frontends_loaded': '前端规则加载完成',
-                'export_success': '导出成功',
-                'export_failed': '导出失败',
-                'confirm_delete': '确定要删除吗？'
-            },
-            'en-US': {
-                'export_title': 'Export Platform',
-                'export_desc': 'Export game platform data to specified path',
-                'back_to_home': 'Back to Home',
-                'select_platform': 'Select Platform',
-                'select_frontend': 'Select Frontend',
-                'export_range': 'Export Range',
-                'game_files': 'Game Files',
-                'media_files': 'Media Files',
-                'data_files': 'Data Files',
-                'export_path': 'Export Path',
-                'default_path_tip': 'Default path: /data/output',
-                'thread_count': 'Thread Count',
-                'thread_count_tip': 'Default 4 threads, maximum 10 threads',
-                'export': 'Export',
-                'export_log': 'Export Log',
-                'please_select': 'Please select a platform',
-                'please_select_frontend': 'Please select a frontend',
-                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta',
-                'loading_platforms': 'Loading platforms...',
-                'loading_frontends': 'Loading frontend rules...',
-                'platforms_loaded': 'Platforms loaded',
-                'frontends_loaded': 'Frontend rules loaded',
-                'export_success': 'Export successful',
-                'export_failed': 'Export failed',
-                'confirm_delete': 'Are you sure you want to delete?'
-            },
-            'ja-JP': {
-                'export_title': 'プラットフォームのエクスポート',
-                'export_desc': 'ゲームプラットフォームデータを指定パスにエクスポート',
-                'back_to_home': 'ホームに戻る',
-                'select_platform': 'プラットフォームを選択',
-                'select_frontend': 'フロントエンドを選択',
-                'export_range': 'エクスポート範囲',
-                'game_files': 'ゲームファイル',
-                'media_files': 'メディアファイル',
-                'data_files': 'データファイル',
-                'export_path': 'エクスポートパス',
-                'default_path_tip': 'デフォルトパス: /data/output',
-                'thread_count': 'スレッド数',
-                'thread_count_tip': 'デフォルト4スレッド、最大10スレッド',
-                'export': 'エクスポート',
-                'export_log': 'エクスポートログ',
-                'please_select': 'プラットフォームを選択してください',
-                'please_select_frontend': 'フロントエンドを選択してください',
-                'copyright': '© 2024 フロントエンドキラー | エミュレーターゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン：1.0 beta',
-                'loading_platforms': 'プラットフォームを読み込み中...',
-                'loading_frontends': 'フロントエンドルールを読み込み中...',
-                'platforms_loaded': 'プラットフォームの読み込み完了',
-                'frontends_loaded': 'フロントエンドルールの読み込み完了',
-                'export_success': 'エクスポート成功',
-                'export_failed': 'エクスポート失敗',
-                'confirm_delete': '本当に削除しますか？'
-            }
-        };
+        ;
         
-        let currentLanguage = localStorage.getItem('language') || 'zh-CN';
         
-        function getI18nText(key) {
-            return translations[currentLanguage][key] || key;
+        window.getI18nText = function(key) {
+            return I18n.t(key);
         }
         
         function changeLanguage(lang) {
@@ -587,8 +468,8 @@
         }
         
         function initLanguage() {
-            document.getElementById('languageSelect').value = currentLanguage;
-            changeLanguage(currentLanguage);
+            const lang = I18n.getCurrentLanguage();
+            changeLanguage(lang);
         }
         
         // 显示通知
@@ -729,7 +610,7 @@
                 threadCount: parseInt(document.getElementById('threadCount').value)
             };
             
-            showNotification('导出任务已启动');
+            showNotification(getI18nText('export_task_started'));
             
             fetch('/api/export/platform', {
                 method: 'POST',
@@ -745,7 +626,7 @@
                 
                 if (data.success) {
                     showNotification(data.message || getI18nText('export_success'), 'success');
-                    showNotification('请前往任务管理页面查看执行情况', 'info');
+                    showNotification(getI18nText('check_task_management'), 'info');
                 } else {
                     showNotification(data.error || getI18nText('export_failed'), 'error');
                 }

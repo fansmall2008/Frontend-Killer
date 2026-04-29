@@ -40,35 +40,6 @@
             padding: 20px;
         }
 
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-
         .header {
             text-align: center;
             margin: 60px 0 40px;
@@ -342,16 +313,9 @@
             margin: 5px 0;
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
 <body>
-    <div class="language-selector">
-        <select id="languageSelect" onchange="changeLanguage(this.value)">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-
     <div class="container">
         <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
 
@@ -402,113 +366,18 @@
     </div>
 
     <script>
-        const translations = {
-            'zh-CN': {
-                'merge_reports_title': '合并报告管理',
-                'merge_reports_desc': '查看和管理平台合并报告',
-                'back_to_home': '返回首页',
-                'report_list': '报告列表',
-                'loading': '加载中...',
-                'no_reports': '暂无合并报告',
-                'report_name': '报告名称',
-                'source_platforms': '源平台',
-                'total_games': '总游戏数',
-                'added_games': '已添加',
-                'conflicts': '冲突',
-                'status': '状态',
-                'created_time': '创建时间',
-                'actions': '操作',
-                'total_reports': '总报告数',
-                'processing': '处理中',
-                'completed': '已完成',
-                'total_conflicts': '总冲突数',
-                'view_details': '查看详情',
-                'handle_conflicts': '处理冲突',
-                'delete': '删除',
-                'confirm_delete': '确定要删除此报告吗？此操作不可恢复。',
-                'delete_success': '报告已删除',
-                'delete_failed': '删除失败',
-                'load_failed': '加载报告失败',
-                'processing_status': '处理中',
-                'completed_status': '已完成'
-            },
-            'en-US': {
-                'merge_reports_title': 'Merge Reports',
-                'merge_reports_desc': 'View and manage platform merge reports',
-                'back_to_home': 'Back to Home',
-                'report_list': 'Report List',
-                'loading': 'Loading...',
-                'no_reports': 'No merge reports available',
-                'report_name': 'Report Name',
-                'source_platforms': 'Source Platforms',
-                'total_games': 'Total Games',
-                'added_games': 'Added',
-                'conflicts': 'Conflicts',
-                'status': 'Status',
-                'created_time': 'Created Time',
-                'actions': 'Actions',
-                'total_reports': 'Total Reports',
-                'processing': 'Processing',
-                'completed': 'Completed',
-                'total_conflicts': 'Total Conflicts',
-                'view_details': 'View Details',
-                'handle_conflicts': 'Handle Conflicts',
-                'delete': 'Delete',
-                'confirm_delete': 'Are you sure you want to delete this report? This action cannot be undone.',
-                'delete_success': 'Report deleted',
-                'delete_failed': 'Delete failed',
-                'load_failed': 'Failed to load reports',
-                'processing_status': 'Processing',
-                'completed_status': 'Completed'
-            },
-            'ja-JP': {
-                'merge_reports_title': 'マージレポート',
-                'merge_reports_desc': 'プラットフォームマージレポートの表示と管理',
-                'back_to_home': 'ホームに戻る',
-                'report_list': 'レポート一覧',
-                'loading': '読み込み中...',
-                'no_reports': 'マージレポートがありません',
-                'report_name': 'レポート名',
-                'source_platforms': 'ソースプラットフォーム',
-                'total_games': '総ゲーム数',
-                'added_games': '追加済み',
-                'conflicts': '競合',
-                'status': 'ステータス',
-                'created_time': '作成時間',
-                'actions': '操作',
-                'total_reports': '総レポート数',
-                'processing': '処理中',
-                'completed': '完了',
-                'total_conflicts': '総競合数',
-                'view_details': '詳細を表示',
-                'handle_conflicts': '競合を処理',
-                'delete': '削除',
-                'confirm_delete': 'このレポートを削除してもよろしいですか？この操作は元に戻せません。',
-                'delete_success': 'レポートを削除しました',
-                'delete_failed': '削除に失敗しました',
-                'load_failed': 'レポートの読み込みに失敗しました',
-                'processing_status': '処理中',
-                'completed_status': '完了'
-            }
-        };
+        ;
 
-        let currentLanguage = localStorage.getItem('language') || 'zh-CN';
 
-        function getI18nText(key) {
-            return translations[currentLanguage][key] || key;
+        window.getI18nText = function(key) {
+            return I18n.t(key);
         }
 
-        function changeLanguage(lang) {
-            currentLanguage = lang;
-            localStorage.setItem('language', lang);
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                el.textContent = getI18nText(key);
-            });
+        async function changeLanguage(lang) {
+            await I18n.setLanguage(lang);
         }
 
         function initLanguage() {
-            document.getElementById('languageSelect').value = currentLanguage;
             changeLanguage(currentLanguage);
         }
 

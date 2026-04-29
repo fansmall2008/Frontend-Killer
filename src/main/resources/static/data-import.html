@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据文件导入</title>
+    <title data-i18n="import_title">数据文件导入</title>
     <style>
         * {
             margin: 0;
@@ -39,36 +39,6 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-        }
-        
-        /* 语言选择器样式 */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
         }
         
         /* 游戏风格标题 */
@@ -465,11 +435,6 @@
                 padding: 30px 15px;
             }
             
-            .language-selector {
-                top: 10px;
-                right: 10px;
-            }
-            
             .notification-bell {
                 top: 10px;
                 right: 100px;
@@ -486,18 +451,9 @@
             }
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
-<body>
-    <!-- 语言选择器 -->
-    <div class="language-selector">
-        <select id="languageSelect">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-    
-    <!-- 通知铃铛 -->
+<body><!-- 通知铃铛 -->
     <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
         🔔
         <span class="badge" style="display: none;">0</span>
@@ -526,15 +482,15 @@
                         if (prevStatus && prevStatus !== task.status && 
                             (task.status === 'COMPLETED' || task.status === 'FAILED')) {
                             if (task.status === 'COMPLETED') {
-                                showNotification('任务已完成: ' + (task.description || task.type), 'success');
+                                showNotification(getI18nText('task_completed') + ': ' + (task.description || task.type), 'success');
                                 notificationChannel.postMessage({
-                                    message: '任务已完成: ' + (task.description || task.type),
+                                    message: getI18nText('task_completed') + ': ' + (task.description || task.type),
                                     type: 'success'
                                 });
                             } else {
-                                showNotification('任务失败: ' + (task.description || task.type), 'error');
+                                showNotification(getI18nText('task_failed') + ': ' + (task.description || task.type), 'error');
                                 notificationChannel.postMessage({
-                                    message: '任务失败: ' + (task.description || task.type),
+                                    message: getI18nText('task_failed') + ': ' + (task.description || task.type),
                                     type: 'error'
                                 });
                             }
@@ -670,170 +626,7 @@
         let unreadCount = 0;
         
         // 语言翻译映射
-        const translations = {
-            'zh-CN': {
-                'page_title': '数据文件导入 - 前端杀手',
-                'import_title': '数据文件导入',
-                'import_desc': '扫描并导入游戏元数据文件，支持 gamelist.xml 和 metadata.pegasus.txt 格式',
-                'scan_settings': '扫描路径设置',
-                'scan_path_label': '请输入要扫描的根路径：',
-                'task_messages': '任务消息',
-                'browse_directories': '浏览目录',
-                'subdirectories': '子目录：',
-                'back_to_parent_directory': '返回上层目录',
-                'scan_depth_label': '扫描深度：',
-                'scan_depth_all': '递归所有子目录',
-                'scan_depth_current': '仅当前目录',
-                'scan_depth_one': '仅下一层',
-                'scan_depth_two': '下两层',
-                'scan_depth_three': '下三层',
-                'import_method_label': '导入方式：',
-                'import_method_traditional': '传统方式',
-                'import_method_template': '模板方式',
-                'import_method_no_data_file': '无数据文件导入',
-                'import_template_label': '导入模板：',
-                'import_template_pegasus': 'Pegasus 标准模板',
-                'import_template_esde': 'ES-DE 标准模板',
-                'import_template_generic': '通用模板',
-                'no_data_file_label': '无数据文件导入（直接从游戏文件导入）',
-                'metadata_only_label': '只使用数据文件标签（不进行自动匹配媒体文件）',
-                'thread_count_label': '导入线程数：',
-                'thread_count_default': '4（默认）',
-                'file_extensions_label': '文件扩展名（逗号分隔）：',
-                'start_scan': '开始扫描并导入',
-                'scanning_path': '正在扫描路径...',
-                'scanning': '扫描中...',
-                'operation_result': '操作结果',
-                'waiting_operation': '等待操作...',
-                'operation_completed': '操作完成！',
-                'operation_failed': '操作失败！',
-                'request_failed': '请求失败！',
-                'network_error': '网络错误！',
-                'found_files': '成功找到 {0} 个数据文件',
-                'imported_files': '成功导入 {0} 个文件',
-                'details': '详细信息：',
-                'error_prefix': '错误：{0}',
-                'back_to_home': '返回首页',
-                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-                'version': '版本：1.0 beta',
-                'no_data_file_warning_title': '⚠️ 重要提示',
-                'no_data_file_warning_1': '1. 必须选择包含单独游戏合集的文件夹作为扫描根目录。',
-                'no_data_file_warning_2': '2. 根目录将被视为一个平台，根目录下的每个子文件夹将被视为该平台下的一个游戏。',
-                'no_data_file_warning_3': '3. 媒体文件匹配规则严格按照所选模板中的 mediaRules 配置进行。',
-                'no_data_file_warning_example': '例如 ES-DE 模板中 wheel 的匹配规则为：',
-                'no_data_file_warning_example_text': '"media/{gameName}/wheel.{ext}" 表示在子文件夹内的 media 目录下查找 wheel.扩展名 文件',
-                'no_data_file_warning_other': '其他媒体文件（marquee、screenshot、video 等）同理。',
-                'no_data_file_warning_4': '4. 如果选择错误或混合了多种游戏合集的文件夹，导入结果将不可预料。'
-            },
-            'en-US': {
-                'page_title': 'Data File Import - Frontend Killer',
-                'import_title': 'Data File Import',
-                'import_desc': 'Scan and import game metadata files, supporting gamelist.xml and metadata.pegasus.txt formats',
-                'scan_settings': 'Scan Path Settings',
-                'scan_path_label': 'Please enter the root path to scan:',
-                'task_messages': 'Task Messages',
-                'browse_directories': 'Browse Directories',
-                'subdirectories': 'Subdirectories:',
-                'back_to_parent_directory': 'Back to parent directory',
-                'scan_depth_label': 'Scan Depth:',
-                'scan_depth_all': 'Recursive all subdirectories',
-                'scan_depth_current': 'Only current directory',
-                'scan_depth_one': 'Only next level',
-                'scan_depth_two': 'Next two levels',
-                'scan_depth_three': 'Next three levels',
-                'import_method_label': 'Import Method:',
-                'import_method_traditional': 'Traditional Method',
-                'import_method_template': 'Template Method',
-                'import_method_no_data_file': 'No Data File Import',
-                'import_template_label': 'Import Template:',
-                'import_template_pegasus': 'Pegasus Standard Template',
-                'import_template_esde': 'ES-DE Standard Template',
-                'import_template_generic': 'Generic Template',
-                'no_data_file_label': 'No Data File Import (Import directly from game files)',
-                'metadata_only_label': 'Use only metadata file tags (no automatic media matching)',
-                'thread_count_label': 'Import Thread Count:',
-                'thread_count_default': '4 (default)',
-                'file_extensions_label': 'File Extensions (comma separated):',
-                'start_scan': 'Start Scanning and Importing',
-                'scanning_path': 'Scanning path...',
-                'scanning': 'Scanning...',
-                'operation_result': 'Operation Result',
-                'waiting_operation': 'Waiting for operation...',
-                'operation_completed': 'Operation completed!',
-                'operation_failed': 'Operation failed!',
-                'request_failed': 'Request failed!',
-                'network_error': 'Network error!',
-                'found_files': 'Successfully found {0} data files',
-                'imported_files': 'Successfully imported {0} files',
-                'details': 'Details:',
-                'error_prefix': 'Error: {0}',
-                'back_to_home': 'Back to Home',
-                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta',
-                'no_data_file_warning_title': '⚠️ Important Notice',
-                'no_data_file_warning_1': '1. You must select a folder containing individual game collections as the scan root directory.',
-                'no_data_file_warning_2': '2. The root directory will be treated as one platform, and each subfolder under the root directory will be treated as a game under that platform.',
-                'no_data_file_warning_3': '3. Media file matching rules strictly follow the mediaRules configuration in the selected template.',
-                'no_data_file_warning_example': 'For example, the wheel matching rule in ES-DE template is:',
-                'no_data_file_warning_example_text': '"media/{gameName}/wheel.{ext}" means looking for wheel.extension files in the media directory within the subfolder',
-                'no_data_file_warning_other': 'The same applies to other media files (marquee, screenshot, video, etc.).',
-                'no_data_file_warning_4': '4. If you select the wrong folder or mix multiple game collections, the import results will be unpredictable.'
-            },
-            'ja-JP': {
-                'page_title': 'データファイルインポート - フロントエンドキラー',
-                'import_title': 'データファイルインポート',
-                'import_desc': 'ゲームメタデータファイルをスキャンしてインポートし，gamelist.xml と metadata.pegasus.txt 形式をサポートします',
-                'scan_settings': 'スキャンパス設定',
-                'scan_path_label': 'スキャンするルートパスを入力してください：',
-                'task_messages': 'タスクメッセージ',
-                'browse_directories': 'ディレクトリを参照',
-                'subdirectories': 'サブディレクトリ：',
-                'back_to_parent_directory': '親ディレクトリに戻る',
-                'scan_depth_label': 'スキャン深度：',
-                'scan_depth_all': 'すべてのサブディレクトリを再帰',
-                'scan_depth_current': '現在のディレクトリのみ',
-                'scan_depth_one': '次のレベルのみ',
-                'scan_depth_two': '次の2つのレベル',
-                'scan_depth_three': '次の3つのレベル',
-                'import_method_label': 'インポート方法：',
-                'import_method_traditional': '従来の方法',
-                'import_method_template': 'テンプレート方法',
-                'import_method_no_data_file': 'データファイルなしインポート',
-                'import_template_label': 'インポートテンプレート：',
-                'import_template_pegasus': 'Pegasus 標準テンプレート',
-                'import_template_esde': 'ES-DE 標準テンプレート',
-                'import_template_generic': '汎用テンプレート',
-                'no_data_file_label': 'データファイルなしインポート（ゲームファイルから直接インポート）',
-                'metadata_only_label': 'メタデータファイルタグのみ使用（自動メディア照合なし）',
-                'thread_count_label': 'インポートスレッド数：',
-                'thread_count_default': '4（デフォルト）',
-                'file_extensions_label': 'ファイル拡張子（カンマ区切り）：',
-                'start_scan': 'スキャンとインポートを開始',
-                'scanning_path': 'パスをスキャン中...',
-                'scanning': 'スキャン中...',
-                'operation_result': '操作結果',
-                'waiting_operation': '操作を待っています...',
-                'operation_completed': '操作が完了しました！',
-                'operation_failed': '操作に失敗しました！',
-                'request_failed': 'リクエストに失敗しました！',
-                'network_error': 'ネットワークエラー！',
-                'found_files': '{0} 個のデータファイルを見つけました',
-                'imported_files': '{0} 個のファイルをインポートしました',
-                'details': '詳細：',
-                'error_prefix': 'エラー：{0}',
-                'back_to_home': 'ホームに戻る',
-                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン：1.0 beta',
-                'no_data_file_warning_title': '⚠️ 重要なお知らせ',
-                'no_data_file_warning_1': '1. 個別のゲームコレクションを含むフォルダをスキャンのルートディレクトリとして選択する必要があります。',
-                'no_data_file_warning_2': '2. ルートディレクトリは1つのプラットフォームとして扱われ、ルートディレクトリ配下の各サブフォルダはそのプラットフォームのゲームとして扱われます。',
-                'no_data_file_warning_3': '3. メディアファイルのマッチングルールは、選択したテンプレートのmediaRules設定に厳密に従います。',
-                'no_data_file_warning_example': '例えば、ES-DEテンプレートのwheelのマッチングルールは：',
-                'no_data_file_warning_example_text': '"media/{gameName}/wheel.{ext}" はサブフォルダ内のmediaディレクトリでwheel.拡張子ファイルを検索することを意味します',
-                'no_data_file_warning_other': '他のメディアファイル（marquee、screenshot、videoなど）も同様です。',
-                'no_data_file_warning_4': '4. 間違ったフォルダを選択したり、複数のゲームコレクションを混在させたりすると、インポート結果は予測不能になります。'
-            }
-        };
+        ;
         
         // 获取当前语言设置
         function getCurrentLanguage() {
@@ -841,33 +634,14 @@
         }
         
         // 设置语言
-        function setLanguage(lang) {
-            localStorage.setItem('language', lang);
-            document.documentElement.lang = lang;
-            updateTranslations(lang);
-        }
-        
-        // 更新页面翻译
-        function updateTranslations(lang) {
-            const translation = translations[lang];
-            if (!translation) return;
-            
-            // 更新标题
-            document.title = translation['page_title'];
-            
-            // 更新所有带有data-i18n属性的元素
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translation[key]) {
-                    element.textContent = translation[key];
-                }
-            });
+        async function setLanguage(lang) {
+            await I18n.setLanguage(lang);
         }
         
         // 获取翻译文本
         function getI18nText(key, ...args) {
             const lang = getCurrentLanguage();
-            const translation = translations[lang][key] || key;
+            const translation = I18n.t(key) || key;
             return formatString(translation, args);
         }
         
@@ -906,7 +680,7 @@
                     } else {
                         const option = document.createElement('option');
                         option.value = '';
-                        option.textContent = '无可用模板';
+                        option.textContent = getI18nText('no_templates_available');
                         importTemplateSelect.appendChild(option);
                     }
                 })
@@ -987,7 +761,7 @@
             content.innerHTML = '';
             
             if (notifications.length === 0) {
-                content.innerHTML = '<p style="text-align: center; color: #aaa;">暂无通知</p>';
+                content.innerHTML = '<p style="text-align: center; color: #aaa;">' + getI18nText('no_notifications') + '</p>';
             } else {
                 notifications.forEach(notification => {
                     const notificationItem = document.createElement('div');
@@ -1037,16 +811,10 @@
         }
         
         // 初始化语言设置
-        function initLanguage() {
+        async function initLanguage() {
             const lang = getCurrentLanguage();
-            document.getElementById('languageSelect').value = lang;
-            setLanguage(lang);
+            await I18n.setLanguage(lang);
         }
-        
-        // 语言选择器事件监听
-        document.getElementById('languageSelect').addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-        });
         
         // 更新模板描述
         function updateTemplateDescription() {
@@ -1074,6 +842,26 @@
                     'zh-CN': '通用模板：适用于一般情况，支持基本的游戏元数据导入。可根据需要自定义字段映射和媒体文件路径规则。',
                     'en-US': 'Generic Template: Suitable for general cases, supports basic game metadata import. Can customize field mappings and media file path rules as needed.',
                     'ja-JP': '汎用テンプレート：一般的なケースに適した、基本的なゲームメタデータのインポートをサポートします。必要に応じてフィールドマッピングとメディアファイルパスルールをカスタマイズできます。'
+                },
+                'Pegasus': {
+                    'zh-CN': 'Pegasus 标准模板：适用于 Pegasus 前端，支持 metadata.pegasus.txt 格式的数据文件。使用冒号作为分隔符，支持多值字段和媒体文件路径配置。',
+                    'en-US': 'Pegasus Standard Template: Suitable for Pegasus frontend, supports metadata.pegasus.txt format data files. Uses colon as separator, supports multi-value fields and media file path configuration.',
+                    'ja-JP': 'Pegasus 標準テンプレート：Pegasus フロントエンドに適した、metadata.pegasus.txt 形式のデータファイルをサポートします。コロンを区切り文字として使用し、複数値フィールドとメディアファイルパスの設定をサポートします。'
+                },
+                'RetroBat': {
+                    'zh-CN': 'RetroBat 标准模板：适用于 RetroBat 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
+                    'en-US': 'RetroBat Standard Template: Suitable for RetroBat frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
+                    'ja-JP': 'RetroBat 標準テンプレート：RetroBat フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                },
+                'ES-DE': {
+                    'zh-CN': 'ES-DE 标准模板：适用于 ES-DE 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
+                    'en-US': 'ES-DE Standard Template: Suitable for ES-DE frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
+                    'ja-JP': 'ES-DE 標準テンプレート：ES-DE フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                },
+                'Generic': {
+                    'zh-CN': '通用模板：适用于一般情况，支持基本的游戏元数据导入。可根据需要自定义字段映射和媒体文件路径规则。',
+                    'en-US': 'Generic Template: Suitable for general cases, supports basic game metadata import. Can customize field mappings and media file path rules as needed.',
+                    'ja-JP': '汎用テンプレート：一般的なケースに適した、基本的なゲームメタデータのインポートをサポートします。必要に応じてフィールドマッピングとメディアファイルパスルールをカスタマイズできます。'
                 }
             };
             
@@ -1082,7 +870,7 @@
                 const description = descriptions[selectedTemplate][lang] || descriptions[selectedTemplate]['zh-CN'];
                 descriptionDiv.textContent = description;
             } else {
-                descriptionDiv.textContent = '暂无模板描述';
+                descriptionDiv.textContent = I18n.t('no_template_description') || '暂无模板描述';
             }
         }
         

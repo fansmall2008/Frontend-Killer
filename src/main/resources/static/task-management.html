@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>任务管理 - 前端杀手</title>
+    <title data-i18n="task_management_title">任务管理 - 前端杀手</title>
     <style>
         * {
             margin: 0;
@@ -39,36 +39,6 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-        }
-        
-        /* 语言选择器样式 */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
         }
         
         /* 游戏风格标题 */
@@ -312,11 +282,6 @@
                 padding: 30px 15px;
             }
             
-            .language-selector {
-                top: 10px;
-                right: 10px;
-            }
-            
             .button-group {
                 flex-direction: column;
             }
@@ -402,18 +367,9 @@
             opacity: 1;
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
-<body>
-    <!-- 语言选择器 -->
-    <div class="language-selector">
-        <select id="languageSelect">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-    
-    <div class="container">
+<body><div class="container">
         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
             <a href="index.html" class="btn back-btn" data-i18n="back_to_home">返回首页</a>
             <a href="log-viewer.html" class="btn" data-i18n="log_viewer_btn">日志查看器</a>
@@ -450,98 +406,7 @@
     
     <script>
         // 语言翻译映射
-        const translations = {
-            'zh-CN': {
-                'task_management_title': '任务管理',
-                'task_management_desc': '实时监控后台任务执行情况',
-                'back_to_home': '返回首页',
-                'log_viewer_btn': '日志查看器',
-                'task_list': '任务列表',
-                'clear_all_tasks': '清空所有任务',
-                'loading': '加载中...',
-                'loading_tasks': '正在加载任务列表...',
-                'no_tasks': '暂无任务',
-                'progress': '进度',
-                'status': '状态:',
-                'error': '错误:',
-                'result': '结果:',
-                'detailed_log': '详细日志:',
-                'expand': '展开',
-                'collapse': '收起',
-                'delete': '删除',
-                'confirm_delete': '确定要删除这个任务吗？',
-                'confirm_clear_all': '确定要清空所有任务吗？',
-                'delete_failed': '删除任务失败',
-                'clear_failed': '清空任务失败',
-                'load_failed': '加载任务失败，请刷新页面重试',
-                'not_started': '未开始',
-                'log_load_tasks_error': '加载任务失败:',
-                'log_delete_task_error': '删除任务失败:',
-                'log_clear_tasks_error': '清空任务失败:',
-                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-                'version': '版本：1.0 beta'
-            },
-            'en-US': {
-                'task_management_title': 'Task Management',
-                'task_management_desc': 'Real-time monitoring of background task execution',
-                'back_to_home': 'Back to Home',
-                'log_viewer_btn': 'Log Viewer',
-                'task_list': 'Task List',
-                'clear_all_tasks': 'Clear All Tasks',
-                'loading': 'Loading...',
-                'loading_tasks': 'Loading task list...',
-                'no_tasks': 'No tasks',
-                'progress': 'Progress',
-                'status': 'Status:',
-                'error': 'Error:',
-                'result': 'Result:',
-                'detailed_log': 'Detailed Log:',
-                'expand': 'Expand',
-                'collapse': 'Collapse',
-                'delete': 'Delete',
-                'confirm_delete': 'Are you sure you want to delete this task?',
-                'confirm_clear_all': 'Are you sure you want to clear all tasks?',
-                'delete_failed': 'Failed to delete task',
-                'clear_failed': 'Failed to clear tasks',
-                'load_failed': 'Failed to load tasks, please refresh the page and try again',
-                'not_started': 'Not started',
-                'log_load_tasks_error': 'Failed to load tasks:',
-                'log_delete_task_error': 'Failed to delete task:',
-                'log_clear_tasks_error': 'Failed to clear tasks:',
-                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta'
-            },
-            'ja-JP': {
-                'task_management_title': 'タスク管理',
-                'task_management_desc': 'バックグラウンドタスクの実行状況をリアルタイムで監視',
-                'back_to_home': 'ホームに戻る',
-                'log_viewer_btn': 'ログビューア',
-                'task_list': 'タスクリスト',
-                'clear_all_tasks': 'すべてのタスクをクリア',
-                'loading': '読み込み中...',
-                'loading_tasks': 'タスクリストを読み込んでいます...',
-                'no_tasks': 'タスクはありません',
-                'progress': '進捗',
-                'status': 'ステータス:',
-                'error': 'エラー:',
-                'result': '結果:',
-                'detailed_log': '詳細ログ:',
-                'expand': '展開',
-                'collapse': '折りたたむ',
-                'delete': '削除',
-                'confirm_delete': 'このタスクを削除しますか？',
-                'confirm_clear_all': 'すべてのタスクをクリアしますか？',
-                'delete_failed': 'タスクの削除に失敗しました',
-                'clear_failed': 'タスクのクリアに失敗しました',
-                'load_failed': 'タスクの読み込みに失敗しました。ページを更新してもう一度お試しください',
-                'not_started': '開始されていません',
-                'log_load_tasks_error': 'タスクの読み込みに失敗しました:',
-                'log_delete_task_error': 'タスクの削除に失敗しました:',
-                'log_clear_tasks_error': 'タスクのクリアに失敗しました:',
-                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン：1.0 beta'
-            }
-        };
+        ;
         
         // 获取当前语言设置
         function getCurrentLanguage() {
@@ -557,17 +422,20 @@
         
         // 更新页面翻译
         function updateTranslations(lang) {
-            const translation = translations[lang];
-            if (!translation) return;
+            // 确保语言已设置
+            if (I18n.setLanguage) {
+                I18n.setLanguage(lang);
+            }
             
             // 更新标题
-            document.title = translation['task_management_title'] + ' - 前端杀手';
+            document.title = I18n.t('task_management_title') + ' - 前端杀手';
             
             // 更新所有带有data-i18n属性的元素
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
-                if (translation[key]) {
-                    element.textContent = translation[key];
+                const translatedText = I18n.t(key);
+                if (translatedText && translatedText !== key) {
+                    element.textContent = translatedText;
                 }
             });
         }
@@ -575,13 +443,15 @@
         // 获取翻译文本
         function getI18nText(key) {
             const lang = getCurrentLanguage();
-            return translations[lang][key] || key;
+            if (I18n.setLanguage) {
+                I18n.setLanguage(lang);
+            }
+            return I18n.t(key) || key;
         }
         
         // 初始化语言设置
         function initLanguage() {
             const lang = getCurrentLanguage();
-            document.getElementById('languageSelect').value = lang;
             setLanguage(lang);
         }
         
@@ -644,9 +514,9 @@
                         if (previousStatus && previousStatus !== currentStatus && 
                             (currentStatus === 'COMPLETED' || currentStatus === 'FAILED')) {
                             if (currentStatus === 'COMPLETED') {
-                                showNotification('success', '任务完成', `${task.description || task.type} 已成功完成`);
+                                showNotification('success', getI18nText('task_completed'), `${task.description || task.type} ${getI18nText('task_completed_msg')}`);
                             } else if (currentStatus === 'FAILED') {
-                                showNotification('error', '任务失败', `${task.description || task.type} 执行失败`);
+                                showNotification('error', getI18nText('task_failed'), `${task.description || task.type} ${getI18nText('task_failed_msg')}`);
                             }
                         }
                         
@@ -665,6 +535,7 @@
                                 <p class="mt-2">${getI18nText('no_tasks')}</p>
                             </div>
                         `;
+                        updateTranslations(getCurrentLanguage());
                         return;
                     }
                     
@@ -741,6 +612,7 @@
                             </div>
                         </div>
                     `).join('');
+                    updateTranslations(getCurrentLanguage());
                 })
                 .catch(error => {
                     console.error(getI18nText('log_load_tasks_error'), error);
@@ -828,12 +700,6 @@
             
             // 清空所有任务按钮
             document.getElementById('clearAllBtn').addEventListener('click', clearAllTasks);
-            
-            // 语言选择器事件监听
-            document.getElementById('languageSelect').addEventListener('change', (e) => {
-                setLanguage(e.target.value);
-                loadTasks();
-            });
         });
     </script>
 </body>

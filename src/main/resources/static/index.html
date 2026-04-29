@@ -41,36 +41,6 @@
             padding: 20px;
         }
         
-        /* 语言选择器样式 */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-        
-        .language-selector select {
-            padding: 8px 12px;
-            border: 1px solid #00ffff;
-            border-radius: 4px;
-            background: #1a1a2e;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-        
-        .language-selector select:hover {
-            border-color: #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-        
         /* 游戏风格标题 */
         .header {
             text-align: center;
@@ -440,11 +410,6 @@
                 gap: 20px;
             }
             
-            .language-selector {
-                top: 10px;
-                right: 10px;
-            }
-            
             .notification-bell {
                 top: 10px;
                 right: 100px;
@@ -452,18 +417,9 @@
             }
         }
     </style>
+    <script src="js/i18n.js"></script>
 </head>
-<body>
-    <!-- 语言选择器 -->
-    <div class="language-selector">
-        <select id="languageSelect">
-            <option value="zh-CN">中文</option>
-            <option value="en-US">English</option>
-            <option value="ja-JP">日本語</option>
-        </select>
-    </div>
-    
-    <!-- 通知铃铛 -->
+<body><!-- 通知铃铛 -->
     <div class="notification-bell" id="notificationBell" onclick="openNotificationPanel()">
         🔔
         <span class="badge" style="display: none;">0</span>
@@ -570,155 +526,7 @@
     
     <script>
         // 语言翻译映射
-        const translations = {
-            'zh-CN': {
-                'page_title': '前端杀手',
-                'page_subtitle': '模拟游戏元数据管理平台',
-                'page_desc': '专业的游戏元数据管理工具，支持多种格式导入导出',
-                
-                'section_import': '导入',
-                'section_data_processing': '数据处理',
-                'section_data_merge': '数据合并',
-                'section_export': '导出',
-                'section_system_data': '系统设置及数据',
-                
-                'feature_import_title': '导入',
-                'feature_import_desc': '扫描指定目录下的gamelist.xml文件并导入到数据库中，支持批量处理和详细的导入结果反馈。',
-                'feature_import_btn': '进入导入',
-                
-                'feature_data_processing_title': '数据处理',
-                'feature_data_processing_desc': '管理游戏平台信息并查看详细的统计数据，帮助您了解游戏库的整体情况',
-                'feature_data_processing_btn': '进入数据处理',
-                
-                'feature_data_merge_title': '数据合并',
-                'feature_data_merge_desc': '将多个平台合并为一个新平台，源平台保持不变，处理冲突并保留游戏数据的完整性。',
-                'feature_data_merge_btn': '进入数据合并',
-                
-                'feature_export_title': '导出',
-                'feature_export_desc': '将选中平台的游戏文件、媒体文件、数据文件拷贝到用户选中的路径下，支持多种前端规则。',
-                'feature_export_btn': '进入导出',
-                
-                'feature_system_data_title': '系统设置及数据',
-                'feature_system_data_desc': '配置系统参数并管理数据库，确保平台稳定运行',
-                
-                'feature_setting_title': '系统设置',
-                'feature_setting_desc': '配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。',
-                'feature_setting_btn': '进入系统设置',
-                
-                'feature_h2_title': 'H2 数据库控制台',
-                'feature_h2_desc': '访问H2数据库控制台，直接查看和管理数据库中的表结构和数据。',
-                'feature_h2_btn': '进入数据库控制台',
-                
-                'feature_task_title': '后台任务管理',
-                'feature_task_desc': '查看和管理后台任务执行情况，包括导入、导出、翻译等任务的进度和状态。',
-                'feature_task_btn': '进入任务管理',
-                
-                'feature_log_viewer_title': '日志查看器',
-                'feature_log_viewer_desc': '上传和查看日志文件，方便排查错误和问题。',
-                'feature_log_viewer_btn': '进入日志查看',
-                
-                'copyright': '© 2024 前端杀手 | 模拟游戏元数据管理平台',
-                'version': '版本：1.0 beta'
-            },
-            'en-US': {
-                'page_title': 'Frontend Killer',
-                'page_subtitle': 'Emulator Game Metadata Management Platform',
-                'page_desc': 'Professional game metadata management tool supporting multiple formats',
-                
-                'section_import': 'Import',
-                'section_data_processing': 'Data Processing',
-                'section_data_merge': 'Data Merge',
-                'section_export': 'Export',
-                'section_system_data': 'System Settings & Data',
-                
-                'feature_import_title': 'Import',
-                'feature_import_desc': 'Scan specified directories for gamelist.xml files and import them into the database, supporting batch processing and detailed feedback.',
-                'feature_import_btn': 'Enter Import',
-                
-                'feature_data_processing_title': 'Data Processing',
-                'feature_data_processing_desc': 'Manage game platform information and view detailed statistics to understand your game library',
-                'feature_data_processing_btn': 'Enter Data Processing',
-                
-                'feature_data_merge_title': 'Data Merge',
-                'feature_data_merge_desc': 'Merge multiple platforms into a new platform, source platforms remain unchanged, handle conflicts and preserve game data integrity.',
-                'feature_data_merge_btn': 'Enter Data Merge',
-                
-                'feature_export_title': 'Export',
-                'feature_export_desc': 'Copy game files, media files, and data files from the selected platform to the user-selected path, supporting multiple frontend rules.',
-                'feature_export_btn': 'Enter Export',
-                
-                'feature_system_data_title': 'System Settings & Data',
-                'feature_system_data_desc': 'Configure system parameters and manage database for stable platform operation',
-                
-                'feature_setting_title': 'System Settings',
-                'feature_setting_desc': 'Configure system parameters, database connections and other advanced settings to optimize system performance and functionality.',
-                'feature_setting_btn': 'Enter System Settings',
-                
-                'feature_h2_title': 'H2 Database Console',
-                'feature_h2_desc': 'Access the H2 database console to directly view and manage database table structures and data.',
-                'feature_h2_btn': 'Enter Database Console',
-                
-                'feature_task_title': 'Background Task Management',
-                'feature_task_desc': 'View and manage background task execution status, including progress and status of import, export, translation and other tasks.',
-                'feature_task_btn': 'Enter Task Management',
-                
-                'feature_log_viewer_title': 'Log Viewer',
-                'feature_log_viewer_desc': 'Upload and view log files for error troubleshooting.',
-                'feature_log_viewer_btn': 'Enter Log Viewer',
-                
-                'copyright': '© 2024 Frontend Killer | Emulator Game Metadata Management Platform',
-                'version': 'Version: 1.0 beta'
-            },
-            'ja-JP': {
-                'page_title': 'フロントエンドキラー',
-                'page_subtitle': 'エミュレータゲームメタデータ管理プラットフォーム',
-                'page_desc': '専門的なゲームメタデータ管理ツール，複数のフォーマットのインポートエクスポートをサポート',
-                
-                'section_import': 'インポート',
-                'section_data_processing': 'データ処理',
-                'section_data_merge': 'データ統合',
-                'section_export': 'エクスポート',
-                'section_system_data': 'システム設定とデータ',
-                
-                'feature_import_title': 'インポート',
-                'feature_import_desc': '指定したディレクトリ内のgamelist.xmlファイルをスキャンしてデータベースにインポートし，バッチ処理と詳細なインポート結果フィードバックをサポートします。',
-                'feature_import_btn': 'インポートに入る',
-                
-                'feature_data_processing_title': 'データ処理',
-                'feature_data_processing_desc': 'ゲームプラットフォーム情報を管理し，詳細な統計データを表示し，ゲームライブラリの全体的な状況を把握できます',
-                'feature_data_processing_btn': 'データ処理に入る',
-                
-                'feature_data_merge_title': 'データ統合',
-                'feature_data_merge_desc': '複数のプラットフォームを新しいプラットフォームに統合し，ソースプラットフォームは変更されず，競合を処理し，ゲームデータの整合性を維持します。',
-                'feature_data_merge_btn': 'データ統合に入る',
-                
-                'feature_export_title': 'エクスポート',
-                'feature_export_desc': '選択したプラットフォームのゲームファイル、メディアファイル、データファイルをユーザーが選択したパスにコピーし，複数のフロントエンドルールをサポートします。',
-                'feature_export_btn': 'エクスポートに入る',
-                
-                'feature_system_data_title': 'システム設定とデータ',
-                'feature_system_data_desc': 'システムパラメータを設定し，データベースを管理し，プラットフォームの安定した運用を確保します',
-                
-                'feature_setting_title': 'システム設定',
-                'feature_setting_desc': 'システムパフォーマンスと機能を最適化するために，システムパラメータ，データベース接続，その他の高度な設定を構成します。',
-                'feature_setting_btn': 'システム設定に入る',
-                
-                'feature_h2_title': 'H2 データベースコンソール',
-                'feature_h2_desc': 'H2データベースコンソールにアクセスし，データベース内のテーブル構造とデータを直接表示および管理します。',
-                'feature_h2_btn': 'データベースコンソールに入る',
-                
-                'feature_task_title': 'バックグラウンドタスク管理',
-                'feature_task_desc': 'バックグラウンドタスクの実行状態を表示および管理し，インポート，エクスポート，翻訳などのタスクの進行状況と状態を確認します。',
-                'feature_task_btn': 'タスク管理に入る',
-                
-                'feature_log_viewer_title': 'ログビューア',
-                'feature_log_viewer_desc': 'ログファイルをアップロードして表示し，エラーのトラブルシューティングを容易にします。',
-                'feature_log_viewer_btn': 'ログビューアに入る',
-                
-                'copyright': '© 2024 フロントエンドキラー | エミュレータゲームメタデータ管理プラットフォーム',
-                'version': 'バージョン：1.0 beta'
-            }
-        };
+        ;
         
         // 获取当前语言设置
         function getCurrentLanguage() {
@@ -734,32 +542,15 @@
         
         // 更新页面翻译
         function updateTranslations(lang) {
-            const translation = translations[lang];
-            if (!translation) return;
-            
             // 更新标题
-            document.title = `${translation['page_title']} - ${translation['page_subtitle']}`;
-            
-            // 更新所有带有data-i18n属性的元素
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translation[key]) {
-                    element.textContent = translation[key];
-                }
-            });
+            document.title = `${I18n.t('page_title')} - ${I18n.t('page_subtitle')}`;
         }
         
         // 初始化语言设置
         function initLanguage() {
             const lang = getCurrentLanguage();
-            document.getElementById('languageSelect').value = lang;
             setLanguage(lang);
         }
-        
-        // 语言选择器事件监听
-        document.getElementById('languageSelect').addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-        });
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', initLanguage);

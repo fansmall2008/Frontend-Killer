@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # 复制本地构建的JAR文件
-COPY target/webGamelistOper-1.0.4-beta.jar app.jar
+COPY target/webGamelistOper-1.0.5-beta.jar app.jar
 
 # 复制默认规则文件
 COPY src/main/resources/export-rules/ /app/default-rules/export-rules/

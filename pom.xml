@@ -6,7 +6,7 @@
 
     <groupId>com.gamelist</groupId>
     <artifactId>webGamelistOper</artifactId>
-    <version>1.0.4-beta</version>
+    <version>1.0.5-beta</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -102,6 +102,18 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.gamelist.Application</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>html</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>json</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
                 </configuration>
             </plugin>
         </plugins>
