@@ -2941,7 +2941,19 @@
             if (langSelect) {
                 langSelect.value = savedLang;
             }
-            changeLanguage(savedLang);
+            // 将简写语言代码转换为完整代码以匹配翻译文件
+            const fullLang = getFullLangCode(savedLang);
+            changeLanguage(fullLang);
+        }
+        
+        // 将简写语言代码转换为完整代码
+        function getFullLangCode(lang) {
+            const langMap = {
+                'zh': 'zh-CN',
+                'en': 'en-US',
+                'ja': 'ja-JP'
+            };
+            return langMap[lang] || lang;
         }
 
         // 切换页面语言
