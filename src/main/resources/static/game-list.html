@@ -2936,69 +2936,32 @@
         
         // 初始化语言
         function initLanguage() {
-            const savedLang = localStorage.getItem('uiLanguage') || 'zh';
+            const savedLang = localStorage.getItem('language') || 'zh-CN';
             const langSelect = document.getElementById('langSelect');
             if (langSelect) {
-                langSelect.value = savedLang;
+                // 将完整语言代码转换为简写以便在下拉菜单中显示
+                const shortLang = savedLang.split('-')[0];
+                langSelect.value = shortLang;
             }
-            // 将简写语言代码转换为完整代码以匹配翻译文件
-            const fullLang = getFullLangCode(savedLang);
-            changeLanguage(fullLang);
         }
-        
-        // 将简写语言代码转换为完整代码
-        function getFullLangCode(lang) {
+
+        // 切换页面语言
+        async function changeLanguage(lang) {
+            // 将简写语言代码转换为完整代码以匹配翻译文件
             const langMap = {
                 'zh': 'zh-CN',
                 'en': 'en-US',
                 'ja': 'ja-JP'
             };
-            return langMap[lang] || lang;
-        }
-
-        // 切换页面语言
-        function changeLanguage(lang) {
-            localStorage.setItem('uiLanguage', lang);
+            const fullLang = langMap[lang] || lang;
             
-            // 设置语言
-            if (I18n.setLanguage) {
-                I18n.setLanguage(lang);
-            }
-
+            // 使用 i18n.js 提供的方法设置语言
+            await I18n.setLanguage(fullLang);
+            
             window.getI18nText = function(key) {
                 return I18n.t(key) || key;
             }
-
-            function applyTranslation(key, element) {
-                if (element) {
-                    let text = I18n.t(key) || key;
-                    element.textContent = text;
-                }
-            }
-
-            function applyTranslationAttr(key, element, attr) {
-                if (element) {
-                    let text = I18n.t(key) || key;
-                    element.setAttribute(attr, text);
-                }
-            }
-
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                const translation = I18n.t(key);
-                if (translation) {
-                    el.textContent = translation;
-                }
-            });
-
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                const translation = I18n.t(key);
-                if (translation) {
-                    el.placeholder = translation;
-                }
-            });
-
+            
             document.title = I18n.t('page-title') || 'Game List';
         }
         
