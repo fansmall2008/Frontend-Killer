@@ -53,7 +53,7 @@
 
 #### Option 1: Docker (Recommended)
 ```bash
-docker pull fansmall/webgamelistoper:1.0.6-beta
+docker pull fansmall/webgamelistoper:latest
 
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
@@ -70,7 +70,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.5-beta
+  fansmall/webgamelistoper:latest
 ```
 
 #### Option 2: Docker Compose
@@ -79,7 +79,7 @@ Create `docker-compose.yml`:
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.6-beta
+    image: fansmall/webgamelistoper:latest
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -130,7 +130,7 @@ http://localhost:8081
 
 #### 方式一：Docker 部署（推荐）
 ```bash
-docker pull fansmall/webgamelistoper:1.0.6-beta
+docker pull fansmall/webgamelistoper:latest
 
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
@@ -147,7 +147,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.5-beta
+  fansmall/webgamelistoper:latest
 ```
 
 #### 方式二：Docker Compose 部署
@@ -156,7 +156,7 @@ docker run -d \
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.6-beta
+    image: fansmall/webgamelistoper:latest
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -207,7 +207,7 @@ http://localhost:8081
 
 #### オプション1：Docker（推奨）
 ```bash
-docker pull fansmall/webgamelistoper:1.0.6-beta
+docker pull fansmall/webgamelistoper:latest
 
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
 
@@ -224,7 +224,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.5-beta
+  fansmall/webgamelistoper:latest
 ```
 
 #### オプション2：Docker Compose
@@ -233,7 +233,7 @@ docker run -d \
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.6-beta
+    image: fansmall/webgamelistoper:latest
     container_name: webgamelistoper
     ports:
       - "8081:8080"
