@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,10 +44,10 @@ public class ExportServiceImpl implements ExportService {
     @Autowired
     private TaskService taskService;
 
-    // 默认线程池大小
-    private static final int DEFAULT_THREAD_POOL_SIZE = 4;
+    // 默认线程池大小 - 根据CPU核心数设置
+    private static final int DEFAULT_THREAD_POOL_SIZE = Math.max(4, Runtime.getRuntime().availableProcessors());
     // 最大线程池大小
-    private static final int MAX_THREAD_POOL_SIZE = 10;
+    private static final int MAX_THREAD_POOL_SIZE = Math.max(10, Runtime.getRuntime().availableProcessors() * 2);
 
     @Override
     public Map<String, Object> exportPlatform(ExportRequest request) {
@@ -237,70 +236,92 @@ public class ExportServiceImpl implements ExportService {
                 
                 ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
                 
+                // 预检查游戏文件重命名规则
+                boolean enableRename = rule != null && rule.getRules() != null && 
+                    rule.getRules().getGameFile() != null && rule.getRules().getGameFile().isEnabled();
+                String renameTemplate = enableRename ? rule.getRules().getGameFile().getTemplate() : null;
+                
+                // 预检查M3U处理规则
+                boolean enableM3U = rule != null && rule.getRules() != null && 
+                    rule.getRules().getM3u() != null && rule.getRules().getM3u().isEnabled();
+                
                 for (Game game : games) {
                     executorService.submit(() -> {
                         try {
                             Path sourcePath = null;
+                            String gameName = game.getName();
+                            String absolutePath = game.getAbsolutePath();
+                            String platformPath = game.getPlatformPath();
+                            String gamePath = game.getPath();
                             
                             // 尝试从absolutePath获取源路径
-                            if (game.getAbsolutePath() != null && !game.getAbsolutePath().isEmpty()) {
-                                sourcePath = Paths.get(game.getAbsolutePath());
-                                logger.debug("Using absolutePath for game {}: {}", game.getName(), game.getAbsolutePath());
+                            if (absolutePath != null && !absolutePath.isEmpty()) {
+                                sourcePath = Paths.get(absolutePath);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Using absolutePath for game {}: {}", gameName, absolutePath);
+                                }
                             } 
                             // 如果absolutePath为空，尝试从platformPath和path构建
-                            else if (game.getPlatformPath() != null && !game.getPlatformPath().isEmpty() 
-                                && game.getPath() != null && !game.getPath().isEmpty()) {
-                                sourcePath = Paths.get(game.getPlatformPath(), game.getPath());
-                                logger.debug("Using platformPath + path for game {}: {} + {}", 
-                                    game.getName(), game.getPlatformPath(), game.getPath());
+                            else if (platformPath != null && !platformPath.isEmpty() 
+                                && gamePath != null && !gamePath.isEmpty()) {
+                                sourcePath = Paths.get(platformPath, gamePath);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Using platformPath + path for game {}: {} + {}", 
+                                        gameName, platformPath, gamePath);
+                                }
                             } else {
-                                logger.warn("No valid path found for game: {} (absolutePath: {}, platformPath: {}, path: {})", 
-                                    game.getName(), game.getAbsolutePath(), game.getPlatformPath(), game.getPath());
+                                if (logger.isWarnEnabled()) {
+                                    logger.warn("No valid path found for game: {} (absolutePath: {}, platformPath: {}, path: {})", 
+                                        gameName, absolutePath, platformPath, gamePath);
+                                }
                                 return;
                             }
                             
                             if (Files.exists(sourcePath)) {
                                 // 目标路径：目标路径 + PATH 列
-                                String targetFileName = game.getPath();
+                                String targetFileName = gamePath;
                                 if (targetFileName == null || targetFileName.isEmpty()) {
                                     targetFileName = sourcePath.getFileName().toString();
                                 }
                                 
                                 // 检查是否配置了游戏文件重命名
-                                if (rule != null && rule.getRules() != null && rule.getRules().getGameFile() != null && rule.getRules().getGameFile().isEnabled()) {
-                                    String template = rule.getRules().getGameFile().getTemplate();
-                                    if (template != null && !template.isEmpty()) {
-                                        // 构建变量映射
-                                        Map<String, String> renameVariables = new HashMap<>();
-                                        renameVariables.put("platform", platformName);
-                                        renameVariables.put("name", game.getName() != null ? game.getName().replaceAll("[<>\"/\\|?*]", "_") : "");
-                                        renameVariables.put("filename", getSingleGameFieldValue(game, "filename") != null ? getSingleGameFieldValue(game, "filename") : "");
-                                        // 获取扩展名
-                                        String ext = "";
-                                        if (targetFileName.contains(".")) {
-                                            ext = targetFileName.substring(targetFileName.lastIndexOf(".") + 1);
+                                if (enableRename && renameTemplate != null && !renameTemplate.isEmpty()) {
+                                    // 构建变量映射
+                                    Map<String, String> renameVariables = new HashMap<>();
+                                    renameVariables.put("platform", platformName);
+                                    renameVariables.put("name", gameName != null ? gameName.replaceAll("[<>\"/\\|?*]", "_") : "");
+                                    renameVariables.put("filename", getSingleGameFieldValue(game, "filename") != null ? getSingleGameFieldValue(game, "filename") : "");
+                                    // 获取扩展名
+                                    String ext = "";
+                                    if (targetFileName.contains(".")) {
+                                        ext = targetFileName.substring(targetFileName.lastIndexOf(".") + 1);
+                                    }
+                                    renameVariables.put("ext", ext);
+                                    
+                                    // 替换模板中的变量
+                                    String newFileName = renameTemplate;
+                                    for (Map.Entry<String, String> entry : renameVariables.entrySet()) {
+                                        if (entry.getValue() != null) {
+                                            newFileName = newFileName.replace("{" + entry.getKey() + "}", entry.getValue());
                                         }
-                                        renameVariables.put("ext", ext);
-                                        
-                                        // 替换模板中的变量
-                                        String newFileName = template;
-                                        for (Map.Entry<String, String> entry : renameVariables.entrySet()) {
-                                            if (entry.getValue() != null) {
-                                                newFileName = newFileName.replace("{" + entry.getKey() + "}", entry.getValue());
-                                            }
-                                        }
-                                        // 确保扩展名正确
-                                        if (!newFileName.endsWith("." + ext)) {
-                                            newFileName = newFileName + "." + ext;
-                                        }
-                                        targetFileName = newFileName;
+                                    }
+                                    // 确保扩展名正确
+                                    if (!newFileName.endsWith("." + ext)) {
+                                        newFileName = newFileName + "." + ext;
+                                    }
+                                    targetFileName = newFileName;
+                                    if (logger.isInfoEnabled()) {
                                         logger.info("Game file renamed: {} -> {}", sourcePath.getFileName(), targetFileName);
                                     }
                                 }
                                 
                                 Path targetFilePath = Paths.get(romsPath, targetFileName);
                                 copyFile(sourcePath, targetFilePath);
-                                logger.info("Copied game file: {} -> {}", sourcePath.getFileName(), targetFileName);
+                                
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Copied game file: {} -> {}", sourcePath.getFileName(), targetFileName);
+                                }
+                                
                                 // 添加详细日志到任务
                                 if (taskId != null) {
                                     taskService.updateTaskLog(taskId, "复制游戏文件: " + sourcePath.toString() + " -> " + targetFilePath.toString());
@@ -308,16 +329,16 @@ public class ExportServiceImpl implements ExportService {
                                 
                                 // 处理 M3U 文件
                                 if (targetFileName.toLowerCase().endsWith(".m3u")) {
-                                    // 检查导出规则中是否启用了 M3U 处理
-                                    if (rule != null && rule.getRules() != null && rule.getRules().getM3u() != null && rule.getRules().getM3u().isEnabled()) {
+                                    if (enableM3U) {
                                         processM3UFile(sourcePath, targetFilePath, romsPath, rule, game);
                                     } else {
-                                        // 如果没有启用 M3U 处理，使用默认方式
                                         processM3UFile(sourcePath, targetFilePath, romsPath);
                                     }
                                 }
                             } else {
-                                logger.warn("Source file does not exist: {}", sourcePath);
+                                if (logger.isWarnEnabled()) {
+                                    logger.warn("Source file does not exist: {}", sourcePath);
+                                }
                             }
                         } catch (Exception e) {
                             logger.error("Failed to copy game file: {}", game.getName(), e);
@@ -387,12 +408,19 @@ public class ExportServiceImpl implements ExportService {
             if (games != null && !games.isEmpty()) {
                 // 使用传入的线程数
                 logger.info("Using {} threads for media file copy", threadCount);
-                logger.info("Media rules size: {}", rule.getRules().getMedia().size());
-                for (String key : rule.getRules().getMedia().keySet()) {
-                    logger.info("Media rule key: {}", key);
+                
+                // 只在DEBUG模式下输出详细的媒体规则信息
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Media rules size: {}", rule.getRules().getMedia().size());
+                    for (String key : rule.getRules().getMedia().keySet()) {
+                        logger.debug("Media rule key: {}", key);
+                    }
                 }
                 
                 ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+                
+                // 预构建媒体规则列表，避免在循环中重复获取
+                List<Map.Entry<String, ExportRule.MediaRule>> mediaRules = new ArrayList<>(rule.getRules().getMedia().entrySet());
                 
                 for (Game game : games) {
                     executorService.submit(() -> {
@@ -408,40 +436,50 @@ public class ExportServiceImpl implements ExportService {
                             threadVariables.put("gameName", filename);
                             
                             // 处理每种媒体类型
-                            for (Map.Entry<String, ExportRule.MediaRule> entry : rule.getRules().getMedia().entrySet()) {
+                            for (Map.Entry<String, ExportRule.MediaRule> entry : mediaRules) {
                                 ExportRule.MediaRule mediaRule = entry.getValue();
                                 String sourceField = mediaRule.getSource();
                                 String targetTemplate = mediaRule.getTarget();
-                                logger.info("Processing media type: {}, source: {}, target: {}", entry.getKey(), sourceField, targetTemplate);
+                                
+                                // 只在DEBUG模式下输出处理信息
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Processing media type: {}, source: {}, target: {}", entry.getKey(), sourceField, targetTemplate);
+                                }
                                 
                                 // 从游戏对象中获取媒体文件相对路径
                                 String mediaRelativePath = getMediaFilePathFromGame(game, sourceField);
-                                logger.info("Media field: {}, value: {}", sourceField, mediaRelativePath);
                                 
                                 if (mediaRelativePath != null && !mediaRelativePath.isEmpty()) {
                                     // 原路径：PLATFORM_PATH + 媒体文件相对路径
                                     String platformPath = game.getPlatformPath();
                                     if (platformPath != null && !platformPath.isEmpty()) {
                                         Path sourcePath = Paths.get(platformPath, mediaRelativePath);
-                                        logger.debug("Media file source path: {}", sourcePath);
+                                        
                                         if (Files.exists(sourcePath)) {
                                             // 目标路径：根据规则配置来拼接
                                             String targetPathStr = replaceVariables(targetTemplate, threadVariables);
                                             Path targetFilePath = Paths.get(targetPathStr);
                                             copyFile(sourcePath, targetFilePath);
-                                            logger.info("Copied media file: {} -> {}", sourcePath.getFileName(), targetFilePath.getFileName());
+                                            
+                                            // 只在DEBUG模式下输出复制信息
+                                            if (logger.isDebugEnabled()) {
+                                                logger.debug("Copied media file: {} -> {}", sourcePath.getFileName(), targetFilePath.getFileName());
+                                            }
+                                            
                                             // 添加详细日志到任务
                                             if (taskId != null) {
                                                 taskService.updateTaskLog(taskId, "复制媒体文件: " + sourcePath.toString() + " -> " + targetFilePath.toString());
                                             }
                                         } else {
-                                            logger.warn("Media file does not exist: {}", sourcePath);
+                                            if (logger.isWarnEnabled()) {
+                                                logger.warn("Media file does not exist: {}", sourcePath);
+                                            }
                                         }
                                     } else {
-                                        logger.warn("Platform path is null or empty for game: {}", game.getName());
+                                        if (logger.isWarnEnabled()) {
+                                            logger.warn("Platform path is null or empty for game: {}", game.getName());
+                                        }
                                     }
-                                } else {
-                                    logger.info("Media relative path is null or empty for game: {}, source field: {}", game.getName(), sourceField);
                                 }
                             }
                         } catch (Exception e) {
@@ -730,8 +768,19 @@ public class ExportServiceImpl implements ExportService {
     private void copyFile(Path source, Path target) throws IOException {
         // 确保目标目录存在
         Files.createDirectories(target.getParent());
-        // 复制文件
-        Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+        
+        // 使用更快的NIO复制方式，使用较大的缓冲区
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(source.toFile());
+             java.io.FileOutputStream fos = new java.io.FileOutputStream(target.toFile());
+             java.nio.channels.FileChannel inChannel = fis.getChannel();
+             java.nio.channels.FileChannel outChannel = fos.getChannel()) {
+            
+            long size = inChannel.size();
+            long position = 0;
+            while (position < size) {
+                position += inChannel.transferTo(position, 8192 * 1024, outChannel);
+            }
+        }
     }
 
     private String replaceVariables(String template, Map<String, String> variables) {

@@ -134,7 +134,7 @@ public class GameListXml {
             this.source = source;
         }
 
-        @XmlElement(name = "id")
+        @XmlElement(name = "idTag")
         public String getIdTag() {
             return idTag;
         }

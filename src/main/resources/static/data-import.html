@@ -652,6 +652,9 @@
             });
         }
         
+        // 模板列表全局变量
+        let templates = [];
+        
         // 从服务器获取模板列表
         function loadTemplates() {
             const importTemplateSelect = document.getElementById('importTemplate');
@@ -667,8 +670,9 @@
                     }
                     return response.json();
                 })
-                .then(templates => {
-                    console.log('Templates received:', templates);
+                .then(data => {
+                    console.log('Templates received:', data);
+                    templates = data || []; // 保存到全局变量
                     importTemplateSelect.innerHTML = '';
                     if (templates && templates.length > 0) {
                         templates.forEach(template => {
@@ -683,6 +687,8 @@
                         option.textContent = getI18nText('no_templates_available');
                         importTemplateSelect.appendChild(option);
                     }
+                    // 加载完成后更新描述
+                    updateTemplateDescription();
                 })
                 .catch(error => {
                     console.error('Error loading templates:', error);
@@ -816,59 +822,17 @@
             await I18n.setLanguage(lang);
         }
         
-        // 更新模板描述
+        // 更新模板描述 - 从模板JSON文件中读取
         function updateTemplateDescription() {
             const templateSelect = document.getElementById('importTemplate');
             const descriptionDiv = document.getElementById('templateDescription');
             const selectedTemplate = templateSelect.value;
             
-            const descriptions = {
-                'pegasus.json': {
-                    'zh-CN': 'Pegasus 标准模板：适用于 Pegasus 前端，支持 metadata.pegasus.txt 格式的数据文件。使用冒号作为分隔符，支持多值字段和媒体文件路径配置。',
-                    'en-US': 'Pegasus Standard Template: Suitable for Pegasus frontend, supports metadata.pegasus.txt format data files. Uses colon as separator, supports multi-value fields and media file path configuration.',
-                    'ja-JP': 'Pegasus 標準テンプレート：Pegasus フロントエンドに適した、metadata.pegasus.txt 形式のデータファイルをサポートします。コロンを区切り文字として使用し、複数値フィールドとメディアファイルパスの設定をサポートします。'
-                },
-                'retrobat.json': {
-                    'zh-CN': 'RetroBat 标准模板：适用于 RetroBat 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'RetroBat Standard Template: Suitable for RetroBat frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'RetroBat 標準テンプレート：RetroBat フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                },
-                'esde.json': {
-                    'zh-CN': 'ES-DE 标准模板：适用于 ES-DE 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'ES-DE Standard Template: Suitable for ES-DE frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'ES-DE 標準テンプレート：ES-DE フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                },
-                'generic.json': {
-                    'zh-CN': '通用模板：适用于一般情况，支持基本的游戏元数据导入。可根据需要自定义字段映射和媒体文件路径规则。',
-                    'en-US': 'Generic Template: Suitable for general cases, supports basic game metadata import. Can customize field mappings and media file path rules as needed.',
-                    'ja-JP': '汎用テンプレート：一般的なケースに適した、基本的なゲームメタデータのインポートをサポートします。必要に応じてフィールドマッピングとメディアファイルパスルールをカスタマイズできます。'
-                },
-                'Pegasus': {
-                    'zh-CN': 'Pegasus 标准模板：适用于 Pegasus 前端，支持 metadata.pegasus.txt 格式的数据文件。使用冒号作为分隔符，支持多值字段和媒体文件路径配置。',
-                    'en-US': 'Pegasus Standard Template: Suitable for Pegasus frontend, supports metadata.pegasus.txt format data files. Uses colon as separator, supports multi-value fields and media file path configuration.',
-                    'ja-JP': 'Pegasus 標準テンプレート：Pegasus フロントエンドに適した、metadata.pegasus.txt 形式のデータファイルをサポートします。コロンを区切り文字として使用し、複数値フィールドとメディアファイルパスの設定をサポートします。'
-                },
-                'RetroBat': {
-                    'zh-CN': 'RetroBat 标准模板：适用于 RetroBat 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'RetroBat Standard Template: Suitable for RetroBat frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'RetroBat 標準テンプレート：RetroBat フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                },
-                'ES-DE': {
-                    'zh-CN': 'ES-DE 标准模板：适用于 ES-DE 前端，支持 gamelist.xml 格式的数据文件。使用 XML 格式，支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'ES-DE Standard Template: Suitable for ES-DE frontend, supports gamelist.xml format data files. Uses XML format, supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'ES-DE 標準テンプレート：ES-DE フロントエンドに適した、gamelist.xml 形式のデータファイルをサポートします。XML 形式を使用し、完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                },
-                'Generic': {
-                    'zh-CN': '通用模板：适用于一般情况，支持基本的游戏元数据导入。可根据需要自定义字段映射和媒体文件路径规则。',
-                    'en-US': 'Generic Template: Suitable for general cases, supports basic game metadata import. Can customize field mappings and media file path rules as needed.',
-                    'ja-JP': '汎用テンプレート：一般的なケースに適した、基本的なゲームメタデータのインポートをサポートします。必要に応じてフィールドマッピングとメディアファイルパスルールをカスタマイズできます。'
-                }
-            };
+            // 从已加载的模板列表中查找选中的模板
+            const template = templates.find(t => t.fileName === selectedTemplate);
             
-            const lang = getCurrentLanguage();
-            if (descriptions[selectedTemplate]) {
-                const description = descriptions[selectedTemplate][lang] || descriptions[selectedTemplate]['zh-CN'];
-                descriptionDiv.textContent = description;
+            if (template && template.description) {
+                descriptionDiv.textContent = template.description;
             } else {
                 descriptionDiv.textContent = I18n.t('no_template_description') || '暂无模板描述';
             }

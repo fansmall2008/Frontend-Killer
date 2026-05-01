@@ -42,6 +42,9 @@ public interface GameMapper {
     // 批量查询已存在的游戏路径
     List<String> selectExistingGamePaths(List<String> paths);
     
+    // 批量查询指定平台下已存在的游戏路径
+    List<String> selectExistingGamePathsByPlatformId(Map<String, Object> params);
+    
     // 平台合并相关方法
     Game selectGameByGameIdAndPlatformId(String gameId, Long platformId);
     List<Game> selectGamesByGameId(String gameId);

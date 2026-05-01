@@ -475,6 +475,13 @@
         </foreach>
     </select>
     
+    <select id="selectExistingGamePathsByPlatformId" resultType="java.lang.String">
+        SELECT path FROM game WHERE platform_id = #{platformId} AND path IN
+        <foreach collection="paths" item="path" open="(" close=")" separator=",">
+            #{path}
+        </foreach>
+    </select>
+    
     <!-- 平台合并相关查询 -->
     <select id="selectGameByGameIdAndPlatformId" resultMap="GameResultMap">
         SELECT * FROM game WHERE game_id = #{param1} AND platform_id = #{param2}

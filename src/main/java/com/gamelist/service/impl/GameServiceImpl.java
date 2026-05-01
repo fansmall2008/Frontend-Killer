@@ -1,6 +1,7 @@
 package com.gamelist.service.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import com.gamelist.mapper.GameMapper;
 import com.gamelist.mapper.PlatformMapper;
+import com.gamelist.model.FilterResult;
 import com.gamelist.model.Game;
 import com.gamelist.model.ImportStatistics;
 import com.gamelist.model.Platform;
@@ -31,6 +33,7 @@ import com.gamelist.model.ScanResult;
 import com.gamelist.model.Statistics;
 import com.gamelist.service.GameService;
 import com.gamelist.service.PlatformService;
+import com.gamelist.util.ErrorLogWriter;
 import com.gamelist.util.LanguageDetector;
 import com.gamelist.util.MediaFileFinder;
 import com.gamelist.util.PegasusMetadataParser;
@@ -134,20 +137,77 @@ public class GameServiceImpl implements GameService {
         
         // 转换游戏数据并保存
         List<Game> games = new ArrayList<>();
+        int totalGamesInXml = gameListXml.getGame() != null ? gameListXml.getGame().size() : 0;
+        int successfullyConverted = 0;
+        int failedConversions = 0;
+        List<String> failedGameNames = new ArrayList<>();
+        
+        logger.info("========== 开始转换游戏数据 ==========");
+        logger.info("XML中游戏总数: {}", totalGamesInXml);
         
         // 添加空指针检查
         if (gameListXml.getGame() != null) {
-            for (GameListXml.GameXml gameXml : gameListXml.getGame()) {
-                Game game = convertToGameModel(gameXml, platform.getId(), gameListFilePath, "generic", false, platform.getFolderPath());
-                games.add(game);
+            int gameIndex = 0;
+            List<GameListXml.GameXml> gameXmlList = gameListXml.getGame();
+            
+            // 记录第一个和最后一个游戏
+            if (gameXmlList.size() > 0) {
+                GameListXml.GameXml firstGame = gameXmlList.get(0);
+                GameListXml.GameXml lastGame = gameXmlList.get(gameXmlList.size() - 1);
+                logger.info("第一个游戏: name={}, path={}", 
+                    firstGame.getName() != null ? firstGame.getName() : "null",
+                    firstGame.getPath() != null ? firstGame.getPath() : "null");
+                logger.info("最后一个游戏: name={}, path={}", 
+                    lastGame.getName() != null ? lastGame.getName() : "null",
+                    lastGame.getPath() != null ? lastGame.getPath() : "null");
             }
+            
+            for (GameListXml.GameXml gameXml : gameXmlList) {
+                gameIndex++;
+                String gameName = gameXml.getName() != null ? gameXml.getName() : "null";
+                String gamePath = gameXml.getPath() != null ? gameXml.getPath() : "null";
+                logger.info("处理游戏 #{}/{}: name={}, path={}", gameIndex, totalGamesInXml, gameName, gamePath);
+                
+                try {
+                    Game game = convertToGameModel(gameXml, platform.getId(), gameListFilePath, "generic", false, platform.getFolderPath());
+                    games.add(game);
+                    successfullyConverted++;
+                    logger.debug("游戏转换成功: name={}, gameId={}", gameName, game.getGameId());
+                } catch (Exception e) {
+                    failedConversions++;
+                    failedGameNames.add(gameName);
+                    logger.error("转换游戏失败 (#{}/{}): name={}, path={}, 错误: {}", gameIndex, totalGamesInXml, gameName, gamePath, e.getMessage());
+                }
+            }
+            logger.info("游戏转换完成 - 总数: {}, 成功: {}, 失败: {}", totalGamesInXml, successfullyConverted, failedConversions);
+            
+            // 如果有失败的游戏，记录详细信息
+            if (failedConversions > 0) {
+                logger.info("失败的游戏列表: {}", failedGameNames);
+            }
+        } else {
+            logger.info("游戏列表为空");
         }
+        
+        logger.info("转换后游戏列表大小: {}", games.size());
+        logger.info("========== 游戏数据转换结束 ==========");
+        
+        // 记录导入统计信息
+        logger.info("========== 导入统计 ==========");
+        logger.info("XML文件中的游戏总数: {}", totalGamesInXml);
+        logger.info("转换成功的游戏数: {}", successfullyConverted);
+        logger.info("转换失败的游戏数: {}", failedConversions);
+        logger.info("准备导入的游戏数: {}", games.size());
         
         // 批量保存游戏前检查路径是否已存在
         if (!games.isEmpty()) {
             // 优化：分批处理和批量插入
-            importGamesInBatches(games, platform);
+            importGamesInBatches(games, platform, 1, totalGamesInXml);
+        } else if (totalGamesInXml > 0) {
+            logger.warn("警告：XML中有 {} 个游戏，但转换后列表为空！", totalGamesInXml);
         }
+        
+        logger.info("========== 导入统计结束 ==========");
     }
     
     /**
@@ -156,7 +216,7 @@ public class GameServiceImpl implements GameService {
      * @param platform 平台信息
      */
     private void importGamesInBatches(List<Game> allGames, Platform platform) {
-        importGamesInBatches(allGames, platform, 1);
+        importGamesInBatches(allGames, platform, 1, allGames.size());
     }
 
     /**
@@ -166,8 +226,23 @@ public class GameServiceImpl implements GameService {
      * @param threadCount 线程数
      */
     private void importGamesInBatches(List<Game> allGames, Platform platform, int threadCount) {
+        importGamesInBatches(allGames, platform, threadCount, allGames.size());
+    }
+
+    /**
+     * 分批处理游戏数据，避免一次性加载所有数据到内存，支持多线程
+     * @param allGames 所有游戏数据
+     * @param platform 平台信息
+     * @param threadCount 线程数
+     * @param totalGamesInXml XML文件中的游戏总数（用于统计对比）
+     */
+    private void importGamesInBatches(List<Game> allGames, Platform platform, int threadCount, int totalGamesInXml) {
         int batchSize = 1000; // 每批处理1000个游戏
         int actualThreads = threadCount > 1 ? Math.min(threadCount, 10) : 1;
+        
+        // 收集错误信息用于写入日志
+        List<String> allSkippedPaths = Collections.synchronizedList(new ArrayList<>());
+        List<String> allNullPathGames = Collections.synchronizedList(new ArrayList<>());
 
         if (actualThreads > 1 && allGames.size() > batchSize) {
             // 多线程处理
@@ -184,55 +259,136 @@ public class GameServiceImpl implements GameService {
 
             // 使用线程池并行处理
             ExecutorService executor = Executors.newFixedThreadPool(actualThreads);
-            List<Future<?>> futures = new ArrayList<>();
+            List<Future<Integer>> futures = new ArrayList<>();
 
             for (List<Game> chunk : gameChunks) {
                 futures.add(executor.submit(() -> {
+                    int inserted = 0;
                     for (int i = 0; i < chunk.size(); i += batchSize) {
                         int end = Math.min(i + batchSize, chunk.size());
                         List<Game> batchGames = chunk.subList(i, end);
-                        List<Game> newGames = filterNewGames(batchGames);
-                        if (!newGames.isEmpty()) {
-                            batchInsertGames(newGames);
+                        
+                        // 将过滤和插入作为原子操作，避免竞态条件
+                        synchronized (GameServiceImpl.class) {
+                            FilterResult result = filterNewGames(batchGames, platform.getId());
+                            // 收集跳过的游戏信息
+                            allSkippedPaths.addAll(result.getSkippedPaths());
+                            allNullPathGames.addAll(result.getNullPathGames());
+                            
+                            List<Game> newGames = result.getNewGames();
+                            if (!newGames.isEmpty()) {
+                                batchInsertGames(newGames);
+                                inserted += newGames.size();
+                            }
                         }
                     }
+                    return inserted;
                 }));
             }
 
-            // 等待所有任务完成
-            for (Future<?> future : futures) {
+            // 等待所有任务完成并统计结果
+            int totalInsertedCount = 0;
+            int failedTasks = 0;
+            
+            for (Future<Integer> future : futures) {
                 try {
-                    future.get();
+                    totalInsertedCount += future.get();
                 } catch (Exception e) {
-                    logger.error("多线程导入失败", e);
+                    failedTasks++;
+                    logger.error("多线程导入任务失败", e);
                 }
             }
 
+            // 等待线程池关闭，确保所有任务真正完成
             executor.shutdown();
+            try {
+                if (!executor.awaitTermination(5, java.util.concurrent.TimeUnit.MINUTES)) {
+                    logger.warn("线程池未能在5分钟内关闭，强制关闭");
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                logger.error("等待线程池关闭被中断", e);
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            
+            // 对比统计
+            int missingCount = totalGamesInXml - totalInsertedCount;
+            logger.info("多线程导入完成，共插入 {} 个游戏，失败任务数: {}", totalInsertedCount, failedTasks);
+            logger.info("【统计对比】XML游戏总数: {}, 实际插入: {}, 差异: {}", totalGamesInXml, totalInsertedCount, missingCount);
+            
+            if (missingCount != 0) {
+                logger.warn("【注意】存在 {} 个游戏未被导入！", missingCount);
+            }
         } else {
             // 单线程处理
+            int totalInserted = 0;
+            logger.info("开始单线程导入，共 {} 个游戏", allGames.size());
+            
             for (int i = 0; i < allGames.size(); i += batchSize) {
                 int end = Math.min(i + batchSize, allGames.size());
                 List<Game> batchGames = allGames.subList(i, end);
 
                 // 过滤出新游戏（使用数据库批量查询）
-                List<Game> newGames = filterNewGames(batchGames);
+                FilterResult result = filterNewGames(batchGames, platform.getId());
+                
+                // 收集跳过的游戏信息
+                allSkippedPaths.addAll(result.getSkippedPaths());
+                allNullPathGames.addAll(result.getNullPathGames());
 
                 // 批量插入新游戏
+                List<Game> newGames = result.getNewGames();
                 if (!newGames.isEmpty()) {
                     batchInsertGames(newGames);
+                    totalInserted += newGames.size();
+                    logger.info("批次 {}-{}: 过滤后 {} 个新游戏，已插入", i, end, newGames.size());
+                } else {
+                    logger.info("批次 {}-{}: 没有新游戏需要插入", i, end);
                 }
             }
+            
+            // 对比统计
+            int missingCount = totalGamesInXml - totalInserted;
+            logger.info("单线程导入完成，共插入 {} 个游戏", totalInserted);
+            logger.info("【统计对比】XML游戏总数: {}, 实际插入: {}, 差异: {}", totalGamesInXml, totalInserted, missingCount);
+            
+            if (missingCount != 0) {
+                logger.warn("【注意】存在 {} 个游戏未被导入！", missingCount);
+            }
+        }
+        
+        // 写入错误日志文件
+        try {
+            ErrorLogWriter.writeImportErrorLog(platform.getName(), allSkippedPaths, new ArrayList<>(), allNullPathGames);
+            if (!allSkippedPaths.isEmpty() || !allNullPathGames.isEmpty()) {
+                logger.info("错误日志已写入: logs/errolog-import-{}-{}.log", 
+                        platform.getName().replaceAll("[^a-zA-Z0-9\\-_]", "_"), 
+                        java.time.LocalDate.now());
+            }
+        } catch (IOException e) {
+            logger.error("写入错误日志失败", e);
         }
     }
     
     /**
      * 过滤出新游戏，使用数据库批量查询
      * @param games 游戏数据列表
-     * @return 新游戏列表
+     * @return 过滤结果（包含新游戏和跳过的游戏信息）
      */
-    private List<Game> filterNewGames(List<Game> games) {
+    private FilterResult filterNewGames(List<Game> games) {
+        return filterNewGames(games, null);
+    }
+    
+    /**
+     * 过滤出新游戏，使用数据库批量查询（支持平台ID）
+     * @param games 游戏数据列表
+     * @param platformId 平台ID（可选，为null时全局查询）
+     * @return 过滤结果（包含新游戏和跳过的游戏信息）
+     */
+    private FilterResult filterNewGames(List<Game> games, Long platformId) {
         List<Game> newGames = new ArrayList<>();
+        List<String> skippedPaths = new ArrayList<>();
+        List<String> nullPathGames = new ArrayList<>();
         
         // 批量查询已存在的路径
         if (!games.isEmpty()) {
@@ -250,20 +406,72 @@ public class GameServiceImpl implements GameService {
                     paths.add(game.getPath());
                 }
                 
-                // 批量查询已存在的路径
-                List<String> existingBatchPaths = gameMapper.selectExistingGamePaths(paths);
+                // 批量查询已存在的路径（考虑平台ID）
+                List<String> existingBatchPaths;
+                if (platformId != null) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("platformId", platformId);
+                    params.put("paths", paths);
+                    existingBatchPaths = gameMapper.selectExistingGamePathsByPlatformId(params);
+                    logger.debug("查询批次 {}-{}, 平台ID: {}, 发现已存在 {} 个路径", i, end, platformId, existingBatchPaths.size());
+                } else {
+                    existingBatchPaths = gameMapper.selectExistingGamePaths(paths);
+                    logger.debug("查询批次 {}-{}, 全局查询，发现已存在 {} 个路径", i, end, existingBatchPaths.size());
+                }
                 existingPaths.addAll(existingBatchPaths);
+                
+                // 记录查询到的已存在路径
+                if (!existingBatchPaths.isEmpty()) {
+                    logger.debug("已存在的路径列表: {}", existingBatchPaths);
+                }
             }
             
             // 过滤出新游戏
+            int skippedCount = 0;
+            int nullPathCount = 0;
+            
             for (Game game : games) {
-                if (!existingPaths.contains(game.getPath())) {
-                    newGames.add(game);
+                String gamePath = game.getPath();
+                String gameName = game.getName() != null ? game.getName() : "null";
+                
+                // 检查路径是否为空
+                if (gamePath == null || gamePath.isEmpty()) {
+                    nullPathCount++;
+                    nullPathGames.add(gameName);
+                    logger.warn("游戏路径为空，跳过该游戏: name={}, gameId={}", gameName, game.getGameId());
+                    skippedCount++;
+                    continue;
                 }
+                
+                boolean exists = existingPaths.contains(gamePath);
+                
+                if (!exists) {
+                    newGames.add(game);
+                } else {
+                    skippedCount++;
+                    skippedPaths.add(gamePath);
+                    logger.info("跳过已存在的游戏: path={}, name={}, gameId={}", 
+                            gamePath, gameName, game.getGameId());
+                }
+            }
+            
+            // 如果有路径为空的游戏，记录详细信息
+            if (nullPathCount > 0) {
+                logger.warn("共有 {} 个游戏路径为空被跳过，游戏名称: {}", nullPathCount, nullPathGames);
+            }
+            
+            logger.info("filterNewGames - 总游戏数: {}, 新增游戏数: {}, 跳过游戏数: {}", 
+                    games.size(), newGames.size(), skippedCount);
+            
+            // 如果有跳过的游戏，记录完整列表
+            if (skippedCount > 0 && skippedCount < 10) {
+                logger.info("跳过的路径列表: {}", skippedPaths);
+            } else if (skippedCount >= 10) {
+                logger.info("跳过的路径数量较多，仅显示前10个: {}", skippedPaths.subList(0, 10));
             }
         }
         
-        return newGames;
+        return new FilterResult(newGames, skippedPaths, nullPathGames);
     }
     
     /**
@@ -272,13 +480,24 @@ public class GameServiceImpl implements GameService {
      */
     private void batchInsertGames(List<Game> games) {
         int insertBatchSize = 500; // 每批插入500个游戏，提高速度
+        int totalInserted = 0;
+        
+        logger.info("开始批量插入 {} 个游戏", games.size());
         
         for (int i = 0; i < games.size(); i += insertBatchSize) {
             int end = Math.min(i + insertBatchSize, games.size());
             List<Game> batch = games.subList(i, end);
+            int batchSize = batch.size();
+            
+            logger.debug("插入批次 {}-{}, 数量: {}", i, end, batchSize);
             
             try {
+                long startTime = System.currentTimeMillis();
                 gameMapper.insertGamesBatch(batch);
+                long endTime = System.currentTimeMillis();
+                
+                totalInserted += batchSize;
+                logger.info("批次 {}-{} 插入成功，耗时: {}ms", i, end, endTime - startTime);
                 
                 // 每批插入后短暂休眠，给数据库时间处理其他请求
                 if (i + insertBatchSize < games.size()) {
@@ -286,15 +505,17 @@ public class GameServiceImpl implements GameService {
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
-                logger.error("插入过程被中断", ie);
+                logger.error("插入过程被中断，当前批次: {}-{}", i, end, ie);
                 String errorMessage = ie.getMessage() != null ? ie.getMessage() : "未知错误";
                 throw new RuntimeException("插入过程被中断: " + errorMessage, ie);
             } catch (Exception ex) {
-                logger.error("批量保存游戏失败", ex);
+                logger.error("批量保存游戏失败，当前批次: {}-{}", i, end, ex);
                 String errorMessage = ex.getMessage() != null ? ex.getMessage() : "未知错误";
                 throw new RuntimeException("批量保存游戏失败: " + errorMessage, ex);
             }
         }
+        
+        logger.info("批量插入完成，共插入 {} 个游戏", totalInserted);
     }
     
     @Override
