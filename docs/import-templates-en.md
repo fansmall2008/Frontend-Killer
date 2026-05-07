@@ -514,6 +514,397 @@ For convenience, the system provides pre-configured `transform` settings for pat
 }
 ```
 
+### 2.3.3 Skraper-EmulationStation (XML) Configuration Example
+
+```json
+{
+  "frontend": "skraper-es",
+  "name": "Skraper-EmulationStation",
+  "version": "1.0",
+  "description": "Template for importing Skraper-scraped data for EmulationStation frontend with deep subdirectory media support",
+  "type": "xml",
+  "dataFile": "gamelist.xml",
+  "delimiter": "",
+  "rules": {
+    "header": {
+      "enabled": false
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["name"],
+        "isMultiValue": false
+      },
+      "description": {
+        "fields": ["desc", "description"],
+        "isMultiValue": false
+      },
+      "releaseDate": {
+        "fields": ["releasedate", "release"],
+        "isMultiValue": false
+      },
+      "developer": {
+        "fields": ["developer", "dev"],
+        "isMultiValue": false
+      },
+      "publisher": {
+        "fields": ["publisher", "pub"],
+        "isMultiValue": false
+      },
+      "genre": {
+        "fields": ["genre", "category"],
+        "isMultiValue": false
+      },
+      "players": {
+        "fields": ["players", "player"],
+        "isMultiValue": false
+      },
+      "rating": {
+        "fields": ["rating"],
+        "isMultiValue": false
+      },
+      "hash": {
+        "fields": ["hash"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["path", "file"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "image": {
+        "fields": ["image"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "fields": ["video"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "thumbnail": {
+        "fields": ["thumbnail"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "fields": ["marquee"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "rules": [
+          "media/box2dfront/{filepath}.{ext}",
+          "media/box2dfron/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxBack": {
+        "source": "boxBack",
+        "rules": [
+          "media/box2dback/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxSpine": {
+        "source": "boxSpine",
+        "rules": [
+          "media/box2dside/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "box3d": {
+        "source": "box3d",
+        "rules": [
+          "media/box3d/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxtexture": {
+        "source": "boxtexture",
+        "rules": [
+          "media/boxtexture/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "fanart": {
+        "source": "fanart",
+        "rules": [
+          "media/fanart/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "banner": {
+        "source": "banner",
+        "rules": [
+          "media/images/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "source": "marquee",
+        "rules": [
+          "media/marquee/{filepath}.{ext}",
+          "media/screenmarquee/{filepath}.{ext}",
+          "media/screenmarquesmall/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "rules": [
+          "media/screenshot/{filepath}.{ext}",
+          "media/screenshots/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "rules": [
+          "media/screenshottitle/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "steamgrid": {
+        "source": "steamgrid",
+        "rules": [
+          "media/steamgrid/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "support": {
+        "source": "support",
+        "rules": [
+          "media/support/{filepath}.{ext}",
+          "media/supporttexture/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "source": "video",
+        "rules": [
+          "media/videos/{filepath}.{ext}",
+          "media/video/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "wheel": {
+        "source": "wheel",
+        "rules": [
+          "media/wheel/{filepath}.{ext}",
+          "media/wheelcarbon/{filepath}.{ext}",
+          "media/wheelsteel/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"],
+      "video": ["mp4", "mkv", "avi", "wmv", "webm"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds", "gb", "gbc", "sms", "gg", "pcengine", "pce", "tg16", "saturn", "ps2", "gamecube", "wii", "xbox", "xbox360", "ps3", "ps4", "switch", "3ds", "psp", "ds", "dreamcast", "arcade", "fba", "mame", "a26", "int"]
+  }
+}
+```
+
+**Skraper-EmulationStation Template Features:**
+
+1. **Deep Subdirectory Support**: Uses `{filepath}` variable to support deep subdirectory structures for both game and media files
+2. **Full Media Type Coverage**: Supports all media types generated by Skraper:
+   - box2dfront, box2dback, box2dside (2D box art)
+   - box3d (3D box art)
+   - boxtexture, support, supporttexture (textures)
+   - fanart (background images)
+   - images (banners)
+   - marquee, screenmarquee, screenmarquesmall (title banners)
+   - screenshot, screenshottitle (screenshots)
+   - steamgrid (Steam grid images)
+   - videos (video previews)
+   - wheel, wheelcarbon, wheelsteel (wheel icons)
+
+3. **Example Path Matching**:
+   - Game path: `./All 2600 ROMs_16MB/4 Game Series Collections/Genre/Shoot 'em Ups/Sort By - 3-D Style/3-D Genesis (USA) (Proto).a26`
+   - Media path: `media/images/All 2600 ROMs_16MB/4 Game Series Collections/Genre/Shoot 'em Ups/Sort By - 3-D Style/3-D Genesis (USA) (Proto).png`
+
+### 2.3.4 EmulationStation DE (ES-DE) Configuration Example
+
+```json
+{
+  "frontend": "esde",
+  "name": "EmulationStation DE",
+  "version": "1.0",
+  "description": "Template for importing EmulationStation DE (ES-DE) data. Note: Please copy the 'downloaded_media' and 'gamelists' folders to the same directory before importing.",
+  "type": "xml",
+  "dataFile": "gamelist.xml",
+  "delimiter": "",
+  "rules": {
+    "header": {
+      "enabled": false
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["name"],
+        "isMultiValue": false
+      },
+      "description": {
+        "fields": ["desc", "description"],
+        "isMultiValue": false
+      },
+      "releaseDate": {
+        "fields": ["releasedate", "release"],
+        "isMultiValue": false
+      },
+      "developer": {
+        "fields": ["developer", "dev"],
+        "isMultiValue": false
+      },
+      "publisher": {
+        "fields": ["publisher", "pub"],
+        "isMultiValue": false
+      },
+      "genre": {
+        "fields": ["genre", "category"],
+        "isMultiValue": false
+      },
+      "players": {
+        "fields": ["players", "player"],
+        "isMultiValue": false
+      },
+      "rating": {
+        "fields": ["rating"],
+        "isMultiValue": false
+      },
+      "hash": {
+        "fields": ["hash"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["path", "file"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "rules": [
+          "downloaded_media/{platform}/boxfront/{filepath}.{ext}",
+          "downloaded_media/{platform}/covers/{filepath}.{ext}"
+        ]
+      },
+      "boxBack": {
+        "source": "boxBack",
+        "rules": [
+          "downloaded_media/{platform}/boxback/{filepath}.{ext}"
+        ]
+      },
+      "box3d": {
+        "source": "box3d",
+        "rules": [
+          "downloaded_media/{platform}/box3d/{filepath}.{ext}"
+        ]
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "rules": [
+          "downloaded_media/{platform}/screenshot/{filepath}.{ext}"
+        ]
+      },
+      "video": {
+        "source": "video",
+        "rules": [
+          "downloaded_media/{platform}/video/{filepath}.{ext}"
+        ]
+      },
+      "wheel": {
+        "source": "wheel",
+        "rules": [
+          "downloaded_media/{platform}/wheel/{filepath}.{ext}"
+        ]
+      },
+      "marquee": {
+        "source": "marquee",
+        "rules": [
+          "downloaded_media/{platform}/marquee/{filepath}.{ext}"
+        ]
+      },
+      "fanart": {
+        "source": "fanart",
+        "rules": [
+          "downloaded_media/{platform}/fanart/{filepath}.{ext}"
+        ]
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "rules": [
+          "downloaded_media/{platform}/titlescreen/{filepath}.{ext}"
+        ]
+      },
+      "manual": {
+        "source": "manual",
+        "rules": [
+          "downloaded_media/{platform}/manual/{filepath}.{ext}"
+        ]
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"],
+      "video": ["mp4", "mkv", "avi", "wmv", "webm"],
+      "manual": ["pdf"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds", "gb", "gbc", "sms", "gg", "pcengine", "pce", "tg16", "saturn", "ps2", "gamecube", "wii", "xbox", "xbox360", "ps3", "ps4", "switch", "3ds", "psp", "ds", "dreamcast", "arcade", "fba", "mame"]
+  }
+}
+```
+
+**ES-DE Import Template Features:**
+
+1. **Pre-import Preparation**: Please copy ES-DE's `downloaded_media` and `gamelists` folders to the same directory before importing
+2. **Media File Matching**: Uses `{filepath}` variable to support media files with subdirectory structures
+3. **Supported Media Types**: boxfront, boxback, box3d, screenshot, video, wheel, marquee, fanart, titlescreen, manual
+
 ## 3. Template Variables
 
 Import templates support the following variables:
@@ -521,11 +912,18 @@ Import templates support the following variables:
 | Variable | Description |
 |----------|-------------|
 | `{gameName}` | Game name (without extension) |
+| `{filename}` | Same as `{gameName}`, game name (without extension) |
+| `{filepath}` | Full game file path (without extension, including subdirectories) |
 | `{platform}` | Platform name |
 | `{ext}` | File extension |
 | `{outputPath}` | Output path |
 | `{mediaPath}` | Media file path |
 | `{romsPath}` | Game file path |
+
+**Variable Description:**
+
+- `{gameName}` / `{filename}`: Contains only the file name, without path and extension. Example: `path1/path2/game.a26` → `game`
+- `{filepath}`: Contains the full path (without extension). Example: `path1/path2/game.a26` → `path1/path2/game`
 
 **Usage Example:**
 
@@ -542,6 +940,42 @@ Import templates support the following variables:
   }
 }
 ```
+
+**Using `{filepath}` for Subdirectory Media Files:**
+
+When media files are organized according to the directory structure of game files, you can use the `{filepath}` variable:
+
+```json
+"rules": {
+  "media": {
+    "screenshot": {
+      "source": "screenshot",
+      "rules": [
+        "media/screenshot/{filepath}.{ext}"
+      ]
+    },
+    "boxFront": {
+      "source": "boxFront",
+      "rules": [
+        "media/box2dfront/{filepath}.{ext}"
+      ]
+    },
+    "video": {
+      "source": "video",
+      "rules": [
+        "media/videos/{filepath}.{ext}"
+      ]
+    }
+  }
+}
+```
+
+**Example Explanation:**
+
+For a game path `path1/path2/game.a26`, the system will look for:
+- `media/screenshot/path1/path2/game.png`
+- `media/box2dfront/path1/path2/game.png`
+- `media/videos/path1/path2/game.mp4`
 
 ## 4. Media File Matching Mechanism
 
@@ -697,5 +1131,12 @@ The import function provides a flexible and extensible way to import game data f
 
 ---
 
-**Version**: 1.1
-**Last Updated**: 2026-04-26
+**Version**: 1.2
+**Last Updated**: 2026-05-07
+
+### Changelog
+
+#### v1.2 (2026-05-07)
+- Added `{filepath}` template variable for media file matching
+  - Supports media files organized in subdirectories
+  - For example: `media/screenshot/{filepath}.{ext}` → `media/screenshot/path1/path2/game.png`

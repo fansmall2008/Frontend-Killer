@@ -514,6 +514,258 @@
 }
 ```
 
+#### 2.3.3 Skraper-EmulationStation (XML) 配置示例
+
+```json
+{
+  "frontend": "skraper-es",
+  "name": "Skraper-EmulationStation",
+  "version": "1.0",
+  "description": "适用于 Skraper 抓取的 EmulationStation 前端数据导入模板，支持深度子目录媒体文件",
+  "type": "xml",
+  "dataFile": "gamelist.xml",
+  "delimiter": "",
+  "rules": {
+    "header": {
+      "enabled": false
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["name"],
+        "isMultiValue": false
+      },
+      "description": {
+        "fields": ["desc", "description"],
+        "isMultiValue": false
+      },
+      "releaseDate": {
+        "fields": ["releasedate", "release"],
+        "isMultiValue": false
+      },
+      "developer": {
+        "fields": ["developer", "dev"],
+        "isMultiValue": false
+      },
+      "publisher": {
+        "fields": ["publisher", "pub"],
+        "isMultiValue": false
+      },
+      "genre": {
+        "fields": ["genre", "category"],
+        "isMultiValue": false
+      },
+      "players": {
+        "fields": ["players", "player"],
+        "isMultiValue": false
+      },
+      "rating": {
+        "fields": ["rating"],
+        "isMultiValue": false
+      },
+      "hash": {
+        "fields": ["hash"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["path", "file"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "image": {
+        "fields": ["image"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "fields": ["video"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "thumbnail": {
+        "fields": ["thumbnail"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "fields": ["marquee"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "rules": [
+          "media/box2dfront/{filepath}.{ext}",
+          "media/box2dfron/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxBack": {
+        "source": "boxBack",
+        "rules": [
+          "media/box2dback/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxSpine": {
+        "source": "boxSpine",
+        "rules": [
+          "media/box2dside/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "box3d": {
+        "source": "box3d",
+        "rules": [
+          "media/box3d/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxtexture": {
+        "source": "boxtexture",
+        "rules": [
+          "media/boxtexture/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "fanart": {
+        "source": "fanart",
+        "rules": [
+          "media/fanart/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "banner": {
+        "source": "banner",
+        "rules": [
+          "media/images/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "source": "marquee",
+        "rules": [
+          "media/marquee/{filepath}.{ext}",
+          "media/screenmarquee/{filepath}.{ext}",
+          "media/screenmarquesmall/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "rules": [
+          "media/screenshot/{filepath}.{ext}",
+          "media/screenshots/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "rules": [
+          "media/screenshottitle/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "steamgrid": {
+        "source": "steamgrid",
+        "rules": [
+          "media/steamgrid/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "support": {
+        "source": "support",
+        "rules": [
+          "media/support/{filepath}.{ext}",
+          "media/supporttexture/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "source": "video",
+        "rules": [
+          "media/videos/{filepath}.{ext}",
+          "media/video/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "wheel": {
+        "source": "wheel",
+        "rules": [
+          "media/wheel/{filepath}.{ext}",
+          "media/wheelcarbon/{filepath}.{ext}",
+          "media/wheelsteel/{filepath}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"],
+      "video": ["mp4", "mkv", "avi", "wmv", "webm"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds", "gb", "gbc", "sms", "gg", "pcengine", "pce", "tg16", "saturn", "ps2", "gamecube", "wii", "xbox", "xbox360", "ps3", "ps4", "switch", "3ds", "psp", "ds", "dreamcast", "arcade", "fba", "mame", "a26", "int"]
+  }
+}
+```
+
+**Skraper-EmulationStation 模板特点：**
+
+1. **深度子目录支持**：使用 `{filepath}` 变量支持游戏文件和媒体文件的深度子目录结构
+2. **完整媒体类型覆盖**：支持 Skraper 生成的所有媒体类型：
+   - box2dfront, box2dback, box2dside（2D 盒艺术）
+   - box3d（3D 盒艺术）
+   - boxtexture, support, supporttexture（纹理）
+   - fanart（背景图）
+   - images（横幅图）
+   - marquee, screenmarquee, screenmarquesmall（标题横幅）
+   - screenshot, screenshottitle（截图）
+   - steamgrid（Steam 网格图）
+   - videos（视频预览）
+   - wheel, wheelcarbon, wheelsteel（轮图标）
+
+3. **示例路径匹配**：
+   - 游戏路径：`./All 2600 ROMs_16MB/4 Game Series Collections/Genre/Shoot 'em Ups/Sort By - 3-D Style/3-D Genesis (USA) (Proto).a26`
+   - 媒体路径：`media/images/All 2600 ROMs_16MB/4 Game Series Collections/Genre/Shoot 'em Ups/Sort By - 3-D Style/3-D Genesis (USA) (Proto).png`
+
 ## 3. 模板变量
 
 导入模板支持以下变量：
@@ -521,11 +773,18 @@
 | 变量名 | 说明 |
 |-------|------|
 | `{gameName}` | 游戏名称（不含扩展名） |
+| `{filename}` | 同 `{gameName}`，游戏名称（不含扩展名） |
+| `{filepath}` | 游戏文件完整路径（不含扩展名，包含子目录） |
 | `{platform}` | 平台名称 |
 | `{ext}` | 文件扩展名 |
 | `{outputPath}` | 输出路径 |
 | `{mediaPath}` | 媒体文件路径 |
 | `{romsPath}` | 游戏文件路径 |
+
+**变量说明：**
+
+- `{gameName}` / `{filename}`: 仅包含纯文件名，不含路径和扩展名。例如 `path1/path2/游戏a.a26` → `游戏a`
+- `{filepath}`: 包含完整路径（不含扩展名）。例如 `path1/path2/游戏a.a26` → `path1/path2/游戏a`
 
 **使用示例：**
 
@@ -542,6 +801,181 @@
   }
 }
 ```
+
+**使用 `{filepath}` 支持子目录媒体文件：**
+
+当媒体文件按照游戏文件的目录结构组织时，可以使用 `{filepath}` 变量：
+
+```json
+"rules": {
+  "media": {
+    "screenshot": {
+      "source": "screenshot",
+      "rules": [
+        "media/screenshot/{filepath}.{ext}"
+      ]
+    },
+    "boxFront": {
+      "source": "boxFront",
+      "rules": [
+        "media/box2dfront/{filepath}.{ext}"
+      ]
+    },
+    "video": {
+      "source": "video",
+      "rules": [
+        "media/videos/{filepath}.{ext}"
+      ]
+    }
+  }
+}
+```
+
+**示例说明：**
+
+对于游戏路径 `path1/path2/游戏a.a26`，系统会查找：
+- `media/screenshot/path1/path2/游戏a.png`
+- `media/box2dfront/path1/path2/游戏a.png`
+- `media/videos/path1/path2/游戏a.mp4`
+
+#### 2.3.4 EmulationStation DE (ES-DE) 配置示例
+
+```json
+{
+  "frontend": "esde",
+  "name": "EmulationStation DE",
+  "version": "1.0",
+  "description": "适用于 EmulationStation DE (ES-DE) 的数据导入模板。注意：请在导入前将 'downloaded_media' 和 'gamelists' 文件夹拷贝到同一目录下。",
+  "type": "xml",
+  "dataFile": "gamelist.xml",
+  "delimiter": "",
+  "rules": {
+    "header": {
+      "enabled": false
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["name"],
+        "isMultiValue": false
+      },
+      "description": {
+        "fields": ["desc", "description"],
+        "isMultiValue": false
+      },
+      "releaseDate": {
+        "fields": ["releasedate", "release"],
+        "isMultiValue": false
+      },
+      "developer": {
+        "fields": ["developer", "dev"],
+        "isMultiValue": false
+      },
+      "publisher": {
+        "fields": ["publisher", "pub"],
+        "isMultiValue": false
+      },
+      "genre": {
+        "fields": ["genre", "category"],
+        "isMultiValue": false
+      },
+      "players": {
+        "fields": ["players", "player"],
+        "isMultiValue": false
+      },
+      "rating": {
+        "fields": ["rating"],
+        "isMultiValue": false
+      },
+      "hash": {
+        "fields": ["hash"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["path", "file"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "rules": [
+          "downloaded_media/{platform}/boxfront/{filepath}.{ext}",
+          "downloaded_media/{platform}/covers/{filepath}.{ext}"
+        ]
+      },
+      "boxBack": {
+        "source": "boxBack",
+        "rules": [
+          "downloaded_media/{platform}/boxback/{filepath}.{ext}"
+        ]
+      },
+      "box3d": {
+        "source": "box3d",
+        "rules": [
+          "downloaded_media/{platform}/box3d/{filepath}.{ext}"
+        ]
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "rules": [
+          "downloaded_media/{platform}/screenshot/{filepath}.{ext}"
+        ]
+      },
+      "video": {
+        "source": "video",
+        "rules": [
+          "downloaded_media/{platform}/video/{filepath}.{ext}"
+        ]
+      },
+      "wheel": {
+        "source": "wheel",
+        "rules": [
+          "downloaded_media/{platform}/wheel/{filepath}.{ext}"
+        ]
+      },
+      "marquee": {
+        "source": "marquee",
+        "rules": [
+          "downloaded_media/{platform}/marquee/{filepath}.{ext}"
+        ]
+      },
+      "fanart": {
+        "source": "fanart",
+        "rules": [
+          "downloaded_media/{platform}/fanart/{filepath}.{ext}"
+        ]
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "rules": [
+          "downloaded_media/{platform}/titlescreen/{filepath}.{ext}"
+        ]
+      },
+      "manual": {
+        "source": "manual",
+        "rules": [
+          "downloaded_media/{platform}/manual/{filepath}.{ext}"
+        ]
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"],
+      "video": ["mp4", "mkv", "avi", "wmv", "webm"],
+      "manual": ["pdf"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds", "gb", "gbc", "sms", "gg", "pcengine", "pce", "tg16", "saturn", "ps2", "gamecube", "wii", "xbox", "xbox360", "ps3", "ps4", "switch", "3ds", "psp", "ds", "dreamcast", "arcade", "fba", "mame"]
+  }
+}
+```
+
+**ES-DE 导入模板特点：**
+
+1. **导入前准备**：请将 ES-DE 的 `downloaded_media` 和 `gamelists` 文件夹拷贝到同一目录下
+2. **媒体文件匹配**：使用 `{filepath}` 变量支持子目录结构的媒体文件
+3. **支持的媒体类型**：boxfront、boxback、box3d、screenshot、video、wheel、marquee、fanart、titlescreen、manual
 
 ## 4. 媒体文件匹配机制
 
@@ -697,5 +1131,11 @@
 
 ---
 
-**版本**: 1.1
-**最后更新**: 2026-04-26
+**版本**: 1.2
+**最后更新**: 2026-05-07
+
+### 更新日志
+
+#### v1.2 (2026-05-07)
+- 新增 `{filepath}` 变量支持，用于匹配包含子目录结构的媒体文件路径
+- 支持媒体文件按照游戏文件的目录结构组织

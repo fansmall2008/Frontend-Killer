@@ -78,6 +78,11 @@ public class GameListXml {
         private String path;
         private String name;
         private String desc;
+        // Lakka .lpl 特定字段
+        private String corePath;
+        private String coreName;
+        private String databaseLink;
+        private String playlistName;
         private String image;
         private String video;
         private String marquee;
@@ -492,6 +497,39 @@ public class GameListXml {
 
         public void setScrap(Scrap scrap) {
             this.scrap = scrap;
+        }
+
+        // Lakka .lpl 特定字段的 getter/setter
+        public String getCorePath() {
+            return corePath;
+        }
+
+        public void setCorePath(String corePath) {
+            this.corePath = corePath;
+        }
+
+        public String getCoreName() {
+            return coreName;
+        }
+
+        public void setCoreName(String coreName) {
+            this.coreName = coreName;
+        }
+
+        public String getDatabaseLink() {
+            return databaseLink;
+        }
+
+        public void setDatabaseLink(String databaseLink) {
+            this.databaseLink = databaseLink;
+        }
+
+        public String getPlaylistName() {
+            return playlistName;
+        }
+
+        public void setPlaylistName(String playlistName) {
+            this.playlistName = playlistName;
         }
 
         public static class Scrap {

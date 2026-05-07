@@ -1323,11 +1323,16 @@ public class GameServiceImpl implements GameService {
     }
 
     private Game convertToGameModel(GameListXml.GameXml gameXml, Long platformId, String gameListFilePath, String platformType, boolean metadataOnly, String platformPath) {
+        return convertToGameModel(gameXml, platformId, gameListFilePath, platformType, metadataOnly, platformPath, null);
+    }
+    
+    private Game convertToGameModel(GameListXml.GameXml gameXml, Long platformId, String gameListFilePath, String platformType, boolean metadataOnly, String platformPath, ImportTemplate template) {
         Game game = new Game();
         String originalPath = gameXml.getPath();
         String path = originalPath;
         String absolutePath = null;
         Boolean exists = false;
+        String gameName = null;
         
         // 计算绝对路径并检查文件是否存在
         if (path != null && !path.isEmpty()) {
@@ -1357,6 +1362,12 @@ public class GameServiceImpl implements GameService {
             
             // 路径已经处理完毕，不再需要保留原始路径
         
+        // 提取游戏名称（用于媒体文件匹配）
+        gameName = LanguageDetector.extractFileName(absolutePath != null ? absolutePath : path);
+        if (gameName == null || gameName.isEmpty()) {
+            gameName = LanguageDetector.extractFileName(path);
+        }
+        
         // 确保gameId不为null，优先使用<game>标签的id属性，其次使用<gameid>子标签，最后使用文件名作为备选方案
         String gameId = gameXml.getId();
         if (gameId == null || gameId.isEmpty()) {
@@ -1364,7 +1375,7 @@ public class GameServiceImpl implements GameService {
             if (gameId == null || gameId.isEmpty()) {
                 gameId = gameXml.getIdTag();
                 if (gameId == null || gameId.isEmpty()) {
-                    gameId = LanguageDetector.extractFileName(path);
+                    gameId = gameName;
                     // 如果文件名提取失败，使用UUID或生成一个唯一标识符
                     if (gameId == null || gameId.isEmpty()) {
                         gameId = "game_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 1000);
@@ -1400,11 +1411,25 @@ public class GameServiceImpl implements GameService {
         // 设置platformPath字段
         if (platformPath != null && !platformPath.isEmpty()) {
             game.setPlatformPath(platformPath);
+        } else if (gameListFilePath != null) {
+            File gameListFile = new File(gameListFilePath);
+            File parentFolder = gameListFile.getParentFile();
+            if (parentFolder != null) {
+                platformPath = parentFolder.getAbsolutePath();
+                game.setPlatformPath(platformPath);
+            }
         }
+        
+        // 日志输出
+        logger.info("=== 开始转换游戏: {} ===", gameName);
+        logger.info("平台路径: {}", platformPath);
+        logger.info("游戏名称: {}", gameName);
+        logger.info("模板: {}", template != null ? template.getName() : "null");
         
         // 1. 验证数据文件中的媒体文件是否存在
         File gameListFile = new File(gameListFilePath);
         File gameDir = gameListFile.getParentFile();
+        boolean hasMediaFromXml = false;
         
         // 验证并设置数据文件中的媒体文件
         if (gameXml.getImage() != null) {
@@ -1416,6 +1441,7 @@ public class GameServiceImpl implements GameService {
             File imageFile = new File(gameDir, imagePath);
             if (imageFile.exists()) {
                 game.setImage(truncateString(imagePath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getVideo() != null) {
@@ -1427,6 +1453,7 @@ public class GameServiceImpl implements GameService {
             File videoFile = new File(gameDir, videoPath);
             if (videoFile.exists()) {
                 game.setVideo(truncateString(videoPath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getMarquee() != null) {
@@ -1438,6 +1465,7 @@ public class GameServiceImpl implements GameService {
             File marqueeFile = new File(gameDir, marqueePath);
             if (marqueeFile.exists()) {
                 game.setMarquee(truncateString(marqueePath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getThumbnail() != null) {
@@ -1449,6 +1477,7 @@ public class GameServiceImpl implements GameService {
             File thumbnailFile = new File(gameDir, thumbnailPath);
             if (thumbnailFile.exists()) {
                 game.setThumbnail(truncateString(thumbnailPath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getManual() != null) {
@@ -1460,6 +1489,7 @@ public class GameServiceImpl implements GameService {
             File manualFile = new File(gameDir, manualPath);
             if (manualFile.exists()) {
                 game.setManual(truncateString(manualPath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getBoxFront() != null) {
@@ -1471,6 +1501,7 @@ public class GameServiceImpl implements GameService {
             File boxFrontFile = new File(gameDir, boxFrontPath);
             if (boxFrontFile.exists()) {
                 game.setBoxFront(truncateString(boxFrontPath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getBoxBack() != null) {
@@ -1482,6 +1513,7 @@ public class GameServiceImpl implements GameService {
             File boxBackFile = new File(gameDir, boxBackPath);
             if (boxBackFile.exists()) {
                 game.setBoxBack(truncateString(boxBackPath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getBoxSpine() != null) {
@@ -1493,6 +1525,7 @@ public class GameServiceImpl implements GameService {
             File boxSpineFile = new File(gameDir, boxSpinePath);
             if (boxSpineFile.exists()) {
                 game.setBoxSpine(truncateString(boxSpinePath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getBoxFull() != null) {
@@ -1504,6 +1537,7 @@ public class GameServiceImpl implements GameService {
             File boxFullFile = new File(gameDir, boxFullPath);
             if (boxFullFile.exists()) {
                 game.setBoxFull(truncateString(boxFullPath, 255));
+                hasMediaFromXml = true;
             }
         }
         if (gameXml.getCartridge() != null) {
@@ -1515,8 +1549,18 @@ public class GameServiceImpl implements GameService {
             File cartridgeFile = new File(gameDir, cartridgePath);
             if (cartridgeFile.exists()) {
                 game.setCartridge(truncateString(cartridgePath, 255));
+                hasMediaFromXml = true;
             }
         }
+        
+        // 2. 使用模板规则查找媒体文件（如ES-DE的文件名匹配机制）
+        // 无论XML中是否有媒体文件，只要有模板就执行查找
+        if (!metadataOnly && template != null && template.getMediaRules() != null) {
+            logger.info("使用模板规则查找媒体文件...");
+            Map<String, List<String>> mediaRules = template.getMediaRules();
+            findMediaFilesForGame(game, gameDir, gameName, mediaRules);
+        }
+        
         if (gameXml.getLogo() != null) {
             String logoPath = gameXml.getLogo();
             // 处理路径中的./或.\前缀
@@ -2348,6 +2392,60 @@ public class GameServiceImpl implements GameService {
     public void importGamesFromXml(GameListXml gameListXml, String defaultPlatformName, String gameListFilePath, String platformType) {
         importGamesFromXml(gameListXml, defaultPlatformName, gameListFilePath, platformType, false, 1);
     }
+    
+    public void importGamesFromXml(GameListXml gameListXml, String defaultPlatformName, String gameListFilePath, String platformType, boolean metadataOnly, int threadCount, ImportTemplate template) {
+        if (gameListXml == null) {
+            logger.error("导入失败: gameListXml为null");
+            throw new RuntimeException("导入失败: gameListXml为null");
+        }
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String importType = "gamelist";
+        String standardizedPlatformName = "export_" + timestamp + "_" + importType + "_" + defaultPlatformName;
+
+        Platform platform = null;
+        try {
+            platform = platformService.savePlatform(gameListXml.getProvider(), standardizedPlatformName);
+
+            if (platform != null && gameListFilePath != null) {
+                File gameListFile = new File(gameListFilePath);
+                File parentFolder = gameListFile.getParentFile();
+                if (parentFolder != null) {
+                    String folderPath = parentFolder.getAbsolutePath();
+                    platform.setFolderPath(folderPath);
+                    platformService.updatePlatform(platform);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("平台保存失败: {}", e.getMessage(), e);
+            throw new RuntimeException("平台保存失败: " + e.getMessage(), e);
+        }
+
+        if (platform == null) {
+            logger.error("导入失败: 平台保存后返回null");
+            throw new RuntimeException("导入失败: 平台保存后返回null");
+        }
+
+        List<Game> games = new ArrayList<>();
+
+        if (gameListXml.getGame() != null) {
+            for (GameListXml.GameXml gameXml : gameListXml.getGame()) {
+                Game game = convertToGameModel(gameXml, platform.getId(), gameListFilePath, platformType, metadataOnly, platform.getFolderPath(), template);
+                games.add(game);
+            }
+        }
+
+        if (!games.isEmpty()) {
+            importGamesInBatches(games, platform, threadCount);
+        }
+
+        // 更新该平台下所有游戏的PLATFORM_PATH值
+        logger.info("========== 开始更新PLATFORM_PATH ==========");
+        logger.info("platform.getId(): {}", platform.getId());
+        logger.info("platform.getFolderPath(): {}", platform.getFolderPath());
+        updatePlatformPathForAllGames(platform.getId(), platform.getFolderPath());
+        logger.info("========== 更新PLATFORM_PATH完成 ==========");
+    }
 
     @Override
     public ImportStatistics importGamesFromPegasusMetadata(String filePath) {
@@ -2974,7 +3072,19 @@ public class GameServiceImpl implements GameService {
                 parentDirName = parentFile.getName();
             }
 
-            importGamesFromXml(gameListXml, parentDirName, filePath, platformType, metadataOnly, threadCount);
+            // 加载导入模板
+            ImportTemplate template = null;
+            if (importTemplate != null && !importTemplate.isEmpty()) {
+                logger.info("尝试加载导入模板: {}", importTemplate);
+                template = ImportTemplate.loadTemplate(importTemplate);
+                if (template != null) {
+                    logger.info("成功加载模板: {}", template.getName());
+                } else {
+                    logger.warn("未能加载模板: {}", importTemplate);
+                }
+            }
+
+            importGamesFromXml(gameListXml, parentDirName, filePath, platformType, metadataOnly, threadCount, template);
 
             stats.incrementPlatforms();
             if (gameListXml.getGame() != null) {
@@ -3060,6 +3170,169 @@ public class GameServiceImpl implements GameService {
             throw new RuntimeException("导入失败: " + errorMessage, e);
         }
         return stats;
+    }
+    
+    @Override
+    public ImportStatistics importGamesFromLplFile(String filePath) {
+        return importGamesFromLplFile(filePath, false, 1);
+    }
+    
+    @Override
+    public ImportStatistics importGamesFromLplFile(String filePath, boolean metadataOnly, int threadCount) {
+        return importGamesFromLplFile(filePath, "traditional", null, metadataOnly, threadCount);
+    }
+    
+    @Override
+    public ImportStatistics importGamesFromLplFile(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount) {
+        ImportStatistics stats = new ImportStatistics();
+        logger.info("开始从LPL文件导入游戏: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}", 
+                filePath, importMethod, importTemplate, metadataOnly, threadCount);
+        
+        try {
+            File file = new File(filePath);
+            if (!file.exists()) {
+                logger.error("文件不存在: {}", filePath);
+                throw new RuntimeException("导入失败: 文件不存在");
+            }
+            
+            // 加载导入模板（如果提供）
+            ImportTemplate template = null;
+            Map<String, String> lineMappings = null;
+            String nullValueMarker = "DETECT";
+            
+            if ("template".equals(importMethod) && importTemplate != null && !importTemplate.isEmpty()) {
+                template = ImportTemplate.loadTemplate(importTemplate);
+                if (template != null && template.getRules() != null && template.getRules().getTextFormat() != null) {
+                    lineMappings = template.getRules().getTextFormat().getLineMappings();
+                    if (template.getRules().getTextFormat().getNullValueMarker() != null) {
+                        nullValueMarker = template.getRules().getTextFormat().getNullValueMarker();
+                    }
+                }
+            }
+            
+            // 解析LPL文件
+            int linesPerEntry = 6; // 默认6行格式
+            if (template != null && template.getRules() != null && template.getRules().getTextFormat() != null) {
+                linesPerEntry = template.getRules().getTextFormat().getLinesPerEntry();
+            }
+            
+            GameListXml gameListXml = GameListParser.parseLplFile(file, linesPerEntry, lineMappings, nullValueMarker);
+            
+            // 从文件名提取平台名（去掉.lpl扩展名）
+            String fileName = file.getName();
+            String platformName = fileName;
+            if (fileName.endsWith(".lpl")) {
+                platformName = fileName.substring(0, fileName.length() - 4);
+            }
+            
+            // 标准化平台名
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String standardizedPlatformName = "export_" + timestamp + "_lpl_" + platformName;
+            
+            // 创建或更新平台
+            Platform platform = new Platform();
+            platform.setSystem(standardizedPlatformName);
+            platform.setName(standardizedPlatformName);
+            platform.setSoftware("Lakka");
+            platform.setDatabase("Lakka Database");
+            platform.setWeb("https://www.lakka.tv/");
+            
+            // 设置平台路径（LPL文件所在目录）
+            File parentFolder = file.getParentFile();
+            if (parentFolder != null) {
+                platform.setFolderPath(parentFolder.getAbsolutePath());
+            }
+            
+            Platform existingPlatform = platformService.getPlatformBySystem(standardizedPlatformName);
+            if (existingPlatform == null) {
+                platformMapper.insertPlatform(platform);
+            } else {
+                platform.setId(existingPlatform.getId());
+                platformMapper.updatePlatform(platform);
+            }
+            
+            // 转换游戏数据并导入
+            List<Game> games = new ArrayList<>();
+            if (gameListXml.getGame() != null) {
+                for (GameListXml.GameXml gameXml : gameListXml.getGame()) {
+                    Game game = convertToGameModelFromLpl(gameXml, platform.getId(), filePath, metadataOnly, platform.getFolderPath());
+                    if (game != null) {
+                        games.add(game);
+                    }
+                }
+            }
+            
+            if (!games.isEmpty()) {
+                importGamesInBatches(games, platform, threadCount);
+            }
+            
+            // 更新平台路径
+            updatePlatformPathForAllGames(platform.getId(), platform.getFolderPath());
+            
+            stats.incrementPlatforms();
+            stats.addGames(games.size());
+            
+            logger.info("LPL文件导入完成，平台数: {}, 游戏数: {}", stats.getImportedPlatforms(), stats.getImportedGames());
+            
+        } catch (Exception e) {
+            logger.error("从LPL文件导入游戏失败: {}", filePath, e);
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "未知错误";
+            throw new RuntimeException("导入失败: " + errorMessage, e);
+        }
+        
+        return stats;
+    }
+    
+    /**
+     * 将LPL解析的游戏数据转换为Game模型
+     */
+    private Game convertToGameModelFromLpl(GameListXml.GameXml gameXml, Long platformId, String lplFilePath, boolean metadataOnly, String platformPath) {
+        Game game = new Game();
+        
+        // 设置基本信息
+        game.setPlatformId(platformId);
+        game.setName(gameXml.getName());
+        game.setPath(gameXml.getPath());
+        
+        // 设置gameId（数据库要求NOT NULL）
+        // 优先使用gameXml中的gameId，如果为空则设置为"0"
+        String gameId = gameXml.getGameid();
+        if (gameId == null || gameId.isEmpty()) {
+            gameId = "0";
+        }
+        game.setGameId(gameId);
+        
+        // 设置LPL特定字段
+        game.setCorePath(gameXml.getCorePath());
+        game.setCoreName(gameXml.getCoreName());
+        game.setDatabaseLink(gameXml.getDatabaseLink());
+        
+        // 如果路径不为空，提取文件名作为备用名称
+        if (game.getName() == null || game.getName().isEmpty()) {
+            String path = game.getPath();
+            if (path != null && !path.isEmpty()) {
+                int lastSeparator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+                String fileName = lastSeparator >= 0 ? path.substring(lastSeparator + 1) : path;
+                // 去掉扩展名
+                int lastDot = fileName.lastIndexOf('.');
+                if (lastDot >= 0) {
+                    fileName = fileName.substring(0, lastDot);
+                }
+                game.setName(fileName);
+            }
+        }
+        
+        // 设置平台路径
+        game.setPlatformPath(platformPath);
+        
+        // 设置默认值
+        if (game.getDeveloper() == null) game.setDeveloper("");
+        if (game.getPublisher() == null) game.setPublisher("");
+        if (game.getGenre() == null) game.setGenre("");
+        if (game.getPlayers() == null) game.setPlayers("1");
+        if (game.getRating() == null) game.setRating(0.0);
+        
+        return game;
     }
 
     @Override
@@ -3415,13 +3688,32 @@ public class GameServiceImpl implements GameService {
         File platformDir = new File(game.getPlatformPath());
         String platformDirPath = platformDir.getAbsolutePath();
         
+        // 获取游戏文件的完整路径（不含扩展名），用于 {filepath} 变量
+        String gameFilePath = game.getPath();
+        String filePathWithoutExt = gameName; // 默认使用文件名
+        if (gameFilePath != null && !gameFilePath.isEmpty()) {
+            // 移除扩展名
+            filePathWithoutExt = gameFilePath.replaceAll("\\.[^.]+$", "");
+        }
+        
+        // 输出调试信息：平台目录和游戏信息
+        logger.info("=== 开始查找媒体文件 ===");
+        logger.info("平台目录: {}", platformDirPath);
+        logger.info("游戏名称: {}", gameName);
+        logger.info("游戏路径: {}", gameFilePath);
+        logger.info("文件路径(无扩展名): {}", filePathWithoutExt);
+        
         for (Map.Entry<String, List<String>> entry : mediaRules.entrySet()) {
             String mediaType = entry.getKey();
             List<String> rules = entry.getValue();
+            
+            logger.info("查找媒体类型: {}", mediaType);
 
             for (String rule : rules) {
-                // 替换 {filename} 和 {gameName} 占位符
-                String mediaPath = rule.replace("{filename}", gameName).replace("{gameName}", gameName);
+                // 替换 {filename}、{gameName} 和 {filepath} 占位符
+                String mediaPath = rule.replace("{filename}", gameName)
+                                      .replace("{gameName}", gameName)
+                                      .replace("{filepath}", filePathWithoutExt);
 
                 // 处理 {ext} 占位符 - 尝试常见扩展名
                 int extPlaceholderIndex = mediaPath.indexOf("{ext}");
@@ -3431,28 +3723,34 @@ public class GameServiceImpl implements GameService {
                         // 媒体文件路径是相对于平台目录的
                         File mediaFile = new File(platformDir, basePath + ext);
                         String mediaFilePath = mediaFile.getAbsolutePath();
-                        logger.debug("查找媒体文件: {}", mediaFilePath);
+                        logger.info("尝试媒体路径 [{}]: {}", ext, mediaFilePath);
                         if (mediaFile.exists()) {
                             String relativePath = getRelativePath(mediaFilePath, platformDirPath);
                             setGameMediaField(game, mediaType, relativePath);
-                            logger.info("找到媒体文件: {} for type: {}, relative: {}", mediaFilePath, mediaType, relativePath);
+                            logger.info("✓ 找到媒体文件: {} for type: {}, relative: {}", mediaFilePath, mediaType, relativePath);
                             break;
+                        } else {
+                            logger.info("✗ 文件不存在: {}", mediaFilePath);
                         }
                     }
                 } else {
                     // 媒体文件路径是相对于平台目录的
                     File mediaFile = new File(platformDir, mediaPath);
                     String mediaFilePath = mediaFile.getAbsolutePath();
-                    logger.debug("查找媒体文件: {}", mediaFilePath);
+                    logger.info("尝试媒体路径: {}", mediaFilePath);
                     if (mediaFile.exists()) {
                         String relativePath = getRelativePath(mediaFilePath, platformDirPath);
                         setGameMediaField(game, mediaType, relativePath);
-                        logger.info("找到媒体文件: {} for type: {}, relative: {}", mediaFilePath, mediaType, relativePath);
+                        logger.info("✓ 找到媒体文件: {} for type: {}, relative: {}", mediaFilePath, mediaType, relativePath);
                         break;
+                    } else {
+                        logger.info("✗ 文件不存在: {}", mediaFilePath);
                     }
                 }
             }
         }
+        
+        logger.info("=== 媒体文件查找结束 ===");
     }
 
     /**
@@ -3463,16 +3761,25 @@ public class GameServiceImpl implements GameService {
             return;
         }
 
-        switch (mediaType) {
+        switch (mediaType.toLowerCase()) {
+            case "boxfront":
             case "box2dfront":
                 game.setBoxFront(mediaPath);
                 game.setImage(mediaPath);
                 break;
+            case "boxback":
             case "box2dback":
                 game.setBoxBack(mediaPath);
                 break;
+            case "boxspine":
+            case "box2dside":
+                game.setBoxSpine(mediaPath);
+                break;
             case "box3d":
                 game.setBox3d(mediaPath);
+                break;
+            case "boxfull":
+                game.setBoxFull(mediaPath);
                 break;
             case "screenshot":
                 game.setScreenshot(mediaPath);
@@ -3487,12 +3794,6 @@ public class GameServiceImpl implements GameService {
             case "marquee":
                 game.setMarquee(mediaPath);
                 game.setLogo(mediaPath);
-                break;
-            case "boxfull":
-                game.setBoxFull(mediaPath);
-                break;
-            case "boxspine":
-                game.setBoxSpine(mediaPath);
                 break;
             case "cartridge":
                 game.setCartridge(mediaPath);
@@ -3539,8 +3840,12 @@ public class GameServiceImpl implements GameService {
             case "boxtexture":
                 game.setBoxtexture(mediaPath);
                 break;
+            case "support":
             case "supporttexture":
                 game.setSupporttexture(mediaPath);
+                break;
+            case "logo":
+                game.setLogo(mediaPath);
                 break;
             case "manual":
                 game.setManual(mediaPath);
@@ -3607,8 +3912,15 @@ public class GameServiceImpl implements GameService {
 
         // 查找媒体文件
         if (!metadataOnly) {
+            logger.info("=== 创建游戏文件 ===");
+            logger.info("游戏文件: {}", absolutePath);
+            logger.info("导入方法: {}", importMethod);
+            logger.info("模板名称: {}", template != null ? template.getName() : "null");
+            logger.info("模板媒体规则: {}", template != null && template.getMediaRules() != null ? "存在" : "不存在/null");
+            
             if ("traditional".equals(importMethod)) {
                 // 传统方式：使用默认规则查找媒体文件
+                logger.info("使用传统方式查找媒体文件");
                 MediaFileFinder.MediaFiles mediaFiles = MediaFileFinder.findMediaFiles(absolutePath, platformPath, null);
                 if (mediaFiles.getBoxFront() != null) {
                     game.setImage(mediaFiles.getBoxFront());
@@ -3628,9 +3940,18 @@ public class GameServiceImpl implements GameService {
                 // 其他媒体文件...
             } else {
                 // 模板方式：使用模板的 mediaRules 查找媒体文件
+                logger.info("使用模板方式查找媒体文件");
                 if (template != null && template.getMediaRules() != null) {
                     Map<String, List<String>> mediaRules = template.getMediaRules();
+                    logger.info("媒体规则数量: {}", mediaRules.size());
                     findMediaFilesForGame(game, gameFile.getParentFile(), gameName, mediaRules);
+                } else {
+                    logger.warn("模板或媒体规则为空");
+                    if (template == null) {
+                        logger.warn("原因: 模板为null");
+                    } else if (template.getMediaRules() == null) {
+                        logger.warn("原因: 媒体规则为null");
+                    }
                 }
             }
         }
@@ -3733,6 +4054,7 @@ public class GameServiceImpl implements GameService {
             private Map<String, MediaRule> media;
             private Map<String, List<String>> extensions;
             private List<String> gameExtensions;
+            private TextFormatConfig textFormat;
 
             public Header getHeader() { return header; }
             public void setHeader(Header header) { this.header = header; }
@@ -3744,6 +4066,28 @@ public class GameServiceImpl implements GameService {
             public void setExtensions(Map<String, List<String>> extensions) { this.extensions = extensions; }
             public List<String> getGameExtensions() { return gameExtensions; }
             public void setGameExtensions(List<String> gameExtensions) { this.gameExtensions = gameExtensions; }
+            public TextFormatConfig getTextFormat() { return textFormat; }
+            public void setTextFormat(TextFormatConfig textFormat) { this.textFormat = textFormat; }
+        }
+        
+        // 文本格式配置类（用于Lakka .lpl等多行格式）
+        public static class TextFormatConfig {
+            private int linesPerEntry;
+            private boolean autoDetect;
+            private List<Integer> supportedLineCounts;
+            private Map<String, String> lineMappings;
+            private String nullValueMarker;
+
+            public int getLinesPerEntry() { return linesPerEntry; }
+            public void setLinesPerEntry(int linesPerEntry) { this.linesPerEntry = linesPerEntry; }
+            public boolean isAutoDetect() { return autoDetect; }
+            public void setAutoDetect(boolean autoDetect) { this.autoDetect = autoDetect; }
+            public List<Integer> getSupportedLineCounts() { return supportedLineCounts; }
+            public void setSupportedLineCounts(List<Integer> supportedLineCounts) { this.supportedLineCounts = supportedLineCounts; }
+            public Map<String, String> getLineMappings() { return lineMappings; }
+            public void setLineMappings(Map<String, String> lineMappings) { this.lineMappings = lineMappings; }
+            public String getNullValueMarker() { return nullValueMarker; }
+            public void setNullValueMarker(String nullValueMarker) { this.nullValueMarker = nullValueMarker; }
         }
 
         // 媒体规则类

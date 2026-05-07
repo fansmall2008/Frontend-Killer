@@ -169,7 +169,138 @@ The following are the media file source fields, which can be used in the `source
 - **EmulationStation DE**: `esde.json`
 - **RetroBat**: `retrobat.json`
 
-### 2.8 Game File Rename Configuration (`gameFile`)
+### 2.9 EmulationStation DE (ES-DE) Configuration Example
+
+```json
+{
+  "frontend": "esde",
+  "name": "EmulationStation DE",
+  "version": "1.0",
+  "description": "Export template for EmulationStation Desktop Edition (ES-DE)",
+  "rules": {
+    "media": {
+      "boxfront": {
+        "source": "boxFront",
+        "target": "{mediaPath}/boxfront/{filename}.png",
+        "dataFileTag": null
+      },
+      "boxback": {
+        "source": "boxBack",
+        "target": "{mediaPath}/boxback/{filename}.png",
+        "dataFileTag": null
+      },
+      "cartridge": {
+        "source": "cartridge",
+        "target": "{mediaPath}/cartridge/{filename}.png",
+        "dataFileTag": null
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "target": "{mediaPath}/titlescreen/{filename}.png",
+        "dataFileTag": null
+      },
+      "marquee": {
+        "source": "marquee",
+        "target": "{mediaPath}/marquee/{filename}.png",
+        "dataFileTag": null
+      },
+      "fanart": {
+        "source": "fanart",
+        "target": "{mediaPath}/fanart/{filename}.jpg",
+        "dataFileTag": null
+      },
+      "video": {
+        "source": "video",
+        "target": "{mediaPath}/video/{filename}.mp4",
+        "dataFileTag": null
+      },
+      "manual": {
+        "source": "manual",
+        "target": "{mediaPath}/manual/{filename}.pdf",
+        "dataFileTag": null
+      },
+      "wheel": {
+        "source": "wheel",
+        "target": "{mediaPath}/wheel/{filename}.png",
+        "dataFileTag": null
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "target": "{mediaPath}/screenshot/{filename}.png",
+        "dataFileTag": null
+      },
+      "banner": {
+        "source": "banner",
+        "target": "{mediaPath}/banner/{filename}.png",
+        "dataFileTag": null
+      },
+      "box3d": {
+        "source": "box3d",
+        "target": "{mediaPath}/box3d/{filename}.png",
+        "dataFileTag": null
+      },
+      "bezel": {
+        "source": "bezel",
+        "target": "{mediaPath}/bezel/{filename}.png",
+        "dataFileTag": null
+      },
+      "steamgrid": {
+        "source": "steamgrid",
+        "target": "{mediaPath}/steamgrid/{filename}.png",
+        "dataFileTag": null
+      }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "relative",
+      "pathPrefix": "./",
+      "header": {
+        "structure": [
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<gameList>"
+        ],
+        "fields": {}
+      },
+      "footer": [
+        "</gameList>"
+      ],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "description",
+        "rating": "rating",
+        "releaseDate": "releaseYear",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players",
+        "hash": "hash"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform.system}",
+      "media": "{outputPath}/downloaded_media/{platform.system}",
+      "gamelist": "{outputPath}/gamelists/{platform.system}"
+    }
+  }
+}
+```
+
+**ES-DE Export Template Features:**
+
+1. **Three-directory structure**:
+   - `gamelists/{platform}/gamelist.xml` - Data file location
+   - `roms/{platform}/` - ROM file location
+   - `downloaded_media/{platform}/` - Media file location
+
+2. **Filename matching mechanism**: ES-DE automatically matches media files based on ROM filename, so `dataFileTag` is set to `null` and media paths are not stored in gamelist.xml.
+
+3. **Path prefix**: Uses `pathPrefix: "./"` to automatically add `./` prefix to paths.
+
+4. **Supported media types**: boxfront, boxback, cartridge, titlescreen, marquee, fanart, video, manual, wheel, screenshot, banner, box3d, bezel, steamgrid
+
+### 2.10 Game File Rename Configuration (`gameFile`)
 
 In the rule configuration file, you can configure game file renaming rules during export through the `gameFile` section:
 

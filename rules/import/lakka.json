@@ -1,0 +1,58 @@
+{
+  "frontend": "lakka",
+  "name": "Lakka",
+  "version": "1.0",
+  "description": "Template for Importing Lakka RetroArch Playlist Files (.lpl)",
+  "type": "text",
+  "dataFile": "*.lpl",
+  "delimiter": "",
+  "rules": {
+    "textFormat": {
+      "linesPerEntry": 6,
+      "autoDetect": true,
+      "supportedLineCounts": [5, 6],
+      "lineMappings": {
+        "1": "files",
+        "2": "name",
+        "3": "corePath",
+        "4": "coreName",
+        "5": "databaseLink",
+        "6": "playlistName"
+      },
+      "nullValueMarker": "DETECT"
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["name"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["files"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      },
+      "corePath": {
+        "fields": ["corePath"],
+        "isMultiValue": false
+      },
+      "coreName": {
+        "fields": ["coreName"],
+        "isMultiValue": false
+      },
+      "databaseLink": {
+        "fields": ["databaseLink"],
+        "isMultiValue": false
+      },
+      "playlistName": {
+        "fields": ["playlistName"],
+        "isMultiValue": false
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds", "pce"]
+  }
+}

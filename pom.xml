@@ -6,7 +6,7 @@
 
     <groupId>com.gamelist</groupId>
     <artifactId>webGamelistOper</artifactId>
-    <version>1.0.5-beta</version>
+    <version>1.0.6-beta2</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

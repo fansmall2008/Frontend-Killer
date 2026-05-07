@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -564,6 +565,135 @@ public class GameListParser {
         public String getPlatformType() {
             return platformType;
         }
+    }
+    
+    /**
+     * 解析Lakka .lpl播放列表文件
+     * @param lplFile .lpl文件
+     * @param linesPerEntry 每条记录的行数（5或6）
+     * @param lineMappings 行号到字段的映射
+     * @param nullValueMarker 空值标记（如"DETECT"）
+     * @return 解析后的GameListXml对象
+     */
+    public static GameListXml parseLplFile(File lplFile, int linesPerEntry, 
+            Map<String, String> lineMappings, String nullValueMarker) throws IOException {
+        logger.info("========== 开始解析LPL文件 ==========");
+        logger.info("文件路径: {}", lplFile.getAbsolutePath());
+        
+        GameListXml gameListXml = new GameListXml();
+        List<GameListXml.GameXml> games = new java.util.ArrayList<>();
+        
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(lplFile);
+             java.io.InputStreamReader isr = new java.io.InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8);
+             java.io.BufferedReader reader = new java.io.BufferedReader(isr)) {
+            
+            List<String> allLines = new java.util.ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                allLines.add(line.trim());
+            }
+            
+            logger.info("文件总行数: {}", allLines.size());
+            
+            // 自动检测行数
+            int detectedLinesPerEntry = linesPerEntry;
+            if (linesPerEntry <= 0 || (linesPerEntry == 6 && allLines.size() % 5 == 0)) {
+                // 检测是否为5行格式
+                if (allLines.size() % 5 == 0) {
+                    detectedLinesPerEntry = 5;
+                    logger.info("自动检测到5行格式");
+                } else if (allLines.size() % 6 == 0) {
+                    detectedLinesPerEntry = 6;
+                    logger.info("自动检测到6行格式");
+                } else {
+                    logger.warn("无法确定格式，使用默认: {} 行/条目", linesPerEntry);
+                    detectedLinesPerEntry = linesPerEntry > 0 ? linesPerEntry : 6;
+                }
+            }
+            
+            int entryCount = allLines.size() / detectedLinesPerEntry;
+            logger.info("预计条目数: {}", entryCount);
+            
+            for (int i = 0; i < allLines.size(); i += detectedLinesPerEntry) {
+                GameListXml.GameXml gameXml = new GameListXml.GameXml();
+                
+                for (int j = 0; j < detectedLinesPerEntry; j++) {
+                    int lineIndex = i + j;
+                    if (lineIndex >= allLines.size()) break;
+                    
+                    String lineNum = String.valueOf(j + 1);
+                    String fieldName = lineMappings != null ? lineMappings.get(lineNum) : null;
+                    String fieldValue = allLines.get(lineIndex);
+                    
+                    // 处理空值标记
+                    if (nullValueMarker != null && nullValueMarker.equals(fieldValue)) {
+                        fieldValue = null;
+                    }
+                    
+                    // 设置字段值
+                    if (fieldName != null && fieldValue != null) {
+                        switch (fieldName) {
+                            case "files":
+                                // 处理ZIP压缩ROM路径（如 .zip#.rom）
+                                if (fieldValue.contains("#")) {
+                                    // 只取ZIP文件路径部分
+                                    fieldValue = fieldValue.substring(0, fieldValue.indexOf("#"));
+                                }
+                                gameXml.setPath(fieldValue);
+                                break;
+                            case "name":
+                                gameXml.setName(fieldValue);
+                                break;
+                            case "corePath":
+                                gameXml.setCorePath(fieldValue);
+                                break;
+                            case "coreName":
+                                // 仅在6行格式时设置
+                                if (detectedLinesPerEntry == 6) {
+                                    gameXml.setCoreName(fieldValue);
+                                }
+                                break;
+                            case "databaseLink":
+                                // 5行格式时第4行是databaseLink，6行格式时第5行是databaseLink
+                                int dbLinkLine = detectedLinesPerEntry == 5 ? 4 : 5;
+                                if (j + 1 == dbLinkLine) {
+                                    gameXml.setDatabaseLink(fieldValue);
+                                }
+                                break;
+                            case "playlistName":
+                                // 5行格式时第5行是playlistName，6行格式时第6行是playlistName
+                                int playlistLine = detectedLinesPerEntry;
+                                if (j + 1 == playlistLine) {
+                                    // 从播放列表文件名提取平台名
+                                    String playlistName = fieldValue;
+                                    if (playlistName.endsWith(".lpl")) {
+                                        playlistName = playlistName.substring(0, playlistName.length() - 4);
+                                    }
+                                    gameXml.setPlaylistName(playlistName);
+                                }
+                                break;
+                        }
+                    }
+                }
+                
+                // 确保至少有名称或路径
+                if (gameXml.getName() != null || gameXml.getPath() != null) {
+                    games.add(gameXml);
+                }
+            }
+            
+            gameListXml.setGame(games);
+            logger.info("解析完成，共 {} 个游戏", games.size());
+        }
+        
+        return gameListXml;
+    }
+    
+    /**
+     * 解析Lakka .lpl播放列表文件（使用默认配置）
+     */
+    public static GameListXml parseLplFile(File lplFile) throws IOException {
+        return parseLplFile(lplFile, 6, null, "DETECT");
     }
     
     // 测试方法

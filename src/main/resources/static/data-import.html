@@ -1094,7 +1094,7 @@
 
                     if (scanResult.details && scanResult.details.length > 0) {
                         const dataFiles = scanResult.details.filter(detail =>
-                            detail.type === 'gamelist.xml' || detail.type === 'metadata.pegasus.txt'
+                            detail.type === 'gamelist.xml' || detail.type === 'metadata.pegasus.txt' || detail.type.endsWith('.lpl')
                         );
 
                         showNotification(getI18nText('found_files', dataFiles.length), 'success');

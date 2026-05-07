@@ -947,21 +947,23 @@
                 <!-- 重复文件冲突列表 -->
                 <div id="duplicateFilesSection" style="margin-top: 30px; display: none;">
                     <h3 style="color: #ff0088; margin-bottom: 20px;" data-i18n="duplicate_files_conflict">重复文件冲突</h3>
-                    <div style="background: rgba(255, 0, 136, 0.05); border: 1px solid #ff0088; border-radius: 8px; padding: 20px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid #444;">
-                                    <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="file_name">文件名</th>
-                                    <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="game_name">游戏名</th>
-                                    <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="path">Path</th>
-                                    <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="absolute_path">Absolute Path</th>
-                                    <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="action">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="duplicateFilesTableBody">
-                                <!-- 重复文件冲突将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
+                    <div style="background: rgba(255, 0, 136, 0.05); border: 1px solid #ff0088; border-radius: 8px; padding: 10px; max-height: 300px; overflow-y: auto;">
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; min-width: 800px; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid #444;">
+                                        <th style="text-align: left; padding: 10px; color: #00ffff; white-space: nowrap;" data-i18n="file_name">文件名</th>
+                                        <th style="text-align: left; padding: 10px; color: #00ffff; white-space: nowrap;" data-i18n="game_name">游戏名</th>
+                                        <th style="text-align: left; padding: 10px; color: #00ffff; white-space: nowrap;" data-i18n="path">Path</th>
+                                        <th style="text-align: left; padding: 10px; color: #00ffff; white-space: nowrap;" data-i18n="absolute_path">Absolute Path</th>
+                                        <th style="text-align: left; padding: 10px; color: #00ffff; white-space: nowrap;" data-i18n="action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="duplicateFilesTableBody">
+                                    <!-- 重复文件冲突将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

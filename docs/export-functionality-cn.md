@@ -237,6 +237,137 @@
 }
 ```
 
+#### 2.2.5.3 EmulationStation DE (ES-DE) 配置示例
+
+```json
+{
+  "frontend": "esde",
+  "name": "EmulationStation DE",
+  "version": "1.0",
+  "description": "Export template for EmulationStation Desktop Edition (ES-DE)",
+  "rules": {
+    "media": {
+      "boxfront": {
+        "source": "boxFront",
+        "target": "{mediaPath}/boxfront/{filename}.png",
+        "dataFileTag": null
+      },
+      "boxback": {
+        "source": "boxBack",
+        "target": "{mediaPath}/boxback/{filename}.png",
+        "dataFileTag": null
+      },
+      "cartridge": {
+        "source": "cartridge",
+        "target": "{mediaPath}/cartridge/{filename}.png",
+        "dataFileTag": null
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "target": "{mediaPath}/titlescreen/{filename}.png",
+        "dataFileTag": null
+      },
+      "marquee": {
+        "source": "marquee",
+        "target": "{mediaPath}/marquee/{filename}.png",
+        "dataFileTag": null
+      },
+      "fanart": {
+        "source": "fanart",
+        "target": "{mediaPath}/fanart/{filename}.jpg",
+        "dataFileTag": null
+      },
+      "video": {
+        "source": "video",
+        "target": "{mediaPath}/video/{filename}.mp4",
+        "dataFileTag": null
+      },
+      "manual": {
+        "source": "manual",
+        "target": "{mediaPath}/manual/{filename}.pdf",
+        "dataFileTag": null
+      },
+      "wheel": {
+        "source": "wheel",
+        "target": "{mediaPath}/wheel/{filename}.png",
+        "dataFileTag": null
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "target": "{mediaPath}/screenshot/{filename}.png",
+        "dataFileTag": null
+      },
+      "banner": {
+        "source": "banner",
+        "target": "{mediaPath}/banner/{filename}.png",
+        "dataFileTag": null
+      },
+      "box3d": {
+        "source": "box3d",
+        "target": "{mediaPath}/box3d/{filename}.png",
+        "dataFileTag": null
+      },
+      "bezel": {
+        "source": "bezel",
+        "target": "{mediaPath}/bezel/{filename}.png",
+        "dataFileTag": null
+      },
+      "steamgrid": {
+        "source": "steamgrid",
+        "target": "{mediaPath}/steamgrid/{filename}.png",
+        "dataFileTag": null
+      }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "relative",
+      "pathPrefix": "./",
+      "header": {
+        "structure": [
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<gameList>"
+        ],
+        "fields": {}
+      },
+      "footer": [
+        "</gameList>"
+      ],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "description",
+        "rating": "rating",
+        "releaseDate": "releaseYear",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players",
+        "hash": "hash"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform.system}",
+      "media": "{outputPath}/downloaded_media/{platform.system}",
+      "gamelist": "{outputPath}/gamelists/{platform.system}"
+    }
+  }
+}
+```
+
+**ES-DE 导出模板特点：**
+
+1. **三目录结构**：
+   - `gamelists/{platform}/gamelist.xml` - 数据文件位置
+   - `roms/{platform}/` - ROM 文件位置
+   - `downloaded_media/{platform}/` - 媒体文件位置
+
+2. **文件名匹配机制**：ES-DE 根据 ROM 文件名自动匹配媒体文件，因此 `dataFileTag` 设置为 `null`，不在 gamelist.xml 中存储媒体路径。
+
+3. **路径前缀**：使用 `pathPrefix: "./"` 自动为路径添加 `./` 前缀。
+
+4. **支持的媒体类型**：boxfront、boxback、cartridge、titlescreen、marquee、fanart、video、manual、wheel、screenshot、banner、box3d、bezel、steamgrid
+
 ### 2.3 支持的变量
 
 #### 2.3.1 路径变量

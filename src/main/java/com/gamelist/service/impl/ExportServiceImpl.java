@@ -556,16 +556,131 @@ public class ExportServiceImpl implements ExportService {
                 generator = new TextDataFileGenerator();
             } else if ("xml".equals(format) || "gamelist".equals(format)) {
                 generator = new XmlDataFileGenerator();
+            } else if ("lpl".equals(format)) {
+                // Lakka .lpl 格式需要额外处理
+                generator = new LplDataFileGenerator();
             }
             
             if (generator != null) {
                 generator.generateDataFile(games, dataFilePath, rule, platform, variables);
+                
+                // 如果是 Lakka 格式，还需要生成 .lpl 播放列表文件
+                if ("lpl".equals(format) && rule.getRules().getLplExport() != null && rule.getRules().getLplExport().isEnabled()) {
+                    generateLplFile(games, targetPath, rule, platform, variables);
+                }
             } else {
                 logger.error("Unsupported data file format: {}", format);
             }
         } catch (Exception e) {
             logger.error("Generate data file failed", e);
         }
+    }
+    
+    /**
+     * 生成 Lakka .lpl 播放列表文件
+     */
+    private void generateLplFile(List<Game> games, String targetPath, ExportRule rule, Platform platform, Map<String, String> variables) {
+        try {
+            ExportRule.LplExportRule lplExport = rule.getRules().getLplExport();
+            if (lplExport == null || lplExport.getOutputPath() == null) {
+                logger.warn("LPL export rule not properly configured");
+                return;
+            }
+            
+            // 构建 LPL 文件路径
+            Map<String, String> lplVariables = new HashMap<>(variables);
+            String platformName = platform.getName();
+            
+            // 获取平台映射
+            Map<String, String> platformMappings = rule.getRules().getPlatformMappings();
+            String mappedPlatformName = platformName;
+            if (platformMappings != null && platformMappings.containsKey(platformName)) {
+                mappedPlatformName = platformMappings.get(platformName);
+            }
+            lplVariables.put("platformName", mappedPlatformName);
+            
+            String lplFilePathStr = replaceVariables(lplExport.getOutputPath(), lplVariables);
+            Path lplFilePath = Paths.get(lplFilePathStr);
+            
+            // 创建目标目录
+            Files.createDirectories(lplFilePath.getParent());
+            
+            // 获取核心映射
+            Map<String, ExportRule.CoreMapping> coreMappings = rule.getRules().getCoreMappings();
+            ExportRule.CoreMapping coreMapping = null;
+            if (coreMappings != null) {
+                if (coreMappings.containsKey(platformName)) {
+                    coreMapping = coreMappings.get(platformName);
+                } else if (coreMappings.containsKey("default")) {
+                    coreMapping = coreMappings.get("default");
+                }
+            }
+            
+            String corePath = coreMapping != null ? coreMapping.getPath() : "DETECT";
+            String coreName = coreMapping != null ? coreMapping.getName() : "DETECT";
+            
+            // 生成 LPL 内容
+            StringBuilder content = new StringBuilder();
+            List<String> lineFormat = lplExport.getLineFormat();
+            
+            for (int i = 0; i < games.size(); i++) {
+                Game game = games.get(i);
+                
+                // 构建游戏特定变量
+                Map<String, String> gameVariables = new HashMap<>(lplVariables);
+                
+                // 获取游戏文件名
+                String gameFileName = getGameFileName(game);
+                gameVariables.put("gameFileName", gameFileName);
+                gameVariables.put("gameName", game.getName() != null ? game.getName() : gameFileName);
+                gameVariables.put("corePath", corePath);
+                gameVariables.put("coreName", coreName);
+                
+                // 处理每一行格式
+                for (int j = 0; j < lineFormat.size(); j++) {
+                    String line = lineFormat.get(j);
+                    String processedLine = replaceVariables(line, gameVariables);
+                    content.append(processedLine);
+                    
+                    // 最后一行不加换行符
+                    if (j < lineFormat.size() - 1) {
+                        content.append("\n");
+                    }
+                }
+                
+                // 游戏条目之间的分隔符（空行），最后一个游戏不加
+                if (i < games.size() - 1) {
+                    content.append("\n");
+                }
+            }
+            
+            // 写入文件
+            Files.write(lplFilePath, content.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            logger.info("Generated LPL playlist file: {}", lplFilePath);
+            
+        } catch (Exception e) {
+            logger.error("Generate LPL file failed", e);
+        }
+    }
+    
+    /**
+     * 从游戏对象获取文件名（包含扩展名）
+     */
+    private String getGameFileName(Game game) {
+        String path = game.getPath();
+        if (path != null) {
+            // 提取文件名
+            int lastSlashIndex = path.lastIndexOf('/');
+            int lastBackslashIndex = path.lastIndexOf('\\');
+            int lastSeparatorIndex = Math.max(lastSlashIndex, lastBackslashIndex);
+            String fileName = lastSeparatorIndex >= 0 ? path.substring(lastSeparatorIndex + 1) : path;
+            return fileName;
+        }
+        // 如果没有路径，使用游戏名称
+        if (game.getName() != null) {
+            return game.getName() + ".zip";
+        }
+        return "unknown.zip";
     }
 
     private void createDirectoryStructure(ExportRule rule, Long platformId, String outputPath, String platformName) throws IOException {

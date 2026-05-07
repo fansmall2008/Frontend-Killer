@@ -251,6 +251,34 @@ Set default values for missing fields:
 }
 ```
 
+### Media Path Variables
+
+Import templates support variables for media file path matching:
+
+| Variable | Description |
+|----------|-------------|
+| `{gameName}` | Game name (without extension) |
+| `{filename}` | Same as `{gameName}` |
+| `{filepath}` | Full game file path (without extension, including subdirectories) |
+| `{platform}` | Platform name |
+| `{ext}` | File extension |
+
+**Example usage for subdirectory media files:**
+
+```json
+"media": {
+  "screenshot": {
+    "source": "screenshot",
+    "rules": [
+      "media/screenshot/{filepath}.{ext}"
+    ]
+  }
+}
+```
+
+For a game path `path1/path2/game.a26`, this will look for:
+- `media/screenshot/path1/path2/game.png`
+
 ## Troubleshooting
 
 ### Template Not Loading

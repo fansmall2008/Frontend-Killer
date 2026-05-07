@@ -60,6 +60,11 @@ public class Game {
     private Boolean exists;
     private String absolutePath;
     private String platformPath;
+    
+    // Lakka .lpl 特定字段
+    private String corePath;
+    private String coreName;
+    private String databaseLink;
 
     // Getters and Setters
     public Long getId() {
@@ -516,5 +521,30 @@ public class Game {
 
     public void setPlatformPath(String platformPath) {
         this.platformPath = platformPath;
+    }
+
+    // Lakka .lpl 特定字段的 getter/setter
+    public String getCorePath() {
+        return corePath;
+    }
+
+    public void setCorePath(String corePath) {
+        this.corePath = corePath;
+    }
+
+    public String getCoreName() {
+        return coreName;
+    }
+
+    public void setCoreName(String coreName) {
+        this.coreName = coreName;
+    }
+
+    public String getDatabaseLink() {
+        return databaseLink;
+    }
+
+    public void setDatabaseLink(String databaseLink) {
+        this.databaseLink = databaseLink;
     }
 }

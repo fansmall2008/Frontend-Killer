@@ -22,6 +22,10 @@ public interface GameService {
     ImportStatistics importGamesFromPegasusMetadata(String filePath, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
     
+    ImportStatistics importGamesFromLplFile(String filePath);
+    ImportStatistics importGamesFromLplFile(String filePath, boolean metadataOnly, int threadCount);
+    ImportStatistics importGamesFromLplFile(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
+    
     ImportStatistics importGamesFromGameFiles(String scanPath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId);
     ScanResult scanAndImportGames(String rootPath);

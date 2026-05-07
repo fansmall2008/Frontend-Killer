@@ -16,6 +16,9 @@ public class ExportRule {
         private DirectoryRule directory;
         private M3URule m3u;
         private GameFileRule gameFile;
+        private LplExportRule lplExport;
+        private Map<String, CoreMapping> coreMappings;
+        private Map<String, String> platformMappings;
 
         public Map<String, MediaRule> getMedia() {
             return media;
@@ -55,6 +58,83 @@ public class ExportRule {
 
         public void setGameFile(GameFileRule gameFile) {
             this.gameFile = gameFile;
+        }
+
+        public LplExportRule getLplExport() {
+            return lplExport;
+        }
+
+        public void setLplExport(LplExportRule lplExport) {
+            this.lplExport = lplExport;
+        }
+
+        public Map<String, CoreMapping> getCoreMappings() {
+            return coreMappings;
+        }
+
+        public void setCoreMappings(Map<String, CoreMapping> coreMappings) {
+            this.coreMappings = coreMappings;
+        }
+
+        public Map<String, String> getPlatformMappings() {
+            return platformMappings;
+        }
+
+        public void setPlatformMappings(Map<String, String> platformMappings) {
+            this.platformMappings = platformMappings;
+        }
+    }
+    
+    // Lakka LPL 导出规则
+    public static class LplExportRule {
+        private boolean enabled;
+        private String outputPath;
+        private List<String> lineFormat;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getOutputPath() {
+            return outputPath;
+        }
+
+        public void setOutputPath(String outputPath) {
+            this.outputPath = outputPath;
+        }
+
+        public List<String> getLineFormat() {
+            return lineFormat;
+        }
+
+        public void setLineFormat(List<String> lineFormat) {
+            this.lineFormat = lineFormat;
+        }
+    }
+    
+    // Lakka 核心映射
+    public static class CoreMapping {
+        private String path;
+        private String name;
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 

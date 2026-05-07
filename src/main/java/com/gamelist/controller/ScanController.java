@@ -309,6 +309,11 @@ public class ScanController {
                         ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
+                    } else if (filePath.endsWith(".lpl")) {
+                        // 导入Lakka .lpl播放列表文件
+                        ImportStatistics stats = gameService.importGamesFromLplFile(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount);
+                        importedPlatforms += stats.getImportedPlatforms();
+                        importedGames += stats.getImportedGames();
                     } else {
                         String errorMsg = "不支持的文件类型: " + filePath;
                         logger.warn(errorMsg);
@@ -396,10 +401,25 @@ public class ScanController {
             return;
         }
         
-        File targetFile = new File(directory, dataFile);
-        if (targetFile.exists() && targetFile.isFile()) {
-            resultMap.get(dataFile).add(targetFile);
-            logger.info("找到{}: {}", dataFile, targetFile.getAbsolutePath());
+        if (dataFile.contains("*")) {
+            // 支持通配符模式匹配（如 "*.lpl"）
+            String extension = dataFile.replace("*.", "");
+            File[] matchingFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith("." + extension));
+            if (matchingFiles != null) {
+                for (File file : matchingFiles) {
+                    if (file.isFile()) {
+                        resultMap.get(dataFile).add(file);
+                        logger.info("找到{}: {}", dataFile, file.getAbsolutePath());
+                    }
+                }
+            }
+        } else {
+            // 精确文件名匹配（如 "gamelist.xml"）
+            File targetFile = new File(directory, dataFile);
+            if (targetFile.exists() && targetFile.isFile()) {
+                resultMap.get(dataFile).add(targetFile);
+                logger.info("找到{}: {}", dataFile, targetFile.getAbsolutePath());
+            }
         }
         
         File[] subDirectories = directory.listFiles(File::isDirectory);
