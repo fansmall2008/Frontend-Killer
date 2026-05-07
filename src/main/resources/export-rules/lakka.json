@@ -1,0 +1,93 @@
+{
+  "frontend": "lakka",
+  "name": "Lakka",
+  "version": "1.0",
+  "description": "Export Rules for Lakka RetroArch Playlist Format",
+  "rules": {
+    "lplExport": {
+      "enabled": true,
+      "outputPath": "{outputPath}/playlists/{platformName}.lpl",
+      "lineFormat": [
+        "/storage/roms/{platformName}/{gameFileName}",
+        "{gameName}",
+        "{corePath}",
+        "{coreName}",
+        "DETECT",
+        "{platformName}.lpl"
+      ]
+    },
+    "coreMappings": {
+      "NES": { "path": "/tmp/cores/nestopia_libretro.so", "name": "Nestopia" },
+      "SNES": { "path": "/tmp/cores/snes9x_libretro.so", "name": "Snes9x" },
+      "N64": { "path": "/tmp/cores/mupen64plus_libretro.so", "name": "Nintendo 64 (Mupen64Plus)" },
+      "GB": { "path": "/tmp/cores/gambatte_libretro.so", "name": "Gambatte" },
+      "GBC": { "path": "/tmp/cores/gambatte_libretro.so", "name": "Gambatte" },
+      "GBA": { "path": "/tmp/cores/mgba_libretro.so", "name": "mGBA" },
+      "PSX": { "path": "/tmp/cores/mednafen_psx_libretro.so", "name": "Mednafen PSX" },
+      "SEGA": { "path": "/tmp/cores/genesis_plus_gx_libretro.so", "name": "Genesis Plus GX" },
+      "MD": { "path": "/tmp/cores/genesis_plus_gx_libretro.so", "name": "Genesis Plus GX" },
+      "PCE": { "path": "/tmp/cores/mednafen_pce_fast_libretro.so", "name": "Mednafen PCE Fast" },
+      "SuperGrafx": { "path": "/tmp/cores/mednafen_supergrafx_libretro.so", "name": "Mednafen SuperGrafx" },
+      "default": { "path": "/tmp/cores/libretro.so", "name": "DETECT" }
+    },
+    "platformMappings": {
+      "NES": "Nintendo - Nintendo Entertainment System",
+      "SNES": "Nintendo - Super Nintendo Entertainment System",
+      "N64": "Nintendo - Nintendo 64",
+      "GB": "Nintendo - Game Boy",
+      "GBC": "Nintendo - Game Boy Color",
+      "GBA": "Nintendo - Game Boy Advance",
+      "PSX": "Sony - PlayStation",
+      "SEGA": "Sega - Mega Drive",
+      "MD": "Sega - Mega Drive",
+      "PCE": "NEC - PC Engine",
+      "SuperGrafx": "NEC - Super Grafx"
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "absolute",
+      "header": {
+        "structure": [
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<gameList>"
+        ]
+      },
+      "footer": [
+        "</gameList>"
+      ],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "description",
+        "rating": "rating",
+        "releaseDate": "releaseYear",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}/media"
+    },
+    "media": {
+      "screenshot": {
+        "source": "screenshot",
+        "target": "{mediaPath}/screenshots/{platform}/{filename}.png",
+        "dataFileTag": "image"
+      },
+      "thumbnail": {
+        "source": "thumbnail",
+        "target": "{outputPath}/thumbnails/{platform}/Boxart/{filename}.png",
+        "dataFileTag": "thumbnail"
+      },
+      "video": {
+        "source": "video",
+        "target": "{mediaPath}/videos/{platform}/{filename}.mp4",
+        "dataFileTag": "video"
+      }
+    }
+  }
+}

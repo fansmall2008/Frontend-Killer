@@ -1,0 +1,189 @@
+{
+  "frontend": "esde",
+  "name": "EmulationStation DE",
+  "version": "1.0",
+  "description": "Template for importing EmulationStation DE (ES-DE) data. Note: Please copy the 'downloaded_media' and 'gamelists' folders to the same directory before importing.",
+  "type": "xml",
+  "dataFile": "gamelist.xml",
+  "delimiter": "",
+  "rules": {
+    "header": {
+      "enabled": false
+    },
+    "fieldMappings": {
+      "name": {
+        "fields": ["name"],
+        "isMultiValue": false
+      },
+      "description": {
+        "fields": ["desc", "description"],
+        "isMultiValue": false
+      },
+      "releaseDate": {
+        "fields": ["releasedate", "release"],
+        "isMultiValue": false
+      },
+      "developer": {
+        "fields": ["developer", "dev"],
+        "isMultiValue": false
+      },
+      "publisher": {
+        "fields": ["publisher", "pub"],
+        "isMultiValue": false
+      },
+      "genre": {
+        "fields": ["genre", "category"],
+        "isMultiValue": false
+      },
+      "players": {
+        "fields": ["players", "player"],
+        "isMultiValue": false
+      },
+      "rating": {
+        "fields": ["rating"],
+        "isMultiValue": false
+      },
+      "hash": {
+        "fields": ["hash"],
+        "isMultiValue": false
+      },
+      "files": {
+        "fields": ["path", "file"],
+        "isMultiValue": false,
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "rules": [
+          "../../downloaded_media/{platform}/boxfront/{filename}.{ext}",
+          "../../downloaded_media/{platform}/covers/{filename}.{ext}",
+          "../downloaded_media/{platform}/boxfront/{filename}.{ext}",
+          "../downloaded_media/{platform}/covers/{filename}.{ext}",
+          "downloaded_media/{platform}/boxfront/{filename}.{ext}",
+          "downloaded_media/{platform}/covers/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "boxBack": {
+        "source": "boxBack",
+        "rules": [
+          "../../downloaded_media/{platform}/boxback/{filename}.{ext}",
+          "../downloaded_media/{platform}/boxback/{filename}.{ext}",
+          "downloaded_media/{platform}/boxback/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "box3d": {
+        "source": "box3d",
+        "rules": [
+          "../../downloaded_media/{platform}/box3d/{filename}.{ext}",
+          "../../downloaded_media/{platform}/3dboxes/{filename}.{ext}",
+          "../downloaded_media/{platform}/box3d/{filename}.{ext}",
+          "../downloaded_media/{platform}/3dboxes/{filename}.{ext}",
+          "downloaded_media/{platform}/box3d/{filename}.{ext}",
+          "downloaded_media/{platform}/3dboxes/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "rules": [
+          "../../downloaded_media/{platform}/screenshot/{filename}.{ext}",
+          "../../downloaded_media/{platform}/screenshots/{filename}.{ext}",
+          "../downloaded_media/{platform}/screenshot/{filename}.{ext}",
+          "../downloaded_media/{platform}/screenshots/{filename}.{ext}",
+          "downloaded_media/{platform}/screenshot/{filename}.{ext}",
+          "downloaded_media/{platform}/screenshots/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "video": {
+        "source": "video",
+        "rules": [
+          "../../downloaded_media/{platform}/video/{filename}.{ext}",
+          "../../downloaded_media/{platform}/videos/{filename}.{ext}",
+          "../downloaded_media/{platform}/video/{filename}.{ext}",
+          "../downloaded_media/{platform}/videos/{filename}.{ext}",
+          "downloaded_media/{platform}/video/{filename}.{ext}",
+          "downloaded_media/{platform}/videos/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "wheel": {
+        "source": "wheel",
+        "rules": [
+          "../../downloaded_media/{platform}/wheel/{filename}.{ext}",
+          "../downloaded_media/{platform}/wheel/{filename}.{ext}",
+          "downloaded_media/{platform}/wheel/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "marquee": {
+        "source": "marquee",
+        "rules": [
+          "../../downloaded_media/{platform}/marquee/{filename}.{ext}",
+          "../downloaded_media/{platform}/marquee/{filename}.{ext}",
+          "downloaded_media/{platform}/marquee/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "fanart": {
+        "source": "fanart",
+        "rules": [
+          "../../downloaded_media/{platform}/fanart/{filename}.{ext}",
+          "../downloaded_media/{platform}/fanart/{filename}.{ext}",
+          "downloaded_media/{platform}/fanart/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "titlescreen": {
+        "source": "titlescreen",
+        "rules": [
+          "../../downloaded_media/{platform}/titlescreen/{filename}.{ext}",
+          "../downloaded_media/{platform}/titlescreen/{filename}.{ext}",
+          "downloaded_media/{platform}/titlescreen/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "manual": {
+        "source": "manual",
+        "rules": [
+          "../../downloaded_media/{platform}/manual/{filename}.{ext}",
+          "../downloaded_media/{platform}/manual/{filename}.{ext}",
+          "downloaded_media/{platform}/manual/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      }
+    },
+    "extensions": {
+      "image": ["png", "jpg", "jpeg", "gif", "webp"],
+      "video": ["mp4", "mkv", "avi", "wmv", "webm"],
+      "manual": ["pdf"]
+    },
+    "gameExtensions": ["chd", "iso", "bin", "cue", "img", "zip", "7z", "rar", "nes", "snes", "md", "gen", "n64", "psx", "ps1", "gba", "nds", "gb", "gbc", "sms", "gg", "pcengine", "pce", "tg16", "saturn", "ps2", "gamecube", "wii", "xbox", "xbox360", "ps3", "ps4", "switch", "3ds", "psp", "ds", "dreamcast", "arcade", "fba", "mame"]
+  }
+}
