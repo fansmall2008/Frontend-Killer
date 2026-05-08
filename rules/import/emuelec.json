@@ -2,7 +2,7 @@
   "frontend": "emuelec",
   "name": "EmuELEC",
   "version": "1.0",
-  "description": "Template for importing data from EmuELEC frontend. Note: ES checks three locations for gamelist.xml: [SYSTEM_PATH]/gamelist.xml, ~/.emulationstation/gamelists/[SYSTEM_NAME]/gamelist.xml, /etc/emulationstation/gamelists/[SYSTEM_NAME]/gamelist.xml",
+  "description": "Template for importing data from EmuELEC frontend. PREPARATION REQUIRED: 1) Copy the entire gamelists folder from ~/.emulationstation/ to your import directory. 2) Copy the entire downloaded_images folder from ~/.emulationstation/ to the SAME import directory. Alternatively, you can copy just the specific gamelist.xml file from gamelists/{platform}/ and downloaded_images/{platform}/ folder. EmuELEC uses absolute paths like /home/pi/ROMs/nes/mm2.nes or /storage/roms/nes/mm2.nes. Media files use naming format: {filename}-{mediatype}.{ext} (e.g., Mega Man 2-image.png)",
   "type": "xml",
   "dataFile": "gamelist.xml",
   "delimiter": "",
@@ -51,7 +51,11 @@
         "fields": ["path", "file"],
         "isMultiValue": false,
         "transform": {
-          "path": "no"
+          "path": "no",
+          "replace": {
+            "from": "^(/.*/)?([^/]+\\.[^/]+)$",
+            "to": "$2"
+          }
         }
       },
       "image": {
@@ -86,112 +90,112 @@
     "media": {
       "box2dfront": {
         "source": "box2dfront",
-        "rules": ["downloaded_images/{platform}/box2dfront/{filepath}.{ext}", "media/box2dfront/{filepath}.{ext}", "{platform}/media/box2dfront/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-box2dfront.{ext}", "../downloaded_images/{platform}/{filepath}-box2dfront.{ext}", "downloaded_images/{platform}/{filepath}-box2dfront.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "box2dback": {
         "source": "box2dback",
-        "rules": ["downloaded_images/{platform}/box2dback/{filepath}.{ext}", "media/box2dback/{filepath}.{ext}", "{platform}/media/box2dback/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-box2dback.{ext}", "../downloaded_images/{platform}/{filepath}-box2dback.{ext}", "downloaded_images/{platform}/{filepath}-box2dback.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "box2dside": {
         "source": "box2dside",
-        "rules": ["downloaded_images/{platform}/box2dside/{filepath}.{ext}", "media/box2dside/{filepath}.{ext}", "{platform}/media/box2dside/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-box2dside.{ext}", "../downloaded_images/{platform}/{filepath}-box2dside.{ext}", "downloaded_images/{platform}/{filepath}-box2dside.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "box3d": {
         "source": "box3d",
-        "rules": ["downloaded_images/{platform}/box3d/{filepath}.{ext}", "media/box3d/{filepath}.{ext}", "{platform}/media/box3d/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-box3d.{ext}", "../downloaded_images/{platform}/{filepath}-box3d.{ext}", "downloaded_images/{platform}/{filepath}-box3d.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "fanart": {
         "source": "fanart",
-        "rules": ["downloaded_images/{platform}/fanart/{filepath}.{ext}", "media/fanart/{filepath}.{ext}", "{platform}/media/fanart/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-fanart.{ext}", "../downloaded_images/{platform}/{filepath}-fanart.{ext}", "downloaded_images/{platform}/{filepath}-fanart.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "screenshot": {
         "source": "screenshot",
-        "rules": ["downloaded_images/{platform}/screenshot/{filepath}.{ext}", "media/screenshot/{filepath}.{ext}", "downloaded_images/{platform}/images/{filepath}.{ext}", "{platform}/media/screenshot/{filepath}.{ext}", "{platform}/media/images/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-image.{ext}", "../../downloaded_images/{platform}/{filepath}-screenshot.{ext}", "../downloaded_images/{platform}/{filepath}-image.{ext}", "../downloaded_images/{platform}/{filepath}-screenshot.{ext}", "downloaded_images/{platform}/{filepath}-image.{ext}", "downloaded_images/{platform}/{filepath}-screenshot.{ext}", "../../downloaded_images/{platform}/{filepath}.{ext}", "../downloaded_images/{platform}/{filepath}.{ext}", "downloaded_images/{platform}/{filepath}.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "video": {
         "source": "video",
-        "rules": ["downloaded_images/{platform}/video/{filepath}.{ext}", "downloaded_images/{platform}/videos/{filepath}.{ext}", "media/video/{filepath}.{ext}", "{platform}/media/video/{filepath}.{ext}", "{platform}/media/videos/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-video.{ext}", "../downloaded_images/{platform}/{filepath}-video.{ext}", "downloaded_images/{platform}/{filepath}-video.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "wheel": {
         "source": "wheel",
-        "rules": ["downloaded_images/{platform}/wheel/{filepath}.{ext}", "media/wheel/{filepath}.{ext}", "{platform}/media/wheel/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-wheel.{ext}", "../downloaded_images/{platform}/{filepath}-wheel.{ext}", "downloaded_images/{platform}/{filepath}-wheel.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "banner": {
         "source": "banner",
-        "rules": ["downloaded_images/{platform}/banner/{filepath}.{ext}", "media/banner/{filepath}.{ext}", "{platform}/media/banner/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-banner.{ext}", "../downloaded_images/{platform}/{filepath}-banner.{ext}", "downloaded_images/{platform}/{filepath}-banner.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "manual": {
         "source": "manual",
-        "rules": ["downloaded_images/{platform}/manuals/{filepath}.{ext}", "media/manual/{filepath}.{ext}", "media/manuals/{filepath}.{ext}", "{platform}/media/manuals/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-manual.{ext}", "../downloaded_images/{platform}/{filepath}-manual.{ext}", "downloaded_images/{platform}/{filepath}-manual.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "images": {
         "source": "images",
-        "rules": ["downloaded_images/{platform}/images/{filepath}.{ext}", "media/images/{filepath}.{ext}", "{platform}/media/images/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-image.{ext}", "../downloaded_images/{platform}/{filepath}-image.{ext}", "downloaded_images/{platform}/{filepath}-image.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "titlescreen": {
         "source": "titlescreen",
-        "rules": ["downloaded_images/{platform}/titlescreen/{filepath}.{ext}", "media/titlescreen/{filepath}.{ext}", "{platform}/media/titlescreen/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-titlescreen.{ext}", "../downloaded_images/{platform}/{filepath}-titlescreen.{ext}", "downloaded_images/{platform}/{filepath}-titlescreen.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "marquee": {
         "source": "marquee",
-        "rules": ["downloaded_images/{platform}/marquee/{filepath}.{ext}", "media/marquee/{filepath}.{ext}", "{platform}/media/marquee/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-marquee.{ext}", "../downloaded_images/{platform}/{filepath}-marquee.{ext}", "downloaded_images/{platform}/{filepath}-marquee.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "miximage": {
         "source": "miximage",
-        "rules": ["downloaded_images/{platform}/miximage/{filepath}.{ext}", "media/miximage/{filepath}.{ext}", "{platform}/media/miximage/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-miximage.{ext}", "../downloaded_images/{platform}/{filepath}-miximage.{ext}", "downloaded_images/{platform}/{filepath}-miximage.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "cartridge": {
         "source": "cartridge",
-        "rules": ["downloaded_images/{platform}/cartridge/{filepath}.{ext}", "media/cartridge/{filepath}.{ext}", "{platform}/media/cartridge/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-cartridge.{ext}", "../downloaded_images/{platform}/{filepath}-cartridge.{ext}", "downloaded_images/{platform}/{filepath}-cartridge.{ext}"],
         "transform": {
           "path": "no"
         }
       },
       "bezel": {
         "source": "bezel",
-        "rules": ["downloaded_images/{platform}/bezel/{filepath}.{ext}", "media/bezel/{filepath}.{ext}", "{platform}/media/bezel/{filepath}.{ext}"],
+        "rules": ["../../downloaded_images/{platform}/{filepath}-bezel.{ext}", "../downloaded_images/{platform}/{filepath}-bezel.{ext}", "downloaded_images/{platform}/{filepath}-bezel.{ext}"],
         "transform": {
           "path": "no"
         }

@@ -1,6 +1,6 @@
 # Configuration
 
-This guide explains how to configure Web GameList Oper.
+This guide explains how to configure Frontend-Killer.
 
 ## Configuration Files
 

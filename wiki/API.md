@@ -1,6 +1,6 @@
 # API Reference
 
-Web GameList Oper provides RESTful APIs for programmatic access.
+Frontend-Killer provides RESTful APIs for programmatic access.
 
 ## Base URL
 

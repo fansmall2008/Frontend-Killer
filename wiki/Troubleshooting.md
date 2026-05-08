@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This guide helps you solve common issues with Web GameList Oper.
+This guide helps you solve common issues with Frontend-Killer.
 
 ## Common Issues
 

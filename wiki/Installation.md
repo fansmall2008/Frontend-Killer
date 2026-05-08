@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide covers multiple ways to install and run Web GameList Oper.
+This guide covers multiple ways to install and run Frontend-Killer.
 
 ## Prerequisites
 

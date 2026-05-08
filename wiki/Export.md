@@ -1,6 +1,6 @@
 # Export Rules
 
-Web GameList Oper supports exporting game data to various frontend formats using customizable JSON export rules.
+Frontend-Killer supports exporting game data to various frontend formats using customizable JSON export rules.
 
 ## Directory Structure
 

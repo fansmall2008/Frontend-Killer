@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get started with Web GameList Oper in just a few minutes!
+Get started with Frontend-Killer in just a few minutes!
 
 ## Step 1: Start the Application
 

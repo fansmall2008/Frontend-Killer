@@ -1,6 +1,6 @@
 # Import Templates
 
-Web GameList Oper supports importing game data from various frontend formats using customizable JSON templates.
+Frontend-Killer supports importing game data from various frontend formats using customizable JSON templates.
 
 ## Directory Structure
 

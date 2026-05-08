@@ -1,6 +1,6 @@
 # Translation Configuration
 
-Web GameList Oper supports multi-language translation for game data using a JSON-based translation configuration.
+Frontend-Killer supports multi-language translation for game data using a JSON-based translation configuration.
 
 ## File Location
 

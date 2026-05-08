@@ -1,6 +1,6 @@
 # Features
 
-Web GameList Oper provides comprehensive game list management capabilities. Here are the main features:
+Frontend-Killer provides comprehensive game list management capabilities. Here are the main features:
 
 ## Game List Management
 

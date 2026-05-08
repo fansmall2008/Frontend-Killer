@@ -1361,6 +1361,22 @@ public class GameServiceImpl implements GameService {
             }
             
             // 路径已经处理完毕，不再需要保留原始路径
+            
+            // 应用模板的 transform 规则（如果有）
+            if (template != null && template.getFieldMappings() != null) {
+                ImportTemplate.FieldMapping fileMapping = template.getFieldMappings().get("files");
+                if (fileMapping != null && fileMapping.getTransform() != null) {
+                    ImportTemplate.TransformRule transform = fileMapping.getTransform();
+                    if (transform.getReplace() != null) {
+                        String from = transform.getReplace().getFrom();
+                        String to = transform.getReplace().getTo();
+                        if (from != null && to != null && path != null) {
+                            path = path.replaceAll(from, to);
+                            logger.debug("应用路径替换规则: {} -> {}", from, to);
+                        }
+                    }
+                }
+            }
         
         // 提取游戏名称（用于媒体文件匹配）
         gameName = LanguageDetector.extractFileName(absolutePath != null ? absolutePath : path);

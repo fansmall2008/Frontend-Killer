@@ -1,6 +1,6 @@
 # Contributing
 
-Welcome to Web GameList Oper! We welcome contributions from everyone.
+Welcome to Frontend-Killer! We welcome contributions from everyone.
 
 ## How to Contribute
 
@@ -202,4 +202,4 @@ mvn jacoco:report
 
 ## License
 
-By contributing to Web GameList Oper, you agree that your contributions will be licensed under the MIT License.
+By contributing to Frontend-Killer, you agree that your contributions will be licensed under the MIT License.

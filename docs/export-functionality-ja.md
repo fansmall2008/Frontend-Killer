@@ -57,11 +57,42 @@
 
 ### 2.3 サポートされている変数
 
+#### 2.3.1 パス変数
+
 - `{outputPath}`: エクスポートパス
 - `{platform}`: プラットフォーム名
 - `{gameName}`: ゲーム名
 - `{mediaPath}`: メディアファイルディレクトリ
 - `{romsPath}`: ROMファイルディレクトリ
+- `{filepath}`: ゲームファイルのフルパス（拡張子なし、サブディレクトリを含む）
+
+#### 2.3.2 プラットフォーム変数
+
+- `{platform.system}`: プラットフォームシステム名
+- `{platform.software}`: プラットフォームソフトウェア名
+- `{platform.database}`: プラットフォームデータベース名
+- `{platform.web}`: プラットフォームウェブサイトアドレス
+- `{platform.launch}`: プラットフォーム起動コマンド
+- `{platform.name}`: プラットフォーム名
+- `{platform.sortBy}`: プラットフォームソートフィールド
+- `{platform.folderPath}`: プラットフォームフォルダパス
+
+#### 2.3.3 環境変数
+
+- `{env.appdir}`: アプリケーションディレクトリ
+- `{env.home}`: ユーザーホームディレクトリ
+- `{env.user}`: ユーザー名
+
+#### 2.3.4 ゲーム変数
+
+- `{game.name}`: ゲーム名
+- `{game.path}`: ゲームパス
+- `{game.description}`: ゲームの説明
+- `{game.rating}`: ゲームの評価
+- `{game.developer}`: ゲーム開発者
+- `{game.publisher}`: ゲーム発行商
+- `{game.genre}`: ゲームのジャンル
+- `{game.players}`: プレイヤー数
 
 ### 2.4 サポートされているフィールド
 
@@ -169,7 +200,41 @@
 - **EmulationStation DE**: `esde.json`
 - **RetroBat**: `retrobat.json`
 
-### 2.8 ゲームファイルのリネーム設定（`gameFile`）
+### 2.2.6 エクスポートオプション設定（`exportOptions`）
+
+ルール設定ファイルでは、`exportOptions`セクションを使用してこのテンプレートがサポートするエクスポート内容を設定できます：
+
+```json
+"exportOptions": {
+  "gameFiles": true,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": false
+}
+```
+
+**フィールドの説明：**
+- `gameFiles`: ゲームファイルのエクスポートを許可するかどうか（デフォルト `true`）
+- `mediaFiles`: メディアファイルのエクスポートを許可するかどうか（デフォルト `true`）
+- `gameListFile`: ゲームリストファイルのエクスポートを許可するかどうか（デフォルト `true`）
+- `showWarning`: エクスポート時に警告提示を表示するかどうか（デフォルト `false`）
+
+**使用シーン：**
+
+一部のフロントエンド（EmuELEC、ES-DEなど）では、インポート時にユーザーが gamelist とメディアファイルのみを提供し、ゲームファイルは含まれません。そのため、エクスポート時にゲームファイルのエクスポートを許可すべきではありません：
+
+```json
+"exportOptions": {
+  "gameFiles": false,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": true
+}
+```
+
+`showWarning`が`true`に設定されている場合、システムはエクスポートページにテンプレート制限提示を表示し、ユーザーにこのテンプレートがサポートするエクスポート内容を通知します。
+
+### 2.9 ゲームファイルのリネーム設定（`gameFile`）
 
 ルール設定ファイルでは、`gameFile`セクションを介してエクスポート時のゲームファイルのリネーム規則を設定できます：
 

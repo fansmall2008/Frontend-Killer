@@ -57,11 +57,42 @@ Rule configuration files use JSON format and are stored in the `src/main/resourc
 
 ### 2.3 Supported Variables
 
+#### 2.3.1 Path Variables
+
 - `{outputPath}`: Export path
 - `{platform}`: Platform name
 - `{gameName}`: Game name
 - `{mediaPath}`: Media file directory
 - `{romsPath}`: ROM file directory
+- `{filepath}`: Full game file path (without extension, including subdirectories)
+
+#### 2.3.2 Platform Variables
+
+- `{platform.system}`: Platform system name
+- `{platform.software}`: Platform software name
+- `{platform.database}`: Platform database name
+- `{platform.web}`: Platform website address
+- `{platform.launch}`: Platform launch command
+- `{platform.name}`: Platform name
+- `{platform.sortBy}`: Platform sort field
+- `{platform.folderPath}`: Platform folder path
+
+#### 2.3.3 Environment Variables
+
+- `{env.appdir}`: Application directory
+- `{env.home}`: User home directory
+- `{env.user}`: User name
+
+#### 2.3.4 Game Variables
+
+- `{game.name}`: Game name
+- `{game.path}`: Game path
+- `{game.description}`: Game description
+- `{game.rating}`: Game rating
+- `{game.developer}`: Game developer
+- `{game.publisher}`: Game publisher
+- `{game.genre}`: Game genre
+- `{game.players}`: Number of players
 
 ### 2.4 Supported Fields
 
@@ -299,6 +330,40 @@ The following are the media file source fields, which can be used in the `source
 3. **Path prefix**: Uses `pathPrefix: "./"` to automatically add `./` prefix to paths.
 
 4. **Supported media types**: boxfront, boxback, cartridge, titlescreen, marquee, fanart, video, manual, wheel, screenshot, banner, box3d, bezel, steamgrid
+
+### 2.2.6 Export Options Configuration (`exportOptions`)
+
+In the rule configuration file, you can configure the export content supported by this template through the `exportOptions` section:
+
+```json
+"exportOptions": {
+  "gameFiles": true,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": false
+}
+```
+
+**Field Description:**
+- `gameFiles`: Whether to allow exporting game files (default `true`)
+- `mediaFiles`: Whether to allow exporting media files (default `true`)
+- `gameListFile`: Whether to allow exporting game list files (default `true`)
+- `showWarning`: Whether to display a warning prompt during export (default `false`)
+
+**Usage Scenario:**
+
+For some frontends (such as EmuELEC, ES-DE), users only provide gamelist and media files during import, without game files. Therefore, game file export should not be allowed during export:
+
+```json
+"exportOptions": {
+  "gameFiles": false,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": true
+}
+```
+
+When `showWarning` is set to `true`, the system will display a template restriction prompt on the export page, informing the user of the export content supported by this template.
 
 ### 2.10 Game File Rename Configuration (`gameFile`)
 

@@ -137,7 +137,18 @@ The configuration file includes the following main parts:
   - `path`: Path format transformation (`no`=without `./`, `yes`=with `./`, `keep`=keep original)
   - `trim`: Whether to trim leading/trailing spaces (`true`/`false`)
   - `case`: Case conversion (`upper`=uppercase, `lower`=lowercase, `none`=no conversion)
-  - `replace`: String replacement (object with `from` and `to` fields)
+  - `replace`: String replacement (object with `from` and `to` fields), supports regular expressions. `from` is the regex pattern, `to` is the replacement string (supports `$1` etc. for group references)
+
+**Regular Expression Replacement Example:**
+```json
+"transform": {
+  "replace": {
+    "from": "^(/.*/)?([^/]+\\.[^/]+)$",
+    "to": "$2"
+  }
+}
+```
+This configuration converts an absolute path `/home/pi/ROMs/nes/mm2.nes` to a relative filename `mm2.nes`
 
 **Built-in Path Transform Rules**:
 

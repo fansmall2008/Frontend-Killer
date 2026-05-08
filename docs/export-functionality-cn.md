@@ -368,6 +368,40 @@
 
 4. **支持的媒体类型**：boxfront、boxback、cartridge、titlescreen、marquee、fanart、video、manual、wheel、screenshot、banner、box3d、bezel、steamgrid
 
+### 2.2.6 导出选项配置 (`exportOptions`)
+
+在规则配置文件中，可以通过 `exportOptions` 部分配置该模板支持的导出内容：
+
+```json
+"exportOptions": {
+  "gameFiles": true,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": false
+}
+```
+
+**字段说明：**
+- `gameFiles`: 是否允许导出游戏文件（默认 `true`）
+- `mediaFiles`: 是否允许导出媒体文件（默认 `true`）
+- `gameListFile`: 是否允许导出游戏列表文件（默认 `true`）
+- `showWarning`: 是否在导出时显示警告提示（默认 `false`）
+
+**使用场景：**
+
+对于某些前端（如 EmuELEC、ES-DE），导入时用户只提供 gamelist 和媒体文件，不包含游戏文件。因此导出时不应允许导出游戏文件：
+
+```json
+"exportOptions": {
+  "gameFiles": false,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": true
+}
+```
+
+当 `showWarning` 设置为 `true` 时，系统会在导出页面显示模板限制提示，告知用户该模板支持的导出内容。
+
 ### 2.3 支持的变量
 
 #### 2.3.1 路径变量
@@ -497,7 +531,7 @@ XML 格式，支持正确的 XML 标签处理：
 
 这表示首先尝试使用 `name` 字段，如果为空则使用 `filename` 字段。
 
-### 2.6 数据库字段说明
+### 2.8 数据库字段说明
 
 以下是 Game 类中可用的数据库字段，这些字段可以在规则配置文件的 `fields` 部分使用：
 
@@ -559,7 +593,7 @@ XML 格式，支持正确的 XML 标签处理：
 | `absolutePath` | String | 游戏绝对路径 |
 | `platformPath` | String | 平台路径 |
 
-### 2.7 媒体文件来源字段
+### 2.9 媒体文件来源字段
 
 以下是媒体文件的来源字段，这些字段可以在规则配置文件的 `media` 部分的 `source` 字段中使用：
 
@@ -574,17 +608,17 @@ XML 格式，支持正确的 XML 标签处理：
 | `marquee` | 游戏横幅 |
 | `fanart` | 游戏同人艺术 |
 
-### 2.8 支持的前端规则
+### 2.10 支持的前端规则
 
 - **Pegasus**: `pegasus.json`
 - **EmulationStation DE**: `esde.json`
 - **RetroBat**: `retrobat.json`
 
-### 2.9 M3U 文件处理
+### 2.11 M3U 文件处理
 
 系统支持处理 M3U 格式的播放列表文件，当遇到 M3U 文件时，会自动复制文件中引用的所有文件。
 
-#### 2.8 游戏文件重命名配置 (`gameFile`)
+#### 2.12 游戏文件重命名配置 (`gameFile`)
 
 在规则配置文件中，可以通过 `gameFile` 部分配置导出时游戏文件的重命名规则：
 
@@ -634,7 +668,7 @@ XML 格式，支持正确的 XML 标签处理：
 ```
 结果：`nes_supermario_usa.nes`
 
-#### 2.9 字段转换配置 (`fieldTransforms`)
+#### 2.13 字段转换配置 (`fieldTransforms`)
 
 在规则配置文件的 `dataFile` 部分，可以通过 `fieldTransforms` 配置导出时字段值的转换规则：
 
@@ -714,7 +748,7 @@ XML 格式，支持正确的 XML 标签处理：
 
 这样可以确保导出的数据文件符合各前端的格式要求。
 
-#### 2.9.1 M3U 处理配置
+#### 2.14.1 M3U 处理配置
 
 在规则配置文件中，可以通过 `m3u` 部分配置 M3U 文件的处理方式：
 
@@ -728,7 +762,7 @@ XML 格式，支持正确的 XML 标签处理：
 - `enabled`: 是否启用 M3U 处理
 - `target`: M3U 文件中引用的文件的目标路径模板
 
-#### 2.9.2 支持的路径类型
+#### 2.14.2 支持的路径类型
 
 - **相对路径**: 相对于 M3U 文件的路径
 - **绝对路径**: 完整的文件路径
