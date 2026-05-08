@@ -326,6 +326,8 @@
     <script>
         // 当前语言设置
         let currentLanguage = 'zh-CN';
+        // 当前选中的前端规则
+        let currentFrontendRule = null;
         
         // 跨页面通知广播监听
         const notificationChannel = new BroadcastChannel('taskNotifications');
@@ -370,6 +372,62 @@
         
         // 每5秒检查一次任务状态
         setInterval(checkTaskCompletion, 5000);
+        
+        // 更新导出选项状态
+        function updateExportOptions() {
+            const copyRoms = document.getElementById('copyRoms');
+            const copyMedia = document.getElementById('copyMedia');
+            const generateDataFile = document.getElementById('generateDataFile');
+            
+            if (currentFrontendRule && currentFrontendRule.exportOptions) {
+                const options = currentFrontendRule.exportOptions;
+                
+                // 根据模板配置设置复选框状态
+                copyRoms.disabled = !options.gameFiles;
+                copyRoms.checked = options.gameFiles && copyRoms.checked;
+                if (!options.gameFiles) {
+                    copyRoms.checked = false;
+                }
+                
+                copyMedia.disabled = !options.mediaFiles;
+                copyMedia.checked = options.mediaFiles && copyMedia.checked;
+                if (!options.mediaFiles) {
+                    copyMedia.checked = false;
+                }
+                
+                generateDataFile.disabled = !options.gameListFile;
+                generateDataFile.checked = options.gameListFile && generateDataFile.checked;
+                if (!options.gameListFile) {
+                    generateDataFile.checked = false;
+                }
+                
+                // 如果有警告提示，显示警告信息
+                if (options.showWarning) {
+                    showTemplateWarning();
+                }
+            } else {
+                // 默认启用所有选项
+                copyRoms.disabled = false;
+                copyMedia.disabled = false;
+                generateDataFile.disabled = false;
+            }
+        }
+        
+        // 显示模板限制警告
+        function showTemplateWarning() {
+            const warningDiv = document.getElementById('templateWarning');
+            if (warningDiv) {
+                warningDiv.style.display = 'block';
+            }
+        }
+        
+        // 隐藏模板限制警告
+        function hideTemplateWarning() {
+            const warningDiv = document.getElementById('templateWarning');
+            if (warningDiv) {
+                warningDiv.style.display = 'none';
+            }
+        }
     </script>
     
     <div class="container">
@@ -397,6 +455,10 @@
                         <option value="" data-i18n="please_select_frontend">请选择前端</option>
                     </select>
                     <div id="frontendDescription" style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 6px; border: 1px solid #444; color: #00ffff;"></div>
+                    <div id="templateWarning" style="margin-top: 10px; padding: 10px; background: rgba(255, 193, 7, 0.2); border-radius: 6px; border: 1px solid #ffc107; color: #ffc107; display: none;">
+                        <strong>⚠️ 模板限制提示：</strong>
+                        <span id="warningMessage"></span>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -405,6 +467,9 @@
                         <label><input type="checkbox" id="copyRoms" checked> <span data-i18n="game_files">游戏文件</span></label>
                         <label><input type="checkbox" id="copyMedia" checked> <span data-i18n="media_files">媒体文件</span></label>
                         <label><input type="checkbox" id="generateDataFile" checked> <span data-i18n="data_files">数据文件</span></label>
+                    </div>
+                    <div id="exportOptionsHint" style="margin-top: 10px; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 4px; color: #888; font-size: 0.85rem; display: none;">
+                        <span id="exportOptionsHintText"></span>
                     </div>
                 </div>
                 
@@ -561,11 +626,15 @@
                 });
         }
         
+        // 存储所有前端规则
+        let frontendRules = [];
+        
         function loadFrontends() {
             showNotification(getI18nText('loading_frontends'));
             fetch('/api/export/rules')
                 .then(response => response.json())
                 .then(data => {
+                    frontendRules = data;
                     const frontendSelect = document.getElementById('frontend');
                     frontendSelect.innerHTML = '';
                     const defaultOption = document.createElement('option');
@@ -639,32 +708,91 @@
             });
         });
         
-        // 更新前端规则描述
+        // 更新前端规则描述和导出选项
         function updateFrontendDescription() {
             const frontendSelect = document.getElementById('frontend');
             const descriptionDiv = document.getElementById('frontendDescription');
+            const warningDiv = document.getElementById('templateWarning');
+            const warningMessage = document.getElementById('warningMessage');
+            const exportOptionsHint = document.getElementById('exportOptionsHint');
+            const exportOptionsHintText = document.getElementById('exportOptionsHintText');
             const selectedFrontend = frontendSelect.value;
             
-            const descriptions = {
-                'pegasus': {
-                    'zh-CN': 'Pegasus 前端：使用 metadata.pegasus.txt 格式的数据文件，路径格式为相对路径（不带 ./ 前缀）。支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'Pegasus Frontend: Uses metadata.pegasus.txt format data files, path format is relative path (without ./ prefix). Supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'Pegasus フロントエンド：metadata.pegasus.txt 形式のデータファイルを使用し、パス形式は相対パス（./ プレフィックスなし）です。完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                },
-                'esde': {
-                    'zh-CN': 'ES-DE 前端：使用 gamelist.xml 格式的数据文件，路径格式为标准相对路径（带 ./ 前缀）。支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'ES-DE Frontend: Uses gamelist.xml format data files, path format is standard relative path (with ./ prefix). Supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'ES-DE フロントエンド：gamelist.xml 形式のデータファイルを使用し、パス形式は標準相対パス（./ プレフィックス付き）です。完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                },
-                'retrobat': {
-                    'zh-CN': 'RetroBat 前端：使用 gamelist.xml 格式的数据文件，路径格式为标准相对路径（带 ./ 前缀）。支持完整的游戏元数据和媒体文件路径配置。',
-                    'en-US': 'RetroBat Frontend: Uses gamelist.xml format data files, path format is standard relative path (with ./ prefix). Supports complete game metadata and media file path configuration.',
-                    'ja-JP': 'RetroBat フロントエンド：gamelist.xml 形式のデータファイルを使用し、パス形式は標準相対パス（./ プレフィックス付き）です。完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
-                }
-            };
+            // 查找选中的前端规则
+            currentFrontendRule = frontendRules.find(rule => rule.frontend === selectedFrontend);
             
-            const description = descriptions[selectedFrontend] ? descriptions[selectedFrontend][currentLanguage] || descriptions[selectedFrontend]['zh-CN'] : '';
-            descriptionDiv.textContent = description;
+            // 设置描述
+            if (currentFrontendRule && currentFrontendRule.description) {
+                descriptionDiv.textContent = currentFrontendRule.description;
+            } else {
+                const descriptions = {
+                    'pegasus': {
+                        'zh-CN': 'Pegasus 前端：使用 metadata.pegasus.txt 格式的数据文件，路径格式为相对路径（不带 ./ 前缀）。支持完整的游戏元数据和媒体文件路径配置。',
+                        'en-US': 'Pegasus Frontend: Uses metadata.pegasus.txt format data files, path format is relative path (without ./ prefix). Supports complete game metadata and media file path configuration.',
+                        'ja-JP': 'Pegasus フロントエンド：metadata.pegasus.txt 形式のデータファイルを使用し、パス形式は相対パス（./ プレフィックスなし）です。完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                    },
+                    'esde': {
+                        'zh-CN': 'ES-DE 前端：使用 gamelist.xml 格式的数据文件，路径格式为标准相对路径（带 ./ 前缀）。支持完整的游戏元数据和媒体文件路径配置。',
+                        'en-US': 'ES-DE Frontend: Uses gamelist.xml format data files, path format is standard relative path (with ./ prefix). Supports complete game metadata and media file path configuration.',
+                        'ja-JP': 'ES-DE フロントエンド：gamelist.xml 形式のデータファイルを使用し、パス形式は標準相対パス（./ プレフィックス付き）です。完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                    },
+                    'retrobat': {
+                        'zh-CN': 'RetroBat 前端：使用 gamelist.xml 格式的数据文件，路径格式为标准相对路径（带 ./ 前缀）。支持完整的游戏元数据和媒体文件路径配置。',
+                        'en-US': 'RetroBat Frontend: Uses gamelist.xml format data files, path format is standard relative path (with ./ prefix). Supports complete game metadata and media file path configuration.',
+                        'ja-JP': 'RetroBat フロントエンド：gamelist.xml 形式のデータファイルを使用し、パス形式は標準相対パス（./ プレフィックス付き）です。完全なゲームメタデータとメディアファイルパスの設定をサポートします。'
+                    },
+                    'emuelec': {
+                        'zh-CN': 'EmuELEC 前端：基于 batocera-emulationstation，使用 gamelist.xml 格式的数据文件。支持三种 gamelist.xml 查找位置。',
+                        'en-US': 'EmuELEC Frontend: Based on batocera-emulationstation, uses gamelist.xml format data files. Supports three gamelist.xml lookup locations.',
+                        'ja-JP': 'EmuELEC フロントエンド：batocera-emulationstation に基づき、gamelist.xml 形式のデータファイルを使用します。3 つの gamelist.xml 検索場所をサポートします。'
+                    },
+                    'lakka': {
+                        'zh-CN': 'Lakka 前端：使用 gamelist.xml 和 .lpl 播放列表格式。支持核心映射配置。',
+                        'en-US': 'Lakka Frontend: Uses gamelist.xml and .lpl playlist formats. Supports core mapping configuration.',
+                        'ja-JP': 'Lakka フロントエンド：gamelist.xml と .lpl プレイリスト形式を使用します。コアマッピング設定をサポートします。'
+                    }
+                };
+                
+                const description = descriptions[selectedFrontend] ? descriptions[selectedFrontend][currentLanguage] || descriptions[selectedFrontend]['zh-CN'] : '';
+                descriptionDiv.textContent = description;
+            }
+            
+            // 更新导出选项状态
+            updateExportOptions();
+            
+            // 设置警告提示
+            if (currentFrontendRule && currentFrontendRule.exportOptions) {
+                const options = currentFrontendRule.exportOptions;
+                const disabledItems = [];
+                
+                if (!options.gameFiles) {
+                    disabledItems.push('游戏文件');
+                }
+                if (!options.mediaFiles) {
+                    disabledItems.push('媒体文件');
+                }
+                if (!options.gameListFile) {
+                    disabledItems.push('数据文件');
+                }
+                
+                if (disabledItems.length > 0) {
+                    warningDiv.style.display = 'block';
+                    warningMessage.textContent = `此模板不支持导出以下内容：${disabledItems.join('、')}。相应选项已被禁用。`;
+                } else {
+                    warningDiv.style.display = 'none';
+                }
+                
+                // 设置提示信息
+                if (options.showWarning) {
+                    exportOptionsHint.style.display = 'block';
+                    exportOptionsHintText.textContent = '此模板导出的内容受限制，请查看上方警告信息。';
+                } else {
+                    exportOptionsHint.style.display = 'none';
+                }
+            } else {
+                warningDiv.style.display = 'none';
+                exportOptionsHint.style.display = 'none';
+            }
         }
         
         window.onload = function() {

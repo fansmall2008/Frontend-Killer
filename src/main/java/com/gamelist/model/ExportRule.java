@@ -8,6 +8,7 @@ public class ExportRule {
     private String name;
     private String version;
     private String description;
+    private ExportOptions exportOptions;
     private Rules rules;
 
     public static class Rules {
@@ -360,6 +361,53 @@ public class ExportRule {
         public void setTemplate(String template) {
             this.template = template;
         }
+    }
+
+    public static class ExportOptions {
+        private boolean gameFiles = true;
+        private boolean mediaFiles = true;
+        private boolean gameListFile = true;
+        private boolean showWarning = false;
+
+        public boolean isGameFiles() {
+            return gameFiles;
+        }
+
+        public void setGameFiles(boolean gameFiles) {
+            this.gameFiles = gameFiles;
+        }
+
+        public boolean isMediaFiles() {
+            return mediaFiles;
+        }
+
+        public void setMediaFiles(boolean mediaFiles) {
+            this.mediaFiles = mediaFiles;
+        }
+
+        public boolean isGameListFile() {
+            return gameListFile;
+        }
+
+        public void setGameListFile(boolean gameListFile) {
+            this.gameListFile = gameListFile;
+        }
+
+        public boolean isShowWarning() {
+            return showWarning;
+        }
+
+        public void setShowWarning(boolean showWarning) {
+            this.showWarning = showWarning;
+        }
+    }
+
+    public ExportOptions getExportOptions() {
+        return exportOptions;
+    }
+
+    public void setExportOptions(ExportOptions exportOptions) {
+        this.exportOptions = exportOptions;
     }
 
     public String getFrontend() {

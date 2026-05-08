@@ -2,7 +2,13 @@
   "frontend": "emuelec",
   "name": "EmuELEC",
   "version": "1.0",
-  "description": "Template for Exporting Data and Media Files for the EmuELEC Frontend",
+  "description": "适用于 EmuELEC 前端的数据导出模板。注意：此模板仅导出游戏元数据和媒体文件，不导出 ROM 文件。",
+  "exportOptions": {
+    "gameFiles": false,
+    "mediaFiles": true,
+    "gameListFile": true,
+    "showWarning": true
+  },
   "rules": {
     "media": {
       "box2dback": {
