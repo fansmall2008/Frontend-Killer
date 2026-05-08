@@ -17,17 +17,194 @@ Each export rule is a JSON file with the following structure:
 {
   "frontend": "pegasus",
   "name": "Pegasus Frontend",
-  "exportPath": "pegasus",
-  "gameListFile": "gamelist.xml",
-  "format": "xml",
-  "encoding": "UTF-8",
-  "fieldMappings": {
-    "name": "name",
-    "path": "path"
+  "version": "1.0",
+  "description": "Export template for Pegasus frontend",
+  "exportOptions": {
+    "gameFiles": true,
+    "mediaFiles": true,
+    "gameListFile": true,
+    "showWarning": false
   },
-  "mediaDirectories": {
-    "boxFront": "media/boxfront",
-    "boxBack": "media/boxback"
+  "rules": {
+    "media": {
+      "boxFront": {
+        "source": "boxFront",
+        "target": "{mediaPath}/boxfront/{filename}.png"
+      }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "fields": {
+        "title": "name",
+        "path": "path"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}/media/{platform}",
+      "gamelist": "{outputPath}/gamelists/{platform}"
+    }
+  }
+}
+```
+
+## Export Options
+
+The `exportOptions` object controls which export options are available to users:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `gameFiles` | boolean | true | Whether ROM files can be exported |
+| `mediaFiles` | boolean | true | Whether media files can be exported |
+| `gameListFile` | boolean | true | Whether gamelist.xml can be exported |
+| `showWarning` | boolean | false | Whether to display a warning message about template limitations |
+
+**Example for templates that should not export ROM files:**
+
+```json
+{
+  "exportOptions": {
+    "gameFiles": false,
+    "mediaFiles": true,
+    "gameListFile": true,
+    "showWarning": true
+  }
+}
+```
+
+## EmuELEC Export Rule
+
+Example: `data/rules/export/emuelec.json`
+
+```json
+{
+  "frontend": "emuelec",
+  "name": "EmuELEC",
+  "version": "1.0",
+  "description": "Template for Exporting Data and Media Files for EmuELEC Frontend. Note: This template only exports game metadata and media files, not ROM files.",
+  "exportOptions": {
+    "gameFiles": false,
+    "mediaFiles": true,
+    "gameListFile": true,
+    "showWarning": true
+  },
+  "rules": {
+    "media": {
+      "boxFront": { "source": "boxFront", "target": "{mediaPath}/box2dfront/{filename}.png" },
+      "boxBack": { "source": "boxBack", "target": "{mediaPath}/box2dback/{filename}.png" },
+      "screenshot": { "source": "screenshot", "target": "{mediaPath}/screenshot/{filename}.png" },
+      "video": { "source": "video", "target": "{mediaPath}/video/{filename}.mp4" },
+      "wheel": { "source": "wheel", "target": "{mediaPath}/wheel/{filename}.png" },
+      "fanart": { "source": "fanart", "target": "{mediaPath}/fanart/{filename}.png" }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "absoluteWithDot",
+      "header": ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<gameList>"],
+      "footer": ["</gameList>"],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "desc",
+        "rating": "rating",
+        "releaseDate": "releasedate",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}/downloaded_images/{platform}",
+      "gamelist": "{outputPath}/roms/{platform}"
+    }
+  }
+}
+```
+
+## EmulationStation DE (ES-DE) Export Rule
+
+Example: `data/rules/export/esde.json`
+
+```json
+{
+  "frontend": "esde",
+  "name": "EmulationStation DE",
+  "version": "1.0",
+  "description": "Export template for EmulationStation Desktop Edition (ES-DE). Note: This template only exports game metadata and media files, not ROM files.",
+  "exportOptions": {
+    "gameFiles": false,
+    "mediaFiles": true,
+    "gameListFile": true,
+    "showWarning": true
+  },
+  "rules": {
+    "media": {
+      "boxFront": { "source": "boxFront", "target": "{mediaPath}/boxfront/{filename}.png" },
+      "boxBack": { "source": "boxBack", "target": "{mediaPath}/boxback/{filename}.png" },
+      "screenshot": { "source": "screenshot", "target": "{mediaPath}/screenshot/{filename}.png" },
+      "video": { "source": "video", "target": "{mediaPath}/video/{filename}.mp4" },
+      "wheel": { "source": "wheel", "target": "{mediaPath}/wheel/{filename}.png" },
+      "fanart": { "source": "fanart", "target": "{mediaPath}/fanart/{filename}.jpg" }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "relative",
+      "pathPrefix": "./",
+      "header": {
+        "structure": ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<gameList>"],
+        "fields": {}
+      },
+      "footer": ["</gameList>"],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "description",
+        "rating": "rating",
+        "releaseDate": "releaseYear",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players",
+        "hash": "hash"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform.system}",
+      "media": "{outputPath}/downloaded_media/{platform.system}",
+      "gamelist": "{outputPath}/gamelists/{platform.system}"
+    }
+  }
+}
+```
+
+## Lakka Export Rule
+
+Example: `data/rules/export/lakka.json`
+
+```json
+{
+  "frontend": "lakka",
+  "name": "Lakka",
+  "version": "1.0",
+  "description": "Export template for Lakka .lpl playlist format",
+  "rules": {
+    "dataFile": {
+      "filename": "{platform}.lpl",
+      "format": "lpl",
+      "fields": {
+        "path": "path",
+        "label": "name"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "gamelist": "{outputPath}/playlists"
+    }
   }
 }
 ```
@@ -40,45 +217,37 @@ Example: `data/rules/export/pegasus.json`
 {
   "frontend": "pegasus",
   "name": "Pegasus Frontend",
-  "exportPath": "pegasus",
-  "gameListFile": "gamelist.xml",
-  "format": "xml",
-  "encoding": "UTF-8",
-  "xmlHeader": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-  "rootElement": "gameList",
-  "gameElement": "game",
-  "fieldMappings": {
-    "name": "name",
-    "path": "path",
-    "description": "description",
-    "developer": "developer",
-    "publisher": "publisher",
-    "genre": "genre",
-    "releaseDate": "releaseDate",
-    "players": "players",
-    "rating": "rating"
-  },
-  "mediaMappings": {
-    "boxFront": "boxFront",
-    "boxBack": "boxBack",
-    "screenShot": "screenShot",
-    "banner": "marquee",
-    "wheel": "wheel",
-    "video": "video",
-    "thumbnail": "thumbnail"
-  },
-  "mediaDirectories": {
-    "boxFront": "media/boxfront",
-    "boxBack": "media/boxback",
-    "screenShot": "media/screenshots",
-    "banner": "media/marquees",
-    "wheel": "media/wheel",
-    "video": "media/videos",
-    "thumbnail": "media/thumbs"
-  },
-  "xmlStructure": {
-    "indent": "  ",
-    "newline": "\n"
+  "version": "1.0",
+  "rules": {
+    "media": {
+      "boxFront": { "source": "boxFront", "target": "media/boxfront/{filename}.png" },
+      "boxBack": { "source": "boxBack", "target": "media/boxback/{filename}.png" },
+      "screenShot": { "source": "screenShot", "target": "media/screenshots/{filename}.png" },
+      "banner": { "source": "banner", "target": "media/marquees/{filename}.png" },
+      "wheel": { "source": "wheel", "target": "media/wheel/{filename}.png" },
+      "video": { "source": "video", "target": "media/videos/{filename}.mp4" },
+      "thumbnail": { "source": "thumbnail", "target": "media/thumbs/{filename}.png" }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "description",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "releaseDate": "releaseDate",
+        "players": "players",
+        "rating": "rating"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}/media",
+      "gamelist": "{outputPath}"
+    }
   }
 }
 ```
@@ -91,44 +260,43 @@ Example: `data/rules/export/retrobat.json`
 {
   "frontend": "retrobat",
   "name": "RetroBat",
-  "exportPath": "retrobat",
-  "gameListFile": "gamelist-retrobat.xml",
-  "format": "xml",
-  "encoding": "UTF-8",
-  "xmlHeader": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-  "rootElement": "gameList",
-  "gameElement": "game",
-  "fieldMappings": {
-    "name": "name",
-    "path": "path",
-    "description": "desc",
-    "developer": "developer",
-    "publisher": "publisher",
-    "genre": "genre",
-    "releaseDate": "releaseDate",
-    "players": "players",
-    "rating": "rating",
-    "image": "image",
-    "thumbnail": "thumbnail"
-  },
-  "mediaMappings": {
-    "boxFront": "image",
-    "screenShot": "ss",
-    "wheel": "wheel",
-    "marquee": "marquee"
-  },
-  "mediaDirectories": {
-    "boxFront": "boxart",
-    "screenShot": "screenshots",
-    "wheel": "wheel",
-    "marquee": "marquee"
+  "version": "1.0",
+  "rules": {
+    "media": {
+      "boxFront": { "source": "boxFront", "target": "boxart/{filename}.png" },
+      "screenShot": { "source": "screenShot", "target": "screenshots/{filename}.png" },
+      "wheel": { "source": "wheel", "target": "wheel/{filename}.png" },
+      "marquee": { "source": "marquee", "target": "marquee/{filename}.png" }
+    },
+    "dataFile": {
+      "filename": "gamelist-retrobat.xml",
+      "format": "xml",
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "desc",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "releaseDate": "releaseDate",
+        "players": "players",
+        "rating": "rating",
+        "image": "image",
+        "thumbnail": "thumbnail"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}",
+      "gamelist": "{outputPath}/roms/{platform}"
+    }
   }
 }
 ```
 
 ## Field Mappings
 
-The `fieldMappings` object maps database fields to XML elements:
+The `fields` object maps database fields to XML elements:
 
 | Database Field | XML Element | Description |
 |----------------|-------------|-------------|
@@ -144,72 +312,50 @@ The `fieldMappings` object maps database fields to XML elements:
 
 ## Media Mappings
 
-The `mediaMappings` object maps database media fields to XML elements:
-
-| Database Field | XML Element | Description |
-|----------------|-------------|-------------|
-| `boxFront` | boxFront | Front box art |
-| `boxBack` | boxBack | Back box art |
-| `screenShot` | screenshot | Screenshot images |
-| `banner` | marquee | Banner/marquee |
-| `wheel` | wheel | Wheel artwork |
-| `video` | video | Video preview |
-| `thumbnail` | thumbnail | Thumbnail image |
-
-## Media Directories
-
-The `mediaDirectories` object specifies output directories for media files:
+The `media` object defines how media files are exported:
 
 ```json
-"mediaDirectories": {
-  "boxFront": "media/boxfront",
-  "boxBack": "media/boxback",
-  "screenShot": "media/screenshots",
-  "banner": "media/marquees",
-  "wheel": "media/wheel",
-  "video": "media/videos",
-  "thumbnail": "media/thumbs"
+"media": {
+  "boxFront": {
+    "source": "boxFront",
+    "target": "{mediaPath}/boxfront/{filename}.png",
+    "dataFileTag": "image"
+  }
 }
 ```
 
-## XML Structure Options
+| Property | Description |
+|----------|-------------|
+| `source` | Database field name |
+| `target` | Output path template |
+| `dataFileTag` | Optional: XML tag name for media reference |
 
-### Basic XML Generation
+## Directory Configuration
 
-```json
-"xmlStructure": {
-  "indent": "  ",
-  "newline": "\n",
-  "selfClosingTags": false
-}
-```
+The `directory` object specifies output directories:
 
-### Custom Element Transformation
+| Property | Description |
+|----------|-------------|
+| `roms` | Path for exported ROM files |
+| `media` | Base path for media files |
+| `gamelist` | Path for gamelist.xml |
 
-```json
-"elementTransform": {
-  "name": "toUpperCase",
-  "path": "toLowerCase"
-}
-```
+## Supported Path Variables
+
+| Variable | Description |
+|----------|-------------|
+| `{outputPath}` | Base output directory |
+| `{platform}` | Platform name |
+| `{platform.system}` | Platform system name |
+| `{filename}` | Game filename without extension |
+| `{filepath}` | Full file path without extension |
+| `{mediaPath}` | Media directory path |
 
 ## Creating Custom Export Rules
 
 ### Step 1: Analyze Target Format
 
-Examine your frontend's expected XML format:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<gameList>
-  <game>
-    <name>Super Mario Bros.</name>
-    <path>/roms/nes/smb.zip</path>
-    <desc>A classic platformer</desc>
-    <developer>Nintendo</developer>
-  </game>
-</gameList>
-```
+Examine your frontend's expected XML format and directory structure.
 
 ### Step 2: Create Rule File
 
@@ -219,31 +365,31 @@ Create a JSON file in `data/rules/export/`:
 {
   "frontend": "custom",
   "name": "Custom Format",
-  "exportPath": "custom",
-  "gameListFile": "gamelist-custom.xml",
-  "format": "xml",
-  "encoding": "UTF-8",
-  "rootElement": "gameList",
-  "gameElement": "game",
-  "fieldMappings": {
-    "name": "name",
-    "path": "path",
-    "description": "desc",
-    "developer": "developer"
+  "version": "1.0",
+  "description": "Custom export template",
+  "rules": {
+    "media": {
+      "boxFront": { "source": "boxFront", "target": "images/boxart/{filename}.png" }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "desc"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}/media",
+      "gamelist": "{outputPath}"
+    }
   }
 }
 ```
 
-### Step 3: Configure Media Directories
-
-```json
-"mediaDirectories": {
-  "boxFront": "images/boxart",
-  "screenShot": "images/screenshots"
-}
-```
-
-### Step 4: Test Export
+### Step 3: Test Export
 
 1. Place your rule in `data/rules/export/`
 2. Go to Export page
@@ -267,50 +413,6 @@ output/
     └── videos/            # Video previews
 ```
 
-## Rule Configuration Options
-
-### format
-```json
-"format": "xml"
-```
-Output format (currently supports XML).
-
-### encoding
-```json
-"encoding": "UTF-8"
-```
-XML file encoding.
-
-### xmlHeader
-```json
-"xmlHeader": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-```
-Custom XML header.
-
-### indent
-```json
-"indent": "  "
-```
-Indentation for pretty-printing (2 spaces).
-
-### conditionalElements
-Export elements only when they have values:
-```json
-"conditionalElements": {
-  "developer": true,
-  "publisher": true
-}
-```
-
-### valueTransform
-Transform values during export:
-```json
-"valueTransform": {
-  "releaseDate": "formatDate",
-  "rating": "toStars"
-}
-```
-
 ## Troubleshooting
 
 ### Export Rule Not Loading
@@ -319,11 +421,11 @@ Transform values during export:
 - Verify `frontend` field is unique
 
 ### Media Files Not Copied
-- Check `mediaDirectories` paths are correct
+- Check `media` rules have correct target paths
 - Verify source media files exist
 - Ensure output directory is writable
 
 ### XML Format Incorrect
-- Verify `fieldMappings` match expected format
-- Check `xmlHeader` is valid XML
-- Validate `rootElement` and `gameElement` names
+- Verify `fields` mappings match expected format
+- Check `dataFile.header` and `footer` are valid XML
+- Validate pathFormat setting
