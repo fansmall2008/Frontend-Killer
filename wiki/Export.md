@@ -44,10 +44,15 @@ Each export rule is a JSON file with the following structure:
       "roms": "{outputPath}/roms/{platform}",
       "media": "{outputPath}/media/{platform}",
       "gamelist": "{outputPath}/gamelists/{platform}"
+    },
+    "coreMappings": {
+      "NES": { "path": "/tmp/cores/core.so", "name": "CoreName" }
     }
   }
 }
 ```
+
+**Note:** `coreMappings` is only used for Lakka (`.lpl` format) exports.
 
 ## Export Options
 
@@ -207,6 +212,51 @@ Example: `data/rules/export/lakka.json`
     }
   }
 }
+```
+
+### Core Mappings (Lakka-specific)
+
+Lakka uses RetroArch emulator cores to run games. The `coreMappings` object defines the mapping between platforms and their corresponding RetroArch core paths:
+
+```json
+{
+  "rules": {
+    "coreMappings": {
+      "NES": {
+        "path": "/tmp/cores/nestopia_libretro.so",
+        "name": "Nestopia"
+      },
+      "SNES": {
+        "path": "/tmp/cores/snes9x_libretro.so",
+        "name": "Snes9x"
+      },
+      "Genesis": {
+        "path": "/tmp/cores/genesis_plus_gx_libretro.so",
+        "name": "Genesis Plus GX"
+      },
+      "default": {
+        "path": "/tmp/cores/libretro.so",
+        "name": "DETECT"
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `path` | Absolute path to the RetroArch core library file (`.so` on Linux, `.dll` on Windows) |
+| `name` | Display name of the core, shown in the playlist file |
+| `default` | Fallback mapping used when a platform has no specific core defined |
+
+The `.lpl` playlist format (6-line format):
+```
+/storage/roms/NES/game.nes     # Game path
+Game Name                       # Game label
+/tmp/cores/nestopia_libretro.so # Core path
+Nestopia                        # Core name
+DETECT                          # Database detect mode
+NES.lpl                         # Playlist name
 ```
 
 ## Pegasus Export Rule
