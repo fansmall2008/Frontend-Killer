@@ -2,7 +2,7 @@
   "frontend": "esde",
   "name": "EmulationStation DE",
   "version": "1.0",
-  "description": "适用于 EmulationStation Desktop Edition (ES-DE) 的导出模板。注意：此模板仅导出游戏元数据和媒体文件，不导出 ROM 文件。gamelist.xml 输出到 gamelists/ 目录，媒体文件输出到 downloaded_media/ 目录。",
+  "description": "Export template for EmulationStation Desktop Edition (ES-DE). Note: This template only exports game metadata and media files, not ROM files. gamelist.xml is exported to gamelists/ directory, media files to downloaded_media/ directory.",
   "exportOptions": {
     "gameFiles": false,
     "mediaFiles": true,

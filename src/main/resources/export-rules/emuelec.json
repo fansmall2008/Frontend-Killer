@@ -2,7 +2,7 @@
   "frontend": "emuelec",
   "name": "EmuELEC",
   "version": "1.0",
-  "description": "适用于 EmuELEC 前端的数据导出模板。注意：此模板仅导出游戏元数据和媒体文件，不导出 ROM 文件。",
+  "description": "Template for Exporting Data and Media Files for EmuELEC Frontend. Note: This template only exports game metadata and media files, not ROM files.",
   "exportOptions": {
     "gameFiles": false,
     "mediaFiles": true,
