@@ -1,0 +1,93 @@
+{
+  "frontend": "emuelec",
+  "name": "EmuELEC",
+  "version": "1.0",
+  "description": "Template for Exporting Data and Media Files for the EmuELEC Frontend",
+  "rules": {
+    "media": {
+      "box2dback": {
+        "source": "box2dback",
+        "target": "{mediaPath}/box2dback/{filename}.png",
+        "dataFileTag": "box2dback"
+      },
+      "box2dfront": {
+        "source": "box2dfront",
+        "target": "{mediaPath}/box2dfront/{filename}.png",
+        "dataFileTag": "box2dfront"
+      },
+      "box2dside": {
+        "source": "box2dside",
+        "target": "{mediaPath}/box2dside/{filename}.png",
+        "dataFileTag": "box2dside"
+      },
+      "box3d": {
+        "source": "box3d",
+        "target": "{mediaPath}/box3d/{filename}.png",
+        "dataFileTag": "box3d"
+      },
+      "fanart": {
+        "source": "fanart",
+        "target": "{mediaPath}/fanart/{filename}.png",
+        "dataFileTag": "fanart"
+      },
+      "screenshot": {
+        "source": "screenshot",
+        "target": "{mediaPath}/screenshot/{filename}.png",
+        "dataFileTag": "screenshot"
+      },
+      "video": {
+        "source": "video",
+        "target": "{mediaPath}/video/{filename}.mp4",
+        "dataFileTag": "video"
+      },
+      "wheel": {
+        "source": "wheel",
+        "target": "{mediaPath}/wheel/{filename}.png",
+        "dataFileTag": "wheel"
+      },
+      "banner": {
+        "source": "banner",
+        "target": "{mediaPath}/banner/{filename}.png",
+        "dataFileTag": "banner"
+      },
+      "manual": {
+        "source": "manual",
+        "target": "{mediaPath}/manuals/{filename}.pdf",
+        "dataFileTag": "manual"
+      },
+      "images": {
+        "source": "images",
+        "target": "{mediaPath}/images/{filename}.png",
+        "dataFileTag": "images"
+      }
+    },
+    "dataFile": {
+      "filename": "gamelist.xml",
+      "format": "xml",
+      "pathFormat": "absoluteWithDot",
+      "header": [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+        "<gameList>"
+      ],
+      "footer": [
+        "</gameList>"
+      ],
+      "fields": {
+        "title": "name",
+        "path": "path",
+        "description": "desc",
+        "rating": "rating",
+        "releaseDate": "releasedate",
+        "developer": "developer",
+        "publisher": "publisher",
+        "genre": "genre",
+        "players": "players"
+      }
+    },
+    "directory": {
+      "roms": "{outputPath}/roms/{platform}",
+      "media": "{outputPath}/downloaded_images/{platform}",
+      "gamelist": "{outputPath}/roms/{platform}"
+    }
+  }
+}
