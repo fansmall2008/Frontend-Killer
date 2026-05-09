@@ -43,6 +43,12 @@
 - 📊 **Statistics Dashboard**: Game collection statistics and analytics
 - 🪟 **Native Windows Support**: Standalone EXE distribution for Windows users
 
+### v1.2+ Features
+- 🔍 **ScreenScraper API Integration**: Automated game metadata scraping functionality
+
+### v1.3+ Features
+- 📈 **Analytics Dashboard**: Comprehensive game collection statistics and insights
+
 ---
 
 ## English
