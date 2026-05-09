@@ -41,6 +41,7 @@
 - ⚙️ **Folder Export Configuration**: Add folder export options in export JSON rules with configurable parent directory levels
 - 🎯 **Advanced Game Filtering**: More sophisticated filtering and sorting options
 - 📊 **Statistics Dashboard**: Game collection statistics and analytics
+- 🪟 **Native Windows Support**: Standalone EXE distribution for Windows users
 
 ---
 

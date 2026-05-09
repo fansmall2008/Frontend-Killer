@@ -63,6 +63,7 @@
   - Multi-file game support (e.g., DOS games) by treating entire game folders as game entries
   - Folder export configuration with configurable parent directory levels
   - Advanced game filtering options
+  - Native Windows support with standalone EXE distribution
 - **1.2**: Integrate with ScreenScraper API for game scraping functionality
 - **1.3**: Statistics dashboard for game collection analytics
 
