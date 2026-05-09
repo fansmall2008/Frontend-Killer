@@ -1,8 +1,7 @@
 # 运行应用
 FROM openjdk:27-ea-17-jdk-slim
 
-# 安装必要的工具（用于健康检查和日志轮转）
-RUN apt-get update && apt-get install -y --no-install-recommends bash wget 2>/dev/null || true
+# 基础镜像已包含 bash，wget 不是必需的
 
 # 设置工作目录
 WORKDIR /app

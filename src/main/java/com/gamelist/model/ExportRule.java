@@ -305,6 +305,7 @@ public class ExportRule {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DirectoryRule {
         private String roms;
         private String media;
