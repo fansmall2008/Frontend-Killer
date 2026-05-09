@@ -2,7 +2,7 @@
 FROM openjdk:27-ea-17-jdk-slim
 
 # 安装必要的工具（用于健康检查和日志轮转）
-RUN apt-get update && apt-get install -y --no-install-recommends bash wget logrotate 2>/dev/null || apt-get install -y bash wget logrotate 2>/dev/null || true
+RUN apt-get update && apt-get install -y --no-install-recommends bash wget 2>/dev/null || true
 
 # 设置工作目录
 WORKDIR /app
