@@ -44,29 +44,9 @@
       "SuperGrafx": "NEC - Super Grafx"
     },
     "dataFile": {
-      "filename": "gamelist.xml",
-      "format": "xml",
-      "pathFormat": "absolute",
-      "header": {
-        "structure": [
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-          "<gameList>"
-        ]
-      },
-      "footer": [
-        "</gameList>"
-      ],
-      "fields": {
-        "title": "name",
-        "path": "path",
-        "description": "description",
-        "rating": "rating",
-        "releaseDate": "releaseYear",
-        "developer": "developer",
-        "publisher": "publisher",
-        "genre": "genre",
-        "players": "players"
-      }
+      "filename": "{platformName}.lpl",
+      "format": "lpl",
+      "pathFormat": "absolute"
     },
     "directory": {
       "roms": "{outputPath}/roms/{platform}",
