@@ -2,6 +2,8 @@
 
 ⚠️ **Important Notice**: This is a **beta/test version**. We welcome bug reports and feedback to help improve the project!
 
+⚠️ **Known Limitation**: This software does not handle multi-file platform games well (e.g., DOS games), but it can handle multi-disc single-file games.
+
 ---
 
 ## Recent Updates
