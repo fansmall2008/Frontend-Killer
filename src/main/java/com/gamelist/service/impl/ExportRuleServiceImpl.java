@@ -45,9 +45,7 @@ public class ExportRuleServiceImpl implements ExportRuleService {
         logger.info("rulesPath value: {}", rulesPath);
         logger.info("rulesDirectory value: {}", rulesDirectory);
 
-        boolean loaded = false;
-
-        // 首先从外部路径加载
+        // 只从外部路径（data/rules/export/）加载规则
         File externalRulesDir = new File(rulesPath);
         logger.info("Checking externalRulesDir: {}, exists: {}, isDirectory: {}",
                     externalRulesDir.getAbsolutePath(),
@@ -56,20 +54,13 @@ public class ExportRuleServiceImpl implements ExportRuleService {
 
         if (externalRulesDir.exists() && externalRulesDir.isDirectory()) {
             logger.info("Loading export rules from external path: {}", rulesPath);
-            loaded = loadRulesFromDirectory(externalRulesDir.toPath());
+            boolean loaded = loadRulesFromDirectory(externalRulesDir.toPath());
             logger.info("loadRulesFromDirectory returned: {}, rules size: {}", loaded, rules.size());
         } else {
             logger.warn("External rules directory does not exist or is not a directory: {}", externalRulesDir.getAbsolutePath());
         }
 
-        // 如果外部路径没有加载到规则，尝试从 classpath 加载默认规则
-        if (!loaded) {
-            logger.info("No rules found in external path, trying classpath");
-            loaded = loadRulesFromClasspath();
-            logger.info("loadRulesFromClasspath returned: {}, rules size: {}", loaded, rules.size());
-        }
-
-        if (!loaded) {
+        if (rules.isEmpty()) {
             logger.warn("No export rules loaded. Final rules size: {}", rules.size());
         } else {
             logger.info("Export rules loaded successfully. Total rules: {}", rules.size());
@@ -126,7 +117,7 @@ public class ExportRuleServiceImpl implements ExportRuleService {
                         logger.error("Error converting rules URL to path", e);
                     }
                 } else if (rulesUrl.getProtocol().equals("jar")) {
-                    String[] ruleFiles = {"esde.json", "pegasus.json", "retrobat.json", "template.json"};
+                    String[] ruleFiles = {"esde.json", "pegasus.json", "retrobat.json", "lakka.json", "emuelec.json", "template.json"};
                     for (String fileName : ruleFiles) {
                         String resourcePath = "export-rules/" + fileName;
                         URL resourceUrl = classLoader.getResource(resourcePath);

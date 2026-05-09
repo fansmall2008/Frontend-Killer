@@ -3,8 +3,8 @@ set -e
 
 DEFAULT_RULES_DIR="/app/default-rules"
 RULES_DIR="/data/rules"
-EXPORT_RULES_DIR="/data/rules/export-rules"
-IMPORT_TEMPLATES_DIR="/data/rules/import-templates"
+EXPORT_RULES_DIR="/data/rules/export"
+IMPORT_TEMPLATES_DIR="/data/rules/import"
 TRANSLATION_CONFIG="/data/rules/translation-config.json"
 LOG_DIR="/data/logs"
 

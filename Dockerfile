@@ -2,11 +2,7 @@
 FROM openjdk:27-ea-17-jdk-slim
 
 # 安装必要的工具（用于健康检查和日志轮转）
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash \
-    wget \
-    logrotate \
-    && rm -rf /var/cache/apt/*
+RUN apt-get update && apt-get install -y --no-install-recommends bash wget logrotate 2>/dev/null || apt-get install -y bash wget logrotate 2>/dev/null || true
 
 # 设置工作目录
 WORKDIR /app
@@ -15,8 +11,8 @@ WORKDIR /app
 COPY target/webGamelistOper-1.0.6-beta2.jar app.jar
 
 # 复制默认规则文件
-COPY src/main/resources/export-rules/ /app/default-rules/export-rules/
-COPY src/main/resources/import-templates/ /app/default-rules/import-templates/
+COPY src/main/resources/export-rules/ /app/default-rules/export/
+COPY src/main/resources/import-templates/ /app/default-rules/import/
 
 # 复制data文件夹到容器中
 COPY data/ /app/data/
