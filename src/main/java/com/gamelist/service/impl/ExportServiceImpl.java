@@ -562,11 +562,15 @@ public class ExportServiceImpl implements ExportService {
             }
             
             if (generator != null) {
-                generator.generateDataFile(games, dataFilePath, rule, platform, variables);
-                
-                // 如果是 Lakka 格式，还需要生成 .lpl 播放列表文件
-                if ("lpl".equals(format) && rule.getRules().getLplExport() != null && rule.getRules().getLplExport().isEnabled()) {
-                    generateLplFile(games, targetPath, rule, platform, variables);
+                // 对于 LPL 格式，只使用 lplExport 配置生成播放列表，不生成 dataFile
+                if ("lpl".equals(format)) {
+                    if (rule.getRules().getLplExport() != null && rule.getRules().getLplExport().isEnabled()) {
+                        generateLplFile(games, targetPath, rule, platform, variables);
+                    } else {
+                        logger.warn("LPL format configured but lplExport is not enabled");
+                    }
+                } else {
+                    generator.generateDataFile(games, dataFilePath, rule, platform, variables);
                 }
             } else {
                 logger.error("Unsupported data file format: {}", format);
