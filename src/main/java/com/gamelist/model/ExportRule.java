@@ -3,6 +3,9 @@ package com.gamelist.model;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ExportRule {
     private String frontend;
     private String name;
@@ -169,6 +172,7 @@ public class ExportRule {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DataFileRule {
         private String filename;
         private String format;
@@ -279,6 +283,7 @@ public class ExportRule {
         public void setTo(String to) { this.to = to; }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HeaderRule {
         private List<String> structure;
         private Map<String, String> fields;
