@@ -34,6 +34,16 @@
 
 ---
 
+## Future Roadmap (v1.1+)
+
+### Planned Features
+- 📁 **Multi-file Game Support**: Support for games that require multiple files (e.g., DOS games) by treating entire game folders as game entries
+- ⚙️ **Folder Export Configuration**: Add folder export options in export JSON rules with configurable parent directory levels
+- 🎯 **Advanced Game Filtering**: More sophisticated filtering and sorting options
+- 📊 **Statistics Dashboard**: Game collection statistics and analytics
+
+---
+
 ## English
 
 ### Features
