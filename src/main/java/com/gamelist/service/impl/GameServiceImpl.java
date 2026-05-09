@@ -3710,6 +3710,10 @@ public class GameServiceImpl implements GameService {
         if (gameFilePath != null && !gameFilePath.isEmpty()) {
             // 移除扩展名
             filePathWithoutExt = gameFilePath.replaceAll("\\.[^.]+$", "");
+            // 移除 ./ 前缀（如果存在），确保是干净的相对路径
+            if (filePathWithoutExt.startsWith("./")) {
+                filePathWithoutExt = filePathWithoutExt.substring(2);
+            }
         }
         
         // 输出调试信息：平台目录和游戏信息
