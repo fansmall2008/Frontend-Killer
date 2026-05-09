@@ -53,13 +53,18 @@
 - Some text entries are still not fully translated
 
 ### Roadmap
-- **1.1**: First official release, target import/export templates for:
-  - EmuDeck
-  - ~~Lakka~~ ✅ Done
-  - ~~EmuElec~~ ✅ Done
-  - Recalbox
-  - Batocera
+- **1.1**: First official release
+  - Import/export templates:
+    - EmuDeck
+    - ~~Lakka~~ ✅ Done
+    - ~~EmuElec~~ ✅ Done
+    - Recalbox
+    - Batocera
+  - Multi-file game support (e.g., DOS games) by treating entire game folders as game entries
+  - Folder export configuration with configurable parent directory levels
+  - Advanced game filtering options
 - **1.2**: Integrate with ScreenScraper API for game scraping functionality
+- **1.3**: Statistics dashboard for game collection analytics
 
 ## [1.0.6-beta] - 2026-05-01
 
