@@ -18,6 +18,7 @@ public interface GameMapper {
     List<Game> selectGamesByPlatformId(Long platformId);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
+    List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses);
     Game selectGameById(Long id);
     int deleteAllGames();
     

@@ -172,9 +172,10 @@ public class GameListController {
             @RequestParam(required = false) List<String> developers,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) List<String> players,
-            @RequestParam(required = false) List<String> scrapeStatuses) {
+            @RequestParam(required = false) List<String> scrapeStatuses,
+            @RequestParam(required = false) List<String> fileStatuses) {
         try {
-            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses);
+            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses);
             
             // 处理分页
             int totalElements = games.size();

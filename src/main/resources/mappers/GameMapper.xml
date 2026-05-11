@@ -236,6 +236,18 @@
                 </choose>
             </foreach>
         </if>
+        <if test="fileStatuses != null and fileStatuses.size() > 0">
+            <foreach item="status" collection="fileStatuses" separator=" OR " open="AND (" close=")">
+                <choose>
+                    <when test="status == 'exists'">
+                        exists = true
+                    </when>
+                    <when test="status == 'not_exists'">
+                        exists = false
+                    </when>
+                </choose>
+            </foreach>
+        </if>
         ORDER BY name
     </select>
     
@@ -612,7 +624,22 @@
             )
         </if>
         
-
+        <!-- 文件状态筛选 -->
+        <if test="fileStatus != null and fileStatus.size() > 0">
+            AND (
+                <foreach collection="fileStatus" item="status" index="index">
+                    <if test="index > 0">OR</if>
+                    <choose>
+                        <when test="status == 'exists'">
+                            g.exists = true
+                        </when>
+                        <when test="status == 'not_exists'">
+                            g.exists = false
+                        </when>
+                    </choose>
+                </foreach>
+            )
+        </if>
         
         ORDER BY g.name
     </select>

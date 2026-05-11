@@ -828,6 +828,21 @@
                     </div>
                 </div>
                 
+                <!-- 文件状态 -->
+                <div style="margin-bottom: 30px; padding: 20px; background: rgba(0, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <h3 style="color: #00ffff; margin-bottom: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">文件状态</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 30px;">
+                            <input type="checkbox" id="fileExists" name="fileStatus" value="exists" style="margin-right: 10px; accent-color: #00ffff;">
+                            <span>文件存在</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" id="fileNotExists" name="fileStatus" value="not_exists" style="margin-right: 10px; accent-color: #00ffff;">
+                            <span>文件不存在</span>
+                        </label>
+                    </div>
+                </div>
+                
                 <!-- 筛选条件 -->
                 <div style="margin-bottom: 30px; padding: 20px; background: rgba(0, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 255, 0.2);">
                     <h3 style="color: #00ffff; margin-bottom: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="filter_conditions">筛选条件</h3>
@@ -1834,6 +1849,7 @@
                 filter: {
                     platformIds: [parseInt(platformId)],
                     scrapeStatus: [],
+                    fileStatus: [],
                     ratingMin: document.getElementById('ratingMin').value,
                     yearMin: document.getElementById('yearMin').value,
                     yearMax: document.getElementById('yearMax').value,
@@ -1855,6 +1871,14 @@
             }
             if (document.getElementById('scrapeNot').checked) {
                 requestData.filter.scrapeStatus.push('not');
+            }
+            
+            // 收集文件状态
+            if (document.getElementById('fileExists').checked) {
+                requestData.filter.fileStatus.push('exists');
+            }
+            if (document.getElementById('fileNotExists').checked) {
+                requestData.filter.fileStatus.push('not_exists');
             }
             
             let fetchUrl, fetchBody;

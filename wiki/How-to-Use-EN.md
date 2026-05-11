@@ -106,7 +106,6 @@ The software supports three methods to import games. Choose the most suitable on
 **Data Standardization**:
 - Use search function to find duplicate games
 - Standardize game naming conventions
--补充缺失信息
 
 ### 2.4 Translate Game Information
 

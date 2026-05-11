@@ -940,6 +940,13 @@
                     </div>
                 </div>
                 <div class="field-group">
+                    <label data-i18n="file_status">文件状态:</label>
+                    <div class="checkbox-group" id="fileStatusCheckboxes">
+                        <label><input type="checkbox" value="exists"> <span data-i18n="file_exists">文件存在</span></label>
+                        <label><input type="checkbox" value="not_exists"> <span data-i18n="file_not_exists">文件不存在</span></label>
+                    </div>
+                </div>
+                <div class="field-group">
                     <button onclick="searchGames()" data-i18n="search">搜索</button>
                     <button onclick="resetSearch()" data-i18n="reset">重置</button>
                 </div>
@@ -987,6 +994,7 @@
                         <th style="width: 100px;" data-i18n="release-date">发行日期</th>
                         <th style="width: 60px;" data-i18n="rating">评分</th>
                         <th style="width: 80px;" data-i18n="language">语言</th>
+                        <th style="width: 80px;" data-i18n="file-status">文件状态</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1666,10 +1674,17 @@
                                     openEditGameModal(game.id);
                                 };
                                 row.style.cursor = 'pointer';
+                                
+                                // 根据文件存在状态设置样式
+                                const nameStyle = game.exists === false ? 'style="color: #ff4444; font-weight: bold;"' : '';
+                                const pathStyle = game.exists === false ? 'style="color: #ff6666;"' : '';
+                                const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
+                                                   game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
+                                
                                 row.innerHTML = `
                                     <td>${game.id || ''}</td>
-                                    <td>${game.name || ''}</td>
-                                    <td>${game.path || ''}</td>
+                                    <td ${nameStyle}>${game.name || ''}</td>
+                                    <td ${pathStyle}>${game.path || ''}</td>
                                     <td>${game.desc || game.description || ''}</td>
                                     <td>${game.translatedName || ''}</td>
                                     <td>${game.translatedDesc || game.translatedDescription || ''}</td>
@@ -1680,6 +1695,7 @@
                                     <td>${game.releasedate || game.releaseDate || ''}</td>
                                     <td>${game.rating || ''}</td>
                                     <td>${game.lang || game.language || ''}</td>
+                                    <td>${existsStatus}</td>
                                 `;
                                 tableBody.appendChild(row);
                             } catch (e) {
@@ -2553,6 +2569,9 @@
             // 获取选中的刮削状态
             const scrapeStatuses = Array.from(document.querySelectorAll('#scrapeStatusCheckboxes input:checked')).map(input => input.value);
             
+            // 获取选中的文件状态
+            const fileStatuses = Array.from(document.querySelectorAll('#fileStatusCheckboxes input:checked')).map(input => input.value);
+            
             // 构建搜索参数
             const searchParams = {
                 startYear: startYear,
@@ -2560,7 +2579,8 @@
                 developers: developers,
                 genres: genres,
                 players: players,
-                scrapeStatuses: scrapeStatuses
+                scrapeStatuses: scrapeStatuses,
+                fileStatuses: fileStatuses
             };
             
             // 加载游戏列表并应用搜索参数
@@ -2584,6 +2604,9 @@
             
             // 重置刮削状态复选框
             document.querySelectorAll('#scrapeStatusCheckboxes input').forEach(input => input.checked = false);
+            
+            // 重置文件状态复选框
+            document.querySelectorAll('#fileStatusCheckboxes input').forEach(input => input.checked = false);
             
             loadGames();
         }
@@ -2692,6 +2715,11 @@
                 if (searchParams.scrapeStatuses && searchParams.scrapeStatuses.length > 0) {
                     searchParams.scrapeStatuses.forEach(status => {
                         url += `&scrapeStatuses=${encodeURIComponent(status)}`;
+                    });
+                }
+                if (searchParams.fileStatuses && searchParams.fileStatuses.length > 0) {
+                    searchParams.fileStatuses.forEach(status => {
+                        url += `&fileStatuses=${encodeURIComponent(status)}`;
                     });
                 }
             }
@@ -2891,11 +2919,15 @@
                             }
                         };
                         row.style.cursor = 'pointer';
+                        // 根据文件存在状态设置样式
+                        const nameStyle = game.exists === false ? 'style="color: #ff4444; font-weight: bold;"' : '';
+                        const pathStyle = game.exists === false ? 'style="color: #ff6666;"' : '';
+                        
                         row.innerHTML = `
                             <td style="cursor: default;"><input type="checkbox" class="game-checkbox" value="${game.id}" onchange="updateSelectedGames()"></td>
                             <td>${game.id}</td>
-                            <td>${game.name}</td>
-                            <td>${game.path}</td>
+                            <td ${nameStyle}>${game.name}</td>
+                            <td ${pathStyle}>${game.path}</td>
                             <td>${game.platformPath || ''}</td>
                             <td>${game.desc || ''}</td>
                             <td>${game.translatedName || ''}</td>

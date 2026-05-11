@@ -8,6 +8,12 @@
 
 ## Recent Updates
 
+### v1.0.6-beta3 (2026-05-11)
+- Added file existence verification during game import (traditional and template import methods)
+- Added file status filtering in game list search and platform separation
+- Game list displays games with missing files in red font for easy identification
+- Added internationalization support for file status UI elements (Chinese, English, Japanese)
+
 ### v1.0.6-beta (2026-05-01)
 - Fixed template description display: Now dynamically reads description from template JSON files instead of hardcoded values
 - Improved XML parsing logic for better compatibility with various frontend templates

@@ -38,6 +38,7 @@ public interface GameService {
     List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> getGamesByPlatformId(Long platformId);
     List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
+    List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses);
     Game getGameById(Long id);
     int deleteAllGames();
     Statistics getOverallStatistics();

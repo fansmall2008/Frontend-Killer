@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.0.6-beta3] - 2026-05-11
+
+### Added
+- Added file existence verification during game import
+  - Supports traditional import and template import methods
+  - Validates game files exist on the filesystem
+- Added file status filtering in game list search
+  - Filter games by "File Exists" or "File Not Exists" status
+- Added file status filtering in platform separation modal
+  - Filter games by file existence before separation
+- Added internationalization support for file status UI elements
+  - Added `file-status`, `file_status`, `file_exists`, `file_not_exists` keys
+  - Supports Chinese, English, and Japanese languages
+
+### Changed
+- Game list displays games with missing files in red font
+  - Game names shown in bold red (#ff4444) when file does not exist
+  - Game paths shown in red (#ff6666) when file does not exist
+- Updated Docker image tag to `dev` for development builds
+
+### Fixed
+- Fixed file existence verification logic not being properly set during import
+
+### Improved
+- Enhanced game-list.html search functionality with file status filter options
+- Enhanced platform-management.html separation functionality with file status filter
+
 ## [1.0.6-beta2] - 2026-05-08
 
 ### Added

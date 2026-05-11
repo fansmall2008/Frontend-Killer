@@ -2040,6 +2040,20 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses) {
+        List<Game> games = gameMapper.selectGamesByPlatformIdWithFilter(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses);
+        // 为每个游戏设置platformPath
+        Platform platform = platformService.getPlatformById(platformId);
+        if (platform != null) {
+            String platformPath = platform.getFolderPath();
+            for (Game game : games) {
+                game.setPlatformPath(platformPath);
+            }
+        }
+        return games;
+    }
+
+    @Override
     public Game getGameById(Long id) {
         Game game = gameMapper.selectGameById(id);
         // 为游戏设置platformPath
