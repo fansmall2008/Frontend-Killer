@@ -36,17 +36,13 @@ if [ -d "/app/data" ]; then
 fi
 
 if [ -d "$DEFAULT_RULES_DIR" ]; then
-    # 复制导出规则
-    if [ -z "$(ls -A "$EXPORT_RULES_DIR" 2>/dev/null)" ]; then
-        log "导出规则目录为空，复制默认规则..."
-        cp -r "$DEFAULT_RULES_DIR/export/"* "$EXPORT_RULES_DIR/" 2>/dev/null || true
-    fi
+    # 复制导出规则（强制覆盖以确保使用最新版本）
+    log "复制默认导出规则..."
+    cp -r "$DEFAULT_RULES_DIR/export/"* "$EXPORT_RULES_DIR/" 2>/dev/null || true
 
-    # 复制导入模板
-    if [ -z "$(ls -A "$IMPORT_TEMPLATES_DIR" 2>/dev/null)" ]; then
-        log "导入模板目录为空，复制默认模板..."
-        cp -r "$DEFAULT_RULES_DIR/import/"* "$IMPORT_TEMPLATES_DIR/" 2>/dev/null || true
-    fi
+    # 复制导入模板（强制覆盖以确保使用最新版本）
+    log "复制默认导入模板..."
+    cp -r "$DEFAULT_RULES_DIR/import/"* "$IMPORT_TEMPLATES_DIR/" 2>/dev/null || true
 
     if [ ! -f "$TRANSLATION_CONFIG" ] && [ -f "/app/data/rules/translation-config.json" ]; then
         log "翻译配置文件不存在，复制默认配置..."

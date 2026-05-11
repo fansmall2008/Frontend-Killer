@@ -16,6 +16,8 @@ Welcome to the Frontend-Killer Wiki! This is a web application for managing game
 
 - [Installation](Installation) - How to install and run the application
 - [Quick Start](Quick-Start) - Get started in minutes
+- [How to Use](How-to-Use) - Complete usage guide (Chinese)
+- [How to Use (EN)](How-to-Use-EN) - Complete usage guide (English)
 - [Features](Features) - Detailed feature documentation
 - [Configuration](Configuration) - Configuration options
 - [Troubleshooting](Troubleshooting) - Common issues and solutions

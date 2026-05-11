@@ -1,9 +1,18 @@
 package com.gamelist.model;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExportRule {
@@ -284,9 +293,17 @@ public class ExportRule {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonDeserialize(using = HeaderRuleDeserializer.class)
     public static class HeaderRule {
         private List<String> structure;
         private Map<String, String> fields;
+
+        public HeaderRule() {}
+
+        public HeaderRule(List<String> structure) {
+            this.structure = structure;
+            this.fields = new HashMap<>();
+        }
 
         public List<String> getStructure() {
             return structure;
@@ -302,6 +319,49 @@ public class ExportRule {
 
         public void setFields(Map<String, String> fields) {
             this.fields = fields;
+        }
+    }
+
+    public static class HeaderRuleDeserializer extends JsonDeserializer<HeaderRule> {
+        @Override
+        public HeaderRule deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.getCodec().readTree(p);
+            
+            if (node.isArray()) {
+                // 旧格式：直接是字符串数组
+                List<String> structure = new ArrayList<>();
+                for (JsonNode item : node) {
+                    structure.add(item.asText());
+                }
+                return new HeaderRule(structure);
+            } else if (node.isObject()) {
+                // 新格式：对象格式
+                HeaderRule header = new HeaderRule();
+                
+                JsonNode structureNode = node.get("structure");
+                if (structureNode != null && structureNode.isArray()) {
+                    List<String> structure = new ArrayList<>();
+                    for (JsonNode item : structureNode) {
+                        structure.add(item.asText());
+                    }
+                    header.setStructure(structure);
+                }
+                
+                JsonNode fieldsNode = node.get("fields");
+                if (fieldsNode != null && fieldsNode.isObject()) {
+                    Map<String, String> fields = new HashMap<>();
+                    Iterator<Map.Entry<String, JsonNode>> fieldsIterator = fieldsNode.fields();
+                    while (fieldsIterator.hasNext()) {
+                        Map.Entry<String, JsonNode> entry = fieldsIterator.next();
+                        fields.put(entry.getKey(), entry.getValue().asText());
+                    }
+                    header.setFields(fields);
+                }
+                
+                return header;
+            }
+            
+            return null;
         }
     }
 

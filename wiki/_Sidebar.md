@@ -12,6 +12,7 @@
 
 **Documentation**
 
+- [How to Use](How-to-Use)
 - [Features](Features)
 - [Configuration](Configuration)
 - [Import Templates](Import)
