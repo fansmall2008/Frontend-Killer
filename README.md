@@ -1,5 +1,21 @@
 # Frontend-Killer
 
+## 📢 Major Update Announcement
+
+**Important**: No code updates will be released until version 1.1. We are focusing all development efforts on preparing the **v1.1 Official Release**.
+
+### What's Coming in v1.1:
+
+1. **ScreenScraper Integration**
+   - Full game scraping functionality using ScreenScraper API
+   - Auto-fetch game metadata, covers, screenshots, and descriptions
+   - **Note**: To use this feature, you will need a ScreenScraper account. Please register in advance at [ScreenScraper.fr](https://www.screenscraper.fr/)
+
+2. **Native Windows EXE Support**
+   - Standalone Windows executable distribution
+   - No Java installation required
+   - Simplified deployment for Windows users
+
 ⚠️ **Important Notice**: This is a **beta/test version**. We welcome bug reports and feedback to help improve the project!
 
 ⚠️ **Known Limitation**: This software does not handle multi-file platform games well (e.g., DOS games), but it can handle multi-disc single-file games.
