@@ -7,7 +7,7 @@ FROM openjdk:27-ea-17-jdk-slim
 WORKDIR /app
 
 # 复制本地构建的JAR文件
-COPY target/webGamelistOper-1.0.6-beta2.jar app.jar
+COPY target/webGamelistOper-1.0.6-beta3.jar app.jar
 
 # 复制默认规则文件
 COPY src/main/resources/export-rules/ /app/default-rules/export/
