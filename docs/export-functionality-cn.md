@@ -573,6 +573,12 @@ XML 格式，支持正确的 XML 标签处理：
 | `fanart` | String | 游戏同人艺术 |
 | `boxtexture` | String | 游戏盒纹理 |
 | `supporttexture` | String | 支持纹理 |
+| `videonormalized` | String | 归一化视频 |
+| `wheelcarbon` | String | 碳风格标志 |
+| `wheelsteel` | String | 钢铁风格标志 |
+| `screenmarqueesmall` | String | 小型屏幕横幅 |
+| `boxside` | String | 游戏盒侧边 |
+| `figurine` | String | 手办图片 |
 | `rating` | Double | 游戏评分 |
 | `releasedate` | String | 游戏发布日期 |
 | `developer` | String | 游戏开发者 |

@@ -1,0 +1,56 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-09-07T12:20:49Z"
+modules:
+    "":
+        dir_name: Frontend-Killer 游戏列表管理应用（根工程）
+        title: Frontend-Killer 游戏列表管理应用（根工程）
+        scope:
+            - README.md
+            - pom.xml
+            - Dockerfile
+            - Dockerfile.cn
+            - Dockerfile.local
+            - Dockerfile.multi-stage
+            - .dockerignore
+            - .gitignore
+            - build-distribution.bat
+            - build.bat
+            - entrypoint.sh
+            - start.bat
+            - docker-compose.yml
+            - fix_genres.py
+            - fix_genres_array.py
+            - fix_media_types.py
+            - fix_roms.py
+            - task_response.json
+            - CHANGELOG.md
+            - cp.txt
+            - maven_build.txt
+            - maven_build2.txt
+            - maven_build3.txt
+            - maven_clean_compile.txt
+            - maven_compile.txt
+            - maven_output.txt
+            - maven_output_full.txt
+            - maven_output_new.txt
+            - maven_package.txt
+            - mvn_output.txt
+        source_files: []
+        children:
+            - docs_wiki
+        depends_on: []
+        related_to: []
+    docs_wiki:
+        dir_name: 项目文档与 Wiki 知识库
+        title: 项目文档与 Wiki 知识库
+        scope:
+            - docs/
+            - wiki/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

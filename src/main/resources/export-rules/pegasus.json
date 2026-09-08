@@ -11,22 +11,27 @@
         "dataFileTag": "assets.video"
       },
       "box2dfront": {
-        "source": "box2dfront",
+        "source": "box-2D",
         "target": "{mediaPath}/{gameName}/boxFront.png",
         "dataFileTag": "assets.boxFront"
       },
       "box2dback": {
-        "source": "box2dback",
+        "source": "box-2D-back",
         "target": "{mediaPath}/{gameName}/boxBack.png",
         "dataFileTag": "assets.boxBack"
       },
       "box3d": {
-        "source": "box3d",
+        "source": "box-3D",
         "target": "{mediaPath}/{gameName}/box3d.png",
         "dataFileTag": "assets.box3d"
       },
+      "boxFull": {
+        "source": "box-3D",
+        "target": "{mediaPath}/{gameName}/boxFull.png",
+        "dataFileTag": "assets.boxFull"
+      },
       "screenshot": {
-        "source": "screenshot",
+        "source": "ss",
         "target": "{mediaPath}/{gameName}/screenshot.png",
         "dataFileTag": "assets.screenshot"
       },

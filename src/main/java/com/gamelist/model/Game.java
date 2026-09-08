@@ -12,34 +12,129 @@ public class Game {
     private String translatedName;
     private String translatedDesc;
     private String image;
-    private String video;
-    private String marquee;
+    /** @deprecated 使用 {@link #manuel} 代替 (ScreenScraper标准) */
+    @Deprecated private String manual;
     private String thumbnail;
-    private String wheel;
-    private String manual;
-    private String boxFront;
-    private String boxBack;
-    private String boxSpine;
+    // ========== ScreenScraper 标准媒体字段（以官方 nomcourt 为命名标准） ==========
+    // --- 包装盒类 (Elements Boitiers / Boitiers) ---
+    private String box2d;           // box-2D (包装盒正面)
+    private String box2dBack;       // box-2D-back (包装盒背面)
+    private String box2dSide;       // box-2D-side (包装盒侧面)
+    private String box3D;           // box-3D (3D包装盒)
+    private String boxTexture;      // box-texture (包装盒纹理)
+    private String boxScan;         // box-scan (包装盒扫描源)
+    // --- 支撑类 (Supports / Sources) ---
+    private String support2d;       // support-2D (支撑图2D)
+    private String supportTexture;  // support-texture (支撑纹理)
+    private String supportScan;     // support-scan (支撑扫描源)
+    // --- 轮盘类 (Logos/Wheels) ---
+    private String wheel;           // wheel (轮盘)
+    private String wheelHd;         // wheel-hd (高清轮盘)
+    private String wheelCarbon;     // wheel-carbon (碳纤维轮盘)
+    private String wheelSteel;      // wheel-steel (钢铁轮盘)
+    // --- 霓虹灯类 (Marquee) ---
+    private String marquee;         // marquee (霓虹灯)
+    private String screenmarquee;   // screenmarquee (屏幕霓虹灯)
+    private String screenmarqueesmall; // screenmarqueesmall (小屏幕霓虹灯)
+    // --- 通用媒体类 (Médias) ---
+    private String ss;              // ss (截图)
+    private String sstitle;         // sstitle (标题截图)
+    private String steamgrid;       // steamgrid (Steam网格)
+    private String fanart;          // fanart (粉丝艺术)
+    private String overlay;         // overlay (覆盖层)
+    private String video;           // video (视频)
+    private String videoNormalized; // video-normalized (标准化视频)
+    // --- 次要媒体类 (Médias Secondaires) ---
+    private String flyer;           // flyer (传单)
+    private String manuel;          // manuel (手册)
+    private String maps;            // maps (地图)
+    private String figurine;        // figurine (手办)
+    // --- 边框类 (Bezels) ---
+    private String bezel43;         // bezel-4-3 (边框4:3横屏)
+    private String bezel43V;        // bezel-4-3-v (边框4:3竖屏)
+    private String bezel43Cocktail; // bezel-4-3-cocktail (边框4:3鸡尾酒)
+    private String bezel169;        // bezel-16-9 (边框16:9横屏)
+    private String bezel169V;       // bezel-16-9-v (边框16:9竖屏)
+    private String bezel169Cocktail;// bezel-16-9-cocktail (边框16:9鸡尾酒)
+    // --- 混合类 (Mixes) ---
+    private String mixrbv1;         // mixrbv1
+    private String mixrbv2;         // mixrbv2
+    // --- 主题类 (Themes) ---
+    private String themehb;         // themehb
+    private String themehs;         // themehs
+    // --- 弹球台专用 (Médias Pincab) ---
+    private String ssdmd;           // ssdmd
+    private String ssfronton169;    // ssfronton16-9
+    private String ssfronton11;     // ssfronton1-1
+    private String ssfronton43;     // ssfronton4-3
+    private String sstable;         // sstable
+    private String sstopper;        // sstopper
+    private String videodmd;        // videodmd
+    private String videofronton43;  // videofronton4-3
+    private String videofronton169; // videofronton16-9
+    private String videotable;      // videotable
+    private String videotable4k;    // videotable4k
+    private String videotopper;     // videotopper
+    private String wheelTarcisios;  // wheel-tarcisios
+
+    // ========== 非 ScreenScraper 遗留字段（保留兼容，标记废弃） ==========
+    /** @deprecated 使用 {@link #box2d} 代替 */
+    @Deprecated private String boxFront;
+    /** @deprecated 使用 {@link #box2dBack} 代替 */
+    @Deprecated private String boxBack;
+    /** @deprecated 使用 {@link #box2dSide} 代替 */
+    @Deprecated private String boxSpine;
     private String boxFull;
-    private String cartridge;
-    private String logo;
-    private String bezel;
-    private String panel;
-    private String cabinetLeft;
-    private String cabinetRight;
-    private String tile;
-    private String banner;
-    private String steam;
-    private String poster;
-    private String background;
-    private String music;
-    private String screenshot;
-    private String titlescreen;
-    private String box3d;
-    private String steamgrid;
-    private String fanart;
-    private String boxtexture;
-    private String supporttexture;
+    /** @deprecated 使用 {@link #support2d} 代替 */
+    @Deprecated private String cartridge;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String logo;
+    /** @deprecated 使用 {@link #bezel43} 或 {@link #bezel169} 代替 */
+    @Deprecated private String bezel;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String panel;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String cabinetLeft;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String cabinetRight;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String tile;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String banner;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String steam;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String poster;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String background;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String music;
+    /** @deprecated 使用 {@link #ss} 代替 */
+    @Deprecated private String screenshot;
+    /** @deprecated 使用 {@link #sstitle} 代替 */
+    @Deprecated private String titlescreen;
+    /** @deprecated 使用 {@link #boxTexture} 代替 */
+    @Deprecated private String boxtexture;
+    /** @deprecated 使用 {@link #supportTexture} 代替 */
+    @Deprecated private String supporttexture;
+    /** @deprecated 使用 {@link #videoNormalized} 代替 */
+    @Deprecated private String videonormalized;
+    /** @deprecated 使用 {@link #wheelCarbon} 代替 */
+    @Deprecated private String wheelcarbon;
+    /** @deprecated 使用 {@link #wheelSteel} 代替 */
+    @Deprecated private String wheelsteel;
+    /** @deprecated 使用 {@link #box2dSide} 代替 */
+    @Deprecated private String boxside;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String pictoliste;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String pictomonochrome;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String pictomonochromesvg;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String pictocouleur;
+    /** @deprecated 非 ScreenScraper 标准类型 */
+    @Deprecated private String wallpaper;
     private Double rating;
     private String releasedate;
     private String developer;
@@ -323,12 +418,12 @@ public class Game {
         this.titlescreen = titlescreen;
     }
 
-    public String getBox3d() {
-        return box3d;
+    public String getBox3D() {
+        return box3D;
     }
 
-    public void setBox3d(String box3d) {
-        this.box3d = box3d;
+    public void setBox3D(String box3D) {
+        this.box3D = box3D;
     }
 
     public String getSteamgrid() {
@@ -361,6 +456,94 @@ public class Game {
 
     public void setSupporttexture(String supporttexture) {
         this.supporttexture = supporttexture;
+    }
+
+    public String getVideonormalized() {
+        return videonormalized;
+    }
+
+    public void setVideonormalized(String videonormalized) {
+        this.videonormalized = videonormalized;
+    }
+
+    public String getWheelcarbon() {
+        return wheelcarbon;
+    }
+
+    public void setWheelcarbon(String wheelcarbon) {
+        this.wheelcarbon = wheelcarbon;
+    }
+
+    public String getWheelsteel() {
+        return wheelsteel;
+    }
+
+    public void setWheelsteel(String wheelsteel) {
+        this.wheelsteel = wheelsteel;
+    }
+
+    public String getScreenmarqueesmall() {
+        return screenmarqueesmall;
+    }
+
+    public void setScreenmarqueesmall(String screenmarqueesmall) {
+        this.screenmarqueesmall = screenmarqueesmall;
+    }
+
+    public String getBoxside() {
+        return boxside;
+    }
+
+    public void setBoxside(String boxside) {
+        this.boxside = boxside;
+    }
+
+    public String getFigurine() {
+        return figurine;
+    }
+
+    public void setFigurine(String figurine) {
+        this.figurine = figurine;
+    }
+
+    public String getPictoliste() {
+        return pictoliste;
+    }
+
+    public void setPictoliste(String pictoliste) {
+        this.pictoliste = pictoliste;
+    }
+
+    public String getPictomonochrome() {
+        return pictomonochrome;
+    }
+
+    public void setPictomonochrome(String pictomonochrome) {
+        this.pictomonochrome = pictomonochrome;
+    }
+
+    public String getPictomonochromesvg() {
+        return pictomonochromesvg;
+    }
+
+    public void setPictomonochromesvg(String pictomonochromesvg) {
+        this.pictomonochromesvg = pictomonochromesvg;
+    }
+
+    public String getPictocouleur() {
+        return pictocouleur;
+    }
+
+    public void setPictocouleur(String pictocouleur) {
+        this.pictocouleur = pictocouleur;
+    }
+
+    public String getWallpaper() {
+        return wallpaper;
+    }
+
+    public void setWallpaper(String wallpaper) {
+        this.wallpaper = wallpaper;
     }
 
     public Double getRating() {
@@ -547,4 +730,91 @@ public class Game {
     public void setDatabaseLink(String databaseLink) {
         this.databaseLink = databaseLink;
     }
+
+    // ========== ScreenScraper 标准媒体字段 Getter/Setter ==========
+
+    public String getBox2d() { return box2d; }
+    public void setBox2d(String box2d) { this.box2d = box2d; }
+    public String getBox2dBack() { return box2dBack; }
+    public void setBox2dBack(String box2dBack) { this.box2dBack = box2dBack; }
+    public String getBox2dSide() { return box2dSide; }
+    public void setBox2dSide(String box2dSide) { this.box2dSide = box2dSide; }
+    public String getBoxTexture() { return boxTexture; }
+    public void setBoxTexture(String boxTexture) { this.boxTexture = boxTexture; }
+    public String getBoxScan() { return boxScan; }
+    public void setBoxScan(String boxScan) { this.boxScan = boxScan; }
+    public String getSupport2d() { return support2d; }
+    public void setSupport2d(String support2d) { this.support2d = support2d; }
+    public String getSupportTexture() { return supportTexture; }
+    public void setSupportTexture(String supportTexture) { this.supportTexture = supportTexture; }
+    public String getSupportScan() { return supportScan; }
+    public void setSupportScan(String supportScan) { this.supportScan = supportScan; }
+    public String getWheelHd() { return wheelHd; }
+    public void setWheelHd(String wheelHd) { this.wheelHd = wheelHd; }
+    public String getWheelCarbon() { return wheelCarbon; }
+    public void setWheelCarbon(String wheelCarbon) { this.wheelCarbon = wheelCarbon; }
+    public String getWheelSteel() { return wheelSteel; }
+    public void setWheelSteel(String wheelSteel) { this.wheelSteel = wheelSteel; }
+    public String getScreenmarquee() { return screenmarquee; }
+    public void setScreenmarquee(String screenmarquee) { this.screenmarquee = screenmarquee; }
+    public String getSs() { return ss; }
+    public void setSs(String ss) { this.ss = ss; }
+    public String getSstitle() { return sstitle; }
+    public void setSstitle(String sstitle) { this.sstitle = sstitle; }
+    public String getOverlay() { return overlay; }
+    public void setOverlay(String overlay) { this.overlay = overlay; }
+    public String getVideoNormalized() { return videoNormalized; }
+    public void setVideoNormalized(String videoNormalized) { this.videoNormalized = videoNormalized; }
+    public String getFlyer() { return flyer; }
+    public void setFlyer(String flyer) { this.flyer = flyer; }
+    public String getManuel() { return manuel; }
+    public void setManuel(String manuel) { this.manuel = manuel; }
+    public String getMaps() { return maps; }
+    public void setMaps(String maps) { this.maps = maps; }
+    public String getBezel43() { return bezel43; }
+    public void setBezel43(String bezel43) { this.bezel43 = bezel43; }
+    public String getBezel43V() { return bezel43V; }
+    public void setBezel43V(String bezel43V) { this.bezel43V = bezel43V; }
+    public String getBezel43Cocktail() { return bezel43Cocktail; }
+    public void setBezel43Cocktail(String bezel43Cocktail) { this.bezel43Cocktail = bezel43Cocktail; }
+    public String getBezel169() { return bezel169; }
+    public void setBezel169(String bezel169) { this.bezel169 = bezel169; }
+    public String getBezel169V() { return bezel169V; }
+    public void setBezel169V(String bezel169V) { this.bezel169V = bezel169V; }
+    public String getBezel169Cocktail() { return bezel169Cocktail; }
+    public void setBezel169Cocktail(String bezel169Cocktail) { this.bezel169Cocktail = bezel169Cocktail; }
+    public String getMixrbv1() { return mixrbv1; }
+    public void setMixrbv1(String mixrbv1) { this.mixrbv1 = mixrbv1; }
+    public String getMixrbv2() { return mixrbv2; }
+    public void setMixrbv2(String mixrbv2) { this.mixrbv2 = mixrbv2; }
+    public String getThemehb() { return themehb; }
+    public void setThemehb(String themehb) { this.themehb = themehb; }
+    public String getThemehs() { return themehs; }
+    public void setThemehs(String themehs) { this.themehs = themehs; }
+    public String getSsdmd() { return ssdmd; }
+    public void setSsdmd(String ssdmd) { this.ssdmd = ssdmd; }
+    public String getSsfronton169() { return ssfronton169; }
+    public void setSsfronton169(String ssfronton169) { this.ssfronton169 = ssfronton169; }
+    public String getSsfronton11() { return ssfronton11; }
+    public void setSsfronton11(String ssfronton11) { this.ssfronton11 = ssfronton11; }
+    public String getSsfronton43() { return ssfronton43; }
+    public void setSsfronton43(String ssfronton43) { this.ssfronton43 = ssfronton43; }
+    public String getSstable() { return sstable; }
+    public void setSstable(String sstable) { this.sstable = sstable; }
+    public String getSstopper() { return sstopper; }
+    public void setSstopper(String sstopper) { this.sstopper = sstopper; }
+    public String getVideodmd() { return videodmd; }
+    public void setVideodmd(String videodmd) { this.videodmd = videodmd; }
+    public String getVideofronton43() { return videofronton43; }
+    public void setVideofronton43(String videofronton43) { this.videofronton43 = videofronton43; }
+    public String getVideofronton169() { return videofronton169; }
+    public void setVideofronton169(String videofronton169) { this.videofronton169 = videofronton169; }
+    public String getVideotable() { return videotable; }
+    public void setVideotable(String videotable) { this.videotable = videotable; }
+    public String getVideotable4k() { return videotable4k; }
+    public void setVideotable4k(String videotable4k) { this.videotable4k = videotable4k; }
+    public String getVideotopper() { return videotopper; }
+    public void setVideotopper(String videotopper) { this.videotopper = videotopper; }
+    public String getWheelTarcisios() { return wheelTarcisios; }
+    public void setWheelTarcisios(String wheelTarcisios) { this.wheelTarcisios = wheelTarcisios; }
 }

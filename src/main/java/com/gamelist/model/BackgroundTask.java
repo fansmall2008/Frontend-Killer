@@ -16,7 +16,9 @@ public class BackgroundTask {
     private String description;
     private String result;
     private String log; // 详细任务日志
-    
+    private Date createdAt;
+    private Date updatedAt;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -95,5 +97,17 @@ public class BackgroundTask {
     }
     public void setLog(String log) {
         this.log = log;
+    }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

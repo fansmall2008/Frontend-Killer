@@ -159,18 +159,18 @@
         
         /* 操作按钮样式 */
         .action-btn {
-            padding: 8px 16px;
-            margin-right: 8px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-weight: bold;
-        }
+        padding: 6px 12px;
+        margin-right: 6px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-weight: bold;
+    }
         
         .edit-btn {
             background: linear-gradient(45deg, #00ffff, #0088ff);
@@ -191,12 +191,24 @@
         }
         
         .delete-btn:hover {
-            background: linear-gradient(45deg, #ff0044, #cc0033);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 0, 68, 0.4);
-        }
-        
-        /* 模态框样式 */
+        background: linear-gradient(45deg, #ff0044, #cc0033);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 0, 68, 0.4);
+    }
+    
+    .scrape-btn {
+        background: linear-gradient(45deg, #00ff88, #00cc66);
+        color: #000;
+        box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+    }
+    
+    .scrape-btn:hover {
+        background: linear-gradient(45deg, #00cc66, #009944);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 204, 102, 0.4);
+    }
+    
+    /* 模态框样式 */
         .modal {
             display: none;
             position: fixed;
@@ -434,6 +446,7 @@
                 <thead>
                     <tr>
                         <th data-i18n="platform_id">ID</th>
+                        <th data-i18n="platform_logo">Logo</th>
                         <th data-i18n="platform_name">平台名称</th>
                         <th data-i18n="game_count">游戏数量</th>
                         <th data-i18n="fully_scraped">完全刮削</th>
@@ -658,6 +671,13 @@
                     <input type="text" id="system" required>
                 </div>
                 <div class="form-group">
+                    <label for="editScraperSystem" data-i18n="scraper_system">刮削系统</label>
+                    <select id="editScraperSystem">
+                        <option value="">请选择系统...</option>
+                    </select>
+                    <p style="color: #888; font-size: 12px; margin-top: 5px;">选择对应的刮削系统，用于Logo和刮削功能</p>
+                </div>
+                <div class="form-group">
                     <label for="software" data-i18n="platform_software">软件</label>
                     <input type="text" id="software">
                 </div>
@@ -668,10 +688,6 @@
                 <div class="form-group">
                     <label for="web" data-i18n="platform_web">网站</label>
                     <input type="text" id="web">
-                </div>
-                <div class="form-group">
-                    <label for="name" data-i18n="platform_name">名称</label>
-                    <input type="text" id="name">
                 </div>
                 <div class="form-group">
                     <label for="sortBy" data-i18n="platform_sort_by">排序方式</label>
@@ -688,7 +704,40 @@
                     <p style="color: #aaa; font-size: 14px; margin-bottom: 5px;" data-i18n="platform_folder_path_tip">导出功能的前置条件，非必填</p>
                     <input type="text" id="folderPath" placeholder="请输入平台文件夹的绝对路径">
                 </div>
-                <button type="submit" class="submit-btn" data-i18n="save_changes">保存</button>
+                <div class="form-group">
+                    <label data-i18n="logo_settings">Logo 设置</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label for="logoRegion" style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">Logo 区域码</label>
+                            <select id="logoRegion">
+                                <option value="">未设置</option>
+                                <option value="wor">World (wor)</option>
+                                <option value="eu">Europe (eu)</option>
+                                <option value="us">USA (us)</option>
+                                <option value="jp">Japan (jp)</option>
+                                <option value="fr">France (fr)</option>
+                                <option value="asi">Asia (asi)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="logoType" style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">Logo 类型</label>
+                            <select id="logoType">
+                                <option value="">未设置</option>
+                                <option value="icon">Icon</option>
+                                <option value="minicon">Mini Icon</option>
+                                <option value="logo-monochrome">Logo (单色)</option>
+                                <option value="logo-svg">Logo (SVG)</option>
+                                <option value="wheel">Wheel</option>
+                                <option value="wheel-carbon">Wheel (Carbon)</option>
+                                <option value="wheel-steel">Wheel (Steel)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p style="color: #888; font-size: 12px; margin-top: 10px;">未设置时默认使用 wor 区域的 icon 图片</p>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="submit-btn" data-i18n="save_changes">保存</button>
+                </div>
             </form>
         </div>
     </div>
@@ -919,6 +968,207 @@
         </div>
     </div>
 
+    <!-- 刮削模态框 -->
+    <div id="scrapeModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">
+                <h2 id="scrapeModalTitle" style="color: #00ffff; font-size: 20px; margin: 0;" data-i18n="scrape_options">刮削选项</h2>
+                <span class="close" onclick="closeScrapeModal()" style="font-size: 28px; font-weight: bold; cursor: pointer; color: #00ffff; transition: all 0.3s ease;">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px;">
+                <form id="scrapeForm">
+                <!-- 刮削范围（多选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="scrape_scope">刮削范围</label>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="checkbox" name="scrapeScope" value="gameInfo" checked style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">游戏信息</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="checkbox" name="scrapeScope" value="media" checked style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">媒体文件</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 选择语种（单选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_language">选择语种</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="cn" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">中文 (CN)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="en" checked style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">English (EN)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="jp" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">日本語 (JP)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="fr" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Français (FR)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="de" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Deutsch (DE)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="es" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Español (ES)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="it" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Italiano (IT)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="pt" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Português (PT)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="kr" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">한국어 (KR)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="tw" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">繁體中文 (TW)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="ru" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Русский (RU)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="nl" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Nederlands (NL)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="pl" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Polski (PL)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="se" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Svenska (SE)</span>
+                        </label>
+                    </div>
+                    <p style="color: #888; font-size: 12px; margin-top: 10px; text-align: right;" data-i18n="language_tip">游戏介绍优先使用所选语种，其他字段默认使用WOR区域</p>
+                </div>
+                
+                <!-- 刮削全部媒体选项 -->
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; padding: 12px 15px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); transition: all 0.3s ease;">
+                        <input type="checkbox" id="scrapeAllMedia" onchange="toggleAllMediaSelection()" style="margin-right: 10px; accent-color: #ffd700;">
+                        <span style="color: #ffd700; font-weight: bold;" data-i18n="scrape_all_media">刮削全部媒体</span>
+                    </label>
+                    <p style="color: #888; font-size: 12px; margin-top: 8px;" data-i18n="scrape_all_media_tip">选中后将自动刮削API返回的所有媒体类型，按区域优先级下载</p>
+                </div>
+                
+                <!-- 选择媒体类型（多选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_media_types">选择媒体类型</label>
+                    <div class="media-type-grid" id="mediaTypeGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                        <!-- 截图类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_screenshot">截图</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="sstitle" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标题截图</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ss" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">截图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ssmap" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
+                        </div>
+                        <!-- 封面类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_cover">封面</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-side" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面侧面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-back" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面背面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-3D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">3D封面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">支撑图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">支撑纹理</span></label>
+                        </div>
+                        <!-- 轮盘类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_wheel">轮盘</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-carbon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">碳纤维轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-steel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">钢铁轮盘</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="minicon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小图标</span></label>
+                        </div>
+                        <!-- 海报类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_poster">海报</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="fanart" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">粉丝艺术</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="poster" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">海报</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="banner" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">条幅</span></label>
+                        </div>
+                        <!-- 霓虹灯类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_marquee">霓虹灯</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">屏幕霓虹灯</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarqueesmall" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小霓虹灯</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="marquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">霓虹灯</span></label>
+                        </div>
+                        <!-- 街机类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_arcade">街机</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-4-3" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框4:3</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-16-9" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框16:9</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="panel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">面板</span></label>
+                        </div>
+                        <!-- 视频类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_video">视频</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">视频</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video-normalized" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标准化视频</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="intro" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">介绍视频</span></label>
+                        </div>
+                        <!-- 其他类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_other">其他</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="background" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">背景</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="logo" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">LOGO</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="steamgrid" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Steam网格</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="manuel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手册</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="flyer" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">传单</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="overlay" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">覆盖层</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="maps" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="figurine" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手办</span></label>
+                        </div>
+                        <!-- 纹理与混合类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">纹理/混合/主题</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面纹理</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-hd" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">HD轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="mixrbv1" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">MixRB v1</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="mixrbv2" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">MixRB v2</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehb" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HB</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehs" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HS</span></label>
+                        </div>
+                    </div>
+                    <p style="color: #888; font-size: 12px; margin-top: 12px;">至少选择一种媒体类型</p>
+                </div>
+                
+                <!-- 其他选项（多选） -->
+                <div class="form-group" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 10px;">
+                        <input type="checkbox" id="scrapeOverwrite" style="margin-right: 10px; accent-color: #00ffff;">
+                        <span style="color: #ccc;" data-i18n="scrape_overwrite">覆盖已存在的媒体文件</span>
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="scrapeOnlyMissing" style="margin-right: 10px; accent-color: #00ffff;">
+                        <span style="color: #ccc;">仅刮削信息不全的游戏</span>
+                    </label>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 15px; padding: 20px 25px; border-top: 1px solid rgba(0, 255, 255, 0.2);">
+                <button type="button" onclick="closeScrapeModal()" class="btn" style="background: linear-gradient(45deg, #666, #444); color: #fff; padding: 10px 20px;" data-i18n="cancel">取消</button>
+                <button type="button" onclick="startScraping()" id="startScrapeBtn" class="btn" style="background: linear-gradient(45deg, #00ff88, #00cc66); color: #000; padding: 10px 25px; font-weight: bold;" data-i18n="start_scrape">开始刮削</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 消息通知模态框 -->
     <div id="notificationModal" class="modal">
         <div class="modal-content">
@@ -1013,10 +1263,16 @@
                                     missingGames: 0
                                 };
                                 
+                                // 获取 logo URL
+                                const logoUrl = getPlatformLogoUrl(platform);
+                                
                                 const row = document.createElement('tr');
                                 row.setAttribute('data-platform-id', platform.id);
                                 row.innerHTML = `
                                     <td>${platform.id}</td>
+                                    <td>
+                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;">` : '<span style="color: #888;">无</span>'}
+                                    </td>
                                     <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
                                     <td>${stat.totalGames}</td>
                                     <td>${stat.fullyScraped}</td>
@@ -1024,6 +1280,7 @@
                                     <td>${stat.notScraped}</td>
                                     <td>${stat.missingGames}</td>
                                     <td>
+                                        <button class="action-btn scrape-btn" onclick="openScrapeModal('platform', ${platform.id})" data-i18n="scrape">刮削</button>
                                         <button class="action-btn edit-btn" onclick="openEditModal(${platform.id})" data-i18n="edit">编辑</button>
                                         <button class="action-btn delete-btn" onclick="deletePlatform(${platform.id})" data-i18n="delete">删除</button>
                                         <button class="action-btn edit-btn" onclick="openTranslationModal(${platform.id})" data-i18n="translation">翻译</button>
@@ -1043,16 +1300,23 @@
                             tableBody.innerHTML = '';
                             
                             platforms.forEach(platform => {
+                                // 获取 logo URL
+                                const logoUrl = getPlatformLogoUrl(platform);
+                                
                                 const row = document.createElement('tr');
                                 row.setAttribute('data-platform-id', platform.id);
                                 row.innerHTML = `
                                     <td>${platform.id}</td>
+                                    <td>
+                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;">` : '<span style="color: #888;">无</span>'}
+                                    </td>
                                     <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
                                     <td>0</td>
                                     <td>0</td>
                                     <td>0</td>
                                     <td>0</td>
                                     <td>
+                                        <button class="action-btn scrape-btn" onclick="openScrapeModal('platform', ${platform.id})" data-i18n="scrape">刮削</button>
                                         <button class="action-btn edit-btn" onclick="openEditModal(${platform.id})" data-i18n="edit">编辑</button>
                                         <button class="action-btn delete-btn" onclick="deletePlatform(${platform.id})" data-i18n="delete">删除</button>
                                         <button class="action-btn edit-btn" onclick="openTranslationModal(${platform.id})" data-i18n="translation">翻译</button>
@@ -1069,9 +1333,46 @@
                 .catch(error => console.error('Error fetching platforms:', error));
         }
 
+        // 获取平台 logo URL
+        function getPlatformLogoUrl(platform) {
+            if (!platform.systemId) {
+                return null;
+            }
+            
+            // 使用用户设置的 logo 配置，如果没有设置则使用默认值
+            const logoRegion = platform.logoRegion || 'wor';
+            const logoType = platform.logoType || 'icon';
+            
+            // 构建可能的文件路径
+            const possibleExtensions = ['png', 'jpg', 'jpeg'];
+            
+            for (const ext of possibleExtensions) {
+                const url = `/scraper/system/${platform.systemId}/${logoRegion}/${logoType}/${logoType}.${ext}`;
+                // 检查文件是否存在（这里我们直接返回URL，让浏览器处理404）
+                return url;
+            }
+            
+            return null;
+        }
+
         // 打开编辑模态框
         function openEditModal(id) {
-            fetch(`/api/platforms/${id}`)
+            // 先加载系统列表
+            fetch('/api/scraper-systems/simple')
+                .then(response => response.json())
+                .then(systems => {
+                    const select = document.getElementById('editScraperSystem');
+                    select.innerHTML = '<option value="">请选择系统...</option>';
+                    systems.forEach(system => {
+                        const option = document.createElement('option');
+                        option.value = system.systemId;
+                        option.textContent = system.name + (system.nameEn ? ' (' + system.nameEn + ')' : '');
+                        select.appendChild(option);
+                    });
+                    
+                    // 加载平台数据
+                    return fetch(`/api/platforms/${id}`);
+                })
                 .then(response => response.json())
                 .then(platform => {
                     document.getElementById('platformId').value = platform.id;
@@ -1079,10 +1380,16 @@
                     document.getElementById('software').value = platform.software;
                     document.getElementById('database').value = platform.database;
                     document.getElementById('web').value = platform.web;
-                    document.getElementById('name').value = platform.name || '';
                     document.getElementById('sortBy').value = platform.sortBy || '';
                     document.getElementById('launch').value = platform.launch || '';
                     document.getElementById('folderPath').value = platform.folderPath || '';
+                    document.getElementById('logoRegion').value = platform.logoRegion || '';
+                    document.getElementById('logoType').value = platform.logoType || '';
+                    
+                    // 设置刮削系统下拉框选中值
+                    if (platform.systemId) {
+                        document.getElementById('editScraperSystem').value = platform.systemId;
+                    }
                     
                     document.getElementById('editModal').style.display = 'block';
                 })
@@ -1342,17 +1649,24 @@
         document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const id = document.getElementById('platformId').value;
+            const id = parseInt(document.getElementById('platformId').value);
+            const systemIdValue = document.getElementById('editScraperSystem').value;
             const platform = {
                 id: id,
                 system: document.getElementById('system').value,
                 software: document.getElementById('software').value,
                 database: document.getElementById('database').value,
                 web: document.getElementById('web').value,
-                name: document.getElementById('name').value,
                 sortBy: document.getElementById('sortBy').value,
-                launch: document.getElementById('launch').value
+                launch: document.getElementById('launch').value,
+                folderPath: document.getElementById('folderPath').value,
+                logoRegion: document.getElementById('logoRegion').value,
+                logoType: document.getElementById('logoType').value
             };
+            
+            if (systemIdValue) {
+                platform.systemId = parseInt(systemIdValue);
+            }
             
             fetch(`/api/platforms/${id}`, {
                 method: 'PUT',
@@ -1416,6 +1730,122 @@
         function viewGames(platformId) {
             window.location.href = 'game-list.html?platformId=' + platformId;
         }
+        
+        // 刮削弹窗相关变量
+        let scrapeModalType = '';  // 'platform' | 'batch' | 'single'
+        let scrapePlatformId = 0;
+        let scrapeGameIds = [];
+        
+        // 切换全部媒体选择状态
+        function toggleAllMediaSelection() {
+            const checkAll = document.getElementById('scrapeAllMedia').checked;
+            const mediaCheckboxes = document.querySelectorAll('input[name="scrapeMediaType"]');
+            const mediaGrid = document.getElementById('mediaTypeGrid');
+            
+            mediaCheckboxes.forEach(cb => {
+                cb.disabled = checkAll;
+                cb.checked = checkAll;
+            });
+            
+            if (mediaGrid) {
+                mediaGrid.style.opacity = checkAll ? '0.5' : '1';
+            }
+        }
+        
+        // 打开刮削弹窗
+        function openScrapeModal(type, platformId, gameIds) {
+            scrapeModalType = type;
+            scrapePlatformId = platformId;
+            scrapeGameIds = gameIds || [];
+            
+            const title = type === 'platform' ? '平台刮削' : (type === 'batch' ? '批量刮削' : '刮削游戏');
+            document.getElementById('scrapeModalTitle').textContent = title;
+            
+            document.getElementById('scrapeModal').style.display = 'block';
+        }
+        
+        // 关闭刮削模态框
+        function closeScrapeModal() {
+            document.getElementById('scrapeModal').style.display = 'none';
+        }
+        
+        // 开始刮削
+        async function startScraping() {
+            console.log('=== startScraping 函数被调用 ===');
+            console.log('scrapeModalType:', scrapeModalType);
+            console.log('scrapePlatformId:', scrapePlatformId);
+            console.log('scrapeGameIds:', scrapeGameIds);
+            
+            if (!scrapeModalType || scrapePlatformId === 0) {
+                alert('请通过正确的方式打开刮削弹窗');
+                return;
+            }
+            
+            const scrapeScope = Array.from(document.querySelectorAll('input[name="scrapeScope"]:checked'))
+                .map(cb => cb.value);
+            const language = document.querySelector('input[name="scrapeLanguage"]:checked')?.value || 'en';
+            const searchMode = document.querySelector('input[name="scrapeSearchMode"]:checked')?.value || 'crc';
+            const scrapeAllMedia = document.getElementById('scrapeAllMedia').checked;
+            const selectedMedia = scrapeAllMedia ? ['ALL'] : Array.from(document.querySelectorAll('input[name="scrapeMediaType"]:checked'))
+                .map(cb => cb.value);
+            const overwrite = document.getElementById('scrapeOverwrite').checked;
+            const onlyMissing = document.getElementById('scrapeOnlyMissing').checked;
+            
+            console.log('scrapeScope:', scrapeScope);
+            console.log('language:', language);
+            console.log('searchMode:', searchMode);
+            console.log('scrapeAllMedia:', scrapeAllMedia);
+            console.log('selectedMedia:', selectedMedia);
+            console.log('overwrite:', overwrite);
+            console.log('onlyMissing:', onlyMissing);
+            
+            if (scrapeScope.length === 0) {
+                alert('请至少选择一个刮削范围');
+                return;
+            }
+            
+            if (scrapeScope.includes('media') && !scrapeAllMedia && selectedMedia.length === 0) {
+                alert('请至少选择一种媒体类型，或者勾选"刮削全部媒体"');
+                return;
+            }
+            
+            const request = {
+                type: scrapeModalType,
+                platformId: scrapePlatformId,
+                gameIds: scrapeGameIds,
+                scope: scrapeScope,
+                language: language,
+                mediaTypes: scrapeScope.includes('media') ? selectedMedia : [],
+                scrapeAllMedia: scrapeAllMedia,
+                searchMode: searchMode,
+                overwrite: overwrite,
+                onlyMissing: onlyMissing
+            };
+            
+            // 立即关闭弹窗
+            closeScrapeModal();
+            
+            // 异步发送请求（不等待响应）
+            fetch('/api/scraper/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(request)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showNotification('刮削任务已创建，正在后台运行...', 'success');
+                } else {
+                    showNotification('创建刮削任务失败: ' + result.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('刮削请求失败:', error);
+                showNotification('创建刮削任务失败: ' + error.message, 'error');
+            });
+        }
+        
+
 
         // 页面加载时获取平台列表
         window.onload = function() {

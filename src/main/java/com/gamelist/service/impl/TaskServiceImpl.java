@@ -6,21 +6,60 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.stereotype.Service;
 
+import com.gamelist.mapper.BackgroundTaskMapper;
 import com.gamelist.model.BackgroundTask;
 import com.gamelist.service.TaskService;
 
 @Service
 public class TaskServiceImpl implements TaskService {
-    private final Map<Long, BackgroundTask> tasks = new ConcurrentHashMap<>();
+
+    private final BackgroundTaskMapper taskMapper;
+    private final Map<Long, BackgroundTask> taskCache = new ConcurrentHashMap<>();
     private final AtomicLong taskIdGenerator = new AtomicLong(1);
-    
+    private volatile boolean initialized = false;
+    private final ReentrantLock initLock = new ReentrantLock();
+
+    public TaskServiceImpl(BackgroundTaskMapper taskMapper) {
+        this.taskMapper = taskMapper;
+        // 延迟初始化，不在构造函数中调用数据库
+    }
+
+    private void initializeTaskIdGenerator() {
+        if (initialized) {
+            return;
+        }
+        initLock.lock();
+        try {
+            if (initialized) {
+                return;
+            }
+            try {
+                List<BackgroundTask> existingTasks = taskMapper.selectAll();
+                if (existingTasks != null && !existingTasks.isEmpty()) {
+                    long maxId = existingTasks.stream()
+                            .mapToLong(BackgroundTask::getId)
+                            .max()
+                            .orElse(0);
+                    taskIdGenerator.set(maxId + 1);
+                }
+            } catch (Exception e) {
+                // 如果表还不存在，使用默认值1
+                // Flyway迁移完成后会自动初始化
+            }
+            initialized = true;
+        } finally {
+            initLock.unlock();
+        }
+    }
+
     @Override
     public BackgroundTask createTask(String type, String description) {
+        initializeTaskIdGenerator();
         BackgroundTask task = new BackgroundTask();
-        task.setId(taskIdGenerator.getAndIncrement());
         task.setType(type);
         task.setStatus("PENDING");
         task.setProgress(0);
@@ -30,14 +69,15 @@ public class TaskServiceImpl implements TaskService {
         task.setStartTime(new Date());
         task.setDescription(description);
         task.setLog("" + new Date() + " - 任务已创建\n");
-        
-        tasks.put(task.getId(), task);
+
+        taskMapper.insert(task);
+        taskCache.put(task.getId(), task);
         return task;
     }
-    
+
     @Override
     public void updateTaskProgress(Long taskId, int progress, String message, long processedItems, long totalItems) {
-        BackgroundTask task = tasks.get(taskId);
+        BackgroundTask task = getTaskFromCacheOrDb(taskId);
         if (task != null) {
             task.setProgress(progress);
             task.setMessage(message);
@@ -48,22 +88,24 @@ public class TaskServiceImpl implements TaskService {
                 updateTaskLog(taskId, "任务状态变更为 RUNNING");
             }
             updateTaskLog(taskId, message + " (" + processedItems + "/" + totalItems + ")");
+            taskMapper.update(task);
         }
     }
-    
+
     @Override
     public void updateTaskLog(Long taskId, String logMessage) {
-        BackgroundTask task = tasks.get(taskId);
+        BackgroundTask task = getTaskFromCacheOrDb(taskId);
         if (task != null) {
             String currentLog = task.getLog();
             String newLog = currentLog + "" + new Date() + " - " + logMessage + "\n";
             task.setLog(newLog);
+            taskMapper.update(task);
         }
     }
-    
+
     @Override
     public void completeTask(Long taskId, String message, String result) {
-        BackgroundTask task = tasks.get(taskId);
+        BackgroundTask task = getTaskFromCacheOrDb(taskId);
         if (task != null) {
             task.setStatus("COMPLETED");
             task.setProgress(100);
@@ -75,12 +117,14 @@ public class TaskServiceImpl implements TaskService {
             if (result != null && !result.isEmpty()) {
                 updateTaskLog(taskId, "结果: " + result);
             }
+            taskMapper.update(task);
+            taskCache.remove(taskId);
         }
     }
-    
+
     @Override
     public void failTask(Long taskId, String message, String errorMessage) {
-        BackgroundTask task = tasks.get(taskId);
+        BackgroundTask task = getTaskFromCacheOrDb(taskId);
         if (task != null) {
             task.setStatus("FAILED");
             task.setMessage(message);
@@ -91,26 +135,41 @@ public class TaskServiceImpl implements TaskService {
             if (errorMessage != null && !errorMessage.isEmpty()) {
                 updateTaskLog(taskId, "错误: " + errorMessage);
             }
+            taskMapper.update(task);
+            taskCache.remove(taskId);
         }
     }
-    
+
     @Override
     public List<BackgroundTask> getTasks() {
-        return new ArrayList<>(tasks.values());
+        return taskMapper.selectAll();
     }
-    
+
     @Override
     public BackgroundTask getTaskById(Long taskId) {
-        return tasks.get(taskId);
+        return getTaskFromCacheOrDb(taskId);
     }
-    
+
     @Override
     public void deleteTask(Long taskId) {
-        tasks.remove(taskId);
+        taskMapper.deleteById(taskId);
+        taskCache.remove(taskId);
     }
-    
+
     @Override
     public void clearAllTasks() {
-        tasks.clear();
+        taskMapper.deleteAll();
+        taskCache.clear();
+    }
+
+    private BackgroundTask getTaskFromCacheOrDb(Long taskId) {
+        BackgroundTask task = taskCache.get(taskId);
+        if (task == null) {
+            task = taskMapper.selectById(taskId);
+            if (task != null) {
+                taskCache.put(taskId, task);
+            }
+        }
+        return task;
     }
 }

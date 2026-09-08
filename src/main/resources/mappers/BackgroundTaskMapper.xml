@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.BackgroundTaskMapper">
+
+    <resultMap id="BackgroundTaskResultMap" type="com.gamelist.model.BackgroundTask">
+        <id column="id" property="id"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="progress" property="progress"/>
+        <result column="message" property="message"/>
+        <result column="total_items" property="totalItems"/>
+        <result column="processed_items" property="processedItems"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="description" property="description"/>
+        <result column="result" property="result"/>
+        <result column="log" property="log"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gamelist.model.BackgroundTask" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO background_task (type, status, progress, message, total_items, processed_items, start_time, end_time, error_message, description, result, `log`)
+        VALUES (#{type}, #{status}, #{progress}, #{message}, #{totalItems}, #{processedItems}, #{startTime}, #{endTime}, #{errorMessage}, #{description}, #{result}, #{log})
+    </insert>
+
+    <update id="update" parameterType="com.gamelist.model.BackgroundTask">
+        UPDATE background_task SET
+            status = #{status},
+            progress = #{progress},
+            message = #{message},
+            total_items = #{totalItems},
+            processed_items = #{processedItems},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            error_message = #{errorMessage},
+            description = #{description},
+            result = #{result},
+            `log` = #{log}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultMap="BackgroundTaskResultMap">
+        SELECT * FROM background_task WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="BackgroundTaskResultMap">
+        SELECT * FROM background_task ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByType" resultMap="BackgroundTaskResultMap">
+        SELECT * FROM background_task WHERE type = #{type} ORDER BY created_at DESC
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM background_task WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteAll">
+        DELETE FROM background_task
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE background_task SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updateProgress">
+        UPDATE background_task SET progress = #{progress}, processed_items = #{processedItems} WHERE id = #{id}
+    </update>
+
+</mapper>

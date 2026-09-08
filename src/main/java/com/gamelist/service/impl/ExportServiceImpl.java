@@ -810,7 +810,7 @@ public class ExportServiceImpl implements ExportService {
             case "box2dback":
                 return game.getBoxBack();
             case "box3d":
-                return game.getBox3d();
+                return game.getBox3D();
             case "screenshot":
                 return game.getScreenshot();
             case "video":
@@ -821,6 +821,18 @@ public class ExportServiceImpl implements ExportService {
                 return game.getMarquee();
             case "fanart":
                 return game.getFanart();
+            case "videonormalized":
+                return game.getVideonormalized();
+            case "wheelcarbon":
+                return game.getWheelcarbon();
+            case "wheelsteel":
+                return game.getWheelsteel();
+            case "screenmarqueesmall":
+                return game.getScreenmarqueesmall();
+            case "boxside":
+                return game.getBoxside();
+            case "figurine":
+                return game.getFigurine();
             default:
                 return null;
         }

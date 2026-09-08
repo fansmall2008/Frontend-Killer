@@ -394,6 +394,99 @@
             text-decoration: none;
         }
         
+        /* 警告弹框样式 */
+        .warning-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+        }
+        .warning-box {
+            background: rgba(26, 26, 46, 0.98);
+            margin: 15% auto;
+            padding: 35px 40px;
+            border: 2px solid #ff8800;
+            width: 90%;
+            max-width: 520px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 136, 0, 0.5);
+            text-align: center;
+            position: relative;
+        }
+        .warning-box .warn-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .warning-box h3 {
+            color: #ff8800;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+        .warning-box p {
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .warning-box .warn-items {
+            text-align: left;
+            margin: 15px 0 20px;
+        }
+        .warning-box .warn-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .warning-box .warn-item.bad {
+            background: rgba(255, 0, 0, 0.15);
+            border-left: 3px solid #ff4444;
+            color: #ff8888;
+        }
+        .warning-box .warn-item.ok {
+            background: rgba(0, 255, 0, 0.08);
+            border-left: 3px solid #44ff44;
+            color: #88ff88;
+        }
+        .warning-box .btn-dismiss {
+            background: linear-gradient(45deg, #ff8800, #ff4400);
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        .warning-box .btn-dismiss:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 136, 0, 0.5);
+        }
+        .warning-box .btn-go-settings {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: #000;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Consolas', 'Courier New', monospace;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        .warning-box .btn-go-settings:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.5);
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
             h1 {
@@ -483,26 +576,36 @@
                 <p data-i18n="feature_system_data_desc">配置系统参数并管理数据库，确保平台稳定运行</p>
                 
                 <div class="sub-features">
-                    <div class="sub-feature-card">
-                        <h3 data-i18n="feature_setting_title">系统设置</h3>
-                        <p data-i18n="feature_setting_desc">配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。</p>
-                        <a href="system-settings.html" class="btn" data-i18n="feature_setting_btn">进入系统设置</a>
+                        <div class="sub-feature-card">
+                            <h3 data-i18n="feature_setting_title">系统设置</h3>
+                            <p data-i18n="feature_setting_desc">配置系统参数、数据库连接和其他高级设置，优化系统性能和功能。</p>
+                            <a href="system-settings.html" class="btn" data-i18n="feature_setting_btn">进入系统设置</a>
+                        </div>
+                        
+                        <div class="sub-feature-card">
+                            <h3>刮削系统管理</h3>
+                            <p>管理ScreenScraper刮削系统配置，支持平台与刮削系统的绑定管理。</p>
+                            <a href="scraper-system-list.html" class="btn">进入刮削系统管理</a>
+                        </div>
+                        
+                        <div class="sub-feature-card">
+                            <h3>媒体下载管理</h3>
+                            <p>管理刮削任务生成的媒体文件下载队列，支持暂停、恢复和批量删除。</p>
+                            <a href="media-download.html" class="btn">进入媒体下载管理</a>
+                        </div>
+                        
+                        <div class="sub-feature-card">
+                            <h3 data-i18n="feature_h2_title">H2 数据库控制台</h3>
+                            <p data-i18n="feature_h2_desc">访问H2数据库控制台，直接查看和管理数据库中的表结构和数据。</p>
+                            <a href="/h2-console" class="btn" target="_blank" data-i18n="feature_h2_btn">进入数据库控制台</a>
+                        </div>
+                        
+                        <div class="sub-feature-card">
+                            <h3 data-i18n="feature_task_title">后台任务管理</h3>
+                            <p data-i18n="feature_task_desc">查看和管理后台任务执行情况，包括导入、导出、翻译等任务的进度和状态。</p>
+                            <a href="task-management.html" class="btn" data-i18n="feature_task_btn">进入任务管理</a>
+                        </div>
                     </div>
-                    
-
-                    
-                    <div class="sub-feature-card">
-                        <h3 data-i18n="feature_h2_title">H2 数据库控制台</h3>
-                        <p data-i18n="feature_h2_desc">访问H2数据库控制台，直接查看和管理数据库中的表结构和数据。</p>
-                        <a href="/h2-console" class="btn" target="_blank" data-i18n="feature_h2_btn">进入数据库控制台</a>
-                    </div>
-                    
-                    <div class="sub-feature-card">
-                        <h3 data-i18n="feature_task_title">后台任务管理</h3>
-                        <p data-i18n="feature_task_desc">查看和管理后台任务执行情况，包括导入、导出、翻译等任务的进度和状态。</p>
-                        <a href="task-management.html" class="btn" data-i18n="feature_task_btn">进入任务管理</a>
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -523,6 +626,65 @@
             </div>
         </div>
     </div>
+    
+    <!-- 启动检查警告弹框 -->
+    <div class="warning-overlay" id="startupWarning">
+        <div class="warning-box">
+            <div class="warn-icon">⚠️</div>
+            <h3>刮削环境未就绪</h3>
+            <p>未登录 ScreenScraper 或数据库中缺少刮削系统信息，<br>刮削功能将无法正常获取游戏数据，请先完成以下配置：</p>
+            <div class="warn-items" id="warnItems"></div>
+            <div>
+                <button class="btn-go-settings" onclick="window.location.href='system-settings.html'">前往配置</button>
+                <button class="btn-dismiss" onclick="document.getElementById('startupWarning').style.display='none'">我知道了</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // 页面加载后检查刮削环境
+    (function() {
+        let hasCredentials = false;
+        let hasSystems = false;
+        let checksDone = 0;
+
+        function renderWarning() {
+            if (hasCredentials && hasSystems) return; // 都正常，不弹
+            
+            const items = document.getElementById('warnItems');
+            items.innerHTML = '';
+            
+            const credItem = document.createElement('div');
+            credItem.className = 'warn-item ' + (hasCredentials ? 'ok' : 'bad');
+            credItem.textContent = hasCredentials ? '✔ ScreenScraper 账号已配置' : '✘ ScreenScraper 账号未登录';
+            items.appendChild(credItem);
+            
+            const sysItem = document.createElement('div');
+            sysItem.className = 'warn-item ' + (hasSystems ? 'ok' : 'bad');
+            sysItem.textContent = hasSystems ? '✔ 刮削系统数据已就绪' : '✘ 数据库中没有刮削系统信息';
+            items.appendChild(sysItem);
+            
+            document.getElementById('startupWarning').style.display = 'block';
+        }
+
+        function checkDone() {
+            checksDone++;
+            if (checksDone >= 2) renderWarning();
+        }
+
+        // 检查 ScreenScraper 凭证
+        fetch('/api/screenscraper/status')
+            .then(r => r.json())
+            .then(d => { hasCredentials = !!d.hasUserCredentials; checkDone(); })
+            .catch(() => { checkDone(); });
+
+        // 检查刮削系统数据
+        fetch('/api/scraper-systems')
+            .then(r => r.json())
+            .then(d => { hasSystems = d.success && d.data && d.data.length > 0; checkDone(); })
+            .catch(() => { checkDone(); });
+    })();
+    </script>
     
     <script>
         // 语言翻译映射

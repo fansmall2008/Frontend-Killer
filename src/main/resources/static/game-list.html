@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- VERSION: 2026-05-18-COLOR-CODING-FIX -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -434,21 +435,49 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
         }
         
+        .modal.show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 9999 !important;
+        }
+        
+
+        
         .modal-content {
-            background: rgba(0, 0, 0, 0.9);
-            margin: 15% auto;
-            padding: 20px;
-            border: 3px solid #00ffff;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+            background: linear-gradient(135deg, rgba(10, 10, 30, 0.98), rgba(20, 20, 50, 0.98));
+            margin: 5% auto;
+            padding: 25px;
+            border: 2px solid #00ffff;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4), 0 0 80px rgba(255, 0, 255, 0.2);
             color: #fff;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-content form {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .modal-footer {
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(10, 10, 30, 0.98), rgba(20, 20, 50, 0.98));
+            padding-top: 10px;
+            border-top: 1px solid #00ffff;
+            z-index: 10;
         }
         
         .modal-content::before {
@@ -458,23 +487,159 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
-            animation: scan 6s linear infinite;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: scan 8s linear infinite;
         }
         
         .close {
             color: #ff00ff;
             float: right;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            z-index: 10;
+            position: relative;
+            line-height: 1;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 0, 255, 0.1);
         }
         
         .close:hover,
         .close:focus {
             color: #fff;
-            text-shadow: 0 0 10px #ff00ff;
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            transform: rotate(90deg);
+        }
+        
+        /* 媒体类型网格布局 */
+        .media-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 12px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(20, 20, 40, 0.9), rgba(30, 30, 60, 0.9));
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+        }
+        
+        .media-category {
+            background: linear-gradient(180deg, rgba(40, 40, 80, 0.9), rgba(30, 30, 60, 0.9));
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .media-category:hover {
+            border-color: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+        
+        .media-category-title {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            text-align: center;
+        }
+        
+        .media-category label {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 12px;
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+        
+        .media-category label:hover {
+            color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+        
+        .media-category label input[type="checkbox"] {
+            margin-left: 8px;
+            accent-color: #00ffff;
+            width: 14px;
+            height: 14px;
+        }
+        
+        /* 美化滚动条 */
+        .media-type-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .media-type-grid::-webkit-scrollbar-track {
+            background: rgba(30, 30, 60, 0.8);
+            border-radius: 4px;
+        }
+        
+        .media-type-grid::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00ffff, #ff00ff);
+            border-radius: 4px;
+        }
+        
+        /* 加载动画 */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #00ffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
         }
         
         .form-group {
@@ -875,6 +1040,123 @@
             .game-table td {
                 padding: 8px;
             }
+            
+            /* 刮削状态样式 - 使用最高优先级 */
+            .game-table tbody tr.game-row-red {
+                background: linear-gradient(rgba(255, 68, 68, 0.4), rgba(255, 68, 68, 0.4)) !important;
+                border-left: 4px solid #ff4444 !important;
+            }
+            .game-table tbody tr.game-row-red td {
+                background: transparent !important;
+            }
+            
+            .game-table tbody tr.game-row-yellow {
+                background: linear-gradient(rgba(255, 170, 0, 0.4), rgba(255, 170, 0, 0.4)) !important;
+                border-left: 4px solid #ffaa00 !important;
+            }
+            .game-table tbody tr.game-row-yellow td {
+                background: transparent !important;
+            }
+            
+            .game-table tbody tr.game-row-green {
+                background: linear-gradient(rgba(68, 255, 68, 0.4), rgba(68, 255, 68, 0.4)) !important;
+                border-left: 4px solid #44ff44 !important;
+            }
+            .game-table tbody tr.game-row-green td {
+                background: transparent !important;
+            }
+            
+            .game-table tbody tr.game-row-red:hover,
+            .game-table tbody tr.game-row-yellow:hover,
+            .game-table tbody tr.game-row-green:hover {
+                background: linear-gradient(rgba(0, 255, 255, 0.25), rgba(0, 255, 255, 0.25)) !important;
+            }
+            .game-table tbody tr.game-row-red:hover td,
+            .game-table tbody tr.game-row-yellow:hover td,
+            .game-table tbody tr.game-row-green:hover td {
+                background: transparent !important;
+            }
+            
+            .status-indicator {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 5px;
+            }
+            
+            .status-red { 
+                background-color: #ff4444; 
+                box-shadow: 0 0 8px #ff4444; 
+            }
+            .status-yellow { 
+                background-color: #ffaa00; 
+                box-shadow: 0 0 8px #ffaa00; 
+            }
+            .status-green { 
+                background-color: #44ff44; 
+                box-shadow: 0 0 8px #44ff44; 
+            }
+            
+            /* 状态图例 */
+            .status-legend {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                gap: 20px !important;
+                padding: 10px 15px !important;
+                background: rgba(0, 0, 0, 0.8) !important;
+                border: 1px solid #333 !important;
+                border-radius: 8px !important;
+                margin-bottom: 15px !important;
+                width: calc(100% - 30px) !important;
+                max-width: 100% !important;
+                min-width: auto !important;
+                float: none !important;
+                clear: both !important;
+                position: relative !important;
+                z-index: 10 !important;
+            }
+            
+            .status-legend .legend-item {
+                display: inline-flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                gap: 8px !important;
+                font-size: 13px !important;
+                color: #ccc !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                background: transparent !important;
+            }
+            
+            .status-legend .status-indicator {
+                width: 12px !important;
+                height: 12px !important;
+                border-radius: 50% !important;
+                display: inline-block !important;
+                margin: 0 8px 0 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            
+            .status-legend .status-red { 
+                background-color: #ff4444 !important; 
+                box-shadow: 0 0 8px #ff4444 !important; 
+            }
+            .status-legend .status-yellow { 
+                background-color: #ffaa00 !important; 
+                box-shadow: 0 0 8px #ffaa00 !important; 
+            }
+            .status-legend .status-green { 
+                background-color: #44ff44 !important; 
+                box-shadow: 0 0 8px #44ff44 !important; 
+            }
         }
     </style>
     <script src="js/i18n.js"></script>
@@ -934,9 +1216,9 @@
                 <div class="field-group">
                     <label data-i18n="scrape-status">刮削状态:</label>
                     <div class="checkbox-group" id="scrapeStatusCheckboxes">
-                        <label><input type="checkbox" value="fully_scraped" data-i18n="fully-scraped"> 完全刮削</label>
-                        <label><input type="checkbox" value="partially_scraped" data-i18n="partially-scraped"> 部分刮削</label>
-                        <label><input type="checkbox" value="not_scraped" data-i18n="not-scraped"> 未刮削</label>
+                        <label><input type="checkbox" value="fully" data-i18n="fully-scraped"> 完全刮削</label>
+                        <label><input type="checkbox" value="partially" data-i18n="partially-scraped"> 部分刮削</label>
+                        <label><input type="checkbox" value="not" data-i18n="not-scraped"> 未刮削</label>
                     </div>
                 </div>
                 <div class="field-group">
@@ -945,6 +1227,11 @@
                         <label><input type="checkbox" value="exists"> <span data-i18n="file_exists">文件存在</span></label>
                         <label><input type="checkbox" value="not_exists"> <span data-i18n="file_not_exists">文件不存在</span></label>
                     </div>
+                </div>
+                <div class="field-group">
+                    <label>文件夹路径:</label>
+                    <input type="text" id="folderPath" placeholder="输入文件夹名称（支持任意层级）">
+                    <span style="color: #999; font-size: 12px; margin-left: 10px;">例如: a 或 b 都能匹配 a/b/c/xxx.nes</span>
                 </div>
                 <div class="field-group">
                     <button onclick="searchGames()" data-i18n="search">搜索</button>
@@ -961,8 +1248,9 @@
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
-                <button id="addGameBtn" onclick="openAddGameModal()" data-i18n="add">新增</button>
+                <button id="addGameBtn" onclick="showModalDirect('addGameModal')" data-i18n="add">新增</button>
                 <button id="deleteSelectedBtn" onclick="deleteSelectedGames()" disabled data-i18n="delete-selected">删除选中</button>
+                <button id="batchScrapeBtn" onclick="openBatchScrapeModal()" disabled>批量刮削</button>
                 <button id="mergeDiscsBtn" onclick="mergeDiscs()" disabled data-i18n="merge-discs">合盘</button>
                 <button id="batchEditBtn" onclick="openBatchEditModal()" disabled data-i18n="batch-edit">批量修改</button>
                 <button id="translateBtn" onclick="openTranslateModal()" disabled data-i18n="translate">翻译</button>
@@ -975,12 +1263,29 @@
             </div>
         </div>
         
+        <div style="display: flex; flex-direction: row; gap: 20px; padding: 10px 15px; background: rgba(0, 0, 0, 0.8); border: 1px solid #333; border-radius: 8px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc;">
+                <span style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; background-color: #ff4444; box-shadow: 0 0 8px #ff4444;"></span>
+                <span>无信息</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc;">
+                <span style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; background-color: #ffaa00; box-shadow: 0 0 8px #ffaa00;"></span>
+                <span>部分缺失</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc;">
+                <span style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; background-color: #44ff44; box-shadow: 0 0 8px #44ff44;"></span>
+                <span>信息完整</span>
+            </div>
+        </div>
+        
         <div class="game-table-container">
             <table class="game-table" id="gameTable">
                 <thead>
                     <tr>
                         <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
+                        <th style="width: 40px;">状态</th>
                         <th style="width: 50px;">ID</th>
+                        <th style="width: 60px;">图标</th>
                         <th style="width: 150px;" data-i18n="game-name">游戏名称</th>
                         <th style="width: 150px;" data-i18n="game-path">游戏路径</th>
                         <th style="width: 150px;" data-i18n="platform-path">平台路径</th>
@@ -1117,19 +1422,22 @@
     <!-- 游戏编辑模态框 -->
     <div id="editGameModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeEditGameModal()">&times;</span>
-            <h2 data-i18n="edit-game-title">编辑游戏</h2>
-            <form id="editGameForm">
-                <input type="hidden" id="gameId">
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                    <div class="form-group">
-                        <label for="gameName" data-i18n="game-name">游戏名称</label>
-                        <input type="text" id="gameName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gamePath" data-i18n="game-path">游戏路径</label>
-                        <input type="text" id="gamePath" required>
-                    </div>
+            <div class="modal-header">
+                <h2 data-i18n="edit-game-title">编辑游戏</h2>
+                <span class="close" onclick="closeEditGameModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editGameForm">
+                    <input type="hidden" id="gameId">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div class="form-group">
+                            <label for="gameName" data-i18n="game-name">游戏名称</label>
+                            <input type="text" id="gameName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gamePath" data-i18n="game-path">游戏路径</label>
+                            <input type="text" id="gamePath" required>
+                        </div>
                     <div class="form-group">
                         <label for="gameDescription" data-i18n="game-desc">游戏描述</label>
                         <textarea id="gameDescription"></textarea>
@@ -1199,24 +1507,24 @@
                         <input type="text" id="manual">
                     </div>
                     <div class="form-group">
-                        <label for="boxFront" data-i18n="box-front">包装盒正面</label>
-                        <input type="text" id="boxFront">
+                        <label for="box-2D" data-i18n="box-front">包装盒正面</label>
+                        <input type="text" id="box-2D">
                     </div>
                     <div class="form-group">
-                        <label for="boxBack" data-i18n="box-back">包装盒背面</label>
-                        <input type="text" id="boxBack">
+                        <label for="box-2D-back" data-i18n="box-back">包装盒背面</label>
+                        <input type="text" id="box-2D-back">
                     </div>
                     <div class="form-group">
-                        <label for="boxSpine" data-i18n="box-spine">包装盒侧脊</label>
-                        <input type="text" id="boxSpine">
+                        <label for="box-2D-side" data-i18n="box-spine">包装盒侧脊</label>
+                        <input type="text" id="box-2D-side">
                     </div>
                     <div class="form-group">
-                        <label for="boxFull" data-i18n="box-full">完整包装盒</label>
-                        <input type="text" id="boxFull">
+                        <label for="box-3D" data-i18n="box-full">完整包装盒</label>
+                        <input type="text" id="box-3D">
                     </div>
                     <div class="form-group">
-                        <label for="cartridge" data-i18n="cartridge">卡带/光盘</label>
-                        <input type="text" id="cartridge">
+                        <label for="support-2D" data-i18n="cartridge">卡带/光盘</label>
+                        <input type="text" id="support-2D">
                     </div>
                     <div class="form-group">
                         <label for="logo" data-i18n="logo">游戏Logo</label>
@@ -1263,12 +1571,52 @@
                         <input type="text" id="music">
                     </div>
                     <div class="form-group">
-                        <label for="screenshot" data-i18n="screenshot">游戏截图</label>
-                        <input type="text" id="screenshot">
+                        <label for="ss" data-i18n="screenshot">游戏截图</label>
+                        <input type="text" id="ss">
                     </div>
                     <div class="form-group">
-                        <label for="titlescreen" data-i18n="titlescreen">标题画面</label>
-                        <input type="text" id="titlescreen">
+                        <label for="sstitle" data-i18n="titlescreen">标题画面</label>
+                        <input type="text" id="sstitle">
+                    </div>
+                    <div class="form-group">
+                        <label for="wheel" data-i18n="wheel">轮盘图标</label>
+                        <input type="text" id="wheel">
+                    </div>
+                    <div class="form-group">
+                        <label for="wheel-carbon" data-i18n="wheel-carbon">碳纤维轮盘</label>
+                        <input type="text" id="wheel-carbon">
+                    </div>
+                    <div class="form-group">
+                        <label for="wheel-steel" data-i18n="wheel-steel">钢铁轮盘</label>
+                        <input type="text" id="wheel-steel">
+                    </div>
+                    <div class="form-group">
+                        <label for="screenmarqueesmall" data-i18n="screen-marquee-small">小横幅</label>
+                        <input type="text" id="screenmarqueesmall">
+                    </div>
+                    <div class="form-group">
+                        <label for="video-normalized" data-i18n="video-normalized">归一化视频</label>
+                        <input type="text" id="video-normalized">
+                    </div>
+                    <div class="form-group">
+                        <label for="steamgrid" data-i18n="steamgrid">Steam网格</label>
+                        <input type="text" id="steamgrid">
+                    </div>
+                    <div class="form-group">
+                        <label for="fanart" data-i18n="fanart">粉丝艺术图</label>
+                        <input type="text" id="fanart">
+                    </div>
+                    <div class="form-group">
+                        <label for="box-texture" data-i18n="box-texture">包装盒纹理</label>
+                        <input type="text" id="box-texture">
+                    </div>
+                    <div class="form-group">
+                        <label for="supporttexture" data-i18n="support-texture">支架纹理</label>
+                        <input type="text" id="supporttexture">
+                    </div>
+                    <div class="form-group">
+                        <label for="figurine" data-i18n="figurine">手办图片</label>
+                        <input type="text" id="figurine">
                     </div>
                     <div class="form-group">
                         <label for="crc32" data-i18n="crc32">CRC32</label>
@@ -1291,15 +1639,46 @@
                         <input type="text" id="sortBy">
                     </div>
                 </div>
-                <div class="form-actions" style="margin-top: 20px;">
-                    <button type="button" onclick="saveGame()" class="btn btn-primary" data-i18n="save-changes">保存修改</button>
-                    <button type="button" onclick="viewMediaFiles()" class="btn btn-info" data-i18n="view-media">查看媒体文件</button>
-                    <button type="button" onclick="closeEditGameModal()" class="btn btn-secondary" data-i18n="cancel">取消</button>
-                </div>
             </form>
+            <div class="modal-footer">
+                <button type="button" onclick="saveGame()" class="btn btn-primary" data-i18n="save-changes">保存修改</button>
+                <button type="button" onclick="viewMediaFiles()" class="btn btn-info" data-i18n="view-media">查看媒体文件</button>
+                <button type="button" onclick="openSearchModal()" class="btn btn-success" data-i18n="search-game">检索游戏</button>
+                <button type="button" onclick="closeEditGameModal()" class="btn btn-secondary" data-i18n="cancel">取消</button>
+            </div>
         </div>
     </div>
     
+    <!-- 搜索游戏模态框 -->
+    <div id="searchGameModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>🔍 检索游戏</h2>
+                <span class="close" onclick="closeSearchModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="searchGameName">搜索游戏名</label>
+                    <input type="text" id="searchGameName" placeholder="例如：Final Fantasy" onkeyup="if(event.keyCode === 13) searchGameFromScraper()">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="downloadMedia" checked>
+                        同时下载媒体文件
+                    </label>
+                </div>
+                <button type="button" onclick="searchGameFromScraper()" class="btn btn-primary" style="margin-bottom: 15px;">搜索</button>
+                
+                <div id="searchResults" style="max-height: 400px; overflow-y: auto;">
+                    <p>请输入游戏名称进行搜索</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeSearchModal()" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 新增游戏模态框 -->
     <div id="addGameModal" class="modal">
         <div class="modal-content">
@@ -1501,6 +1880,11 @@
     <div id="notificationContainer"></div>
     
     <script>
+        // 立即执行的调试脚本
+        console.log('=====================================');
+        console.log('=== game-list.html 已加载 ===');
+        console.log('=====================================');
+        
         // 全局变量
         let platformId = 0;
         let subsetId = 0;
@@ -1508,6 +1892,8 @@
         let pageSize = 20;
         let totalGames = 0;
         let totalPages = 0;
+        let currentSearchTerm = '';
+        let currentSearchParams = {};
         
         // 获取URL参数
         function getUrlParameter(name) {
@@ -1542,13 +1928,75 @@
                 .catch(error => console.error('Error fetching subset info:', error));
         }
         
+        // 判断游戏是否有任何媒体信息
+        function hasAnyMedia(game) {
+            return game.image || game.box2d || game.boxFront || game.box2dBack || game.boxBack ||
+                   game.box2dSide || game.boxSpine || game.box3d || game.box3D || game.boxFull ||
+                   game.support2d || game.cartridge || game.logo || game.bezel ||
+                   game.panel || game.cabinetLeft || game.cabinetRight || game.tile ||
+                   game.banner || game.steam || game.poster || game.background ||
+                   game.music || game.ss || game.screenshot || game.sstitle || game.titlescreen ||
+                   game.wheel || game.wheelCarbon || game.wheelcarbon || game.wheelSteel || game.wheelsteel ||
+                   game.screenmarqueesmall || game.videoNormalized || game.videonormalized ||
+                   game.steamgrid || game.fanart || game.boxTexture || game.boxtexture ||
+                   game.supportTexture || game.supporttexture || game.figurine || game.video || game.manual;
+        }
+        
+        // 获取刮削状态类名
+        function getScrapeStatusStyle(game) {
+            console.log('>>> getScrapeStatusStyle called for:', game.name);
+            const hasDescription = game.desc && game.desc.trim() !== '';
+            const hasMedia = hasAnyMedia(game);
+            
+            console.log('>>> Game:', game.name, 'hasDesc:', hasDescription, 'hasMedia:', hasMedia);
+            
+            if (!hasDescription && !hasMedia) {
+                console.log('>>> Returning red style for:', game.name);
+                return 'color: #ff4444 !important;';
+            } else if (hasDescription && hasMedia) {
+                console.log('>>> Returning green style for:', game.name);
+                return 'color: #44ff44 !important;';
+            } else {
+                console.log('>>> Returning yellow style for:', game.name);
+                return 'color: #ffaa00 !important;';
+            }
+        }
+        
+        // 获取状态指示器HTML
+        function getStatusIndicator(game) {
+            const hasDescription = game.desc && game.desc.trim() !== '';
+            const hasMedia = hasAnyMedia(game);
+            
+            if (!hasDescription && !hasMedia) {
+                return '<span class="status-indicator status-red"></span>';
+            } else if (hasDescription && hasMedia) {
+                return '<span class="status-indicator status-green"></span>';
+            } else {
+                return '<span class="status-indicator status-yellow"></span>';
+            }
+        }
+        
         // 获取平台游戏列表
-        function loadGames() {
+        function loadGames(page, searchTerm, searchParams) {
             console.log('=== loadGames 开始 ===');
             console.log('Loading games for platform:', platformId);
             console.log('Loading games for subset:', subsetId);
+            
+            // 如果提供了参数，更新全局变量
+            if (page !== undefined) {
+                currentPage = page;
+            }
+            if (searchTerm !== undefined) {
+                currentSearchTerm = searchTerm;
+            }
+            if (searchParams !== undefined) {
+                currentSearchParams = searchParams;
+            }
+            
             console.log('Current page:', currentPage);
             console.log('Page size:', pageSize);
+            console.log('Search term:', currentSearchTerm);
+            console.log('Search params:', currentSearchParams);
             
             const tableBody = document.querySelector('#gameTable tbody');
             console.log('tableBody:', tableBody);
@@ -1558,7 +2006,7 @@
                 return;
             }
             
-            tableBody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: #00ffff;">加载游戏列表中...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="18" style="text-align: center; color: #00ffff;">加载游戏列表中...</td></tr>';
             
             const totalGamesEl = document.getElementById('totalGames');
             const pageInfoEl = document.getElementById('pageInfo');
@@ -1577,6 +2025,45 @@
                 url = `/api/temp-subsets/${subsetId}/games`;
             } else {
                 url = `/api/gamelist/games?page=${currentPage}&pageSize=${pageSize}`;
+            }
+            
+            // 如果有搜索条件，添加到URL
+            if (currentSearchTerm || Object.keys(currentSearchParams).length > 0) {
+                if (url.includes('?')) {
+                    url += '&';
+                } else {
+                    url += '?';
+                }
+                
+                if (currentSearchTerm) {
+                    url += `search=${encodeURIComponent(currentSearchTerm)}`;
+                }
+                
+                // 添加高级搜索参数
+                if (currentSearchParams.startYear) {
+                    url += `&startYear=${encodeURIComponent(currentSearchParams.startYear)}`;
+                }
+                if (currentSearchParams.endYear) {
+                    url += `&endYear=${encodeURIComponent(currentSearchParams.endYear)}`;
+                }
+                if (currentSearchParams.developers && currentSearchParams.developers.length > 0) {
+                    url += `&developers=${encodeURIComponent(currentSearchParams.developers.join(','))}`;
+                }
+                if (currentSearchParams.genres && currentSearchParams.genres.length > 0) {
+                    url += `&genres=${encodeURIComponent(currentSearchParams.genres.join(','))}`;
+                }
+                if (currentSearchParams.players && currentSearchParams.players.length > 0) {
+                    url += `&players=${encodeURIComponent(currentSearchParams.players.join(','))}`;
+                }
+                if (currentSearchParams.scrapeStatuses && currentSearchParams.scrapeStatuses.length > 0) {
+                    url += `&scrapeStatuses=${encodeURIComponent(currentSearchParams.scrapeStatuses.join(','))}`;
+                }
+                if (currentSearchParams.fileStatuses && currentSearchParams.fileStatuses.length > 0) {
+                    url += `&fileStatuses=${encodeURIComponent(currentSearchParams.fileStatuses.join(','))}`;
+                }
+                if (currentSearchParams.folderPath) {
+                    url += `&folderPath=${encodeURIComponent(currentSearchParams.folderPath)}`;
+                }
             }
             
             console.log('Fetching URL:', url);
@@ -1660,7 +2147,7 @@
                     
                     if (games.length === 0) {
                         console.log('=== 没有游戏 ===');
-                        tableBody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: #888;">该平台暂无游戏</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="18" style="text-align: center; color: #888;">该平台暂无游戏</td></tr>';
                     } else {
                         console.log('=== 开始渲染游戏 ===');
                         for (let i = 0; i < games.length; i++) {
@@ -1670,6 +2157,7 @@
                                 
                                 const row = document.createElement('tr');
                                 row.setAttribute('data-game-id', game.id);
+                                row.style.cssText = getScrapeStatusStyle(game);  // 添加刮削状态样式
                                 row.onclick = function() {
                                     openEditGameModal(game.id);
                                 };
@@ -1681,10 +2169,31 @@
                                 const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
                                                    game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
                                 
+                                const validIconFields = ['image', 'wheel', 'wheelCarbon', 'wheelcarbon', 'wheelSteel', 'wheelsteel', 'logo', 'thumbnail', 'box2d', 'boxFront', 'box2dBack', 'boxBack', 'box3d', 'box3D', 'box2dSide', 'boxside', 'banner', 'sstitle', 'titlescreen', 'ss', 'screenshot', 'fanart', 'poster', 'support2d', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
+                                const savedIconField = localStorage.getItem('gameListIconField') || 'image';
+                                const iconField = validIconFields.includes(savedIconField) ? savedIconField : 'image';
+                                const iconPath = game[iconField] || '';
+                                const isWheel = iconField.startsWith('wheel');
+                                const iconWidth = isWheel ? '60px' : '40px';
+                                const screenshotPath = game.screenshot || game.image || game.fanart || '';
+                                const titleScreenPath = game.titlescreen || '';
+                                const gameName = game.name || game.translatedName || '';
+                                const iconContent = iconPath && (iconPath.startsWith('/') || iconPath.startsWith('http')) ? 
+                                    `<img src="${iconPath}" 
+                                           style="width: ${iconWidth}; height: 40px; object-fit: contain; border-radius: 4px; background: #222; cursor: pointer;" 
+                                           alt="图标" 
+                                           onerror="this.style.display='none';"
+                                           onmouseenter="showGamePreview(event, '${screenshotPath}', '${gameName.replace(/'/g, "\\'")}', '${titleScreenPath.replace(/'/g, "\\'")}')"
+                                           onmouseleave="hideGamePreview()"/>` : '';
+                                
                                 row.innerHTML = `
+                                    <td style="cursor: default;"><input type="checkbox" class="game-checkbox" value="${game.id}" onchange="updateSelectedGames()"></td>
+                                    <td>${getStatusIndicator(game)}</td>
                                     <td>${game.id || ''}</td>
+                                    <td style="text-align: center;">${iconContent}</td>
                                     <td ${nameStyle}>${game.name || ''}</td>
                                     <td ${pathStyle}>${game.path || ''}</td>
+                                    <td>${game.platformPath || ''}</td>
                                     <td>${game.desc || game.description || ''}</td>
                                     <td>${game.translatedName || ''}</td>
                                     <td>${game.translatedDesc || game.translatedDescription || ''}</td>
@@ -1715,8 +2224,165 @@
                     if (pageInfoEl) {
                         pageInfoEl.textContent = '第 1 页，共 0 页';
                     }
-                    tableBody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: #ff0088;">获取游戏列表失败，请重试: ' + error.message + '</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="17" style="text-align: center; color: #ff0088;">获取游戏列表失败，请重试: ' + error.message + '</td></tr>';
                 });
+        }
+        
+        // 显示游戏预览弹窗
+        function showGamePreview(event, screenshotPath, gameName, titleScreenPath) {
+            // 动态创建预览元素
+            let preview = document.getElementById('gamePreview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'gamePreview';
+                preview.style.cssText = `
+                    position: fixed !important;
+                    z-index: 999999 !important;
+                    background: rgba(0, 0, 0, 0.95) !important;
+                    border: 2px solid #00ffff !important;
+                    border-radius: 10px !important;
+                    padding: 15px !important;
+                    width: 500px !important;
+                    min-height: 350px !important;
+                    pointer-events: none !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5) !important;
+                `;
+                
+                const screenshotDiv = document.createElement('div');
+                screenshotDiv.id = 'previewScreenshotDiv';
+                screenshotDiv.style.cssText = `
+                    width: 100%;
+                    height: 180px;
+                    background: #111;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                const screenshotImg = document.createElement('img');
+                screenshotImg.id = 'previewScreenshot';
+                screenshotImg.style.cssText = `
+                    max-width: 100%;
+                    max-height: 180px;
+                    object-fit: contain;
+                `;
+                screenshotImg.alt = '游戏截图';
+                screenshotDiv.appendChild(screenshotImg);
+                
+                const titleScreenDiv = document.createElement('div');
+                titleScreenDiv.id = 'previewTitleScreenDiv';
+                titleScreenDiv.style.cssText = `
+                    width: 100%;
+                    height: 100px;
+                    background: #111;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                const titleScreenImg = document.createElement('img');
+                titleScreenImg.id = 'previewTitleScreen';
+                titleScreenImg.style.cssText = `
+                    max-width: 100%;
+                    max-height: 100px;
+                    object-fit: contain;
+                `;
+                titleScreenImg.alt = '标题截图';
+                titleScreenDiv.appendChild(titleScreenImg);
+                
+                const previewTitle = document.createElement('div');
+                previewTitle.id = 'previewTitle';
+                previewTitle.style.cssText = `
+                    color: #00ffff;
+                    font-size: 18px;
+                    font-weight: bold;
+                    text-align: center;
+                    word-wrap: break-word;
+                `;
+                
+                preview.appendChild(screenshotDiv);
+                preview.appendChild(titleScreenDiv);
+                preview.appendChild(previewTitle);
+                document.body.appendChild(preview);
+            }
+            
+            const screenshotImg = document.getElementById('previewScreenshot');
+            const titleScreenImg = document.getElementById('previewTitleScreen');
+            const previewTitle = document.getElementById('previewTitle');
+            
+            let fixedScreenshotPath = screenshotPath;
+            if (fixedScreenshotPath && fixedScreenshotPath.startsWith('/data/scraper/')) {
+                fixedScreenshotPath = fixedScreenshotPath.replace('/data/scraper/', '/scraper/');
+            }
+            
+            let fixedTitlePath = titleScreenPath;
+            if (fixedTitlePath && fixedTitlePath.startsWith('/data/scraper/')) {
+                fixedTitlePath = fixedTitlePath.replace('/data/scraper/', '/scraper/');
+            }
+            
+            if (fixedScreenshotPath && (fixedScreenshotPath.startsWith('/') || fixedScreenshotPath.startsWith('http'))) {
+                screenshotImg.src = fixedScreenshotPath;
+                screenshotImg.style.display = 'block';
+            } else {
+                screenshotImg.style.display = 'none';
+            }
+            
+            if (fixedTitlePath && (fixedTitlePath.startsWith('/') || fixedTitlePath.startsWith('http'))) {
+                titleScreenImg.src = fixedTitlePath;
+                titleScreenImg.style.display = 'block';
+            } else {
+                titleScreenImg.style.display = 'none';
+            }
+            
+            previewTitle.textContent = gameName;
+            preview.style.display = 'block';
+            
+            let left = event.clientX + 15;
+            let top = event.clientY + 15;
+            
+            if (left + 500 > window.innerWidth) {
+                left = event.clientX - 515;
+            }
+            if (top + 350 > window.innerHeight) {
+                top = event.clientY - 365;
+            }
+            
+            preview.style.left = left + 'px';
+            preview.style.top = top + 'px';
+        }
+        
+        // 隐藏游戏预览弹窗
+        function hideGamePreview() {
+            const preview = document.getElementById('gamePreview');
+            preview.style.display = 'none';
+        }
+        
+        // 移动游戏预览弹窗
+        function moveGamePreview(event) {
+            const preview = document.getElementById('gamePreview');
+            const previewWidth = 420;
+            const previewHeight = 300;
+            const offsetX = 15;
+            const offsetY = 15;
+            
+            let left = event.clientX + offsetX;
+            let top = event.clientY + offsetY;
+            
+            if (left + previewWidth > window.innerWidth) {
+                left = event.clientX - previewWidth - offsetX;
+            }
+            if (top + previewHeight > window.innerHeight) {
+                top = event.clientY - previewHeight - offsetY;
+            }
+            
+            preview.style.left = left + 'px';
+            preview.style.top = top + 'px';
         }
         
         // 打开批量编辑模态框
@@ -1922,11 +2588,11 @@
                     document.getElementById('marquee').value = game.marquee || '';
                     document.getElementById('thumbnail').value = game.thumbnail || '';
                     document.getElementById('manual').value = game.manual || '';
-                    document.getElementById('boxFront').value = game.boxFront || '';
-                    document.getElementById('boxBack').value = game.boxBack || '';
-                    document.getElementById('boxSpine').value = game.boxSpine || '';
-                    document.getElementById('boxFull').value = game.boxFull || '';
-                    document.getElementById('cartridge').value = game.cartridge || '';
+                    document.getElementById('box-2D').value = game.box2d || game.boxFront || '';
+                    document.getElementById('box-2D-back').value = game.box2dBack || game.boxBack || '';
+                    document.getElementById('box-2D-side').value = game.box2dSide || game.boxSpine || '';
+                    document.getElementById('box-3D').value = game.box3d || game.box3D || game.boxFull || '';
+                    document.getElementById('support-2D').value = game.support2d || game.cartridge || '';
                     document.getElementById('logo').value = game.logo || '';
                     document.getElementById('bezel').value = game.bezel || '';
                     document.getElementById('panel').value = game.panel || '';
@@ -1938,8 +2604,19 @@
                     document.getElementById('poster').value = game.poster || '';
                     document.getElementById('background').value = game.background || '';
                     document.getElementById('music').value = game.music || '';
-                    document.getElementById('screenshot').value = game.screenshot || '';
-                    document.getElementById('titlescreen').value = game.titlescreen || '';
+                    document.getElementById('ss').value = game.ss || game.screenshot || '';
+                    document.getElementById('sstitle').value = game.sstitle || game.titlescreen || '';
+                    // 新增媒体字段
+                    document.getElementById('wheel').value = game.wheel || '';
+                    document.getElementById('wheel-carbon').value = game.wheelCarbon || game.wheelcarbon || '';
+                    document.getElementById('wheel-steel').value = game.wheelSteel || game.wheelsteel || '';
+                    document.getElementById('screenmarqueesmall').value = game.screenmarqueesmall || '';
+                    document.getElementById('video-normalized').value = game.videoNormalized || game.videonormalized || '';
+                    document.getElementById('steamgrid').value = game.steamgrid || '';
+                    document.getElementById('fanart').value = game.fanart || '';
+                    document.getElementById('box-texture').value = game.boxTexture || game.boxtexture || '';
+                    document.getElementById('supporttexture').value = game.supportTexture || game.supporttexture || '';
+                    document.getElementById('figurine').value = game.figurine || '';
                     document.getElementById('crc32').value = game.crc32 || '';
                     document.getElementById('genreid').value = game.genreid || '';
                     document.getElementById('platformIdInput').value = game.platformId || '';
@@ -1951,6 +2628,9 @@
         
         // 打开新增游戏模态框
         function openAddGameModal() {
+            console.log('=== openAddGameModal 函数被调用 ===');
+            const modal = document.getElementById('addGameModal');
+            console.log('addGameModal 元素:', modal);
             // 重置表单
             document.getElementById('addGameName').value = '';
             document.getElementById('addGamePath').value = '';
@@ -2127,6 +2807,170 @@
         function closeEditGameModal() {
             document.getElementById('editGameModal').style.display = 'none';
         }
+
+        // 打开搜索游戏模态框
+        function openSearchModal() {
+            // 自动填充当前游戏名称到搜索框
+            const gameName = document.getElementById('gameName').value.trim();
+            if (gameName) {
+                document.getElementById('searchGameName').value = gameName;
+            }
+            document.getElementById('searchGameModal').style.display = 'block';
+            document.getElementById('searchGameName').focus();
+        }
+
+        // 关闭搜索游戏模态框
+        function closeSearchModal() {
+            document.getElementById('searchGameModal').style.display = 'none';
+            document.getElementById('searchResults').innerHTML = '<p>请输入游戏名称进行搜索</p>';
+        }
+
+        // 从ScreenScraper检索游戏
+        async function searchGameFromScraper() {
+            const searchTerm = document.getElementById('searchGameName').value.trim();
+            if (!searchTerm) {
+                showNotification('请输入搜索关键词', 'warning');
+                return;
+            }
+            
+            if (searchTerm.length < 3) {
+                showNotification('搜索关键词至少需要3个字符', 'warning');
+                return;
+            }
+
+            const platformId = document.getElementById('platformIdInput').value;
+            if (!platformId) {
+                showNotification('无法获取平台ID', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/scraper/search?platformId=${platformId}&searchTerm=${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    displaySearchResults(data.data);
+                } else {
+                    document.getElementById('searchResults').innerHTML = '<p>未找到匹配的游戏</p>';
+                }
+            } catch (error) {
+                console.error('搜索游戏失败:', error);
+                showNotification('搜索游戏失败', 'error');
+            }
+        }
+
+        // 存储搜索结果用于选择
+        let currentSearchResults = [];
+        
+        // 显示搜索结果
+        function displaySearchResults(games) {
+            // 保存搜索结果
+            currentSearchResults = games;
+            
+            let html = '<div style="display: grid; gap: 10px;">';
+            
+            games.forEach((game, index) => {
+                const name = game.nom || game.name || '未知名称';
+                const regionInfo = [];
+                if (game.noms) {
+                    if (game.noms.nom_eu) regionInfo.push(`EU: ${game.noms.nom_eu}`);
+                    if (game.noms.nom_us) regionInfo.push(`US: ${game.noms.nom_us}`);
+                    if (game.noms.nom_jp) regionInfo.push(`JP: ${game.noms.nom_jp}`);
+                }
+                
+                html += `
+                    <div style="border: 1px solid #444; padding: 12px; border-radius: 8px; cursor: pointer;" 
+                         onclick="selectGameByIndex(${index})">
+                        <h4 style="margin: 0 0 8px 0; color: #00ffff;">${name}</h4>
+                        ${regionInfo.length > 0 ? `<p style="margin: 4px 0; font-size: 12px; color: #888;">${regionInfo.join(' | ')}</p>` : ''}
+                        ${game.description ? `<p style="margin: 4px 0; font-size: 12px; color: #aaa;">${game.description.substring(0, 100)}...</p>` : ''}
+                        <div style="margin-top: 8px; display: flex; gap: 15px; font-size: 12px; color: #888;">
+                            ${game.editeur ? `<span>发行商: ${game.editeur}</span>` : ''}
+                            ${game.developpeur ? `<span>开发商: ${game.developpeur}</span>` : ''}
+                            ${game.annee ? `<span>年份: ${game.annee}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('searchResults').innerHTML = html;
+        }
+        
+        // 通过索引选择游戏
+        function selectGameByIndex(index) {
+            const game = currentSearchResults[index];
+            if (game) {
+                selectGame(game);
+            }
+        }
+
+        // 选择游戏并填充表单
+        function selectGame(game) {
+            // 在关闭模态框之前获取下载选项状态
+            const downloadMedia = document.getElementById('downloadMedia').checked;
+            
+            // 获取当前编辑表单中的本地游戏ID（隐藏字段 gameId 存储的是本地数据库ID）
+            const localGameId = document.getElementById('gameId').value;
+            
+            // 填充表单字段
+            if (game.nom) document.getElementById('gameName').value = game.nom;
+            if (game.description) document.getElementById('gameDescription').value = game.description;
+            if (game.editeur) document.getElementById('gamePublisher').value = game.editeur;
+            if (game.developpeur) document.getElementById('gameDeveloper').value = game.developpeur;
+            if (game.annee) document.getElementById('releaseDate').value = game.annee;
+            if (game.genre) document.getElementById('gameType').value = game.genre;
+            if (game.joueurs) document.getElementById('playerCount').value = game.joueurs;
+            if (game.note) document.getElementById('rating').value = game.note;
+            
+            // 设置远程ScreenScraper ID到文本框（用于显示和后续刮削）
+            if (game.id) {
+                document.getElementById('gameIdInput').value = game.id;
+            }
+            
+            // 填充多语言名称
+            if (game.noms) {
+                if (game.noms.nom_eu) document.getElementById('translatedName').value = game.noms.nom_eu;
+                if (game.noms.nom_us) document.getElementById('gameNameEn').value = game.noms.nom_us;
+                if (game.noms.nom_jp) document.getElementById('gameNameJp').value = game.noms.nom_jp;
+            }
+            
+            closeSearchModal();
+            showNotification('游戏信息已填充', 'success');
+            
+            // 检查是否需要下载媒体文件
+            // 使用本地数据库ID（如果存在），否则不下载（新建游戏场景需要先保存游戏）
+            if (downloadMedia && game.medias && localGameId) {
+                downloadGameMedia(localGameId, game.medias);
+            } else if (downloadMedia && !localGameId) {
+                showNotification('请先保存游戏，然后再下载媒体文件', 'warning');
+            }
+        }
+
+        // 下载游戏媒体文件
+        async function downloadGameMedia(gameId, medias) {
+            try {
+                const response = await fetch('/api/scraper/downloadMedia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gameId: gameId,
+                        gameName: document.getElementById('gameName').value,
+                        platformId: document.getElementById('platformIdInput').value,
+                        medias: medias
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('媒体文件下载任务已创建', 'success');
+                } else {
+                    showNotification('创建媒体下载任务失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                console.error('下载媒体文件失败:', error);
+                showNotification('下载媒体文件失败', 'error');
+            }
+        }
         
         // 获取国际化文本
         function getI18nText(key) {
@@ -2145,11 +2989,11 @@
                 { type: 'thumbnail', path: document.getElementById('thumbnail').value, name: getI18nText('thumbnail'), displayType: 'image' },
                 { type: 'manual', path: document.getElementById('manual').value, name: getI18nText('manual'), displayType: 'manual' },
                 // 新增媒体类型
-                { type: 'boxFront', path: document.getElementById('boxFront').value, name: getI18nText('box-front'), displayType: 'image' },
-                { type: 'boxBack', path: document.getElementById('boxBack').value, name: getI18nText('box-back'), displayType: 'image' },
-                { type: 'boxSpine', path: document.getElementById('boxSpine').value, name: getI18nText('box-spine'), displayType: 'image' },
-                { type: 'boxFull', path: document.getElementById('boxFull').value, name: getI18nText('box-full'), displayType: 'image' },
-                { type: 'cartridge', path: document.getElementById('cartridge').value, name: getI18nText('cartridge'), displayType: 'image' },
+                { type: 'box-2D', path: document.getElementById('box-2D').value, name: getI18nText('box-front'), displayType: 'image' },
+                { type: 'box-2D-back', path: document.getElementById('box-2D-back').value, name: getI18nText('box-back'), displayType: 'image' },
+                { type: 'box-2D-side', path: document.getElementById('box-2D-side').value, name: getI18nText('box-spine'), displayType: 'image' },
+                { type: 'box-3D', path: document.getElementById('box-3D').value, name: '3D包装盒', displayType: 'image' },
+                { type: 'support-2D', path: document.getElementById('support-2D').value, name: getI18nText('cartridge'), displayType: 'image' },
                 { type: 'logo', path: document.getElementById('logo').value, name: getI18nText('logo'), displayType: 'image' },
                 { type: 'bezel', path: document.getElementById('bezel').value, name: getI18nText('bezel'), displayType: 'image' },
                 { type: 'panel', path: document.getElementById('panel').value, name: getI18nText('panel'), displayType: 'image' },
@@ -2161,8 +3005,19 @@
                 { type: 'poster', path: document.getElementById('poster').value, name: getI18nText('poster'), displayType: 'image' },
                 { type: 'background', path: document.getElementById('background').value, name: getI18nText('background'), displayType: 'image' },
                 { type: 'music', path: document.getElementById('music').value, name: getI18nText('music'), displayType: 'audio' },
-                { type: 'screenshot', path: document.getElementById('screenshot').value, name: getI18nText('screenshot'), displayType: 'image' },
-                { type: 'titlescreen', path: document.getElementById('titlescreen').value, name: getI18nText('titlescreen'), displayType: 'image' }
+                { type: 'ss', path: document.getElementById('ss').value, name: getI18nText('screenshot'), displayType: 'image' },
+                { type: 'sstitle', path: document.getElementById('sstitle').value, name: getI18nText('titlescreen'), displayType: 'image' },
+                // 新增媒体类型
+                { type: 'wheel', path: document.getElementById('wheel').value, name: '轮盘图标', displayType: 'image' },
+                { type: 'wheel-carbon', path: document.getElementById('wheel-carbon').value, name: '碳纤维轮盘', displayType: 'image' },
+                { type: 'wheel-steel', path: document.getElementById('wheel-steel').value, name: '钢铁轮盘', displayType: 'image' },
+                { type: 'screenmarqueesmall', path: document.getElementById('screenmarqueesmall').value, name: '小横幅', displayType: 'image' },
+                { type: 'video-normalized', path: document.getElementById('video-normalized').value, name: '归一化视频', displayType: 'video' },
+                { type: 'steamgrid', path: document.getElementById('steamgrid').value, name: 'Steam网格', displayType: 'image' },
+                { type: 'fanart', path: document.getElementById('fanart').value, name: '粉丝艺术图', displayType: 'image' },
+                { type: 'box-texture', path: document.getElementById('box-texture').value, name: '包装盒纹理', displayType: 'image' },
+                { type: 'supporttexture', path: document.getElementById('supporttexture').value, name: '支架纹理', displayType: 'image' },
+                { type: 'figurine', path: document.getElementById('figurine').value, name: '手办图片', displayType: 'image' }
             ];
             
             const mediaContent = document.getElementById('mediaContent');
@@ -2431,11 +3286,16 @@
                     marquee: document.getElementById('marquee').value,
                     thumbnail: document.getElementById('thumbnail').value,
                     manual: document.getElementById('manual').value,
-                    boxFront: document.getElementById('boxFront').value,
-                    boxBack: document.getElementById('boxBack').value,
-                    boxSpine: document.getElementById('boxSpine').value,
-                    boxFull: document.getElementById('boxFull').value,
-                    cartridge: document.getElementById('cartridge').value,
+                    boxFront: document.getElementById('box-2D').value,
+                    box2d: document.getElementById('box-2D').value,
+                    boxBack: document.getElementById('box-2D-back').value,
+                    box2dBack: document.getElementById('box-2D-back').value,
+                    boxSpine: document.getElementById('box-2D-side').value,
+                    box2dSide: document.getElementById('box-2D-side').value,
+                    boxFull: document.getElementById('box-3D').value,
+                    box3d: document.getElementById('box-3D').value,
+                    cartridge: document.getElementById('support-2D').value,
+                    support2d: document.getElementById('support-2D').value,
                     logo: document.getElementById('logo').value,
                     bezel: document.getElementById('bezel').value,
                     panel: document.getElementById('panel').value,
@@ -2447,8 +3307,26 @@
                     poster: document.getElementById('poster').value,
                     background: document.getElementById('background').value,
                     music: document.getElementById('music').value,
-                    screenshot: document.getElementById('screenshot').value,
-                    titlescreen: document.getElementById('titlescreen').value,
+                    screenshot: document.getElementById('ss').value,
+                    ss: document.getElementById('ss').value,
+                    titlescreen: document.getElementById('sstitle').value,
+                    sstitle: document.getElementById('sstitle').value,
+                    // 新增媒体字段
+                    wheel: document.getElementById('wheel').value,
+                    wheelcarbon: document.getElementById('wheel-carbon').value,
+                    wheelCarbon: document.getElementById('wheel-carbon').value,
+                    wheelsteel: document.getElementById('wheel-steel').value,
+                    wheelSteel: document.getElementById('wheel-steel').value,
+                    screenmarqueesmall: document.getElementById('screenmarqueesmall').value,
+                    videonormalized: document.getElementById('video-normalized').value,
+                    videoNormalized: document.getElementById('video-normalized').value,
+                    steamgrid: document.getElementById('steamgrid').value,
+                    fanart: document.getElementById('fanart').value,
+                    boxtexture: document.getElementById('box-texture').value,
+                    boxTexture: document.getElementById('box-texture').value,
+                    supporttexture: document.getElementById('supporttexture').value,
+                    supportTexture: document.getElementById('supporttexture').value,
+                    figurine: document.getElementById('figurine').value,
                     crc32: document.getElementById('crc32').value,
                     genreid: document.getElementById('genreid').value,
                     platformId: document.getElementById('platformIdInput').value,
@@ -2479,11 +3357,16 @@
                     marquee: document.getElementById('marquee').value,
                     thumbnail: document.getElementById('thumbnail').value,
                     manual: document.getElementById('manual').value,
-                    boxFront: document.getElementById('boxFront').value,
-                    boxBack: document.getElementById('boxBack').value,
-                    boxSpine: document.getElementById('boxSpine').value,
-                    boxFull: document.getElementById('boxFull').value,
-                    cartridge: document.getElementById('cartridge').value,
+                    boxFront: document.getElementById('box-2D').value,
+                    box2d: document.getElementById('box-2D').value,
+                    boxBack: document.getElementById('box-2D-back').value,
+                    box2dBack: document.getElementById('box-2D-back').value,
+                    boxSpine: document.getElementById('box-2D-side').value,
+                    box2dSide: document.getElementById('box-2D-side').value,
+                    boxFull: document.getElementById('box-3D').value,
+                    box3d: document.getElementById('box-3D').value,
+                    cartridge: document.getElementById('support-2D').value,
+                    support2d: document.getElementById('support-2D').value,
                     logo: document.getElementById('logo').value,
                     bezel: document.getElementById('bezel').value,
                     panel: document.getElementById('panel').value,
@@ -2495,8 +3378,26 @@
                     poster: document.getElementById('poster').value,
                     background: document.getElementById('background').value,
                     music: document.getElementById('music').value,
-                    screenshot: document.getElementById('screenshot').value,
-                    titlescreen: document.getElementById('titlescreen').value,
+                    screenshot: document.getElementById('ss').value,
+                    ss: document.getElementById('ss').value,
+                    titlescreen: document.getElementById('sstitle').value,
+                    sstitle: document.getElementById('sstitle').value,
+                    // 新增媒体字段
+                    wheel: document.getElementById('wheel').value,
+                    wheelcarbon: document.getElementById('wheel-carbon').value,
+                    wheelCarbon: document.getElementById('wheel-carbon').value,
+                    wheelsteel: document.getElementById('wheel-steel').value,
+                    wheelSteel: document.getElementById('wheel-steel').value,
+                    screenmarqueesmall: document.getElementById('screenmarqueesmall').value,
+                    videonormalized: document.getElementById('video-normalized').value,
+                    videoNormalized: document.getElementById('video-normalized').value,
+                    steamgrid: document.getElementById('steamgrid').value,
+                    fanart: document.getElementById('fanart').value,
+                    boxtexture: document.getElementById('box-texture').value,
+                    boxTexture: document.getElementById('box-texture').value,
+                    supporttexture: document.getElementById('supporttexture').value,
+                    supportTexture: document.getElementById('supporttexture').value,
+                    figurine: document.getElementById('figurine').value,
                     crc32: document.getElementById('crc32').value,
                     genreid: document.getElementById('genreid').value,
                     platformId: document.getElementById('platformIdInput').value,
@@ -2572,6 +3473,9 @@
             // 获取选中的文件状态
             const fileStatuses = Array.from(document.querySelectorAll('#fileStatusCheckboxes input:checked')).map(input => input.value);
             
+            // 获取文件夹路径
+            const folderPath = document.getElementById('folderPath').value.trim();
+            
             // 构建搜索参数
             const searchParams = {
                 startYear: startYear,
@@ -2580,7 +3484,8 @@
                 genres: genres,
                 players: players,
                 scrapeStatuses: scrapeStatuses,
-                fileStatuses: fileStatuses
+                fileStatuses: fileStatuses,
+                folderPath: folderPath
             };
             
             // 加载游戏列表并应用搜索参数
@@ -2592,6 +3497,7 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('startYear').value = '';
             document.getElementById('endYear').value = '';
+            document.getElementById('folderPath').value = '';
             
             // 重置开发商复选框
             document.querySelectorAll('#developerCheckboxes input').forEach(input => input.checked = false);
@@ -2608,7 +3514,12 @@
             // 重置文件状态复选框
             document.querySelectorAll('#fileStatusCheckboxes input').forEach(input => input.checked = false);
             
-            loadGames();
+            // 重置搜索参数
+            currentSearchTerm = '';
+            currentSearchParams = {};
+            currentPage = 1;
+            
+            loadGames(1);
         }
         
         // 切换搜索框显示/隐藏
@@ -2627,9 +3538,16 @@
             // 这里可以从后端获取数据，或者从当前游戏列表中提取唯一值
             const games = window.currentGames || [];
             
-            // 提取唯一值
+            // 提取唯一值 - 支持 genres 数组格式
             const developers = [...new Set(games.map(game => game.developer).filter(Boolean))];
-            const genres = [...new Set(games.map(game => game.genre).filter(Boolean))];
+            const genres = [...new Set(games.flatMap(game => {
+                if (Array.isArray(game.genres)) {
+                    return game.genres.filter(Boolean);
+                } else if (game.genre) {
+                    return game.genre.split(', ');
+                }
+                return [];
+            }))];
             const players = [...new Set(games.map(game => game.players).filter(Boolean))];
             
             // 填充开发商复选框
@@ -2674,6 +3592,9 @@
         
         // 修改loadGames函数以支持搜索参数
         function loadGames(page = 1, searchTerm = null, searchParams = null) {
+            console.log('********************************');
+            console.log('*** loadGames (新版) 开始 ***');
+            console.log('********************************');
             const pageSize = document.getElementById('pageSize').value;
             let url = '';
             
@@ -2721,6 +3642,9 @@
                     searchParams.fileStatuses.forEach(status => {
                         url += `&fileStatuses=${encodeURIComponent(status)}`;
                     });
+                }
+                if (searchParams.folderPath) {
+                    url += `&folderPath=${encodeURIComponent(searchParams.folderPath)}`;
                 }
             }
             
@@ -2770,7 +3694,7 @@
         function previousPage() {
             if (window.currentPage > 1) {
                 window.currentPage--;
-                loadGames(window.currentPage);
+                loadGames(window.currentPage, window.currentSearchTerm, window.currentSearchParams);
             }
         }
         
@@ -2778,7 +3702,7 @@
         function nextPage() {
             if (window.currentPage < window.totalPages) {
                 window.currentPage++;
-                loadGames(window.currentPage);
+                loadGames(window.currentPage, window.currentSearchTerm, window.currentSearchParams);
             }
         }
         
@@ -2811,11 +3735,13 @@
             const migrateBtn = document.getElementById('migrateBtn');
             const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
             const translateBtn = document.getElementById('translateBtn');
+            const batchScrapeBtn = document.getElementById('batchScrapeBtn');
             mergeDiscsBtn.disabled = selectedGameIds.length < 2;
             batchEditBtn.disabled = selectedGameIds.length === 0;
             migrateBtn.disabled = selectedGameIds.length === 0;
             deleteSelectedBtn.disabled = selectedGameIds.length === 0;
             translateBtn.disabled = selectedGameIds.length === 0;
+            batchScrapeBtn.disabled = selectedGameIds.length === 0;
         }
         
         // 监听复选框点击事件，记录选择顺序
@@ -2883,6 +3809,7 @@
         
         // 显示游戏列表
         function displayGames(games, page, totalPages, totalElements) {
+            console.log('=== displayGames 开始 ===', games.length, 'games');
             const tableBody = document.querySelector('#gameTable tbody');
             
             window.totalGames = totalElements;
@@ -2904,7 +3831,7 @@
             tableBody.innerHTML = '';
             
             if (games.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; color: #888;">该平台暂无游戏</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="18" style="text-align: center; color: #888;">该平台暂无游戏</td></tr>';
             } else {
                 for (let i = 0; i < games.length; i++) {
                     try {
@@ -2912,6 +3839,9 @@
                         
                         const row = document.createElement('tr');
                         row.setAttribute('data-game-id', game.id);
+                        const statusStyle = getScrapeStatusStyle(game);
+                        row.style.cssText = statusStyle;
+                        console.log('>>> Row created for:', game.name, 'style:', statusStyle);
                         row.onclick = function(e) {
                             // 避免点击复选框时打开编辑模态框
                             if (!e.target.closest('input[type="checkbox"]')) {
@@ -2922,12 +3852,33 @@
                         // 根据文件存在状态设置样式
                         const nameStyle = game.exists === false ? 'style="color: #ff4444; font-weight: bold;"' : '';
                         const pathStyle = game.exists === false ? 'style="color: #ff6666;"' : '';
+                        const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
+                                           game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
+                        
+                        const validIconFields = ['image', 'wheel', 'wheelcarbon', 'wheelsteel', 'logo', 'thumbnail', 'boxFront', 'boxBack', 'box3d', 'boxside', 'banner', 'titlescreen', 'screenshot', 'fanart', 'poster', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
+                        const savedIconField = localStorage.getItem('gameListIconField') || 'image';
+                        const iconField = validIconFields.includes(savedIconField) ? savedIconField : 'image';
+                        const iconPath = game[iconField] || '';
+                        const isWheel = iconField.startsWith('wheel');
+                        const iconWidth = isWheel ? '60px' : '40px';
+                        const screenshotPath = game.screenshot || game.image || game.fanart || '';
+                        const titleScreenPath = game.titlescreen || '';
+                        const gameName = game.name || game.translatedName || '';
+                        const iconContent = iconPath && (iconPath.startsWith('/') || iconPath.startsWith('http')) ? 
+                            `<img src="${iconPath}" 
+                                   style="width: ${iconWidth}; height: 40px; object-fit: contain; border-radius: 4px; background: #222; cursor: pointer;" 
+                                   alt="图标" 
+                                   onerror="this.style.display='none';"
+                                   onmouseenter="showGamePreview(event, '${screenshotPath}', '${gameName.replace(/'/g, "\\'")}', '${titleScreenPath.replace(/'/g, "\\'")}')"
+                                   onmouseleave="hideGamePreview()"/>` : '';
                         
                         row.innerHTML = `
                             <td style="cursor: default;"><input type="checkbox" class="game-checkbox" value="${game.id}" onchange="updateSelectedGames()"></td>
+                            <td>${getStatusIndicator(game)}</td>
                             <td>${game.id}</td>
-                            <td ${nameStyle}>${game.name}</td>
-                            <td ${pathStyle}>${game.path}</td>
+                            <td style="text-align: center;">${iconContent}</td>
+                            <td ${nameStyle}>${game.name || ''}</td>
+                            <td ${pathStyle}>${game.path || ''}</td>
                             <td>${game.platformPath || ''}</td>
                             <td>${game.desc || ''}</td>
                             <td>${game.translatedName || ''}</td>
@@ -2939,6 +3890,7 @@
                             <td>${game.releasedate || ''}</td>
                             <td>${game.rating || ''}</td>
                             <td>${game.lang || ''}</td>
+                            <td>${existsStatus}</td>
                         `;
                         tableBody.appendChild(row);
                     } catch (e) {
@@ -3065,6 +4017,119 @@
             }
         }
         
+        // 强制显示模态框的通用函数
+        function showModalDirect(modalId) {
+            var modal = document.getElementById(modalId);
+            console.log('showModalDirect called for:', modalId);
+            console.log('modal element:', modal);
+            if (modal) {
+                // 首先：隐藏所有其他模态框
+                var allModals = document.querySelectorAll('.modal');
+                allModals.forEach(function(modalEl) {
+                    if (modalEl.id !== modalId) {
+                        modalEl.style.display = 'none';
+                        modalEl.style.visibility = 'hidden';
+                        modalEl.style.opacity = '0';
+                    }
+                });
+                console.log('Hid all other modals');
+                
+                // 检查并修复父元素问题 - 将模态框移动到 body 下
+                var parent = modal.parentElement;
+                console.log('modal parent:', parent);
+                if (parent && parent.classList.contains('modal')) {
+                    // 如果父元素也是模态框，说明当前模态框被错误嵌套了
+                    // 将模态框移动到 body 下
+                    document.body.appendChild(modal);
+                    console.log('Moved modal to body to fix nesting issue');
+                }
+                
+                // 重置所有可能影响显示的样式
+                modal.removeAttribute('hidden');
+                modal.style.cssText = '';
+                
+                // 强制设置所有必要的样式
+                modal.style.display = 'block';
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100vw';
+                modal.style.height = '100vh';
+                modal.style.margin = '0';
+                modal.style.padding = '0';
+                modal.style.zIndex = '9999';
+                modal.style.visibility = 'visible';
+                modal.style.opacity = '1';
+                modal.style.background = 'rgba(0, 0, 0, 0.9)';
+                modal.style.backdropFilter = 'blur(5px)';
+                modal.style.overflow = 'auto';
+                modal.style.pointerEvents = 'auto';
+                modal.style.boxSizing = 'border-box';
+                
+                // 新增：清除可能影响渲染的属性
+                modal.style.contain = 'none';
+                modal.style.transform = 'none';
+                modal.style.filter = 'none';
+                modal.style.isolation = 'auto';
+                modal.style.clipPath = 'none';
+                modal.style.clip = 'auto';
+                modal.style.willChange = 'auto';
+                
+                console.log('modal style after set:', modal.getAttribute('style'));
+                
+                // 强制子元素也显示
+                var modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.style.display = 'flex';
+                    modalContent.style.flexDirection = 'column';
+                    modalContent.style.position = 'relative';
+                    modalContent.style.width = '90%';
+                    modalContent.style.maxWidth = '800px';
+                    modalContent.style.maxHeight = '85vh';
+                    modalContent.style.overflowY = 'auto';
+                    modalContent.style.margin = '5% auto';
+                    modalContent.style.visibility = 'visible';
+                    modalContent.style.opacity = '1';
+                    modalContent.style.contain = 'none';
+                    modalContent.style.transform = 'none';
+                    modalContent.style.boxSizing = 'border-box';
+                    
+                    // 修复单选按钮和标签的对齐
+                    var radioLabels = modalContent.querySelectorAll('input[type="radio"]');
+                    radioLabels.forEach(function(radio) {
+                        radio.style.display = 'inline-block';
+                        radio.style.verticalAlign = 'middle';
+                        radio.style.marginRight = '8px';
+                    });
+                    
+                    // 确保标签也是内联的
+                    var formLabels = modalContent.querySelectorAll('label');
+                    formLabels.forEach(function(label) {
+                        label.style.display = 'inline-flex';
+                        label.style.alignItems = 'center';
+                        label.style.marginRight = '16px';
+                        label.style.marginBottom = '8px';
+                    });
+                    
+                    console.log('modalContent style set');
+                }
+                
+                // 触发重排
+                modal.offsetHeight;
+                
+                var computedStyle = window.getComputedStyle(modal);
+                console.log('computed display:', computedStyle.display);
+                console.log('computed width:', computedStyle.width);
+                console.log('computed height:', computedStyle.height);
+                console.log('computed contain:', computedStyle.contain);
+                console.log('computed transform:', computedStyle.transform);
+                console.log('modal offsetWidth:', modal.offsetWidth);
+                console.log('modal offsetHeight:', modal.offsetHeight);
+            } else {
+                console.error('Modal not found:', modalId);
+            }
+        }
+
         // 打开翻译模态框
         function openTranslateModal() {
             const selectedGames = getSelectedGameIds();
@@ -3385,5 +4450,450 @@
             }
         };
     </script>
+    <!-- 刮削模态框 -->
+    <div id="scrapeModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">
+                <h2 id="scrapeModalTitle" style="color: #00ffff; font-size: 20px; margin: 0;">刮削选项</h2>
+                <span class="close" onclick="closeScrapeModal()" style="font-size: 28px; font-weight: bold; cursor: pointer; color: #00ffff; transition: all 0.3s ease;">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px;">
+                <!-- 刮削范围（多选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">刮削范围</label>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="checkbox" name="scrapeScope" value="gameInfo" checked style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">游戏信息</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="checkbox" name="scrapeScope" value="media" checked style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">媒体文件</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 选择语种（单选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">选择语种</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="cn" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">中文 (CN)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="en" checked style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">English (EN)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="jp" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">日本語 (JP)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="fr" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Français (FR)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="de" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Deutsch (DE)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="es" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Español (ES)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="it" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Italiano (IT)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="pt" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Português (PT)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="kr" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">한국어 (KR)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="tw" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">繁體中文 (TW)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="ru" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Русский (RU)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="nl" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Nederlands (NL)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="pl" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Polski (PL)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeLanguage" value="se" style="margin-right: 6px; accent-color: #00ffff;">
+                            <span style="color: #ccc; font-size: 12px;">Svenska (SE)</span>
+                        </label>
+                    </div>
+                    <p style="color: #888; font-size: 12px; margin-top: 10px; text-align: right;">游戏介绍优先使用所选语种，其他字段默认使用WOR区域</p>
+                </div>
+                
+                <!-- 刮削全部媒体选项 -->
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; padding: 12px 15px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); transition: all 0.3s ease;">
+                        <input type="checkbox" id="scrapeAllMedia" onchange="toggleAllMediaSelection()" style="margin-right: 10px; accent-color: #ffd700;">
+                        <span style="color: #ffd700; font-weight: bold;">刮削全部媒体</span>
+                    </label>
+                    <p style="color: #888; font-size: 12px; margin-top: 8px;">选中后将自动刮削API返回的所有媒体类型，按区域优先级下载</p>
+                </div>
+                
+                <!-- 选择媒体类型（多选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">选择媒体类型</label>
+                    <div class="media-type-grid" id="mediaTypeGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                        <!-- 截图类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">截图</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="sstitle" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标题截图</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ss" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">截图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ssmap" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
+                        </div>
+                        <!-- 封面类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">封面</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-side" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面侧面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-back" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面背面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-3D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">3D封面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">支撑图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">支撑纹理</span></label>
+                        </div>
+                        <!-- 轮盘类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">轮盘</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-carbon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">碳纤维轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-steel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">钢铁轮盘</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="minicon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小图标</span></label>
+                        </div>
+                        <!-- 海报类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">海报</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="fanart" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">粉丝艺术</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="poster" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">海报</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="banner" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">条幅</span></label>
+                        </div>
+                        <!-- 霓虹灯类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">霓虹灯</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">屏幕霓虹灯</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarqueesmall" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小霓虹灯</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="marquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">霓虹灯</span></label>
+                        </div>
+                        <!-- 街机类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">街机</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel43" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框4:3</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel169" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框16:9</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="panel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">面板</span></label>
+                        </div>
+                        <!-- 视频类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">视频</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">视频</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video-normalized" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标准化视频</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="intro" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">介绍视频</span></label>
+                        </div>
+                        <!-- 其他类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">其他</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="background" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">背景</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="logo" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">LOGO</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="steamgrid" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Steam网格</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="manuel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手册</span></label>
+                        </div>
+                    </div>
+                    <p style="color: #888; font-size: 12px; margin-top: 12px;">至少选择一种媒体类型</p>
+                </div>
+                
+                <!-- 搜索方式（单选） -->
+                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">搜索方式</label>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeSearchMode" value="crc" checked style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">优先使用CRC32</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeSearchMode" value="filename" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">优先使用文件名</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
+                            <input type="radio" name="scrapeSearchMode" value="name" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;">优先使用游戏名</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 其他选项（多选） -->
+                <div class="form-group" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 10px;">
+                        <input type="checkbox" id="scrapeOverwrite" style="margin-right: 10px; accent-color: #00ffff;">
+                        <span style="color: #ccc;">覆盖已存在的媒体文件</span>
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="scrapeOnlyMissing" style="margin-right: 10px; accent-color: #00ffff;">
+                        <span style="color: #ccc;">仅刮削信息不全的游戏</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 15px; padding: 20px 25px; border-top: 1px solid rgba(0, 255, 255, 0.2);">
+                <button type="button" onclick="closeScrapeModal()" class="btn" style="background: linear-gradient(45deg, #666, #444); color: #fff; padding: 10px 20px;">取消</button>
+                <button type="button" onclick="startScraping()" id="startScrapeBtn" class="btn" style="background: linear-gradient(45deg, #00ff88, #00cc66); color: #000; padding: 10px 25px; font-weight: bold;">开始刮削</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 刮削弹窗相关变量
+        let scrapeModalType = '';  // 'platform' | 'batch' | 'single'
+        let scrapePlatformId = 0;
+        let scrapeGameIds = [];
+        
+        // 切换全部媒体选择状态
+        function toggleAllMediaSelection() {
+            const checkAll = document.getElementById('scrapeAllMedia').checked;
+            const mediaCheckboxes = document.querySelectorAll('input[name="scrapeMediaType"]');
+            const mediaGrid = document.getElementById('mediaTypeGrid');
+            
+            mediaCheckboxes.forEach(cb => {
+                cb.disabled = checkAll;
+                cb.checked = checkAll;
+            });
+            
+            // 禁用/启用媒体类型区域
+            if (mediaGrid) {
+                mediaGrid.style.opacity = checkAll ? '0.5' : '1';
+            }
+        }
+        
+        // 打开刮削弹窗
+        function openScrapeModal(type, platformId, gameIds) {
+            scrapeModalType = type;
+            scrapePlatformId = platformId;
+            scrapeGameIds = gameIds || [];
+            
+            const title = type === 'platform' ? '平台刮削' : (type === 'batch' ? '批量刮削' : '刮削游戏');
+            
+            const modalTitle = document.getElementById('scrapeModalTitle');
+            if (modalTitle) {
+                modalTitle.textContent = title;
+            }
+            
+            const modal = document.getElementById('scrapeModal');
+            
+            if (modal) {
+                // 确保弹窗直接在 body 中（关键修复）
+                const parent = modal.parentElement;
+                if (parent && parent.tagName !== 'BODY') {
+                    document.body.appendChild(modal);
+                }
+                
+                // 添加 show 类
+                modal.classList.add('show');
+                
+                // 强制设置内联样式
+                modal.style.display = 'block';
+                modal.style.visibility = 'visible';
+                modal.style.opacity = '1';
+                modal.style.zIndex = '9999';
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.overflow = 'auto';
+                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            }
+        }
+        
+        // 关闭刮削弹窗
+        function closeScrapeModal() {
+            const modal = document.getElementById('scrapeModal');
+            if (modal) {
+                modal.setAttribute('style', 'display: none !important;');
+            }
+        }
+        
+        // 打开批量刮削弹窗
+        async function openBatchScrapeModal() {
+            console.log('=== openBatchScrapeModal 被调用 ===');
+            const checkboxes = document.querySelectorAll('.game-checkbox:checked');
+            console.log('选中的游戏数量:', checkboxes.length);
+            
+            if (checkboxes.length === 0) {
+                alert('请先选择要刮削的游戏');
+                return;
+            }
+            
+            const firstGameId = checkboxes[0].value;
+            
+            try {
+                const gameResponse = await fetch(`/api/gamelist/games/${firstGameId}`);
+                
+                if (!gameResponse.ok) {
+                    alert('获取游戏信息失败');
+                    return;
+                }
+                
+                const game = await gameResponse.json();
+                
+                if (!game.platformId || game.platformId === 0) {
+                    alert('请先绑定系统后再进行刮削');
+                    return;
+                }
+                
+                const platformId = game.platformId;
+                
+                const platformResponse = await fetch(`/api/platforms/${platformId}`);
+                const platform = await platformResponse.json();
+                const hasSystem = platform.systemId && platform.systemId !== 0;
+                
+                if (!hasSystem) {
+                    alert('请先绑定系统后再进行刮削');
+                    return;
+                }
+                
+                const gameIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+                console.log('游戏ID列表:', gameIds);
+                console.log('平台ID:', platformId);
+                console.log('准备调用 openScrapeModal...');
+                
+                openScrapeModal('batch', platformId, gameIds);
+                console.log('openScrapeModal 调用完成');
+            } catch (error) {
+                console.error('批量刮削出错:', error);
+                alert('批量刮削出错: ' + error.message);
+            }
+        }
+        
+        // 检查平台是否已绑定系统
+        async function checkPlatformSystem(platformId) {
+            const response = await fetch(`/api/platforms/${platformId}`);
+            const platform = await response.json();
+            
+            if (!platform.systemId || platform.systemId === 0) {
+                alert('请先绑定系统后再进行刮削');
+                return false;
+            }
+            return true;
+        }
+        
+        // 单游戏刮削
+        async function scrapeSingleGame() {
+            const gameId = document.getElementById('gameId').value;
+            const gameResponse = await fetch(`/api/gamelist/games/${gameId}`);
+            const game = await gameResponse.json();
+            
+            // 检查平台系统绑定
+            const hasSystem = await checkPlatformSystem(game.platformId);
+            if (!hasSystem) return;
+            
+            // 显示刮削弹窗
+            openScrapeModal('single', game.platformId, [parseInt(gameId)]);
+        }
+        
+        // 开始刮削
+        async function startScraping() {
+            console.log('=== startScraping 函数被调用 ===');
+            console.log('scrapeModalType:', scrapeModalType);
+            console.log('scrapePlatformId:', scrapePlatformId);
+            console.log('scrapeGameIds:', scrapeGameIds);
+            
+            // 验证变量是否已初始化
+            if (!scrapeModalType || scrapePlatformId === 0) {
+                alert('请通过正确的方式打开刮削弹窗');
+                return;
+            }
+            
+            // 收集用户选择
+            const scrapeScope = Array.from(document.querySelectorAll('input[name="scrapeScope"]:checked'))
+                .map(cb => cb.value);
+            const language = document.querySelector('input[name="scrapeLanguage"]:checked')?.value || 'en';
+            const searchMode = document.querySelector('input[name="scrapeSearchMode"]:checked')?.value || 'crc';
+            const scrapeAllMedia = document.getElementById('scrapeAllMedia').checked;
+            const selectedMedia = scrapeAllMedia ? ['ALL'] : Array.from(document.querySelectorAll('input[name="scrapeMediaType"]:checked'))
+                .map(cb => cb.value);
+            const overwrite = document.getElementById('scrapeOverwrite').checked;
+            const onlyMissing = document.getElementById('scrapeOnlyMissing').checked;
+            
+            console.log('scrapeScope:', scrapeScope);
+            console.log('language:', language);
+            console.log('searchMode:', searchMode);
+            console.log('scrapeAllMedia:', scrapeAllMedia);
+            console.log('selectedMedia:', selectedMedia);
+            console.log('overwrite:', overwrite);
+            console.log('onlyMissing:', onlyMissing);
+            
+            // 验证至少选择一个刮削范围
+            if (scrapeScope.length === 0) {
+                alert('请至少选择一个刮削范围');
+                return;
+            }
+            
+            // 如果选择了媒体刮削但没有选择"刮削全部媒体"，验证至少选择一种媒体类型
+            if (scrapeScope.includes('media') && !scrapeAllMedia && selectedMedia.length === 0) {
+                alert('请至少选择一种媒体类型，或者勾选"刮削全部媒体"');
+                return;
+            }
+            
+            // 构建请求
+            const request = {
+                type: scrapeModalType,
+                platformId: scrapePlatformId,
+                gameIds: scrapeGameIds,
+                scope: scrapeScope,
+                language: language,
+                mediaTypes: scrapeScope.includes('media') ? selectedMedia : [],
+                scrapeAllMedia: scrapeAllMedia,
+                searchMode: searchMode,
+                overwrite: overwrite,
+                onlyMissing: onlyMissing
+            };
+            
+            // 获取开始刮削按钮
+            const startBtn = document.getElementById('startScrapeBtn');
+            if (!startBtn) {
+                console.error('找不到开始刮削按钮');
+                return;
+            }
+            const originalText = startBtn.textContent;
+            
+            // 立即关闭弹窗
+            closeScrapeModal();
+            
+            // 异步发送请求（不等待响应）
+            fetch('/api/scraper/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(request)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showNotification('刮削任务已创建，正在后台运行...', 'success');
+                } else {
+                    showNotification('创建刮削任务失败: ' + result.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('刮削请求失败:', error);
+                showNotification('创建刮削任务失败: ' + error.message, 'error');
+            });
+        }
+        
+
+    </script>
+    <!-- 游戏图标预览弹窗 - 动态创建 -->
 </body>
 </html>

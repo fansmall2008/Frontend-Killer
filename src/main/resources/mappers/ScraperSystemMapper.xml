@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.ScraperSystemMapper">
+    
+    <resultMap id="ScraperSystemResultMap" type="com.gamelist.model.ScraperSystem">
+        <id column="id" property="id"/>
+        <result column="system_id" property="systemId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="name" property="name"/>
+        <result column="name_en" property="nameEn"/>
+        <result column="name_fr" property="nameFr"/>
+        <result column="name_jp" property="nameJp"/>
+        <result column="name_cn" property="nameCn"/>
+        <result column="nom_eu" property="nomEu"/>
+        <result column="nom_launchbox" property="nomLaunchbox"/>
+        <result column="nom_hyperspin" property="nomHyperspin"/>
+        <result column="nom_recalbox" property="nomRecalbox"/>
+        <result column="nom_retropie" property="nomRetropie"/>
+        <result column="noms_commun" property="nomsCommun"/>
+        <result column="company" property="company"/>
+        <result column="type" property="type"/>
+        <result column="release_year" property="releaseYear"/>
+        <result column="end_year" property="endYear"/>
+        <result column="rom_type" property="romType"/>
+        <result column="support_type" property="supportType"/>
+        <result column="extensions" property="extensions"/>
+        <result column="icon_url" property="iconUrl"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <insert id="insert" parameterType="com.gamelist.model.ScraperSystem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO scraper_system (system_id, parent_id, name, name_en, name_fr, name_jp, name_cn, nom_eu, nom_launchbox, nom_hyperspin, nom_recalbox, nom_retropie, noms_commun, company, type, release_year, end_year, rom_type, support_type, extensions, icon_url)
+        VALUES (#{systemId}, #{parentId}, #{name}, #{nameEn}, #{nameFr}, #{nameJp}, #{nameCn}, #{nomEu}, #{nomLaunchbox}, #{nomHyperspin}, #{nomRecalbox}, #{nomRetropie}, #{nomsCommun}, #{company}, #{type}, #{releaseYear}, #{endYear}, #{romType}, #{supportType}, #{extensions}, #{iconUrl})
+    </insert>
+    
+    <update id="update" parameterType="com.gamelist.model.ScraperSystem">
+        UPDATE scraper_system SET
+            system_id = #{systemId},
+            parent_id = #{parentId},
+            name = #{name},
+            name_en = #{nameEn},
+            name_fr = #{nameFr},
+            name_jp = #{nameJp},
+            name_cn = #{nameCn},
+            nom_eu = #{nomEu},
+            nom_launchbox = #{nomLaunchbox},
+            nom_hyperspin = #{nomHyperspin},
+            nom_recalbox = #{nomRecalbox},
+            nom_retropie = #{nomRetropie},
+            noms_commun = #{nomsCommun},
+            company = #{company},
+            type = #{type},
+            release_year = #{releaseYear},
+            end_year = #{endYear},
+            rom_type = #{romType},
+            support_type = #{supportType},
+            extensions = #{extensions},
+            icon_url = #{iconUrl}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM scraper_system WHERE id = #{id}
+    </delete>
+    
+    <select id="selectById" resultMap="ScraperSystemResultMap">
+        SELECT * FROM scraper_system WHERE id = #{id}
+    </select>
+    
+    <select id="selectBySystemId" resultMap="ScraperSystemResultMap">
+        SELECT * FROM scraper_system WHERE system_id = #{systemId}
+    </select>
+    
+    <select id="selectAll" resultMap="ScraperSystemResultMap">
+        SELECT * FROM scraper_system ORDER BY name
+    </select>
+    
+    <delete id="deleteAll">
+        DELETE FROM scraper_system
+    </delete>
+</mapper>

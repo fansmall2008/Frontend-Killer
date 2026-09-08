@@ -1,0 +1,37 @@
+schema_version: 1
+module_path: ""
+title: Frontend-Killer 游戏列表管理应用（根工程）
+scope:
+    - README.md
+    - pom.xml
+    - Dockerfile
+    - Dockerfile.cn
+    - Dockerfile.local
+    - Dockerfile.multi-stage
+    - .dockerignore
+    - .gitignore
+    - build-distribution.bat
+    - build.bat
+    - entrypoint.sh
+    - start.bat
+    - docker-compose.yml
+    - fix_genres.py
+    - fix_genres_array.py
+    - fix_media_types.py
+    - fix_roms.py
+    - task_response.json
+    - CHANGELOG.md
+    - cp.txt
+    - maven_build.txt
+    - maven_build2.txt
+    - maven_build3.txt
+    - maven_clean_compile.txt
+    - maven_compile.txt
+    - maven_output.txt
+    - maven_output_full.txt
+    - maven_output_new.txt
+    - maven_package.txt
+    - mvn_output.txt
+source_files: []
+depends_on: []
+related_to: []

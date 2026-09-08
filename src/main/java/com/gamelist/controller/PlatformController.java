@@ -43,9 +43,7 @@ public class PlatformController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Platform> updatePlatform(@PathVariable Long id, @RequestBody Platform platform) {
-        if (!id.equals(platform.getId())) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        platform.setId(id);
         Platform updatedPlatform = platformService.updatePlatform(platform);
         return new ResponseEntity<>(updatedPlatform, HttpStatus.OK);
     }
@@ -148,7 +146,24 @@ public class PlatformController {
             Map<String, Object> statistics = platformService.getPlatformStatistics(id);
             return new ResponseEntity<>(statistics, HttpStatus.OK);
         } catch (Exception e) {
-            // 返回错误响应，使用200状态码，便于前端处理
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("errorMessage", e.getMessage());
+            return new ResponseEntity<>(errorResult, HttpStatus.OK);
+        }
+    }
+    
+    @PostMapping("/{id}/scrape")
+    public ResponseEntity<Map<String, Object>> scrapePlatform(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        try {
+            Integer systemId = (Integer) request.get("systemId");
+            String region = (String) request.get("region");
+            @SuppressWarnings("unchecked")
+            List<String> mediaTypes = (List<String>) request.get("mediaTypes");
+            
+            Map<String, Object> result = platformService.scrapePlatform(id, systemId, region, mediaTypes);
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
             Map<String, Object> errorResult = new HashMap<>();
             errorResult.put("success", false);
             errorResult.put("errorMessage", e.getMessage());

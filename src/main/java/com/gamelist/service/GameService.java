@@ -17,17 +17,20 @@ public interface GameService {
     ImportStatistics importGamesFromXml(String filePath);
     ImportStatistics importGamesFromXml(String filePath, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
+    ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
 
     ImportStatistics importGamesFromPegasusMetadata(String filePath);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
-    
+    ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
+
     ImportStatistics importGamesFromLplFile(String filePath);
     ImportStatistics importGamesFromLplFile(String filePath, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromLplFile(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
-    
-    ImportStatistics importGamesFromGameFiles(String scanPath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
+    ImportStatistics importGamesFromLplFile(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
+
     ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId);
+    ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId, Long scraperSystemId);
     ScanResult scanAndImportGames(String rootPath);
     ScanResult scanAndImportGames(String rootPath, int scanDepth);
     ScanResult scanAndImportPegasusMetadata(String rootPath);
@@ -36,9 +39,11 @@ public interface GameService {
     int saveGamesBatch(List<Game> games);
     List<Game> getAllGames();
     List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
+    List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath);
     List<Game> getGamesByPlatformId(Long platformId);
     List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses);
+    List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath);
     Game getGameById(Long id);
     int deleteAllGames();
     Statistics getOverallStatistics();

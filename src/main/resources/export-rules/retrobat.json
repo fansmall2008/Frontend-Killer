@@ -6,22 +6,27 @@
   "rules": {
     "media": {
       "box2dfront": {
-        "source": "box2dfront",
+        "source": "box-2D",
         "target": "{mediaPath}/box2dfront/{gameName}.png",
         "dataFileTag": "box2dfront"
       },
       "box2dback": {
-        "source": "box2dback",
+        "source": "box-2D-back",
         "target": "{mediaPath}/box2dback/{gameName}.png",
         "dataFileTag": "box2dback"
       },
       "box3d": {
-        "source": "box3d",
+        "source": "box-3D",
         "target": "{mediaPath}/box3d/{gameName}.png",
         "dataFileTag": "box3d"
       },
+      "boxFull": {
+        "source": "box-3D",
+        "target": "{mediaPath}/boxFull/{gameName}.png",
+        "dataFileTag": "boxFull"
+      },
       "screenshot": {
-        "source": "screenshot",
+        "source": "ss",
         "target": "{mediaPath}/screenshot/{gameName}.png",
         "dataFileTag": "screenshot"
       },

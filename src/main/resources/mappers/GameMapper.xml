@@ -34,11 +34,65 @@
         <result column="music" property="music"/>
         <result column="screenshot" property="screenshot"/>
         <result column="titlescreen" property="titlescreen"/>
-        <result column="box3d" property="box3d"/>
+        <result column="box3d" property="box3D"/>
         <result column="steamgrid" property="steamgrid"/>
         <result column="fanart" property="fanart"/>
         <result column="boxtexture" property="boxtexture"/>
         <result column="supporttexture" property="supporttexture"/>
+        <result column="videonormalized" property="videonormalized"/>
+        <result column="wheelcarbon" property="wheelcarbon"/>
+        <result column="wheelsteel" property="wheelsteel"/>
+        <result column="screenmarqueesmall" property="screenmarqueesmall"/>
+        <result column="boxside" property="boxside"/>
+        <result column="figurine" property="figurine"/>
+        <result column="pictoliste" property="pictoliste"/>
+        <result column="pictomonochrome" property="pictomonochrome"/>
+        <result column="pictomonochromesvg" property="pictomonochromesvg"/>
+        <result column="pictocouleur" property="pictocouleur"/>
+        <result column="wallpaper" property="wallpaper"/>
+        <!-- ScreenScraper 标准媒体字段映射 -->
+        <result column="box_2d" property="box2d"/>
+        <result column="box_2d_back" property="box2dBack"/>
+        <result column="box_2d_side" property="box2dSide"/>
+        <result column="box_texture" property="boxTexture"/>
+        <result column="box_scan" property="boxScan"/>
+        <result column="support_2d" property="support2d"/>
+        <result column="support_texture" property="supportTexture"/>
+        <result column="support_scan" property="supportScan"/>
+        <result column="wheel_hd" property="wheelHd"/>
+        <result column="wheel_carbon" property="wheelCarbon"/>
+        <result column="wheel_steel" property="wheelSteel"/>
+        <result column="screenmarquee" property="screenmarquee"/>
+        <result column="ss" property="ss"/>
+        <result column="sstitle" property="sstitle"/>
+        <result column="overlay" property="overlay"/>
+        <result column="video_normalized" property="videoNormalized"/>
+        <result column="flyer" property="flyer"/>
+        <result column="manuel" property="manuel"/>
+        <result column="maps" property="maps"/>
+        <result column="bezel_4_3" property="bezel43"/>
+        <result column="bezel_4_3_v" property="bezel43V"/>
+        <result column="bezel_4_3_cocktail" property="bezel43Cocktail"/>
+        <result column="bezel_16_9" property="bezel169"/>
+        <result column="bezel_16_9_v" property="bezel169V"/>
+        <result column="bezel_16_9_cocktail" property="bezel169Cocktail"/>
+        <result column="mixrbv1" property="mixrbv1"/>
+        <result column="mixrbv2" property="mixrbv2"/>
+        <result column="themehb" property="themehb"/>
+        <result column="themehs" property="themehs"/>
+        <result column="ssdmd" property="ssdmd"/>
+        <result column="ssfronton16_9" property="ssfronton169"/>
+        <result column="ssfronton1_1" property="ssfronton11"/>
+        <result column="ssfronton4_3" property="ssfronton43"/>
+        <result column="sstable" property="sstable"/>
+        <result column="sstopper" property="sstopper"/>
+        <result column="videodmd" property="videodmd"/>
+        <result column="videofronton4_3" property="videofronton43"/>
+        <result column="videofronton16_9" property="videofronton169"/>
+        <result column="videotable" property="videotable"/>
+        <result column="videotable4k" property="videotable4k"/>
+        <result column="videotopper" property="videotopper"/>
+        <result column="wheel_tarcisios" property="wheelTarcisios"/>
         <result column="platform_type" property="platformType"/>
         <result column="hash" property="hash"/>
         <result column="rating" property="rating"/>
@@ -63,11 +117,13 @@
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO game (
             game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
-            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, platform_type, hash,
+            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
+            box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
             rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path
         ) VALUES (
             #{gameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
-            #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3d}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{platformType}, #{hash},
+            #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel}, #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper}, #{platformType}, #{hash},
+            #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan}, #{support2d}, #{supportTexture}, #{supportScan}, #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee}, #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps}, #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail}, #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs}, #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper}, #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios},
             #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}
         )
     </insert>
@@ -75,13 +131,15 @@
     <insert id="insertGamesBatch" parameterType="java.util.List">
         INSERT INTO game (
             game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
-            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, platform_type, hash,
+            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
+            box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
             rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, scraped, edited, `exists`, absolute_path, platform_path
         ) VALUES
         <foreach collection="list" item="game" separator=",">
             (
                 #{game.gameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
-                #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight}, #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen}, #{game.box3d}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.platformType}, #{game.hash},
+                #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight}, #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen}, #{game.box3D}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.videonormalized}, #{game.wheelcarbon}, #{game.wheelsteel}, #{game.screenmarqueesmall}, #{game.boxside}, #{game.figurine}, #{game.pictoliste}, #{game.pictomonochrome}, #{game.pictomonochromesvg}, #{game.pictocouleur}, #{game.wallpaper}, #{game.platformType}, #{game.hash},
+                #{game.box2d}, #{game.box2dBack}, #{game.box2dSide}, #{game.boxTexture}, #{game.boxScan}, #{game.support2d}, #{game.supportTexture}, #{game.supportScan}, #{game.wheel}, #{game.wheelHd}, #{game.wheelCarbon}, #{game.wheelSteel}, #{game.screenmarquee}, #{game.ss}, #{game.sstitle}, #{game.overlay}, #{game.videoNormalized}, #{game.flyer}, #{game.manuel}, #{game.maps}, #{game.bezel43}, #{game.bezel43V}, #{game.bezel43Cocktail}, #{game.bezel169}, #{game.bezel169V}, #{game.bezel169Cocktail}, #{game.mixrbv1}, #{game.mixrbv2}, #{game.themehb}, #{game.themehs}, #{game.ssdmd}, #{game.ssfronton169}, #{game.ssfronton11}, #{game.ssfronton43}, #{game.sstable}, #{game.sstopper}, #{game.videodmd}, #{game.videofronton43}, #{game.videofronton169}, #{game.videotable}, #{game.videotable4k}, #{game.videotopper}, #{game.wheelTarcisios},
                 #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.platformId}, #{game.scraped, jdbcType=BOOLEAN}, #{game.edited, jdbcType=BOOLEAN}, #{game.exists, jdbcType=BOOLEAN}, #{game.absolutePath}, #{game.platformPath}
             )
         </foreach>
@@ -123,39 +181,43 @@
         <if test="scrapeStatuses != null and scrapeStatuses.size() > 0">
             <foreach item="status" collection="scrapeStatuses" separator=" OR " open="AND (" close=")">
                 <choose>
-                    <when test="status == 'fully_scraped'">
-                        (name IS NOT NULL AND name != ''
-                        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
-                        AND image IS NOT NULL AND image != ''
-                        AND video IS NOT NULL AND video != ''
-                        AND marquee IS NOT NULL AND marquee != ''
-                        AND thumbnail IS NOT NULL AND thumbnail != ''
-                        AND manual IS NOT NULL AND manual != '')
-                    </when>
-                    <when test="status == 'partially_scraped'">
-                        (name IS NOT NULL AND name != ''
-                        AND ((`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
-                        OR image IS NOT NULL AND image != ''
+                    <!-- 完全刮削（绿色）：有描述 且 有媒体 -->
+                    <when test="status == 'fully'">
+                        ((`desc` IS NOT NULL AND `desc` != '') OR (translated_desc IS NOT NULL AND translated_desc != ''))
+                        AND (image IS NOT NULL AND image != ''
                         OR video IS NOT NULL AND video != ''
                         OR marquee IS NOT NULL AND marquee != ''
                         OR thumbnail IS NOT NULL AND thumbnail != ''
                         OR manual IS NOT NULL AND manual != '')
-                        AND NOT (name IS NOT NULL AND name != ''
-                        AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
-                        AND image IS NOT NULL AND image != ''
-                        AND video IS NOT NULL AND video != ''
-                        AND marquee IS NOT NULL AND marquee != ''
-                        AND thumbnail IS NOT NULL AND thumbnail != ''
-                        AND manual IS NOT NULL AND manual != ''))
                     </when>
-                    <when test="status == 'not_scraped'">
-                        (name IS NULL OR name = ''
-                        OR (`desc` IS NULL OR `desc` = '' AND translated_desc IS NULL OR translated_desc = '')
-                        OR image IS NULL OR image = ''
-                        OR video IS NULL OR video = ''
-                        OR marquee IS NULL OR marquee = ''
-                        OR thumbnail IS NULL OR thumbnail = ''
-                        OR manual IS NULL OR manual = '')
+                    <!-- 部分刮削（黄色）：有描述但没有媒体，或没有描述但有媒体 -->
+                    <when test="status == 'partially'">
+                        (
+                            ((`desc` IS NOT NULL AND `desc` != '') OR (translated_desc IS NOT NULL AND translated_desc != ''))
+                            AND NOT (image IS NOT NULL AND image != ''
+                            OR video IS NOT NULL AND video != ''
+                            OR marquee IS NOT NULL AND marquee != ''
+                            OR thumbnail IS NOT NULL AND thumbnail != ''
+                            OR manual IS NOT NULL AND manual != '')
+                        )
+                        OR
+                        (
+                            NOT ((`desc` IS NOT NULL AND `desc` != '') OR (translated_desc IS NOT NULL AND translated_desc != ''))
+                            AND (image IS NOT NULL AND image != ''
+                            OR video IS NOT NULL AND video != ''
+                            OR marquee IS NOT NULL AND marquee != ''
+                            OR thumbnail IS NOT NULL AND thumbnail != ''
+                            OR manual IS NOT NULL AND manual != '')
+                        )
+                    </when>
+                    <!-- 未刮削（红色）：没有描述 且 没有媒体 -->
+                    <when test="status == 'not'">
+                        NOT ((`desc` IS NOT NULL AND `desc` != '') OR (translated_desc IS NOT NULL AND translated_desc != ''))
+                        AND NOT (image IS NOT NULL AND image != ''
+                        OR video IS NOT NULL AND video != ''
+                        OR marquee IS NOT NULL AND marquee != ''
+                        OR thumbnail IS NOT NULL AND thumbnail != ''
+                        OR manual IS NOT NULL AND manual != '')
                     </when>
                 </choose>
             </foreach>
@@ -199,39 +261,47 @@
         <if test="scrapeStatuses != null and scrapeStatuses.size() > 0">
             <foreach item="status" collection="scrapeStatuses" separator=" OR " open="AND (" close=")">
                 <choose>
-                    <when test="status == 'fully_scraped'">
+                    <!-- 完全刮削：游戏名存在 + 描述存在 + 媒体文件至少存在2项以上 -->
+                    <when test="status == 'fully'">
                         (name IS NOT NULL AND name != ''
                         AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
-                        AND image IS NOT NULL AND image != ''
-                        AND video IS NOT NULL AND video != ''
-                        AND marquee IS NOT NULL AND marquee != ''
-                        AND thumbnail IS NOT NULL AND thumbnail != ''
-                        AND manual IS NOT NULL AND manual != '')
+                        AND (
+                            (image IS NOT NULL AND image != '' AND video IS NOT NULL AND video != '')
+                            OR (image IS NOT NULL AND image != '' AND marquee IS NOT NULL AND marquee != '')
+                            OR (image IS NOT NULL AND image != '' AND thumbnail IS NOT NULL AND thumbnail != '')
+                            OR (image IS NOT NULL AND image != '' AND manual IS NOT NULL AND manual != '')
+                            OR (video IS NOT NULL AND video != '' AND marquee IS NOT NULL AND marquee != '')
+                            OR (video IS NOT NULL AND video != '' AND thumbnail IS NOT NULL AND thumbnail != '')
+                            OR (video IS NOT NULL AND video != '' AND manual IS NOT NULL AND manual != '')
+                            OR (marquee IS NOT NULL AND marquee != '' AND thumbnail IS NOT NULL AND thumbnail != '')
+                            OR (marquee IS NOT NULL AND marquee != '' AND manual IS NOT NULL AND manual != '')
+                            OR (thumbnail IS NOT NULL AND thumbnail != '' AND manual IS NOT NULL AND manual != '')
+                        ))
                     </when>
-                    <when test="status == 'partially_scraped'">
+                    <!-- 部分刮削：游戏名存在 + 描述存在 + 媒体文件只存在0-1项 -->
+                    <when test="status == 'partially'">
                         (name IS NOT NULL AND name != ''
-                        AND ((`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
-                        OR image IS NOT NULL AND image != ''
-                        OR video IS NOT NULL AND video != ''
-                        OR marquee IS NOT NULL AND marquee != ''
-                        OR thumbnail IS NOT NULL AND thumbnail != ''
-                        OR manual IS NOT NULL AND manual != '')
-                        AND NOT (name IS NOT NULL AND name != ''
                         AND (`desc` IS NOT NULL AND `desc` != '' OR translated_desc IS NOT NULL AND translated_desc != '')
-                        AND image IS NOT NULL AND image != ''
-                        AND video IS NOT NULL AND video != ''
-                        AND marquee IS NOT NULL AND marquee != ''
-                        AND thumbnail IS NOT NULL AND thumbnail != ''
-                        AND manual IS NOT NULL AND manual != ''))
+                        AND NOT (
+                            (image IS NOT NULL AND image != '' AND video IS NOT NULL AND video != '')
+                            OR (image IS NOT NULL AND image != '' AND marquee IS NOT NULL AND marquee != '')
+                            OR (image IS NOT NULL AND image != '' AND thumbnail IS NOT NULL AND thumbnail != '')
+                            OR (image IS NOT NULL AND image != '' AND manual IS NOT NULL AND manual != '')
+                            OR (video IS NOT NULL AND video != '' AND marquee IS NOT NULL AND marquee != '')
+                            OR (video IS NOT NULL AND video != '' AND thumbnail IS NOT NULL AND thumbnail != '')
+                            OR (video IS NOT NULL AND video != '' AND manual IS NOT NULL AND manual != '')
+                            OR (marquee IS NOT NULL AND marquee != '' AND thumbnail IS NOT NULL AND thumbnail != '')
+                            OR (marquee IS NOT NULL AND marquee != '' AND manual IS NOT NULL AND manual != '')
+                            OR (thumbnail IS NOT NULL AND thumbnail != '' AND manual IS NOT NULL AND manual != '')
+                        ))
                     </when>
-                    <when test="status == 'not_scraped'">
-                        (name IS NULL OR name = ''
-                        OR (`desc` IS NULL OR `desc` = '' AND translated_desc IS NULL OR translated_desc = '')
-                        OR image IS NULL OR image = ''
-                        OR video IS NULL OR video = ''
-                        OR marquee IS NULL OR marquee = ''
-                        OR thumbnail IS NULL OR thumbnail = ''
-                        OR manual IS NULL OR manual = '')
+                    <!-- 未刮削：游戏名不存在 或 描述不存在 -->
+                    <when test="status == 'not'">
+                        ((name IS NULL OR name = '')
+                        OR (`desc` IS NULL AND translated_desc IS NULL)
+                        OR (`desc` = '' AND translated_desc IS NULL)
+                        OR (`desc` IS NULL AND translated_desc = '')
+                        OR (`desc` = '' AND translated_desc = ''))
                     </when>
                 </choose>
             </foreach>
@@ -443,11 +513,65 @@
             music = #{music},
             screenshot = #{screenshot},
             titlescreen = #{titlescreen},
-            box3d = #{box3d},
+            box3d = #{box3D},
             steamgrid = #{steamgrid},
             fanart = #{fanart},
             boxtexture = #{boxtexture},
             supporttexture = #{supporttexture},
+            videonormalized = #{videonormalized},
+            wheelcarbon = #{wheelcarbon},
+            wheelsteel = #{wheelsteel},
+            screenmarqueesmall = #{screenmarqueesmall},
+            boxside = #{boxside},
+            figurine = #{figurine},
+            pictoliste = #{pictoliste},
+            pictomonochrome = #{pictomonochrome},
+            pictomonochromesvg = #{pictomonochromesvg},
+            pictocouleur = #{pictocouleur},
+            wallpaper = #{wallpaper},
+            box_2d = #{box2d},
+            box_2d_back = #{box2dBack},
+            box_2d_side = #{box2dSide},
+            box_texture = #{boxTexture},
+            box_scan = #{boxScan},
+            support_2d = #{support2d},
+            support_texture = #{supportTexture},
+            support_scan = #{supportScan},
+            wheel = #{wheel},
+            wheel_hd = #{wheelHd},
+            wheel_carbon = #{wheelCarbon},
+            wheel_steel = #{wheelSteel},
+            screenmarquee = #{screenmarquee},
+            ss = #{ss},
+            sstitle = #{sstitle},
+            overlay = #{overlay},
+            video_normalized = #{videoNormalized},
+            flyer = #{flyer},
+            manuel = #{manuel},
+            maps = #{maps},
+            bezel_4_3 = #{bezel43},
+            bezel_4_3_v = #{bezel43V},
+            bezel_4_3_cocktail = #{bezel43Cocktail},
+            bezel_16_9 = #{bezel169},
+            bezel_16_9_v = #{bezel169V},
+            bezel_16_9_cocktail = #{bezel169Cocktail},
+            mixrbv1 = #{mixrbv1},
+            mixrbv2 = #{mixrbv2},
+            themehb = #{themehb},
+            themehs = #{themehs},
+            ssdmd = #{ssdmd},
+            ssfronton16_9 = #{ssfronton169},
+            ssfronton1_1 = #{ssfronton11},
+            ssfronton4_3 = #{ssfronton43},
+            sstable = #{sstable},
+            sstopper = #{sstopper},
+            videodmd = #{videodmd},
+            videofronton4_3 = #{videofronton43},
+            videofronton16_9 = #{videofronton169},
+            videotable = #{videotable},
+            videotable4k = #{videotable4k},
+            videotopper = #{videotopper},
+            wheel_tarcisios = #{wheelTarcisios},
             platform_type = #{platformType},
             hash = #{hash},
             path = #{path},

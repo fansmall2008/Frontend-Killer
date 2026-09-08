@@ -247,8 +247,8 @@
       }
     },
     "media": {
-      "boxFront": {
-        "source": "boxFront",
+      "box-2D": {
+        "source": "box-2D",
         "rules": [
           "media/{filename}/boxFront.{ext}",
           "media/{filename}/box_front.{ext}",
@@ -260,8 +260,8 @@
           "path": "no"
         }
       },
-      "boxBack": {
-        "source": "boxBack",
+      "box-2D-back": {
+        "source": "box-2D-back",
         "rules": [
           "media/{filename}/boxBack.{ext}",
           "media/{filename}/box_back.{ext}",
@@ -272,8 +272,8 @@
           "path": "no"
         }
       },
-      "box3d": {
-        "source": "box3d",
+      "box-3D": {
+        "source": "box-3D",
         "rules": [
           "media/{filename}/box3d.{ext}",
           "media/box3d/{filename}.{ext}"
@@ -282,8 +282,8 @@
           "path": "no"
         }
       },
-      "screenshot": {
-        "source": "screenshot",
+      "ss": {
+        "source": "ss",
         "rules": [
           "media/{filename}/screenshot.{ext}",
           "media/{filename}/screen.{ext}",
@@ -343,8 +343,8 @@
           "path": "no"
         }
       },
-      "titlescreen": {
-        "source": "titlescreen",
+      "sstitle": {
+        "source": "sstitle",
         "rules": [
           "media/{filename}/titlescreen.{ext}",
           "media/titlescreen/{filename}.{ext}",
@@ -374,8 +374,8 @@
           "path": "no"
         }
       },
-      "boxSpine": {
-        "source": "boxSpine",
+      "box-2D-side": {
+        "source": "box-2D-side",
         "rules": [
           "media/{filename}/boxSpine.{ext}",
           "media/{filename}/box_spine.{ext}",
@@ -388,8 +388,8 @@
           "path": "no"
         }
       },
-      "cartridge": {
-        "source": "cartridge",
+      "support-2D": {
+        "source": "support-2D",
         "rules": [
           "media/{filename}/cartridge.{ext}",
           "media/cartridge/{filename}.{ext}"
@@ -500,8 +500,8 @@
           "path": "no"
         }
       },
-      "boxtexture": {
-        "source": "boxtexture",
+      "box-texture": {
+        "source": "box-texture",
         "rules": [
           "media/{filename}/boxTexture.{ext}",
           "media/boxTexture/{filename}.{ext}",
@@ -511,8 +511,8 @@
           "path": "no"
         }
       },
-      "supporttexture": {
-        "source": "supporttexture",
+      "support-texture": {
+        "source": "support-texture",
         "rules": [
           "media/{filename}/supportTexture.{ext}",
           "media/supportTexture/{filename}.{ext}",

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.MediaDownloadTaskMapper">
+
+    <resultMap id="MediaDownloadTaskResultMap" type="com.gamelist.model.MediaDownloadTask">
+        <id column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
+        <result column="game_id" property="gameId"/>
+        <result column="game_name" property="gameName"/>
+        <result column="game_field_name" property="gameFieldName"/>
+        <result column="platform_id" property="platformId"/>
+        <result column="platform_name" property="platformName"/>
+        <result column="media_type" property="mediaType"/>
+        <result column="download_url" property="downloadUrl"/>
+        <result column="local_path" property="localPath"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="status" property="status"/>
+        <result column="priority" property="priority"/>
+        <result column="retry_count" property="retryCount"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="order_index" property="orderIndex"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gamelist.model.MediaDownloadTask" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO media_download_task (task_id, game_id, game_name, game_field_name, platform_id, platform_name, media_type, download_url, local_path, file_size, status, priority, retry_count, error_message, order_index)
+        VALUES (#{taskId}, #{gameId}, #{gameName}, #{gameFieldName}, #{platformId}, #{platformName}, #{mediaType}, #{downloadUrl}, #{localPath}, #{fileSize}, #{status}, #{priority}, #{retryCount}, #{errorMessage}, #{orderIndex})
+    </insert>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO media_download_task (task_id, game_id, game_name, game_field_name, platform_id, platform_name, media_type, download_url, local_path, file_size, status, priority, retry_count, error_message, order_index)
+        VALUES
+        <foreach collection="list" item="task" separator=",">
+            (#{task.taskId}, #{task.gameId}, #{task.gameName}, #{task.gameFieldName}, #{task.platformId}, #{task.platformName}, #{task.mediaType}, #{task.downloadUrl}, #{task.localPath}, #{task.fileSize}, #{task.status}, #{task.priority}, #{task.retryCount}, #{task.errorMessage}, #{task.orderIndex})
+        </foreach>
+    </insert>
+
+    <select id="selectById" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE id = #{id}
+    </select>
+
+    <select id="selectByTaskId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE task_id = #{taskId} ORDER BY order_index ASC
+    </select>
+
+    <select id="selectPendingTasks" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE status = 'PENDING' ORDER BY order_index ASC LIMIT #{limit}
+    </select>
+
+    <select id="selectPendingTasksByTaskId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE task_id = #{taskId} AND status = 'PENDING' ORDER BY order_index ASC LIMIT #{limit}
+    </select>
+
+    <update id="updateStatus" parameterType="com.gamelist.model.MediaDownloadTask">
+        UPDATE media_download_task SET status = #{status}, error_message = #{errorMessage}, file_size = #{fileSize} WHERE id = #{id}
+    </update>
+
+    <update id="updateStatusById">
+        UPDATE media_download_task SET status = #{status}, error_message = #{errorMessage} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM media_download_task WHERE task_id = #{taskId}
+    </delete>
+
+    <select id="countByTaskId" resultType="int">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId}
+    </select>
+
+    <select id="countByTaskIdAndStatus" resultType="int">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId} AND status = #{status}
+    </select>
+
+    <select id="countTotalByTaskId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId}
+    </select>
+
+    <select id="countCompletedByTaskId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId} AND status = 'COMPLETED'
+    </select>
+
+    <select id="countFailedByTaskId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId} AND status = 'FAILED'
+    </select>
+
+    <select id="countPendingByTaskId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId} AND status = 'PENDING'
+    </select>
+
+    <select id="countDownloadingByTaskId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE task_id = #{taskId} AND status = 'DOWNLOADING'
+    </select>
+
+    <select id="selectOnePendingTask" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE task_id = #{taskId} AND status = 'PENDING' ORDER BY order_index ASC LIMIT 1 FOR UPDATE SKIP LOCKED
+    </select>
+
+    <update id="tryUpdateStatus">
+        UPDATE media_download_task SET status = #{toStatus} WHERE id = #{id} AND status = #{fromStatus}
+    </update>
+
+    <select id="selectByPlatformId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE platform_id = #{platformId} ORDER BY order_index ASC
+    </select>
+
+    <select id="selectPendingTasksByPlatformId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE platform_id = #{platformId} AND status = 'PENDING' ORDER BY order_index ASC LIMIT #{limit}
+    </select>
+
+    <delete id="deleteByPlatformId">
+        DELETE FROM media_download_task WHERE platform_id = #{platformId}
+    </delete>
+
+    <delete id="deleteById">
+        DELETE FROM media_download_task WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteBatch">
+        DELETE FROM media_download_task WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="countByPlatformId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE platform_id = #{platformId}
+    </select>
+
+    <select id="countPendingByPlatformId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE platform_id = #{platformId} AND status = 'PENDING'
+    </select>
+
+    <select id="selectPendingAndNotStoppedByPlatformId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task 
+        WHERE platform_id = #{platformId} AND status NOT IN ('STOPPED', 'COMPLETED', 'FAILED') 
+        ORDER BY order_index ASC LIMIT #{limit}
+    </select>
+
+    <select id="countDownloadingByPlatformId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE platform_id = #{platformId} AND status = 'DOWNLOADING'
+    </select>
+
+    <select id="countCompletedByPlatformId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE platform_id = #{platformId} AND status = 'COMPLETED'
+    </select>
+
+    <select id="countFailedByPlatformId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE platform_id = #{platformId} AND status = 'FAILED'
+    </select>
+
+    <select id="countStoppedByPlatformId" resultType="long">
+        SELECT COUNT(*) FROM media_download_task WHERE platform_id = #{platformId} AND status = 'STOPPED'
+    </select>
+
+    <update id="updateStatusByPlatformId">
+        UPDATE media_download_task SET status = #{status} WHERE platform_id = #{platformId}
+    </update>
+
+    <update id="updateStoppedToPendingByPlatformId">
+        UPDATE media_download_task SET status = 'PENDING' WHERE platform_id = #{platformId} AND status = 'STOPPED'
+    </update>
+
+    <update id="updateStoppedToPendingByTaskId">
+        UPDATE media_download_task SET status = 'PENDING' WHERE task_id = #{taskId} AND status = 'STOPPED'
+    </update>
+
+    <update id="updateFailedToPendingByPlatformId">
+        UPDATE media_download_task SET status = 'PENDING', error_message = NULL, retry_count = retry_count + 1 WHERE platform_id = #{platformId} AND status = 'FAILED'
+    </update>
+
+    <select id="selectDownloadingByPlatformId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE platform_id = #{platformId} AND status = 'DOWNLOADING'
+    </select>
+
+    <select id="selectDistinctPlatformIds" resultType="long">
+        SELECT DISTINCT platform_id FROM media_download_task
+    </select>
+
+</mapper>

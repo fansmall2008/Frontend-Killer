@@ -527,6 +527,60 @@
             </div>
         </div>
         
+        <!-- ScreenScraper 设置 -->
+        <div class="settings-section">
+            <h2 data-i18n="scraper_settings_title">ScreenScraper 设置</h2>
+            <div class="setting-item">
+                <label for="scraperUsername" data-i18n="scraper_username">用户名</label>
+                <input type="text" id="scraperUsername" placeholder="ScreenScraper用户名">
+            </div>
+            <div class="setting-item">
+                <label for="scraperPassword" data-i18n="scraper_password">密码</label>
+                <input type="password" id="scraperPassword" placeholder="ScreenScraper密码">
+            </div>
+            <div class="button-group">
+                <button class="btn" id="saveScraperSettingsBtn" data-i18n="save_scraper_settings">保存设置</button>
+                <button class="btn" id="testScraperConnectionBtn" data-i18n="test_scraper_connection">测试连接</button>
+                <button class="btn" id="fetchScraperSystemsBtn" data-i18n="fetch_scraper_systems">获取系统列表</button>
+            </div>
+            <p data-i18n="scraper_settings_tip" style="margin-top: 15px; color: #888; font-size: 14px;">ScreenScraper账号用于获取游戏元数据。如不填写用户名密码，将使用游客模式（每日约20000次请求限制）。如需更高限额，请提前在 <a href="https://www.screenscraper.fr/" target="_blank" style="color: #00ffff;">ScreenScraper.fr</a> 注册账号。</p>
+        </div>
+        
+        <!-- 游戏列表展示设置 -->
+        <div class="settings-section">
+            <h2>游戏列表展示设置</h2>
+            <div class="setting-item">
+                <label for="gameListIconField">游戏列表图标字段</label>
+                <select id="gameListIconField" style="width: 100%; padding: 12px; border: 2px solid #333; border-radius: 6px; font-size: 16px; background: rgba(0, 0, 0, 0.5); color: #fff; font-family: 'Consolas', 'Courier New', monospace;">
+                    <option value="image">封面图 (image)</option>
+                    <option value="wheel">轮盘图标 (wheel)</option>
+                    <option value="wheelCarbon">轮盘图标-碳 (wheel-carbon)</option>
+                    <option value="wheelSteel">轮盘图标-钢 (wheel-steel)</option>
+                    <option value="logo">Logo (logo)</option>
+                    <option value="thumbnail">缩略图 (thumbnail)</option>
+                    <option value="box2d">包装盒正面 (box-2D)</option>
+                    <option value="box2dBack">包装盒背面 (box-2D-back)</option>
+                    <option value="box3D">3D包装盒 (box-3D)</option>
+                    <option value="box2dSide">包装盒侧面 (box-2D-side)</option>
+                    <option value="banner">横幅图 (banner)</option>
+                    <option value="sstitle">标题画面 (sstitle)</option>
+                    <option value="ss">截图 (ss)</option>
+                    <option value="fanart">粉丝艺术图 (fanart)</option>
+                    <option value="poster">海报 (poster)</option>
+                    <option value="support2d">卡带图 (support-2D)</option>
+                    <option value="bezel">边框图 (bezel)</option>
+                    <option value="panel">面板图 (panel)</option>
+                    <option value="background">背景图 (background)</option>
+                    <option value="steam">Steam图 (steam)</option>
+                    <option value="steamgrid">Steam网格图 (steamgrid)</option>
+                </select>
+                <p style="margin-top: 10px; color: #888; font-size: 14px;">选择在游戏列表中显示的图标类型。设置后需要刷新页面生效。<br/>注意：如果某个游戏没有该类型的媒体文件，图标位置将显示空白。</p>
+            </div>
+            <div class="button-group">
+                <button class="btn" id="saveGameListSettingsBtn">保存设置</button>
+            </div>
+        </div>
+        
         <!-- 数据库备份 -->
         <div class="settings-section">
             <h2 data-i18n="database_backup">数据库备份</h2>
@@ -808,6 +862,115 @@
 
 
         
+        // 加载ScreenScraper设置
+        async function loadScraperSettings() {
+            try {
+                const response = await fetch('/api/settings/scraper');
+                if (response.ok) {
+                    const settings = await response.json();
+                    if (settings.data) {
+                        document.getElementById('scraperUsername').value = settings.data.username || '';
+                        document.getElementById('scraperPassword').value = settings.data.password || '';
+                    }
+                }
+            } catch (error) {
+                console.error('加载ScreenScraper设置失败:', error);
+            }
+        }
+
+        // 保存ScreenScraper设置
+        async function saveScraperSettings() {
+            const username = document.getElementById('scraperUsername').value;
+            const password = document.getElementById('scraperPassword').value;
+            
+            try {
+                const response = await fetch('/api/settings/scraper', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(getI18nText('scraper_settings_saved'));
+                } else {
+                    showMessage(result.message || getI18nText('error'), false);
+                }
+            } catch (error) {
+                console.error('保存ScreenScraper设置失败:', error);
+                showMessage(getI18nText('error'), false);
+            }
+        }
+
+        // 测试ScreenScraper连接
+        async function testScraperConnection() {
+            const username = document.getElementById('scraperUsername').value;
+            const password = document.getElementById('scraperPassword').value;
+            
+            const useGuestMode = !username || !password;
+            
+            try {
+                const requestBody = useGuestMode ? {} : { username, password };
+                const response = await fetch('/api/screenscraper/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(result.message || getI18nText('connection_success'), true);
+                } else {
+                    showMessage(result.message || getI18nText('connection_failed'), false);
+                }
+            } catch (error) {
+                console.error('测试ScreenScraper连接失败:', error);
+                showMessage(getI18nText('connection_failed'), false);
+            }
+        }
+
+        // 获取ScreenScraper系统列表
+        async function fetchScraperSystems() {
+            if (!confirm(getI18nText('fetch_systems_confirm'))) {
+                return;
+            }
+            
+            const username = document.getElementById('scraperUsername').value;
+            const password = document.getElementById('scraperPassword').value;
+            
+            const useGuestMode = !username || !password;
+            if (useGuestMode) {
+                if (!confirm(getI18nText('guest_mode_warning'))) {
+                    return;
+                }
+            }
+            
+            showMessage(getI18nText('fetching_systems'), true);
+            
+            try {
+                const response = await fetch('/api/screenscraper/init', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(getI18nText('systems_fetched_success') + result.count + ' ' + getI18nText('systems'), true);
+                } else {
+                    showMessage(result.message || getI18nText('fetch_systems_failed'), false);
+                }
+            } catch (error) {
+                console.error('获取ScreenScraper系统列表失败:', error);
+                showMessage(getI18nText('fetch_systems_failed'), false);
+            }
+        }
+
         // 数据库初始化
         function initDatabase() {
             if (!confirm(getI18nText('init_confirm'))) {
@@ -906,10 +1069,25 @@
             document.getElementById('notificationModal').style.display = 'none';
         }
         
+        // 加载游戏列表展示设置
+        function loadGameListSettings() {
+            const iconField = localStorage.getItem('gameListIconField') || 'image';
+            document.getElementById('gameListIconField').value = iconField;
+        }
+        
+        // 保存游戏列表展示设置
+        function saveGameListSettings() {
+            const iconField = document.getElementById('gameListIconField').value;
+            localStorage.setItem('gameListIconField', iconField);
+            showMessage('游戏列表展示设置已保存，刷新页面生效！', true);
+        }
+        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             initLanguage();
             loadDatabaseBackups();
+            loadScraperSettings();
+            loadGameListSettings();
             
             // 语言选择器事件监听
             document.getElementById('languageSelect').addEventListener('change', async (e) => {
@@ -921,13 +1099,16 @@
             document.getElementById('backupDatabaseBtn').addEventListener('click', backupDatabase);
             document.getElementById('restoreDatabaseBtn').addEventListener('click', restoreDatabase);
             
-
-            
-
-
-            
             // 数据库初始化按钮
             document.getElementById('initDatabaseBtn').addEventListener('click', initDatabase);
+            
+            // ScreenScraper设置按钮
+            document.getElementById('saveScraperSettingsBtn').addEventListener('click', saveScraperSettings);
+            document.getElementById('testScraperConnectionBtn').addEventListener('click', testScraperConnection);
+            document.getElementById('fetchScraperSystemsBtn').addEventListener('click', fetchScraperSystems);
+            
+            // 游戏列表展示设置按钮
+            document.getElementById('saveGameListSettingsBtn').addEventListener('click', saveGameListSettings);
             
             // 通知模态框关闭按钮
             document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);

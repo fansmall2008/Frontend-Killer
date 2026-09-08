@@ -1107,6 +1107,12 @@
 | `boxFull` | ゲームボックス全景 | ✅ | ✅ |
 | `cartridge` | ゲームカセット | ✅ | ✅ |
 | `logo` | ゲームロゴ | ✅ | ✅ |
+| `videonormalized` | 正規化されたビデオ | ✅ | ✅ |
+| `wheelcarbon` | カーボンスタイルのホイール | ✅ | ✅ |
+| `wheelsteel` | スチールスタイルのホイール | ✅ | ✅ |
+| `screenmarqueesmall` | スモールスクリーンマーキー | ✅ | ✅ |
+| `boxside` | ゲームボックスサイド | ✅ | ✅ |
+| `figurine` | フィギュア画像 | ✅ | ✅ |
 | `rating` | ゲーム評価 | ✅ | ✅ |
 | `releasedate` | ゲームリリース日 | ✅ | ✅ |
 | `developer` | ゲーム開発者 | ✅ | ✅ |
@@ -1118,7 +1124,7 @@
 | `scraped` | スクレイピング済み | ✅ | ✅ |
 | `edited` | 編集済み | ✅ | ✅ |
 | `absolutePath` | ゲーム絶対パス | ✅ | ✅ |
-| `platformPath` |  플랫폼パス | ✅ | ✅ |
+| `platformPath` | プラットフォームパス | ✅ | ✅ |
 
 ### 9.2 プラットフォームテーブル (`Platform`) フィールド
 

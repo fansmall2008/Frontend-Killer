@@ -81,8 +81,8 @@
           "path": "no"
         }
       },
-      "box3d": {
-        "source": "box3d",
+      "boxFull": {
+        "source": "boxFull",
         "rules": [
           "../../downloaded_media/{platform}/box3d/{filename}.{ext}",
           "../../downloaded_media/{platform}/3dboxes/{filename}.{ext}",
@@ -156,12 +156,26 @@
           "path": "no"
         }
       },
-      "titlescreen": {
-        "source": "titlescreen",
+      "thumbnail": {
+        "source": "thumbnail",
         "rules": [
           "../../downloaded_media/{platform}/titlescreen/{filename}.{ext}",
           "../downloaded_media/{platform}/titlescreen/{filename}.{ext}",
           "downloaded_media/{platform}/titlescreen/{filename}.{ext}"
+        ],
+        "transform": {
+          "path": "no"
+        }
+      },
+      "cartridge": {
+        "source": "cartridge",
+        "rules": [
+          "../../downloaded_media/{platform}/support-2d/{filename}.{ext}",
+          "../downloaded_media/{platform}/support-2d/{filename}.{ext}",
+          "downloaded_media/{platform}/support-2d/{filename}.{ext}",
+          "../../downloaded_media/{platform}/cartridge/{filename}.{ext}",
+          "../downloaded_media/{platform}/cartridge/{filename}.{ext}",
+          "downloaded_media/{platform}/cartridge/{filename}.{ext}"
         ],
         "transform": {
           "path": "no"

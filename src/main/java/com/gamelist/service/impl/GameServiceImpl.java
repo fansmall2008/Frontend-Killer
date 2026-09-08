@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,11 @@ import com.gamelist.model.ImportStatistics;
 import com.gamelist.model.Platform;
 import com.gamelist.model.PlatformStatistics;
 import com.gamelist.model.ScanResult;
+import com.gamelist.model.ScraperSystem;
 import com.gamelist.model.Statistics;
 import com.gamelist.service.GameService;
 import com.gamelist.service.PlatformService;
+import com.gamelist.service.ScraperSystemService;
 import com.gamelist.util.ErrorLogWriter;
 import com.gamelist.util.LanguageDetector;
 import com.gamelist.util.MediaFileFinder;
@@ -53,6 +56,9 @@ public class GameServiceImpl implements GameService {
     
     @Autowired
     private PlatformService platformService;
+    
+    @Autowired
+    private ScraperSystemService scraperSystemService;
     
     @Value("${app.import.templates.path:#{T(com.gamelist.util.PathUtil).getRulesPath() + '/import'}}")
     private String importTemplatesPath;
@@ -87,6 +93,24 @@ public class GameServiceImpl implements GameService {
         // 查询新创建的平台ID
         platforms = platformService.getAllPlatforms();
         return platforms.isEmpty() ? null : platforms.get(0).getId();
+    }
+    
+    /**
+     * 根据 scraperSystemId 设置 platform 的 systemId
+     */
+    private void applyScraperSystemToPlatform(Platform platform, Long scraperSystemId) {
+        if (scraperSystemId == null) {
+            return;
+        }
+        try {
+            ScraperSystem scraperSystem = scraperSystemService.getById(scraperSystemId);
+            if (scraperSystem != null && scraperSystem.getSystemId() != null) {
+                platform.setSystemId(scraperSystem.getSystemId());
+                logger.info("已设置平台 systemId 为: {}", scraperSystem.getSystemId());
+            }
+        } catch (Exception e) {
+            logger.warn("获取 scraper system 失败，scraperSystemId: {}", scraperSystemId, e);
+        }
     }
 
     @Override
@@ -994,6 +1018,7 @@ public class GameServiceImpl implements GameService {
             if (boxFrontFile.exists()) {
                 game.setImage(truncateString(boxFrontPath, 500));
                 game.setBoxFront(truncateString(boxFrontPath, 500));
+                game.setBox2d(truncateString(boxFrontPath, 500));
             }
         }
         if (pegasusGame.getVideo() != null) {
@@ -1029,6 +1054,7 @@ public class GameServiceImpl implements GameService {
             if (screenshotFile.exists()) {
                 game.setThumbnail(truncateString(screenshotPath, 500));
                 game.setScreenshot(truncateString(screenshotPath, 500));
+                game.setSs(truncateString(screenshotPath, 500));
             }
         }
         if (pegasusGame.getBoxBack() != null) {
@@ -1041,6 +1067,7 @@ public class GameServiceImpl implements GameService {
             if (boxBackFile.exists()) {
                 game.setManual(truncateString(boxBackPath, 500));
                 game.setBoxBack(truncateString(boxBackPath, 500));
+                game.setBox2dBack(truncateString(boxBackPath, 500));
             }
         }
         if (pegasusGame.getBoxSpine() != null) {
@@ -1052,6 +1079,7 @@ public class GameServiceImpl implements GameService {
             File boxSpineFile = new File(metadataDir, boxSpinePath);
             if (boxSpineFile.exists()) {
                 game.setBoxSpine(truncateString(boxSpinePath, 500));
+                game.setBox2dSide(truncateString(boxSpinePath, 500));
             }
         }
         if (pegasusGame.getBoxFull() != null) {
@@ -1063,6 +1091,7 @@ public class GameServiceImpl implements GameService {
             File boxFullFile = new File(metadataDir, boxFullPath);
             if (boxFullFile.exists()) {
                 game.setBoxFull(truncateString(boxFullPath, 500));
+                game.setBox3D(truncateString(boxFullPath, 500));
             }
         }
         if (pegasusGame.getCartridge() != null) {
@@ -1074,6 +1103,7 @@ public class GameServiceImpl implements GameService {
             File cartridgeFile = new File(metadataDir, cartridgePath);
             if (cartridgeFile.exists()) {
                 game.setCartridge(truncateString(cartridgePath, 500));
+                game.setSupport2d(truncateString(cartridgePath, 500));
             }
         }
         if (pegasusGame.getBezel() != null) {
@@ -1232,6 +1262,7 @@ public class GameServiceImpl implements GameService {
             if (foundMedia.containsKey("boxFront") && game.getBoxFront() == null) {
                 game.setImage(foundMedia.get("boxFront"));
                 game.setBoxFront(foundMedia.get("boxFront"));
+                game.setBox2d(foundMedia.get("boxFront"));
             }
             if (foundMedia.containsKey("video") && game.getVideo() == null) {
                 game.setVideo(foundMedia.get("video"));
@@ -1243,22 +1274,28 @@ public class GameServiceImpl implements GameService {
             if (foundMedia.containsKey("screenshot") && game.getScreenshot() == null) {
                 game.setThumbnail(foundMedia.get("screenshot"));
                 game.setScreenshot(foundMedia.get("screenshot"));
+                game.setSs(foundMedia.get("screenshot"));
             }
             if (foundMedia.containsKey("boxBack") && game.getBoxBack() == null) {
                 game.setManual(foundMedia.get("boxBack"));
                 game.setBoxBack(foundMedia.get("boxBack"));
+                game.setBox2dBack(foundMedia.get("boxBack"));
             }
             if (foundMedia.containsKey("boxSpine") && game.getBoxSpine() == null) {
                 game.setBoxSpine(foundMedia.get("boxSpine"));
+                game.setBox2dSide(foundMedia.get("boxSpine"));
             }
             if (foundMedia.containsKey("boxFull") && game.getBoxFull() == null) {
                 game.setBoxFull(foundMedia.get("boxFull"));
+                game.setBox3D(foundMedia.get("boxFull"));
             }
             if (foundMedia.containsKey("cartridge") && game.getCartridge() == null) {
                 game.setCartridge(foundMedia.get("cartridge"));
+                game.setSupport2d(foundMedia.get("cartridge"));
             }
             if (foundMedia.containsKey("bezel") && game.getBezel() == null) {
                 game.setBezel(foundMedia.get("bezel"));
+                game.setBezel43(foundMedia.get("bezel"));
             }
             if (foundMedia.containsKey("panel") && game.getPanel() == null) {
                 game.setPanel(foundMedia.get("panel"));
@@ -1287,11 +1324,13 @@ public class GameServiceImpl implements GameService {
             if (foundMedia.containsKey("music") && game.getMusic() == null) {
                 game.setMusic(foundMedia.get("music"));
             }
-            if (foundMedia.containsKey("titlescreen") && game.getTitlescreen() == null) {
-                game.setTitlescreen(foundMedia.get("titlescreen"));
+            if (foundMedia.containsKey("titlescreen") && game.getThumbnail() == null) {
+                game.setThumbnail(foundMedia.get("titlescreen"));
+                game.setSstitle(foundMedia.get("titlescreen"));
             }
-            if (foundMedia.containsKey("box3d") && game.getBox3d() == null) {
-                game.setBox3d(foundMedia.get("box3d"));
+            if (foundMedia.containsKey("box3d") && game.getBoxFull() == null) {
+                game.setBoxFull(foundMedia.get("box3d"));
+                game.setBox3D(foundMedia.get("box3d"));
             }
             if (foundMedia.containsKey("steamgrid") && game.getSteamgrid() == null) {
                 game.setSteamgrid(foundMedia.get("steamgrid"));
@@ -1301,9 +1340,11 @@ public class GameServiceImpl implements GameService {
             }
             if (foundMedia.containsKey("boxtexture") && game.getBoxtexture() == null) {
                 game.setBoxtexture(foundMedia.get("boxtexture"));
+                game.setBoxTexture(foundMedia.get("boxtexture"));
             }
             if (foundMedia.containsKey("supporttexture") && game.getSupporttexture() == null) {
                 game.setSupporttexture(foundMedia.get("supporttexture"));
+                game.setSupportTexture(foundMedia.get("supporttexture"));
             }
         }
 
@@ -1754,6 +1795,7 @@ public class GameServiceImpl implements GameService {
             // 只设置数据文件中未指定或指定但不存在的媒体类型
             if (foundMedia.containsKey("boxFront") && game.getBoxFront() == null) {
                 game.setBoxFront(foundMedia.get("boxFront"));
+                game.setBox2d(foundMedia.get("boxFront"));
             }
             if (foundMedia.containsKey("video") && game.getVideo() == null) {
                 game.setVideo(foundMedia.get("video"));
@@ -1763,21 +1805,27 @@ public class GameServiceImpl implements GameService {
             }
             if (foundMedia.containsKey("screenshot") && game.getScreenshot() == null) {
                 game.setScreenshot(foundMedia.get("screenshot"));
+                game.setSs(foundMedia.get("screenshot"));
             }
             if (foundMedia.containsKey("boxBack") && game.getBoxBack() == null) {
                 game.setBoxBack(foundMedia.get("boxBack"));
+                game.setBox2dBack(foundMedia.get("boxBack"));
             }
             if (foundMedia.containsKey("boxSpine") && game.getBoxSpine() == null) {
                 game.setBoxSpine(foundMedia.get("boxSpine"));
+                game.setBox2dSide(foundMedia.get("boxSpine"));
             }
             if (foundMedia.containsKey("boxFull") && game.getBoxFull() == null) {
                 game.setBoxFull(foundMedia.get("boxFull"));
+                game.setBox3D(foundMedia.get("boxFull"));
             }
             if (foundMedia.containsKey("cartridge") && game.getCartridge() == null) {
                 game.setCartridge(foundMedia.get("cartridge"));
+                game.setSupport2d(foundMedia.get("cartridge"));
             }
             if (foundMedia.containsKey("bezel") && game.getBezel() == null) {
                 game.setBezel(foundMedia.get("bezel"));
+                game.setBezel43(foundMedia.get("bezel"));
             }
             if (foundMedia.containsKey("panel") && game.getPanel() == null) {
                 game.setPanel(foundMedia.get("panel"));
@@ -1806,11 +1854,13 @@ public class GameServiceImpl implements GameService {
             if (foundMedia.containsKey("music") && game.getMusic() == null) {
                 game.setMusic(foundMedia.get("music"));
             }
-            if (foundMedia.containsKey("titlescreen") && game.getTitlescreen() == null) {
-                game.setTitlescreen(foundMedia.get("titlescreen"));
+            if (foundMedia.containsKey("titlescreen") && game.getThumbnail() == null) {
+                game.setThumbnail(foundMedia.get("titlescreen"));
+                game.setSstitle(foundMedia.get("titlescreen"));
             }
-            if (foundMedia.containsKey("box3d") && game.getBox3d() == null) {
-                game.setBox3d(foundMedia.get("box3d"));
+            if (foundMedia.containsKey("box3d") && game.getBoxFull() == null) {
+                game.setBoxFull(foundMedia.get("box3d"));
+                game.setBox3D(foundMedia.get("box3d"));
             }
             if (foundMedia.containsKey("steamgrid") && game.getSteamgrid() == null) {
                 game.setSteamgrid(foundMedia.get("steamgrid"));
@@ -1820,9 +1870,11 @@ public class GameServiceImpl implements GameService {
             }
             if (foundMedia.containsKey("boxtexture") && game.getBoxtexture() == null) {
                 game.setBoxtexture(foundMedia.get("boxtexture"));
+                game.setBoxTexture(foundMedia.get("boxtexture"));
             }
             if (foundMedia.containsKey("supporttexture") && game.getSupporttexture() == null) {
                 game.setSupporttexture(foundMedia.get("supporttexture"));
+                game.setSupportTexture(foundMedia.get("supporttexture"));
             }
         }
         game.setRating(gameXml.getRating());
@@ -1999,6 +2051,49 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath) {
+        List<Game> games = gameMapper.selectAllGamesWithFilter(search, startDate, endDate, developers, genres, players, scrapeStatuses);
+        
+        // 按文件夹路径过滤
+        if (folderPath != null && !folderPath.isEmpty()) {
+            games = games.stream().filter(game -> {
+                String path = game.getPath();
+                if (path == null) return false;
+                // 支持匹配路径中的任意层级
+                // 将路径按分隔符拆分，检查是否包含指定的文件夹名称
+                String normalizedPath = path.replace("\\", "/");
+                String[] parts = normalizedPath.split("/");
+                for (String part : parts) {
+                    if (part.equalsIgnoreCase(folderPath.trim())) {
+                        return true;
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }
+        
+        // 为每个游戏设置platformPath
+        Map<Long, String> platformPathMap = new HashMap<>();
+        for (Game game : games) {
+            Long platformId = game.getPlatformId();
+            if (platformId != null) {
+                String platformPath = platformPathMap.get(platformId);
+                if (platformPath == null) {
+                    Platform platform = platformService.getPlatformById(platformId);
+                    if (platform != null) {
+                        platformPath = platform.getFolderPath();
+                        platformPathMap.put(platformId, platformPath);
+                    }
+                }
+                if (platformPath != null) {
+                    game.setPlatformPath(platformPath);
+                }
+            }
+        }
+        return games;
+    }
+
+    @Override
     public List<Game> getGamesByPlatformId(Long platformId) {
         List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
         // 为每个游戏设置platformPath
@@ -2042,6 +2137,38 @@ public class GameServiceImpl implements GameService {
     @Override
     public List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses) {
         List<Game> games = gameMapper.selectGamesByPlatformIdWithFilter(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses);
+        // 为每个游戏设置platformPath
+        Platform platform = platformService.getPlatformById(platformId);
+        if (platform != null) {
+            String platformPath = platform.getFolderPath();
+            for (Game game : games) {
+                game.setPlatformPath(platformPath);
+            }
+        }
+        return games;
+    }
+
+    @Override
+    public List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath) {
+        List<Game> games = gameMapper.selectGamesByPlatformIdWithFilter(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses);
+        
+        // 按文件夹路径过滤
+        if (folderPath != null && !folderPath.isEmpty()) {
+            games = games.stream().filter(game -> {
+                String path = game.getPath();
+                if (path == null) return false;
+                // 支持匹配路径中的任意层级
+                String normalizedPath = path.replace("\\", "/");
+                String[] parts = normalizedPath.split("/");
+                for (String part : parts) {
+                    if (part.equalsIgnoreCase(folderPath.trim())) {
+                        return true;
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }
+        
         // 为每个游戏设置platformPath
         Platform platform = platformService.getPlatformById(platformId);
         if (platform != null) {
@@ -2424,6 +2551,10 @@ public class GameServiceImpl implements GameService {
     }
     
     public void importGamesFromXml(GameListXml gameListXml, String defaultPlatformName, String gameListFilePath, String platformType, boolean metadataOnly, int threadCount, ImportTemplate template) {
+        importGamesFromXml(gameListXml, defaultPlatformName, gameListFilePath, platformType, metadataOnly, threadCount, template, null);
+    }
+
+    public void importGamesFromXml(GameListXml gameListXml, String defaultPlatformName, String gameListFilePath, String platformType, boolean metadataOnly, int threadCount, ImportTemplate template, Long scraperSystemId) {
         if (gameListXml == null) {
             logger.error("导入失败: gameListXml为null");
             throw new RuntimeException("导入失败: gameListXml为null");
@@ -2436,6 +2567,12 @@ public class GameServiceImpl implements GameService {
         Platform platform = null;
         try {
             platform = platformService.savePlatform(gameListXml.getProvider(), standardizedPlatformName);
+            
+            // 应用 scraper system
+            if (platform != null) {
+                applyScraperSystemToPlatform(platform, scraperSystemId);
+                platformService.updatePlatform(platform);
+            }
 
             if (platform != null && gameListFilePath != null) {
                 File gameListFile = new File(gameListFilePath);
@@ -2699,11 +2836,28 @@ public class GameServiceImpl implements GameService {
             newGame.setMusic(baseGame.getMusic());
             newGame.setScreenshot(baseGame.getScreenshot());
             newGame.setTitlescreen(baseGame.getTitlescreen());
-            newGame.setBox3d(baseGame.getBox3d());
+            newGame.setBox3D(baseGame.getBox3D());
             newGame.setSteamgrid(baseGame.getSteamgrid());
             newGame.setFanart(baseGame.getFanart());
             newGame.setBoxtexture(baseGame.getBoxtexture());
             newGame.setSupporttexture(baseGame.getSupporttexture());
+            
+            // 复制 ScreenScraper 标准字段
+            newGame.setBox2d(baseGame.getBox2d());
+            newGame.setBox2dBack(baseGame.getBox2dBack());
+            newGame.setBox2dSide(baseGame.getBox2dSide());
+            newGame.setBoxTexture(baseGame.getBoxTexture());
+            newGame.setSupport2d(baseGame.getSupport2d());
+            newGame.setSupportTexture(baseGame.getSupportTexture());
+            newGame.setSs(baseGame.getSs());
+            newGame.setSstitle(baseGame.getSstitle());
+            newGame.setWheelCarbon(baseGame.getWheelCarbon());
+            newGame.setWheelSteel(baseGame.getWheelSteel());
+            newGame.setVideoNormalized(baseGame.getVideoNormalized());
+            newGame.setBezel43(baseGame.getBezel43());
+            newGame.setBezel169(baseGame.getBezel169());
+            newGame.setManuel(baseGame.getManuel());
+            newGame.setScreenmarquee(baseGame.getScreenmarquee());
             
             // 复制其他属性
             newGame.setCrc32(baseGame.getCrc32());
@@ -3082,9 +3236,14 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount) {
+        return importGamesFromXml(filePath, importMethod, importTemplate, metadataOnly, threadCount, null);
+    }
+
+    @Override
+    public ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId) {
         ImportStatistics stats = new ImportStatistics();
-        logger.info("开始从文件导入游戏(带模板): {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}", 
-                filePath, importMethod, importTemplate, metadataOnly, threadCount);
+        logger.info("开始从文件导入游戏(带模板): {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}, scraperSystemId: {}", 
+                filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId);
         try {
             File file = new File(filePath);
             if (!file.exists()) {
@@ -3114,7 +3273,7 @@ public class GameServiceImpl implements GameService {
                 }
             }
 
-            importGamesFromXml(gameListXml, parentDirName, filePath, platformType, metadataOnly, threadCount, template);
+            importGamesFromXml(gameListXml, parentDirName, filePath, platformType, metadataOnly, threadCount, template, scraperSystemId);
 
             stats.incrementPlatforms();
             if (gameListXml.getGame() != null) {
@@ -3130,7 +3289,14 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount) {
+        return importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, metadataOnly, threadCount, null);
+    }
+
+    @Override
+    public ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId) {
         ImportStatistics stats = new ImportStatistics();
+        logger.info("开始从Pegasus元数据导入游戏: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}, scraperSystemId: {}", 
+                filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId);
         try {
             File file = new File(filePath);
             if (!file.exists()) {
@@ -3165,6 +3331,9 @@ public class GameServiceImpl implements GameService {
                     String folderPath = parentFolder.getAbsolutePath();
                     platform.setFolderPath(folderPath);
                 }
+                
+                // 应用 scraper system
+                applyScraperSystemToPlatform(platform, scraperSystemId);
 
                 Platform existingPlatform = platformService.getPlatformBySystem(platformName);
                 if (existingPlatform == null) {
@@ -3214,9 +3383,14 @@ public class GameServiceImpl implements GameService {
     
     @Override
     public ImportStatistics importGamesFromLplFile(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount) {
+        return importGamesFromLplFile(filePath, importMethod, importTemplate, metadataOnly, threadCount, null);
+    }
+
+    @Override
+    public ImportStatistics importGamesFromLplFile(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId) {
         ImportStatistics stats = new ImportStatistics();
-        logger.info("开始从LPL文件导入游戏: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}", 
-                filePath, importMethod, importTemplate, metadataOnly, threadCount);
+        logger.info("开始从LPL文件导入游戏: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}, scraperSystemId: {}", 
+                filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId);
         
         try {
             File file = new File(filePath);
@@ -3272,6 +3446,9 @@ public class GameServiceImpl implements GameService {
             if (parentFolder != null) {
                 platform.setFolderPath(parentFolder.getAbsolutePath());
             }
+            
+            // 应用 scraper system
+            applyScraperSystemToPlatform(platform, scraperSystemId);
             
             Platform existingPlatform = platformService.getPlatformBySystem(standardizedPlatformName);
             if (existingPlatform == null) {
@@ -3365,10 +3542,9 @@ public class GameServiceImpl implements GameService {
         return game;
     }
 
-    @Override
     public ImportStatistics importGamesFromGameFiles(String scanPath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount) {
         ImportStatistics stats = new ImportStatistics();
-        logger.info("开始从游戏文件导入: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}", 
+        logger.info("开始从游戏文件导入: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}",
                 scanPath, importMethod, importTemplate, metadataOnly, threadCount);
         try {
             File scanDir = new File(scanPath);
@@ -3377,15 +3553,23 @@ public class GameServiceImpl implements GameService {
                 throw new RuntimeException("导入失败: 扫描路径不存在或不是目录");
             }
 
-            // 读取导入模板
-            ImportTemplate template = ImportTemplate.loadTemplate(importTemplate);
-            if (template == null) {
-                logger.error("无法加载导入模板: {}", importTemplate);
-                throw new RuntimeException("导入失败: 无法加载导入模板");
+            // 读取导入模板（仅当指定了模板时才加载）
+            ImportTemplate template = null;
+            List<String> extensionsList = null;
+
+            if (importTemplate != null && !importTemplate.isEmpty()) {
+                template = ImportTemplate.loadTemplate(importTemplate);
+                if (template == null) {
+                    logger.error("无法加载导入模板: {}", importTemplate);
+                    throw new RuntimeException("导入失败: 无法加载导入模板");
+                }
+                extensionsList = template.getGameExtensions();
+            } else {
+                logger.info("未指定模板，跳过游戏文件扫描");
             }
 
             // 扫描游戏文件
-            List<File> gameFiles = scanGameFiles(scanDir, template.getGameExtensions());
+            List<File> gameFiles = extensionsList != null ? scanGameFiles(scanDir, extensionsList) : new ArrayList<>();
             logger.info("找到 {} 个游戏文件", gameFiles.size());
 
             if (gameFiles.isEmpty()) {
@@ -3442,8 +3626,13 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId) {
+        return importGamesFromFileScan(scanPath, fileExtensions, importTemplate, threadCount, taskId, null);
+    }
+
+    @Override
+    public ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId, Long scraperSystemId) {
         ImportStatistics stats = new ImportStatistics();
-        logger.info("开始无数据文件导入: {}, 扩展名: {}, 模板: {}", scanPath, fileExtensions, importTemplate);
+        logger.info("开始无数据文件导入: {}, 扩展名: {}, 模板: {}, scraperSystemId: {}", scanPath, fileExtensions, importTemplate, scraperSystemId);
 
         try {
             File scanDir = new File(scanPath);
@@ -3452,15 +3641,21 @@ public class GameServiceImpl implements GameService {
                 throw new RuntimeException("导入失败: 扫描路径不存在或不是目录");
             }
 
-            // 读取导入模板
-            ImportTemplate template = ImportTemplate.loadTemplate(importTemplate);
-            if (template == null) {
-                logger.error("无法加载导入模板: {}", importTemplate);
-                throw new RuntimeException("导入失败: 无法加载导入模板");
+            // 读取导入模板（仅当指定了模板时才加载）
+            ImportTemplate template = null;
+            List<String> extensionsList = new ArrayList<>();
+
+            if (importTemplate != null && !importTemplate.isEmpty()) {
+                template = ImportTemplate.loadTemplate(importTemplate);
+                if (template == null) {
+                    logger.error("无法加载导入模板: {}", importTemplate);
+                    throw new RuntimeException("导入失败: 无法加载导入模板");
+                }
+            } else {
+                logger.info("未指定模板，使用用户输入的扩展名或默认扩展名");
             }
 
             // 解析文件扩展名
-            List<String> extensionsList = new ArrayList<>();
             if (fileExtensions != null && !fileExtensions.isEmpty()) {
                 String[] exts = fileExtensions.split(",");
                 for (String ext : exts) {
@@ -3474,6 +3669,9 @@ public class GameServiceImpl implements GameService {
                     }
                 }
                 logger.info("使用用户指定的扩展名: {}", extensionsList);
+            } else if (template != null && template.getGameExtensions() != null) {
+                extensionsList = template.getGameExtensions();
+                logger.info("使用模板中的扩展名: {}", extensionsList);
             }
 
             if (extensionsList.isEmpty()) {
@@ -3492,6 +3690,9 @@ public class GameServiceImpl implements GameService {
             platform.setSoftware("WebGamelistOper");
             platform.setDatabase("Custom Database");
             platform.setWeb("http://localhost:8083");
+            
+            // 应用 scraper system
+            applyScraperSystemToPlatform(platform, scraperSystemId);
 
             Platform existingPlatform = platformService.getPlatformBySystem(standardizedPlatformName);
             if (existingPlatform == null) {
@@ -3795,94 +3996,159 @@ public class GameServiceImpl implements GameService {
             return;
         }
 
+        // 1. 尝试通过 MediaType 枚举查找并反射调用 setter
+        com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromNomcourt(mediaType);
+        if (mt == null) {
+            mt = com.gamelist.model.MediaType.fromNomcourtLenient(mediaType);
+        }
+        if (mt != null) {
+            try {
+                java.lang.reflect.Method setter = Game.class.getMethod(mt.getSetterName(), String.class);
+                setter.invoke(game, mediaPath);
+                return;
+            } catch (Exception e) {
+                logger.warn("反射设置字段失败: setter={}, error={}", mt.getSetterName(), e.getMessage());
+            }
+        }
+
+        // 2. 回退：遗留别名和非 SS 标准字段
+        String truncated = truncateString(mediaPath, 500);
         switch (mediaType.toLowerCase()) {
             case "boxfront":
             case "box2dfront":
-                game.setBoxFront(mediaPath);
-                game.setImage(mediaPath);
+            case "box-front":
+                game.setBoxFront(truncated);
+                game.setBox2d(truncated);
+                break;
+            case "cartridge":
+                game.setCartridge(truncated);
+                game.setSupport2d(truncated);
                 break;
             case "boxback":
             case "box2dback":
-                game.setBoxBack(mediaPath);
+            case "box-2d-back":
+                game.setBoxBack(truncated);
+                game.setBox2dBack(truncated);
                 break;
             case "boxspine":
             case "box2dside":
-                game.setBoxSpine(mediaPath);
+            case "box-2d-side":
+                game.setBoxSpine(truncated);
+                game.setBox2dSide(truncated);
                 break;
             case "box3d":
-                game.setBox3d(mediaPath);
+            case "box-3d":
+            case "support-3d":
+                game.setBoxFull(truncated);
+                game.setBox3D(truncated);
+                break;
+            case "box3dside":
+            case "box-3d-side":
+                game.setBoxside(truncated);
+                game.setBox2dSide(truncated);
                 break;
             case "boxfull":
-                game.setBoxFull(mediaPath);
+                game.setBoxFull(truncated);
+                game.setBox3D(truncated);
                 break;
             case "screenshot":
-                game.setScreenshot(mediaPath);
+                game.setScreenshot(truncated);
+                game.setSs(truncated);
                 break;
             case "video":
-                game.setVideo(mediaPath);
+                game.setVideo(truncated);
+                break;
+            case "video-normalized":
+                game.setVideonormalized(truncated);
+                game.setVideoNormalized(truncated);
                 break;
             case "wheel":
-                game.setWheel(mediaPath);
-                game.setThumbnail(mediaPath);
+            case "wheel-icon":
+                game.setWheel(truncated);
+                break;
+            case "wheel-carbon":
+            case "wheelcarbon":
+                game.setWheelcarbon(truncated);
+                game.setWheelCarbon(truncated);
+                break;
+            case "wheel-steel":
+            case "wheelsteel":
+                game.setWheelsteel(truncated);
+                game.setWheelSteel(truncated);
                 break;
             case "marquee":
-                game.setMarquee(mediaPath);
-                game.setLogo(mediaPath);
+            case "arcademarquee":
+            case "screenmarquee":
+                game.setMarquee(truncated);
                 break;
-            case "cartridge":
-                game.setCartridge(mediaPath);
+            case "screenmarqueesmall":
+                game.setScreenmarqueesmall(truncated);
                 break;
             case "bezel":
-                game.setBezel(mediaPath);
+            case "bezel43":
+            case "bezel169":
+            case "bezel-16-9":
+                game.setBezel(truncated);
+                game.setBezel43(truncated);
                 break;
             case "panel":
-                game.setPanel(mediaPath);
-                break;
-            case "cabinetleft":
-                game.setCabinetLeft(mediaPath);
-                break;
-            case "cabinetright":
-                game.setCabinetRight(mediaPath);
-                break;
-            case "tile":
-                game.setTile(mediaPath);
-                break;
-            case "banner":
-                game.setBanner(mediaPath);
-                break;
-            case "steam":
-                game.setSteam(mediaPath);
+                game.setPanel(truncated);
                 break;
             case "poster":
-                game.setPoster(mediaPath);
+            case "flyer":
+            case "flyer-2d":
+                game.setPoster(truncated);
                 break;
             case "background":
-                game.setBackground(mediaPath);
-                break;
-            case "music":
-                game.setMusic(mediaPath);
-                break;
-            case "titlescreen":
-                game.setTitlescreen(mediaPath);
-                break;
-            case "steamgrid":
-                game.setSteamgrid(mediaPath);
+            case "backgrounds":
+                game.setBackground(truncated);
                 break;
             case "fanart":
-                game.setFanart(mediaPath);
+                game.setFanart(truncated);
+                break;
+            case "titlescreen":
+            case "sstitle":
+                game.setThumbnail(truncated);
+                game.setSstitle(truncated);
+                break;
+            case "steamgrid":
+                game.setSteamgrid(truncated);
                 break;
             case "boxtexture":
-                game.setBoxtexture(mediaPath);
+            case "box-texture":
+                game.setBoxtexture(truncated);
+                game.setBoxTexture(truncated);
                 break;
             case "support":
             case "supporttexture":
-                game.setSupporttexture(mediaPath);
+            case "support-texture":
+                game.setSupporttexture(truncated);
+                game.setSupportTexture(truncated);
                 break;
             case "logo":
-                game.setLogo(mediaPath);
+                game.setLogo(truncated);
                 break;
             case "manual":
-                game.setManual(mediaPath);
+            case "manuel":
+                game.setManual(truncated);
+                break;
+            case "pictoliste":
+                game.setPictoliste(truncated);
+                break;
+            case "pictomonochrome":
+                game.setPictomonochrome(truncated);
+                break;
+            case "pictomonochromesvg":
+                game.setPictomonochromesvg(truncated);
+                break;
+            case "pictocouleur":
+                game.setPictocouleur(truncated);
+                break;
+            case "wallpaper":
+                game.setWallpaper(truncated);
+                break;
+            case "figurine":
+                game.setFigurine(truncated);
                 break;
             default:
                 logger.debug("未知的媒体类型: {}", mediaType);

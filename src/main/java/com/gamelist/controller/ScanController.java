@@ -44,6 +44,7 @@ public class ScanController {
         private String importTemplate; // 导入模板文件名
         private boolean noDataFile; // 无数据文件导入模式
         private String fileExtensions; // 文件扩展名（逗号分隔）
+        private String scraperSystemId; // 选中的 scraper 系统 ID
 
         public String getPath() {
             return path;
@@ -81,6 +82,12 @@ public class ScanController {
         public void setFileExtensions(String fileExtensions) {
             this.fileExtensions = fileExtensions;
         }
+        public String getScraperSystemId() {
+            return scraperSystemId;
+        }
+        public void setScraperSystemId(String scraperSystemId) {
+            this.scraperSystemId = scraperSystemId;
+        }
     }
 
     /**
@@ -96,6 +103,7 @@ public class ScanController {
         private String scanPath; // 扫描路径
         private boolean noDataFile; // 无数据文件导入模式
         private String fileExtensions; // 文件扩展名（逗号分隔）
+        private String scraperSystemId; // 选中的 scraper 系统 ID
 
         public List<String> getFiles() {
             return files;
@@ -150,6 +158,12 @@ public class ScanController {
         }
         public void setFileExtensions(String fileExtensions) {
             this.fileExtensions = fileExtensions;
+        }
+        public String getScraperSystemId() {
+            return scraperSystemId;
+        }
+        public void setScraperSystemId(String scraperSystemId) {
+            this.scraperSystemId = scraperSystemId;
         }
     }
     
@@ -238,10 +252,20 @@ public class ScanController {
             threadCount = 10;
         }
 
+        // 解析 scraperSystemId
+        Long scraperSystemIdLong = null;
+        if (request.getScraperSystemId() != null && !request.getScraperSystemId().isEmpty()) {
+            try {
+                scraperSystemIdLong = Long.parseLong(request.getScraperSystemId());
+            } catch (NumberFormatException e) {
+                logger.warn("Invalid scraperSystemId: " + request.getScraperSystemId());
+            }
+        }
+
         // 异步执行导入
         importFilesAsync(task.getId(), request.getFiles(), request.getType(), request.isMetadataOnly(), threadCount,
                          request.getImportMethod(), request.getImportTemplate(), request.getScanPath(),
-                         request.isNoDataFile(), request.getFileExtensions());
+                         request.isNoDataFile(), request.getFileExtensions(), scraperSystemIdLong);
 
         return task;
     }
@@ -252,14 +276,17 @@ public class ScanController {
     @Async
     public Future<Void> importFilesAsync(Long taskId, List<String> files, String type, boolean metadataOnly, int threadCount,
                                          String importMethod, String importTemplate, String scanPath,
-                                         boolean noDataFile, String fileExtensions) {
+                                         boolean noDataFile, String fileExtensions, Long scraperSystemId) {
         try {
             if (noDataFile) {
                 taskService.updateTaskLog(taskId, "使用无数据文件导入模式");
                 taskService.updateTaskLog(taskId, "扫描路径：" + scanPath + "，扩展名：" + fileExtensions);
                 taskService.updateTaskLog(taskId, "模板：" + importTemplate);
+                if (scraperSystemId != null) {
+                    taskService.updateTaskLog(taskId, "选中的 scraper 系统 ID：" + scraperSystemId);
+                }
 
-                ImportStatistics stats = gameService.importGamesFromFileScan(scanPath, fileExtensions, importTemplate, threadCount, taskId);
+                ImportStatistics stats = gameService.importGamesFromFileScan(scanPath, fileExtensions, importTemplate, threadCount, taskId, scraperSystemId);
                 taskService.updateTaskLog(taskId, "无数据文件导入完成，共导入 " + stats.getImportedGames() + " 个游戏");
 
                 String resultMsg = "成功导入 " + stats.getImportedGames() + " 个游戏\n";
@@ -279,6 +306,9 @@ public class ScanController {
             taskService.updateTaskProgress(taskId, 0, "开始导入", 0, files.size() > 0 ? files.size() : 1);
             taskService.updateTaskLog(taskId, "开始导入任务，共 " + files.size() + " 个文件，线程数：" + threadCount + "，metadataOnly：" + effectiveMetadataOnly);
             taskService.updateTaskLog(taskId, "导入方式：" + importMethod + "，模板：" + importTemplate);
+            if (scraperSystemId != null) {
+                taskService.updateTaskLog(taskId, "选中的 scraper 系统 ID：" + scraperSystemId);
+            }
 
             int processed = 0;
             int importedPlatforms = 0;
@@ -301,17 +331,17 @@ public class ScanController {
                     // 根据文件扩展名动态选择解析方式
                     if (filePath.endsWith("gamelist.xml")) {
                         // 导入gamelist.xml
-                        ImportStatistics stats = gameService.importGamesFromXml(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount);
+                        ImportStatistics stats = gameService.importGamesFromXml(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount, scraperSystemId);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else if (filePath.endsWith("metadata.pegasus.txt")) {
                         // 导入metadata.pegasus.txt
-                        ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount);
+                        ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount, scraperSystemId);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else if (filePath.endsWith(".lpl")) {
                         // 导入Lakka .lpl播放列表文件
-                        ImportStatistics stats = gameService.importGamesFromLplFile(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount);
+                        ImportStatistics stats = gameService.importGamesFromLplFile(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount, scraperSystemId);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else {

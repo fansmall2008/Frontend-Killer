@@ -1,0 +1,18 @@
+# 排除数据库目录，避免旧数据库文件覆盖 volume 中的数据
+data/database/
+*.db
+*.db.*
+
+# 排除日志目录
+logs/
+*.log
+
+# 排除临时文件
+*.tmp
+*.swp
+*~
+
+# 排除IDE文件
+.idea/
+*.iml
+.vscode/

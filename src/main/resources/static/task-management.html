@@ -250,7 +250,63 @@
             border: 1px solid #333;
             color: #ddd;
         }
-        
+
+        /* 媒体下载面板样式 */
+        .media-download-panel {
+            background: rgba(26, 26, 46, 0.95);
+            border: 2px solid #00ffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .media-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .media-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .media-stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .media-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .text-success { color: #2ecc71; }
+        .text-danger { color: #e74c3c; }
+        .text-warning { color: #f1c40f; }
+        .text-info { color: #3498db; }
+
+        .d-flex { display: flex; }
+        .gap-2 { gap: 0.5rem; }
+
+        .form-select {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .form-select:focus {
+            border-color: #00ffff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
         /* 页脚样式 */
         .footer {
             background: rgba(0, 0, 0, 0.9);
@@ -386,7 +442,40 @@
                 <h5 class="card-title" data-i18n="task_list">任务列表</h5>
                 <button id="clearAllBtn" class="btn danger-btn" data-i18n="clear_all_tasks">清空所有任务</button>
             </div>
-            
+
+            <div id="mediaDownloadPanel" class="media-download-panel" style="display: none;">
+                <h4 class="mb-3">📥 媒体下载任务</h4>
+                <div class="media-stats">
+                    <div class="media-stat-item">
+                        <span class="media-stat-label">总数量</span>
+                        <span id="mediaTotal" class="media-stat-value">0</span>
+                    </div>
+                    <div class="media-stat-item">
+                        <span class="media-stat-label">已完成</span>
+                        <span id="mediaCompleted" class="media-stat-value text-success">0</span>
+                    </div>
+                    <div class="media-stat-item">
+                        <span class="media-stat-label">失败</span>
+                        <span id="mediaFailed" class="media-stat-value text-danger">0</span>
+                    </div>
+                    <div class="media-stat-item">
+                        <span class="media-stat-label">待处理</span>
+                        <span id="mediaPending" class="media-stat-value text-warning">0</span>
+                    </div>
+                    <div class="media-stat-item">
+                        <span class="media-stat-label">下载中</span>
+                        <span id="mediaDownloading" class="media-stat-value text-info">0</span>
+                    </div>
+                </div>
+                <div class="progress mt-3">
+                    <div id="mediaProgressBar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="mt-3">
+                    <button id="startMediaDownloadBtn" class="btn" onclick="startMediaDownload()">开始下载</button>
+                    <button id="stopMediaDownloadBtn" class="btn danger-btn" onclick="stopMediaDownload()">停止下载</button>
+                </div>
+            </div>
+
             <div id="taskList" class="space-y-4">
                 <!-- 任务卡片将通过JavaScript动态添加 -->
                 <div class="text-center text-muted py-8">
@@ -498,6 +587,80 @@
             }, 5000);
         }
         
+        // 加载媒体下载任务状态
+        function loadMediaDownloadStatus(taskId) {
+            if (!taskId) return;
+
+            fetch(`/api/tasks/${taskId}/media-tasks`)
+                .then(response => response.json())
+                .then(data => {
+                    const panel = document.getElementById('mediaDownloadPanel');
+                    if (data.total > 0) {
+                        panel.style.display = 'block';
+                        document.getElementById('mediaTotal').textContent = data.total;
+                        document.getElementById('mediaCompleted').textContent = data.completed;
+                        document.getElementById('mediaFailed').textContent = data.failed;
+                        document.getElementById('mediaPending').textContent = data.pending;
+                        document.getElementById('mediaDownloading').textContent = data.downloading;
+
+                        const progressBar = document.getElementById('mediaProgressBar');
+                        progressBar.style.width = data.progress + '%';
+                        progressBar.setAttribute('aria-valuenow', data.progress);
+                    } else {
+                        panel.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载媒体下载状态失败:', error);
+                });
+        }
+
+        // 开始媒体下载
+        function startMediaDownload() {
+            const tasks = document.querySelectorAll('.task-card');
+            if (tasks.length === 0) {
+                showNotification('error', '错误', '没有刮削任务');
+                return;
+            }
+
+            const firstTaskId = tasks[0].getAttribute('data-task-id');
+
+            fetch(`/api/tasks/${firstTaskId}/start-media-download`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', '成功', data.message);
+                } else {
+                    showNotification('error', '错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('开始媒体下载失败:', error);
+                showNotification('error', '错误', '开始媒体下载失败');
+            });
+        }
+
+        // 停止媒体下载
+        function stopMediaDownload() {
+            fetch('/api/tasks/stop-media-download', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', '成功', data.message);
+                } else {
+                    showNotification('error', '错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('停止媒体下载失败:', error);
+                showNotification('error', '错误', '停止媒体下载失败');
+            });
+        }
+
         // 加载任务列表
         function loadTasks() {
             fetch('/api/tasks')
@@ -694,12 +857,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             initLanguage();
             loadTasks();
-            
+
             // 每5秒自动刷新一次任务列表
             setInterval(loadTasks, 5000);
-            
+
             // 清空所有任务按钮
             document.getElementById('clearAllBtn').addEventListener('click', clearAllTasks);
+
+            // 每3秒刷新一次媒体下载状态
+            setInterval(() => {
+                const tasks = document.querySelectorAll('.task-card');
+                if (tasks.length > 0) {
+                    const firstTaskId = tasks[0].getAttribute('data-task-id');
+                    loadMediaDownloadStatus(firstTaskId);
+                }
+            }, 3000);
         });
     </script>
 </body>

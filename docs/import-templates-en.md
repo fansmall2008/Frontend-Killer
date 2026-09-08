@@ -1107,6 +1107,12 @@ According to the actual file structure, add or modify media types and path templ
 | `boxFull` | Game box full view | ✅ | ✅ |
 | `cartridge` | Game cartridge | ✅ | ✅ |
 | `logo` | Game logo | ✅ | ✅ |
+| `videonormalized` | Normalized video | ✅ | ✅ |
+| `wheelcarbon` | Carbon-style wheel | ✅ | ✅ |
+| `wheelsteel` | Steel-style wheel | ✅ | ✅ |
+| `screenmarqueesmall` | Small screen marquee | ✅ | ✅ |
+| `boxside` | Game box side | ✅ | ✅ |
+| `figurine` | Figurine image | ✅ | ✅ |
 | `rating` | Game rating | ✅ | ✅ |
 | `releasedate` | Game release date | ✅ | ✅ |
 | `developer` | Game developer | ✅ | ✅ |

@@ -10,6 +10,10 @@ public class Platform {
     private String sortBy;
     private String launch;
     private String folderPath;
+    private Integer systemId;
+    private String systemRegion;
+    private String logoRegion;
+    private String logoType;
     private String createdAt;
     private String updatedAt;
 
@@ -84,6 +88,38 @@ public class Platform {
 
     public void setFolderPath(String folderPath) {
         this.folderPath = folderPath;
+    }
+
+    public Integer getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Integer systemId) {
+        this.systemId = systemId;
+    }
+
+    public String getSystemRegion() {
+        return systemRegion;
+    }
+
+    public void setSystemRegion(String systemRegion) {
+        this.systemRegion = systemRegion;
+    }
+
+    public String getLogoRegion() {
+        return logoRegion;
+    }
+
+    public void setLogoRegion(String logoRegion) {
+        this.logoRegion = logoRegion;
+    }
+
+    public String getLogoType() {
+        return logoType;
+    }
+
+    public void setLogoType(String logoType) {
+        this.logoType = logoType;
     }
 
     public String getCreatedAt() {

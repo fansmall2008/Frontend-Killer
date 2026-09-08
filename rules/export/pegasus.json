@@ -7,134 +7,44 @@
     "media": {
        "video": {
         "source": "video",
-        "target": "{mediaPath}/{filename}/video.mp4",
+        "target": "{mediaPath}/{gameName}/video.mp4",
         "dataFileTag": "assets.video"
       },
       "box2dfront": {
-        "source": "box2dfront",
-        "target": "{mediaPath}/{filename}/boxFront.png",
+        "source": "box-2D",
+        "target": "{mediaPath}/{gameName}/boxFront.png",
         "dataFileTag": "assets.boxFront"
       },
       "box2dback": {
-        "source": "box2dback",
-        "target": "{mediaPath}/{filename}/boxBack.png",
+        "source": "box-2D-back",
+        "target": "{mediaPath}/{gameName}/boxBack.png",
         "dataFileTag": "assets.boxBack"
       },
       "box3d": {
-        "source": "box3d",
-        "target": "{mediaPath}/{filename}/box3d.png",
+        "source": "box-3D",
+        "target": "{mediaPath}/{gameName}/box3d.png",
         "dataFileTag": "assets.box3d"
       },
       "screenshot": {
-        "source": "screenshot",
-        "target": "{mediaPath}/{filename}/screenshot.png",
+        "source": "ss",
+        "target": "{mediaPath}/{gameName}/screenshot.png",
         "dataFileTag": "assets.screenshot"
       },
-      
+     
       "wheel": {
         "source": "wheel",
-        "target": "{mediaPath}/{filename}/wheel.png",
+        "target": "{mediaPath}/{gameName}/wheel.png",
         "dataFileTag": "assets.wheel"
       },
       "marquee": {
         "source": "marquee",
-        "target": "{mediaPath}/{filename}/marquee.png",
+        "target": "{mediaPath}/{gameName}/marquee.png",
         "dataFileTag": "assets.marquee"
       },
       "fanart": {
         "source": "fanart",
-        "target": "{mediaPath}/{filename}/fanart.png",
+        "target": "{mediaPath}/{gameName}/fanart.png",
         "dataFileTag": "assets.fanart"
-      },
-      "boxFull": {
-        "source": "boxFull",
-        "target": "{mediaPath}/{filename}/boxFull.png",
-        "dataFileTag": "assets.boxFull"
-      },
-      "boxSpine": {
-        "source": "boxSpine",
-        "target": "{mediaPath}/{filename}/boxSpine.png",
-        "dataFileTag": "assets.boxSpine"
-      },
-      "titlescreen": {
-        "source": "titlescreen",
-        "target": "{mediaPath}/{filename}/titlescreen.png",
-        "dataFileTag": "assets.titlescreen"
-      },
-      "banner": {
-        "source": "banner",
-        "target": "{mediaPath}/{filename}/banner.png",
-        "dataFileTag": "assets.banner"
-      },
-      "cartridge": {
-        "source": "cartridge",
-        "target": "{mediaPath}/{filename}/cartridge.png",
-        "dataFileTag": "assets.cartridge"
-      },
-      "bezel": {
-        "source": "bezel",
-        "target": "{mediaPath}/{filename}/bezel.png",
-        "dataFileTag": "assets.bezel"
-      },
-      "panel": {
-        "source": "panel",
-        "target": "{mediaPath}/{filename}/panel.png",
-        "dataFileTag": "assets.panel"
-      },
-      "cabinetLeft": {
-        "source": "cabinetLeft",
-        "target": "{mediaPath}/{filename}/cabinetLeft.png",
-        "dataFileTag": "assets.cabinetLeft"
-      },
-      "cabinetRight": {
-        "source": "cabinetRight",
-        "target": "{mediaPath}/{filename}/cabinetRight.png",
-        "dataFileTag": "assets.cabinetRight"
-      },
-      "tile": {
-        "source": "tile",
-        "target": "{mediaPath}/{filename}/tile.png",
-        "dataFileTag": "assets.tile"
-      },
-      "steam": {
-        "source": "steam",
-        "target": "{mediaPath}/{filename}/steam.png",
-        "dataFileTag": "assets.steam"
-      },
-      "poster": {
-        "source": "poster",
-        "target": "{mediaPath}/{filename}/poster.png",
-        "dataFileTag": "assets.poster"
-      },
-      "background": {
-        "source": "background",
-        "target": "{mediaPath}/{filename}/background.png",
-        "dataFileTag": "assets.background"
-      },
-      "music": {
-        "source": "music",
-        "target": "{mediaPath}/{filename}/music.mp3",
-        "dataFileTag": "assets.music"
-      },
-      "boxtexture": {
-        "source": "boxtexture",
-        "target": "{mediaPath}/{filename}/boxTexture.png",
-        "dataFileTag": "assets.boxTexture"
-      },
-      "supporttexture": {
-        "source": "supporttexture",
-        "target": "{mediaPath}/{filename}/supportTexture.png",
-        "dataFileTag": "assets.supportTexture"
-      },
-      "manual": {
-        "source": "manual",
-        "target": "{mediaPath}/{filename}/manual.pdf",
-        "dataFileTag": "assets.manual"
-      },
-      "steamgrid": {
-        "source": "steamgrid",
-        "target": "{mediaPath}/{filename}/steamgrid.png",
-        "dataFileTag": "assets.steamgrid"
       }
     },
     "dataFile": {

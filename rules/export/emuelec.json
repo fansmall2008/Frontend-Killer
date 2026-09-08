@@ -71,10 +71,13 @@
       "filename": "gamelist.xml",
       "format": "xml",
       "pathFormat": "absoluteWithDot",
-      "header": [
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-        "<gameList>"
-      ],
+      "header": {
+        "structure": [
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<gameList>"
+        ],
+        "fields": {}
+      },
       "footer": [
         "</gameList>"
       ],

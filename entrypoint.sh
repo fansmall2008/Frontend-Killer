@@ -21,17 +21,47 @@ log "=========================================="
 log "WebGamelistOper 启动中..."
 log "=========================================="
 
+# 显示当前时间供调试
+log "当前容器时间: $(date '+%Y-%m-%d %H:%M:%S')"
+
 if [ ! -f "/app/app.jar" ]; then
     error_exit "找不到 app.jar 文件"
 fi
 
-mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR"
+mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR" "/data/scraper/system" "/data/scraper/games"
 
-# 释放data文件夹到挂载目录
+# 释放data文件夹到挂载目录（不覆盖已存在的数据库）
 if [ -d "/app/data" ]; then
     log "检查并释放data文件夹到挂载目录..."
-    # 复制data目录下的所有内容到/data目录
-    cp -r /app/data/* /data/ 2>/dev/null || true
+    # 检查 /data/database 是否已有数据库文件（来自 volume 挂载）
+    if [ -n "$(ls -A /data/database/ 2>/dev/null)" ]; then
+        log "检测到 /data/database 已有数据（volume 挂载），跳过所有数据复制"
+    else
+        log "/data/database 为空，开始释放初始数据..."
+        # 遍历/app/data下的所有文件和目录
+        for item in /app/data/*; do
+            if [ -e "$item" ]; then
+                item_name=$(basename "$item")
+                # 跳过database目录，避免覆盖已存在的数据库
+                if [ "$item_name" != "database" ]; then
+                    target_path="/data/$item_name"
+                    # 如果目标不存在，才复制
+                    if [ ! -e "$target_path" ]; then
+                        if [ -d "$item" ]; then
+                            cp -r "$item" "$target_path" 2>/dev/null || true
+                        else
+                            cp "$item" "$target_path" 2>/dev/null || true
+                        fi
+                        log "复制 $item_name 到 /data/"
+                    else
+                        log "跳过 $item_name（已存在）"
+                    fi
+                else
+                    log "跳过 database 目录（保护已有数据）"
+                fi
+            fi
+        done
+    fi
     log "data文件夹释放完成"
 fi
 
@@ -56,4 +86,7 @@ log "开始启动应用..."
 JAVA_OPTS="${JAVA_OPTS:- -Xmx2g -Xms512m -XX:+UseG1GC}"
 export JAVA_OPTS
 
-exec java $JAVA_OPTS -jar /app/app.jar
+# 添加外部静态资源目录（文件系统优先于classpath）
+STATIC_OPTS="-Dspring.web.resources.static-locations=file:/app/static/,classpath:/static/"
+
+exec java $JAVA_OPTS $STATIC_OPTS -jar /app/app.jar

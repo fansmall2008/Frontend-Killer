@@ -12,13 +12,17 @@
         <result column="sort_by" property="sortBy"/>
         <result column="launch" property="launch"/>
         <result column="folder_path" property="folderPath"/>
+        <result column="system_id" property="systemId"/>
+        <result column="system_region" property="systemRegion"/>
+        <result column="logo_region" property="logoRegion"/>
+        <result column="logo_type" property="logoType"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
     
     <insert id="insertPlatform" parameterType="com.gamelist.model.Platform" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO platform (system, software, `database`, web, name, sort_by, launch, folder_path)
-        VALUES (#{system}, #{software}, #{database}, #{web}, #{name}, #{sortBy}, #{launch}, #{folderPath})
+        INSERT INTO platform (system, software, `database`, web, name, sort_by, launch, folder_path, system_id, system_region, logo_region, logo_type)
+        VALUES (#{system}, #{software}, #{database}, #{web}, #{name}, #{sortBy}, #{launch}, #{folderPath}, #{systemId}, #{systemRegion}, #{logoRegion}, #{logoType})
     </insert>
     
     <select id="selectPlatformBySystem" resultMap="PlatformResultMap">
@@ -34,15 +38,21 @@
     </select>
     
     <update id="updatePlatform" parameterType="com.gamelist.model.Platform">
-        UPDATE platform SET
-            system = #{system},
-            software = #{software},
-            `database` = #{database},
-            web = #{web},
-            name = #{name},
-            sort_by = #{sortBy},
-            launch = #{launch},
-            folder_path = #{folderPath}
+        UPDATE platform
+        <set>
+            <if test="system != null">system = #{system},</if>
+            <if test="software != null">software = #{software},</if>
+            <if test="database != null">`database` = #{database},</if>
+            <if test="web != null">web = #{web},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="sortBy != null">sort_by = #{sortBy},</if>
+            <if test="launch != null">launch = #{launch},</if>
+            <if test="folderPath != null">folder_path = #{folderPath},</if>
+            <if test="systemId != null">system_id = #{systemId},</if>
+            <if test="systemRegion != null">system_region = #{systemRegion},</if>
+            <if test="logoRegion != null">logo_region = #{logoRegion},</if>
+            <if test="logoType != null">logo_type = #{logoType},</if>
+        </set>
         WHERE id = #{id}
     </update>
     

@@ -159,6 +159,12 @@
 | `fanart` | String | ゲームのファンアート |
 | `boxtexture` | String | ゲームのボックステクスチャ |
 | `supporttexture` | String | サポートテクスチャ |
+| `videonormalized` | String | 正規化されたビデオ |
+| `wheelcarbon` | String | カーボンスタイルのホイール |
+| `wheelsteel` | String | スチールスタイルのホイール |
+| `screenmarqueesmall` | String | スモールスクリーンマーキー |
+| `boxside` | String | ゲームボックスサイド |
+| `figurine` | String | フィギュア画像 |
 | `rating` | Double | ゲームの評価 |
 | `releasedate` | String | ゲームのリリース日 |
 | `developer` | String | ゲームの開発者 |

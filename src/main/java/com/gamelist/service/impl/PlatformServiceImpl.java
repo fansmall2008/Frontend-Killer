@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.gamelist.mapper.GameMapper;
+import com.gamelist.mapper.MediaDownloadTaskMapper;
 import com.gamelist.mapper.PlatformMapper;
 import com.gamelist.mapper.TempSubsetMapper;
 import com.gamelist.model.BackgroundTask;
@@ -20,6 +21,8 @@ import com.gamelist.model.Platform;
 import com.gamelist.model.TempSubset;
 import com.gamelist.model.TempSubsetGame;
 import com.gamelist.service.PlatformService;
+import com.gamelist.service.ScraperSettingsService;
+import com.gamelist.service.ScreenScraperApiService;
 import com.gamelist.service.TaskService;
 import com.gamelist.xml.GameListXml;
 
@@ -35,10 +38,19 @@ public class PlatformServiceImpl implements PlatformService {
     private GameMapper gameMapper;
     
     @Autowired
+    private MediaDownloadTaskMapper mediaDownloadTaskMapper;
+    
+    @Autowired
     private TaskService taskService;
 
     @Autowired
     private TempSubsetMapper tempSubsetMapper;
+    
+    @Autowired
+    private ScreenScraperApiService screenScraperApiService;
+    
+    @Autowired
+    private ScraperSettingsService scraperSettingsService;
 
     @Override
     public Platform savePlatform(GameListXml.Provider providerXml) {
@@ -471,7 +483,20 @@ public class PlatformServiceImpl implements PlatformService {
 
     @Override
     public Platform updatePlatform(Platform platform) {
-        logger.info("更新平台: ID={}, System={}", platform.getId(), platform.getSystem());
+        logger.info("更新平台: ID={}, System={}, Name={}", platform.getId(), platform.getSystem(), platform.getName());
+        
+        // 确保 system 和 name 字段同步（保持一致）
+        String system = platform.getSystem();
+        String name = platform.getName();
+        
+        if (system != null && !system.isEmpty()) {
+            // 如果 system 有值，name 也设置为相同值
+            platform.setName(system);
+        } else if (name != null && !name.isEmpty()) {
+            // 如果只有 name 有值，system 也设置为相同值
+            platform.setSystem(name);
+        }
+        
         platformMapper.updatePlatform(platform);
         return platformMapper.selectPlatformById(platform.getId());
     }
@@ -485,9 +510,11 @@ public class PlatformServiceImpl implements PlatformService {
     @Override
     public void deletePlatform(Long id) {
         logger.info("删除平台: ID={}", id);
-        // 先删除关联游戏
+        // 先删除关联的媒体下载任务（解决外键约束）
+        mediaDownloadTaskMapper.deleteByPlatformId(id);
+        // 再删除关联游戏
         gameMapper.deleteGamesByPlatformId(id);
-        // 再删除平台
+        // 最后删除平台
         platformMapper.deletePlatform(id);
         logger.info("平台删除完成: ID={}", id);
     }
@@ -945,7 +972,7 @@ public class PlatformServiceImpl implements PlatformService {
         newGame.setMusic(originalGame.getMusic());
         newGame.setScreenshot(originalGame.getScreenshot());
         newGame.setTitlescreen(originalGame.getTitlescreen());
-        newGame.setBox3d(originalGame.getBox3d());
+        newGame.setBox3D(originalGame.getBox3D());
         newGame.setSteamgrid(originalGame.getSteamgrid());
         newGame.setFanart(originalGame.getFanart());
         newGame.setBoxtexture(originalGame.getBoxtexture());
@@ -1084,31 +1111,194 @@ public class PlatformServiceImpl implements PlatformService {
     
     /**
      * 获取游戏的刮削状态
-     * 0: 未刮削
-     * 1: 部分刮削
-     * 2: 完全刮削
+     * 0: 红色 - 完全没有信息（无 description 且无任何媒体）
+     * 1: 黄色 - 部分信息（只有 description 或只有媒体）
+     * 2: 绿色 - 信息完整（既有 description 又有媒体）
      */
     private int getScrapeStatus(Game game) {
-        int filledFields = 0;
-        int totalFields = 8; // 名称、描述、图片、视频、发行日期、开发商、发行商、类型
+        // 判断游戏信息：只关注 description
+        boolean hasDescription = game.getDesc() != null && !game.getDesc().isEmpty();
         
-        if (game.getName() != null && !game.getName().isEmpty()) filledFields++;
-        if (game.getDesc() != null && !game.getDesc().isEmpty()) filledFields++;
-        if (game.getImage() != null && !game.getImage().isEmpty()) filledFields++;
-        if (game.getVideo() != null && !game.getVideo().isEmpty()) filledFields++;
-        if (game.getReleasedate() != null && !game.getReleasedate().isEmpty()) filledFields++;
-        if (game.getDeveloper() != null && !game.getDeveloper().isEmpty()) filledFields++;
-        if (game.getPublisher() != null && !game.getPublisher().isEmpty()) filledFields++;
-        if (game.getGenre() != null && !game.getGenre().isEmpty()) filledFields++;
+        // 判断媒体信息：任意媒体字段有值就算有
+        boolean hasMedia = hasAnyMedia(game);
         
-        if (filledFields == 0) {
-            return 0; // 未刮削
-        } else if (filledFields < totalFields) {
-            return 1; // 部分刮削
+        // 返回状态码
+        if (!hasDescription && !hasMedia) {
+            return 0; // 红色 - 完全没有信息
+        } else if (hasDescription && hasMedia) {
+            return 2; // 绿色 - 两种信息都有
         } else {
-            return 2; // 完全刮削
+            return 1; // 黄色 - 只有一种信息
         }
     }
     
+    /**
+     * 判断游戏是否有任何媒体信息
+     */
+    private boolean hasAnyMedia(Game game) {
+        return game.getImage() != null && !game.getImage().isEmpty() ||
+               game.getBoxFront() != null && !game.getBoxFront().isEmpty() ||
+               game.getBoxBack() != null && !game.getBoxBack().isEmpty() ||
+               game.getBoxSpine() != null && !game.getBoxSpine().isEmpty() ||
+               game.getBoxFull() != null && !game.getBoxFull().isEmpty() ||
+               game.getCartridge() != null && !game.getCartridge().isEmpty() ||
+               game.getLogo() != null && !game.getLogo().isEmpty() ||
+               game.getBezel() != null && !game.getBezel().isEmpty() ||
+               game.getPanel() != null && !game.getPanel().isEmpty() ||
+               game.getCabinetLeft() != null && !game.getCabinetLeft().isEmpty() ||
+               game.getCabinetRight() != null && !game.getCabinetRight().isEmpty() ||
+               game.getTile() != null && !game.getTile().isEmpty() ||
+               game.getBanner() != null && !game.getBanner().isEmpty() ||
+               game.getSteam() != null && !game.getSteam().isEmpty() ||
+               game.getPoster() != null && !game.getPoster().isEmpty() ||
+               game.getBackground() != null && !game.getBackground().isEmpty() ||
+               game.getMusic() != null && !game.getMusic().isEmpty() ||
+               game.getScreenshot() != null && !game.getScreenshot().isEmpty() ||
+               game.getTitlescreen() != null && !game.getTitlescreen().isEmpty() ||
+               game.getBox3D() != null && !game.getBox3D().isEmpty() ||
+               game.getSteamgrid() != null && !game.getSteamgrid().isEmpty() ||
+               game.getFanart() != null && !game.getFanart().isEmpty() ||
+               game.getBoxtexture() != null && !game.getBoxtexture().isEmpty() ||
+               game.getSupporttexture() != null && !game.getSupporttexture().isEmpty();
+    }
+    
+    @Override
+    public Map<String, Object> scrapePlatform(Long platformId, Integer systemId, String region, List<String> mediaTypes) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            Platform platform = platformMapper.selectPlatformById(platformId);
+            if (platform == null) {
+                throw new IllegalArgumentException("平台不存在: " + platformId);
+            }
+            
+            Map<String, String> scraperSettings = scraperSettingsService.getSettings();
+            String username = scraperSettings.get("username");
+            String password = scraperSettings.get("password");
+            
+            String taskDescription = "刮削平台: " + platform.getName() + " (系统ID: " + systemId + ")";
+            BackgroundTask task = taskService.createTask("SCRAPE", taskDescription);
+            
+            scrapePlatformAsync(task.getId(), platformId, systemId, region, mediaTypes, username, password);
+            
+            result.put("success", true);
+            result.put("taskId", task.getId());
+            result.put("message", "刮削任务已启动，请在任务管理页面查看进度");
+            
+            return result;
+        } catch (Exception e) {
+            logger.error("刮削平台失败: {}", e.getMessage(), e);
+            result.put("success", false);
+            result.put("errorMessage", e.getMessage());
+            return result;
+        }
+    }
+    
+    @Async
+    private void scrapePlatformAsync(Long taskId, Long platformId, Integer systemId, String region, List<String> mediaTypes, String username, String password) {
+        try {
+            taskService.updateTaskProgress(taskId, 10, "开始刮削平台", 0, 100);
+            
+            Platform platform = platformMapper.selectPlatformById(platformId);
+            
+            String[] regions = region.split(",");
+            int totalRegions = regions.length;
+            int totalMediaTypes = mediaTypes.size();
+            int totalTasks = totalRegions * totalMediaTypes;
+            int completedTasks = 0;
+            
+            for (String r : regions) {
+                for (String mediaType : mediaTypes) {
+                    completedTasks++;
+                    int progress = 10 + (completedTasks * 80) / totalTasks;
+                    taskService.updateTaskProgress(taskId, progress, "刮削: " + mediaType + " (" + r + ")", completedTasks, totalTasks);
+                    
+                    Map<String, Object> mediaResult = screenScraperApiService.fetchSystemMedia(systemId, r, java.util.Collections.singletonList(mediaType), username, password);
+                    
+                    if ((Boolean) mediaResult.get("success")) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, String>> mediaUrls = (List<Map<String, String>>) mediaResult.get("mediaUrls");
+                        
+                        for (Map<String, String> mediaInfo : mediaUrls) {
+                            String url = mediaInfo.get("url");
+                            String type = mediaInfo.get("type");
+                            String reg = mediaInfo.get("region");
+                            
+                            String filePath = downloadAndSaveMedia(url, systemId, reg, type);
+                            if (filePath != null) {
+                                taskService.updateTaskLog(taskId, "下载成功: " + type + "/" + reg + " -> " + filePath);
+                            }
+                        }
+                    } else {
+                        taskService.updateTaskLog(taskId, "获取媒体失败: " + mediaType + " (" + r + ") - " + mediaResult.get("message"));
+                    }
+                }
+            }
+            
+            platform.setSystemId(systemId);
+            platform.setSystemRegion(region);
+            platformMapper.updatePlatform(platform);
+            
+            taskService.completeTask(taskId, "刮削完成", "平台 " + platform.getName() + " 刮削完成");
+            
+        } catch (Exception e) {
+            logger.error("刮削平台失败: {}", e.getMessage(), e);
+            taskService.failTask(taskId, "刮削失败", e.getMessage());
+        }
+    }
+    
+    private String downloadAndSaveMedia(String url, Integer systemId, String region, String mediaType) {
+        try {
+            java.io.File baseDir = new java.io.File("/data/scraper/system/" + systemId + "/" + region + "/" + mediaType);
+            if (!baseDir.exists()) {
+                baseDir.mkdirs();
+            }
+            
+            // 根据 mediaType 和 region 生成合理的文件名
+            String fileName = mediaType + ".png";
+            java.io.File outputFile = new java.io.File(baseDir, fileName);
+            
+            okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                    .build();
+            
+            okhttp3.Request request = new okhttp3.Request.Builder().url(url).build();
+            try (okhttp3.Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // 检查响应内容类型，确定文件扩展名
+                    String contentType = response.header("Content-Type", "");
+                    if (contentType.contains("image/jpeg") || contentType.contains("image/jpg")) {
+                        fileName = mediaType + ".jpg";
+                        outputFile = new java.io.File(baseDir, fileName);
+                    } else if (contentType.contains("video/mp4")) {
+                        fileName = mediaType + ".mp4";
+                        outputFile = new java.io.File(baseDir, fileName);
+                    }
+                    
+                    try (java.io.InputStream is = response.body().byteStream();
+                         java.io.FileOutputStream fos = new java.io.FileOutputStream(outputFile)) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            fos.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    return outputFile.getAbsolutePath();
+                } else {
+                    // 处理 NOMEDIA 响应（媒体不存在）
+                    if (response.body() != null) {
+                        String body = response.body().string().trim();
+                        if ("NOMEDIA".equals(body)) {
+                            logger.warn("Media not found for systemId={}, region={}, mediaType={}", systemId, region, mediaType);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("下载媒体文件失败: {}", e.getMessage());
+        }
+        return null;
+    }
 
 }

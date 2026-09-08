@@ -34,4 +34,5 @@ public interface PlatformService {
     Platform createPlatformFromTempSubset(Long subsetId, String platformName);
     int deleteTempSubset(Long subsetId);
     Map<String, Object> getPlatformStatistics(Long platformId);
+    Map<String, Object> scrapePlatform(Long platformId, Integer systemId, String region, List<String> mediaTypes);
 }

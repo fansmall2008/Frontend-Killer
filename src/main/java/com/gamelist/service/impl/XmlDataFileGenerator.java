@@ -252,26 +252,39 @@ public class XmlDataFileGenerator implements DataFileGenerator {
     }
 
     private String getMediaFilePathFromGame(Game game, String sourceField) {
-        switch (sourceField) {
-            case "box2dfront":
-                return game.getBoxFront();
-            case "box2dback":
-                return game.getBoxBack();
-            case "box3d":
-                return game.getBox3d();
-            case "screenshot":
-                return game.getScreenshot();
-            case "video":
-                return game.getVideo();
-            case "wheel":
-                return game.getLogo(); // 使用 logo 作为 wheel
-            case "marquee":
-                return game.getMarquee();
-            case "fanart":
-                return game.getFanart();
-            default:
-                return null;
+        // 1. 尝试通过 MediaType 枚举查找（source 为 nomcourt 格式，如 "box-2D"）
+        com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromNomcourt(sourceField);
+        if (mt == null) {
+            mt = com.gamelist.model.MediaType.fromNomcourtLenient(sourceField);
         }
+        if (mt != null) {
+            try {
+                java.lang.reflect.Method getter = Game.class.getMethod(mt.getGetterName());
+                Object value = getter.invoke(game);
+                return value != null ? value.toString() : null;
+            } catch (Exception e) {
+                logger.warn("反射获取字段值失败: getter={}, error={}", mt.getGetterName(), e.getMessage());
+            }
+        }
+        // 2. 回退：非 SS 标准字段和遗留旧名称
+        return switch (sourceField.toLowerCase()) {
+            case "box2dfront", "boxfront" -> game.getBoxFront();
+            case "box2dback", "boxback" -> game.getBoxBack();
+            case "box3d" -> game.getBox3D();
+            case "screenshot" -> game.getScreenshot();
+            case "video" -> game.getVideo();
+            case "wheel" -> game.getLogo();
+            case "marquee" -> game.getMarquee();
+            case "fanart" -> game.getFanart();
+            case "image" -> game.getImage();
+            case "thumbnail" -> game.getThumbnail();
+            case "logo" -> game.getLogo();
+            case "background" -> game.getBackground();
+            case "manual", "manuel" -> game.getManual();
+            case "bezel" -> game.getBezel();
+            case "steamgrid" -> game.getSteamgrid();
+            default -> null;
+        };
     }
 
     private String getRelativePath(Path basePath, Path targetPath) {

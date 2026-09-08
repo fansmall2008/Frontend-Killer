@@ -143,13 +143,6 @@
           "path": "no"
         }
       },
-      "box3d": {
-        "fields": ["box3d"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
       "screenshot": {
         "fields": ["screenshot"],
         "isMultiValue": false,
@@ -166,27 +159,6 @@
       },
       "fanart": {
         "fields": ["fanart"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "titlescreen": {
-        "fields": ["titlescreen"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "banner": {
-        "fields": ["banner"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "cartridge": {
-        "fields": ["cartridge"],
         "isMultiValue": false,
         "transform": {
           "path": "no"
@@ -213,34 +185,6 @@
           "path": "no"
         }
       },
-      "cabinetLeft": {
-        "fields": ["cabinetLeft"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "cabinetRight": {
-        "fields": ["cabinetRight"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "tile": {
-        "fields": ["tile"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "steam": {
-        "fields": ["steam"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
       "poster": {
         "fields": ["poster"],
         "isMultiValue": false,
@@ -250,13 +194,6 @@
       },
       "background": {
         "fields": ["background"],
-        "isMultiValue": false,
-        "transform": {
-          "path": "no"
-        }
-      },
-      "music": {
-        "fields": ["music"],
         "isMultiValue": false,
         "transform": {
           "path": "no"
@@ -289,11 +226,13 @@
           "path": "no"
         }
       },
-      "box3d": {
-        "source": "box3d",
+      "boxFull": {
+        "source": "boxFull",
         "rules": [
           "media/{filename}/box3d.{ext}",
-          "media/box3d/{filename}.{ext}"
+          "media/{filename}/boxFull.{ext}",
+          "media/box3d/{filename}.{ext}",
+          "media/boxFull/{filename}.{ext}"
         ],
         "transform": {
           "path": "no"
@@ -360,22 +299,13 @@
           "path": "no"
         }
       },
-      "titlescreen": {
-        "source": "titlescreen",
+      "thumbnail": {
+        "source": "thumbnail",
         "rules": [
           "media/{filename}/titlescreen.{ext}",
+          "media/{filename}/thumbnail.{ext}",
           "media/titlescreen/{filename}.{ext}",
           "media/screentitle/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
-      "banner": {
-        "source": "banner",
-        "rules": [
-          "media/{filename}/banner.{ext}",
-          "media/banner/{filename}.{ext}"
         ],
         "transform": {
           "path": "no"
@@ -405,16 +335,6 @@
           "path": "no"
         }
       },
-      "cartridge": {
-        "source": "cartridge",
-        "rules": [
-          "media/{filename}/cartridge.{ext}",
-          "media/cartridge/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
       "bezel": {
         "source": "bezel",
         "rules": [
@@ -431,54 +351,6 @@
         "rules": [
           "media/{filename}/panel.{ext}",
           "media/panel/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
-      "cabinetLeft": {
-        "source": "cabinetLeft",
-        "rules": [
-          "media/{filename}/cabinetLeft.{ext}",
-          "media/{filename}/cabinet_left.{ext}",
-          "media/cabinetLeft/{filename}.{ext}",
-          "media/cabinet_left/{filename}.{ext}",
-          "media/cabs/left/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
-      "cabinetRight": {
-        "source": "cabinetRight",
-        "rules": [
-          "media/{filename}/cabinetRight.{ext}",
-          "media/{filename}/cabinet_right.{ext}",
-          "media/cabinetRight/{filename}.{ext}",
-          "media/cabinet_right/{filename}.{ext}",
-          "media/cabs/right/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
-      "tile": {
-        "source": "tile",
-        "rules": [
-          "media/{filename}/tile.{ext}",
-          "media/tile/{filename}.{ext}",
-          "media/tiles/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
-      "steam": {
-        "source": "steam",
-        "rules": [
-          "media/{filename}/steam.{ext}",
-          "media/steam/{filename}.{ext}",
-          "media/steamgrid/{filename}.{ext}"
         ],
         "transform": {
           "path": "no"
@@ -501,17 +373,6 @@
           "media/{filename}/background.{ext}",
           "media/background/{filename}.{ext}",
           "media/bg/{filename}.{ext}"
-        ],
-        "transform": {
-          "path": "no"
-        }
-      },
-      "music": {
-        "source": "music",
-        "rules": [
-          "media/{filename}/music.{ext}",
-          "media/music/{filename}.{ext}",
-          "media/snd/{filename}.{ext}"
         ],
         "transform": {
           "path": "no"

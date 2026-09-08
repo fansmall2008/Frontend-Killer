@@ -1107,6 +1107,12 @@
 | `boxFull` | 游戏盒全景 | ✅ | ✅ |
 | `cartridge` | 游戏卡带 | ✅ | ✅ |
 | `logo` | 游戏标志 | ✅ | ✅ |
+| `videonormalized` | 归一化视频 | ✅ | ✅ |
+| `wheelcarbon` | 碳风格标志 | ✅ | ✅ |
+| `wheelsteel` | 钢铁风格标志 | ✅ | ✅ |
+| `screenmarqueesmall` | 小型屏幕横幅 | ✅ | ✅ |
+| `boxside` | 游戏盒侧边 | ✅ | ✅ |
+| `figurine` | 手办图片 | ✅ | ✅ |
 | `rating` | 游戏评分 | ✅ | ✅ |
 | `releasedate` | 游戏发布日期 | ✅ | ✅ |
 | `developer` | 游戏开发者 | ✅ | ✅ |

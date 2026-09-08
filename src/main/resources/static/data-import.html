@@ -548,8 +548,14 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="scraperSystem">选择系统（可选）：</label>
+                    <select id="scraperSystem" name="scraperSystem" onchange="onSystemSelect()">
+                        <option value="">不选择系统</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="importMethod" data-i18n="import_method_label">导入方式：</label>
-                    <select id="importMethod" name="importMethod" onchange="toggleTemplateOptions()" required>
+                    <select id="importMethod" name="importMethod" onchange="toggleTemplateOptions(); onSystemSelect()" required>
                         <option value="traditional" data-i18n="import_method_traditional">传统方式</option>
                         <option value="template" data-i18n="import_method_template">模板方式</option>
                         <option value="noDataFile" data-i18n="import_method_no_data_file">无数据文件导入</option>
@@ -624,7 +630,7 @@
         // 通知系统变量
         let notifications = [];
         let unreadCount = 0;
-        
+
         // 语言翻译映射
         ;
         
@@ -654,7 +660,9 @@
         
         // 模板列表全局变量
         let templates = [];
-        
+        // 系统列表全局变量
+        let scraperSystems = [];
+
         // 从服务器获取模板列表
         function loadTemplates() {
             const importTemplateSelect = document.getElementById('importTemplate');
@@ -674,6 +682,16 @@
                     console.log('Templates received:', data);
                     templates = data || []; // 保存到全局变量
                     importTemplateSelect.innerHTML = '';
+
+                    const importMethod = document.getElementById('importMethod').value;
+                    if (importMethod === 'noDataFile') {
+                        const noTemplateOption = document.createElement('option');
+                        noTemplateOption.value = '';
+                        noTemplateOption.textContent = getI18nText('no_template') || '无模板';
+                        noTemplateOption.selected = true;
+                        importTemplateSelect.appendChild(noTemplateOption);
+                    }
+
                     if (templates && templates.length > 0) {
                         templates.forEach(template => {
                             const option = document.createElement('option');
@@ -694,6 +712,119 @@
                     console.error('Error loading templates:', error);
                     importTemplateSelect.innerHTML = '<option value="" data-i18n="error_loading_templates">加载模板失败</option>';
                 });
+        }
+
+        // 从服务器获取系统列表
+        function loadScraperSystems() {
+            const scraperSystemSelect = document.getElementById('scraperSystem');
+            console.log('开始加载系统列表...');
+            
+            fetch('/api/scraper-systems')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Scraper systems received:', data);
+                    scraperSystems = data.data || []; // 保存到全局变量
+                    // 先保存当前选中的值
+                    const currentValue = scraperSystemSelect.value;
+                    // 清空并重新填充
+                    scraperSystemSelect.innerHTML = '<option value="">不选择系统</option>';
+                    if (scraperSystems && scraperSystems.length > 0) {
+                        scraperSystems.forEach(system => {
+                            const option = document.createElement('option');
+                            option.value = system.id;
+                            option.textContent = system.nameCn || system.nameEn || system.name || 'Unknown';
+                            if (currentValue === String(system.id)) {
+                                option.selected = true;
+                            }
+                            scraperSystemSelect.appendChild(option);
+                        });
+                    }
+                    console.log('系统列表加载完成');
+                })
+                .catch(error => {
+                    console.error('Error loading scraper systems:', error);
+                });
+        }
+
+        // 解析 extensions 字符串
+        function parseExtensions(extensionsStr) {
+            if (!extensionsStr) return [];
+            
+            const extensions = [];
+            // 处理类似 "daphne(m2v|ogg)" 或 "pc(exe|com|iso)" 或 "wad,game,zip" 的格式
+            const parts = extensionsStr.split(',');
+            parts.forEach(part => {
+                part = part.trim();
+                // 匹配 "xxx(yyy|zzz)" 格式
+                const match = part.match(/^([^(]+)\(([^)]+)\)$/);
+                if (match) {
+                    // 取括号内的内容，按 | 分割
+                    const innerExts = match[2].split('|');
+                    innerExts.forEach(ext => {
+                        ext = ext.trim();
+                        if (ext) {
+                            extensions.push('.' + ext);
+                        }
+                    });
+                } else if (part) {
+                    // 直接是扩展名
+                    extensions.push('.' + part);
+                }
+            });
+            return extensions;
+        }
+
+        // 当系统选择改变时的处理
+        function onSystemSelect() {
+            const systemId = document.getElementById('scraperSystem').value;
+            const importMethod = document.getElementById('importMethod').value;
+            const fileExtensionsInput = document.getElementById('fileExtensions');
+            
+            if (!systemId) {
+                return;
+            }
+            
+            // 找到选中的系统
+            const selectedSystem = scraperSystems.find(s => String(s.id) === String(systemId));
+            if (!selectedSystem) {
+                return;
+            }
+            
+            console.log('选中的系统:', selectedSystem);
+            console.log('romType:', selectedSystem.romType);
+            
+            // 检查是否是 dossier 类型
+            if (selectedSystem.romType === 'dossier') {
+                showNotification('暂时不支持 dossier 类型的系统，请选择其他系统', 'error');
+                document.getElementById('scraperSystem').value = '';
+                return;
+            }
+            
+            // 根据导入方式做不同处理
+            if (importMethod === 'noDataFile') {
+                // 无数据文件导入：填充文件扩展名
+                let extensions = parseExtensions(selectedSystem.extensions);
+                
+                // 根据 romType 处理
+                if (selectedSystem.romType === 'rom' || selectedSystem.romType === 'fichier') {
+                    // rom 和 fichier 类型：添加 .zip
+                    if (!extensions.includes('.zip')) {
+                        extensions.push('.zip');
+                    }
+                }
+                // iso 类型：直接用 extensions
+                
+                // 填充到输入框
+                if (extensions.length > 0) {
+                    fileExtensionsInput.value = extensions.join(',');
+                }
+            }
+            // 模板/传统方式：不需要做什么，后端会处理
         }
         
         // 显示通知
@@ -873,6 +1004,13 @@
         updateTemplateDescription();
         
         // 浏览目录函数
+        // HTML 转义函数，防止路径中的特殊字符被解析为 HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         async function browseDirectories() {
             const path = document.getElementById('path').value;
             const directoryItems = document.getElementById('directoryItems');
@@ -962,7 +1100,7 @@
                                 cursor: pointer;
                                 transition: all 0.3s ease;
                             `;
-                            dirElement.innerHTML = `<span style="color: #00ffff;">📁</span> ${dir}`;
+                            dirElement.innerHTML = `<span style="color: #00ffff;">📁</span> ${escapeHtml(dir)}`;
                             
                             dirElement.addEventListener('click', () => {
                                 document.getElementById('path').value = dir;
@@ -983,10 +1121,10 @@
                         directoryItems.innerHTML = '<p style="text-align: center; color: #aaa;">该目录下没有子目录</p>';
                     }
                 } else {
-                    directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">${result.message || '无法浏览目录'}</p>`;
+                    directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">${escapeHtml(result.message || '无法浏览目录')}</p>`;
                 }
             } catch (error) {
-                directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">浏览目录失败: ${error.message}</p>`;
+                directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">浏览目录失败: ${escapeHtml(error.message)}</p>`;
             }
         }
         
@@ -1014,6 +1152,9 @@
             // 初始化通知铃铛
             updateNotificationBell();
             
+            // 加载系统列表
+            loadScraperSystems();
+            
             // 初始化时浏览默认目录
             browseDirectories();
         });
@@ -1029,6 +1170,7 @@
             const importMethod = document.getElementById('importMethod').value;
             const importTemplate = document.getElementById('importTemplate').value;
             const fileExtensions = document.getElementById('fileExtensions').value;
+            const scraperSystemId = document.getElementById('scraperSystem').value;
             const noDataFile = importMethod === 'noDataFile';
             const submitBtn = document.getElementById('submitBtn');
             const loading = document.getElementById('loading');
@@ -1057,7 +1199,8 @@
                             importTemplate: importTemplate,
                             noDataFile: true,
                             fileExtensions: fileExtensions,
-                            scanPath: path
+                            scanPath: path,
+                            scraperSystemId: scraperSystemId
                         }),
                     });
 
@@ -1081,7 +1224,8 @@
                             path: path,
                             depth: scanDepth,
                             importMethod: importMethod,
-                            importTemplate: importTemplate
+                            importTemplate: importTemplate,
+                            scraperSystemId: scraperSystemId
                         }),
                     });
 
@@ -1117,7 +1261,8 @@
                                 threadCount: threadCount,
                                 importMethod: importMethod,
                                 importTemplate: importTemplate,
-                                scanPath: path
+                                scanPath: path,
+                                scraperSystemId: scraperSystemId
                             }),
                         });
 

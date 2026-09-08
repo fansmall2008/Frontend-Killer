@@ -10,8 +10,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**")
-                .addResourceLocations("classpath:/static/", "file:./", "file:./media/", "file:./data")
+        registry.addResourceHandler("/scraper/**")
+                .addResourceLocations("file:/data/scraper/", "classpath:/static/", "file:./", "file:./media/", "file:./data")
+                .setCacheControl(CacheControl.noCache());
+        
+        registry.addResourceHandler("/data/scraper/**")
+                .addResourceLocations("file:/data/scraper/")
                 .setCacheControl(CacheControl.noCache());
     }
 }

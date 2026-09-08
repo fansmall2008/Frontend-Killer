@@ -135,9 +135,10 @@ public class GameListController {
             @RequestParam(required = false) List<String> developers,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) List<String> players,
-            @RequestParam(required = false) List<String> scrapeStatuses) {
+            @RequestParam(required = false) List<String> scrapeStatuses,
+            @RequestParam(required = false) String folderPath) {
         try {
-            List<Game> games = gameService.getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses);
+            List<Game> games = gameService.getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses, folderPath);
             
             // 处理分页
             int totalElements = games.size();
@@ -173,9 +174,10 @@ public class GameListController {
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) List<String> players,
             @RequestParam(required = false) List<String> scrapeStatuses,
-            @RequestParam(required = false) List<String> fileStatuses) {
+            @RequestParam(required = false) List<String> fileStatuses,
+            @RequestParam(required = false) String folderPath) {
         try {
-            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses);
+            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, folderPath);
             
             // 处理分页
             int totalElements = games.size();

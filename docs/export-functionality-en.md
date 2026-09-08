@@ -159,6 +159,12 @@ The following are the database fields available in the Game class, which can be 
 | `fanart` | String | Game fan art |
 | `boxtexture` | String | Game box texture |
 | `supporttexture` | String | Support texture |
+| `videonormalized` | String | Normalized video |
+| `wheelcarbon` | String | Carbon-style wheel |
+| `wheelsteel` | String | Steel-style wheel |
+| `screenmarqueesmall` | String | Small screen marquee |
+| `boxside` | String | Game box side |
+| `figurine` | String | Figurine image |
 | `rating` | Double | Game rating |
 | `releasedate` | String | Game release date |
 | `developer` | String | Game developer |

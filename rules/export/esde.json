@@ -21,13 +21,13 @@
         "target": "{mediaPath}/boxback/{filename}.png",
         "dataFileTag": null
       },
-      "cartridge": {
-        "source": "cartridge",
-        "target": "{mediaPath}/cartridge/{filename}.png",
+      "box3d": {
+        "source": "boxFull",
+        "target": "{mediaPath}/box3d/{filename}.png",
         "dataFileTag": null
       },
       "titlescreen": {
-        "source": "titlescreen",
+        "source": "thumbnail",
         "target": "{mediaPath}/titlescreen/{filename}.png",
         "dataFileTag": null
       },
@@ -66,14 +66,9 @@
         "target": "{mediaPath}/screenshot/{filename}.png",
         "dataFileTag": null
       },
-      "banner": {
-        "source": "banner",
-        "target": "{mediaPath}/banner/{filename}.png",
-        "dataFileTag": null
-      },
-      "box3d": {
-        "source": "box3d",
-        "target": "{mediaPath}/box3d/{filename}.png",
+      "cartridge": {
+        "source": "cartridge",
+        "target": "{mediaPath}/support-2d/{filename}.png",
         "dataFileTag": null
       },
       "bezel": {

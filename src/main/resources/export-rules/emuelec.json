@@ -26,8 +26,8 @@
         "target": "{mediaPath}/box2dside/{filename}.png",
         "dataFileTag": "box2dside"
       },
-      "box3d": {
-        "source": "box3d",
+      "boxFull": {
+        "source": "boxFull",
         "target": "{mediaPath}/box3d/{filename}.png",
         "dataFileTag": "box3d"
       },
