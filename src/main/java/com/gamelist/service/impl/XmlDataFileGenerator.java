@@ -6,34 +6,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.gamelist.model.ExportRule;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
-import com.gamelist.service.DataFileGenerator;
+import com.gamelist.util.GameFieldAccessor;
 import com.gamelist.util.VariableReplacer;
 
-public class XmlDataFileGenerator implements DataFileGenerator {
-    private static final Logger logger = LoggerFactory.getLogger(XmlDataFileGenerator.class);
+/**
+ * XML 格式数据文件生成器（gamelist.xml）。
+ * 继承 AbstractDataFileGenerator 复用公共逻辑，仅保留 XML 特有处理。
+ */
+public class XmlDataFileGenerator extends AbstractDataFileGenerator {
 
     @Override
     public void generateDataFile(List<Game> games, Path dataFilePath, ExportRule rule, Platform platform, Map<String, String> variables) throws Exception {
         StringBuilder content = new StringBuilder();
         
-        // 生成表头
         generateHeader(content, rule, platform, variables);
         
-        // 生成游戏条目
         for (Game game : games) {
             generateGameEntry(content, game, rule, platform, variables, dataFilePath.getParent());
         }
         
-        // 生成尾部
         generateFooter(content, rule, platform, variables);
         
-        // 写入文件
         java.nio.file.Files.write(dataFilePath, content.toString().getBytes());
         logger.info("Generated XML data file: {}", dataFilePath);
     }
@@ -57,6 +53,7 @@ public class XmlDataFileGenerator implements DataFileGenerator {
         Map<String, String> fields = dataFileRule.getFields();
         Map<String, ExportRule.TransformRule> fieldTransforms = dataFileRule.getFieldTransforms();
 
+        // 处理普通字段（支持表达式引擎）
         for (Map.Entry<String, String> entry : fields.entrySet()) {
             String targetField = entry.getKey();
             String sourceField = entry.getValue();
@@ -64,9 +61,7 @@ public class XmlDataFileGenerator implements DataFileGenerator {
 
             // 应用字段转换规则
             if (fieldTransforms != null && fieldTransforms.containsKey(targetField)) {
-                ExportRule.TransformRule transformRule = fieldTransforms.get(targetField);
-                TransformRule xmlTransform = convertToXmlTransform(transformRule);
-                value = applyTransform(value, xmlTransform);
+                value = applyTransform(value, fieldTransforms.get(targetField));
             }
 
             if (value != null && !value.isEmpty()) {
@@ -74,36 +69,13 @@ public class XmlDataFileGenerator implements DataFileGenerator {
             }
         }
         
+        // 处理媒体字段
         for (Map.Entry<String, ExportRule.MediaRule> mediaEntry : rule.getRules().getMedia().entrySet()) {
             ExportRule.MediaRule mediaRule = mediaEntry.getValue();
             String dataFileTag = mediaRule.getDataFileTag();
             if (dataFileTag != null && !dataFileTag.isEmpty()) {
-                String mediaFilePath = getMediaFilePathFromGame(game, mediaRule.getSource());
-                if (mediaFilePath != null && !mediaFilePath.isEmpty()) {
-                    Map<String, String> mediaVariables = new HashMap<>(variables);
-                    // 使用 filename 替代 gameName
-                    String filename = getSingleGameFieldValue(game, "filename", null);
-                    if (filename == null) {
-                        filename = game.getName();
-                    }
-                    mediaVariables.put("gameName", filename);
-                    String targetPathStr = replaceVariables(mediaRule.getTarget(), mediaVariables);
-                    Path targetFilePath = Paths.get(targetPathStr);
-                    
-                    String relativePath = getRelativePath(basePath, targetFilePath);
-                    // 根据 pathFormat 处理媒体文件路径格式
-                    String pathFormat = dataFileRule.getPathFormat();
-                    if ("absoluteWithDot".equals(pathFormat)) {
-                        // 确保路径带 ./ 前缀
-                        if (!relativePath.startsWith("./") && !relativePath.startsWith(".\\") && !relativePath.matches("^[A-Za-z]:.*") && !relativePath.startsWith("/") && !relativePath.startsWith("\\")) {
-                            relativePath = "./" + relativePath;
-                        }
-                    } else {
-                        // 默认：确保路径不带 ./ 前缀
-                        if (relativePath.startsWith("./") || relativePath.startsWith(".\\")) {
-                            relativePath = relativePath.substring(2);
-                        }
-                    }
+                String relativePath = resolveMediaPath(game, mediaRule, mediaEntry, basePath, variables, dataFileRule.getPathFormat());
+                if (relativePath != null) {
                     content.append("\n    <").append(dataFileTag).append(">").append(escapeXml(relativePath)).append("</").append(dataFileTag).append(">");
                 }
             }
@@ -123,13 +95,15 @@ public class XmlDataFileGenerator implements DataFileGenerator {
         }
     }
 
+    /**
+     * 处理表头/尾部模板行：替换平台字段和环境变量（XML 转义）。
+     */
     private String processLine(String line, ExportRule rule, Platform platform, Map<String, String> variables) {
         Map<String, String> platformFields = null;
         if (rule.getRules().getDataFile().getHeader() != null) {
             platformFields = rule.getRules().getDataFile().getHeader().getFields();
         }
         
-        // 先处理平台字段变量，对变量值进行转义
         String result = line;
         if (platform != null && platformFields != null) {
             for (Map.Entry<String, String> entry : platformFields.entrySet()) {
@@ -142,7 +116,6 @@ public class XmlDataFileGenerator implements DataFileGenerator {
             }
         }
         
-        // 处理环境变量，对变量值进行转义
         if (variables != null) {
             for (Map.Entry<String, String> entry : variables.entrySet()) {
                 result = result.replace("{" + entry.getKey() + "}", escapeXml(entry.getValue()));
@@ -150,190 +123,6 @@ public class XmlDataFileGenerator implements DataFileGenerator {
         }
         
         return result;
-    }
-
-    private String getPlatformFieldValue(Platform platform, String fieldName) {
-        switch (fieldName) {
-            case "system":
-                return platform.getSystem();
-            case "name":
-                return platform.getName();
-            case "launch":
-                return platform.getLaunch();
-            case "software":
-                return platform.getSoftware();
-            case "database":
-                return platform.getDatabase();
-            case "web":
-                return platform.getWeb();
-            default:
-                return null;
-        }
-    }
-
-    private String getGameFieldValue(Game game, String fieldName, String pathFormat) {
-        // 支持多值匹配，用逗号分隔
-        String[] fieldNames = fieldName.split(",");
-        for (String name : fieldNames) {
-            name = name.trim();
-            String value = getSingleGameFieldValue(game, name, pathFormat);
-            if (value != null && !value.isEmpty()) {
-                return value;
-            }
-        }
-        return null;
-    }
-    
-    private String getSingleGameFieldValue(Game game, String fieldName, String pathFormat) {
-        switch (fieldName) {
-            case "name":
-                return game.getName();
-            case "translatedName":
-                return game.getTranslatedName();
-            case "description":
-                return game.getDesc();
-            case "translatedDesc":
-                return game.getTranslatedDesc();
-            case "rating":
-                return game.getRating() != null ? game.getRating().toString() : null;
-            case "releaseYear":
-                String releaseDate = game.getReleasedate();
-                if (releaseDate != null && releaseDate.length() >= 4) {
-                    return releaseDate.substring(0, 4);
-                }
-                return null;
-            case "developer":
-                return game.getDeveloper();
-            case "publisher":
-                return game.getPublisher();
-            case "genre":
-                return game.getGenre();
-            case "players":
-                return game.getPlayers();
-            case "region":
-                return game.getLang();
-            case "path":
-                String path = game.getPath();
-                // 根据 pathFormat 处理路径格式
-                if (path != null) {
-                    if ("absoluteWithDot".equals(pathFormat)) {
-                        // 确保路径带 ./ 前缀
-                        if (!path.startsWith("./") && !path.startsWith(".\\") && !path.matches("^[A-Za-z]:.*") && !path.startsWith("/") && !path.startsWith("\\")) {
-                            path = "./" + path;
-                        }
-                    } else {
-                        // 默认：确保路径不带 ./ 前缀
-                        if (path.startsWith("./") || path.startsWith(".\\")) {
-                            path = path.substring(2);
-                        }
-                    }
-                }
-                return path;
-            case "filename":
-                // 从path中提取文件名，去掉扩展名和前面的路径
-                String gamePath = game.getPath();
-                if (gamePath != null) {
-                    // 提取文件名
-                    int lastSlashIndex = gamePath.lastIndexOf('/');
-                    int lastBackslashIndex = gamePath.lastIndexOf('\\');
-                    int lastSeparatorIndex = Math.max(lastSlashIndex, lastBackslashIndex);
-                    String fileName = lastSeparatorIndex >= 0 ? gamePath.substring(lastSeparatorIndex + 1) : gamePath;
-                    // 去掉扩展名
-                    int lastDotIndex = fileName.lastIndexOf('.');
-                    if (lastDotIndex >= 0) {
-                        fileName = fileName.substring(0, lastDotIndex);
-                    }
-                    return fileName;
-                }
-                return null;
-            default:
-                return null;
-        }
-    }
-
-    private String getMediaFilePathFromGame(Game game, String sourceField) {
-        // 1. 尝试通过 MediaType 枚举查找（source 为 nomcourt 格式，如 "box-2D"）
-        com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromNomcourt(sourceField);
-        if (mt == null) {
-            mt = com.gamelist.model.MediaType.fromNomcourtLenient(sourceField);
-        }
-        if (mt != null) {
-            try {
-                java.lang.reflect.Method getter = Game.class.getMethod(mt.getGetterName());
-                Object value = getter.invoke(game);
-                return value != null ? value.toString() : null;
-            } catch (Exception e) {
-                logger.warn("反射获取字段值失败: getter={}, error={}", mt.getGetterName(), e.getMessage());
-            }
-        }
-        // 2. 回退：非 SS 标准字段和遗留旧名称
-        return switch (sourceField.toLowerCase()) {
-            case "box2dfront", "boxfront" -> game.getBoxFront();
-            case "box2dback", "boxback" -> game.getBoxBack();
-            case "box3d" -> game.getBox3D();
-            case "screenshot" -> game.getScreenshot();
-            case "video" -> game.getVideo();
-            case "wheel" -> game.getLogo();
-            case "marquee" -> game.getMarquee();
-            case "fanart" -> game.getFanart();
-            case "image" -> game.getImage();
-            case "thumbnail" -> game.getThumbnail();
-            case "logo" -> game.getLogo();
-            case "background" -> game.getBackground();
-            case "manual", "manuel" -> game.getManual();
-            case "bezel" -> game.getBezel();
-            case "steamgrid" -> game.getSteamgrid();
-            default -> null;
-        };
-    }
-
-    private String getRelativePath(Path basePath, Path targetPath) {
-        try {
-            // 尝试计算相对路径
-            return basePath.relativize(targetPath).toString().replace('\\', '/');
-        } catch (IllegalArgumentException e) {
-            // 如果路径类型不同，尝试使用字符串处理
-            logger.warn("Failed to relativize paths: {}", e.getMessage());
-            
-            // 转换为字符串并确保使用相同的分隔符
-            String basePathStr = basePath.toString().replace('\\', '/');
-            String targetPathStr = targetPath.toString().replace('\\', '/');
-            
-            // 检查 targetPath 是否是相对路径
-            if (!targetPathStr.startsWith("/")) {
-                // 如果是相对路径，直接返回
-                return targetPathStr;
-            }
-            
-            // 尝试找到共同的前缀
-            int minLength = Math.min(basePathStr.length(), targetPathStr.length());
-            int commonPrefixLength = 0;
-            
-            while (commonPrefixLength < minLength && basePathStr.charAt(commonPrefixLength) == targetPathStr.charAt(commonPrefixLength)) {
-                commonPrefixLength++;
-            }
-            
-            // 找到最后一个斜杠的位置
-            int lastSlashIndex = basePathStr.lastIndexOf('/', commonPrefixLength);
-            if (lastSlashIndex == -1) {
-                lastSlashIndex = 0;
-            }
-            
-            // 构建相对路径
-            StringBuilder relativePath = new StringBuilder();
-            
-            // 添加向上的路径
-            String remainingBase = basePathStr.substring(lastSlashIndex);
-            int slashCount = remainingBase.length() - remainingBase.replace("/", "").length();
-            for (int i = 0; i < slashCount; i++) {
-                relativePath.append("../");
-            }
-            
-            // 添加目标路径的剩余部分
-            relativePath.append(targetPathStr.substring(lastSlashIndex));
-            
-            return relativePath.toString().replace('\\', '/');
-        }
     }
 
     private String escapeXml(String value) {
@@ -346,89 +135,5 @@ public class XmlDataFileGenerator implements DataFileGenerator {
             .replace(">", "&gt;")
             .replace("\"", "&quot;")
             .replace("'", "&apos;");
-    }
-
-    private String replaceVariables(String template, Map<String, String> variables) {
-        return VariableReplacer.replaceVariables(template, variables);
-    }
-
-    public static class TransformRule {
-        private String path;
-        private String caseType;
-        private boolean trim;
-        private ReplaceRule replace;
-
-        public String getPath() { return path; }
-        public void setPath(String path) { this.path = path; }
-        public String getCaseType() { return caseType; }
-        public void setCaseType(String caseType) { this.caseType = caseType; }
-        public boolean isTrim() { return trim; }
-        public void setTrim(boolean trim) { this.trim = trim; }
-        public ReplaceRule getReplace() { return replace; }
-        public void setReplace(ReplaceRule replace) { this.replace = replace; }
-    }
-
-    public static class ReplaceRule {
-        private String from;
-        private String to;
-
-        public String getFrom() { return from; }
-        public void setFrom(String from) { this.from = from; }
-        public String getTo() { return to; }
-        public void setTo(String to) { this.to = to; }
-    }
-
-    private String applyTransform(String value, TransformRule transform) {
-        if (value == null || transform == null) return value;
-
-        if (transform.isTrim()) {
-            value = value.trim();
-        }
-
-        if ("upper".equals(transform.getCaseType())) {
-            value = value.toUpperCase();
-        } else if ("lower".equals(transform.getCaseType())) {
-            value = value.toLowerCase();
-        }
-
-        if (transform.getPath() != null) {
-            value = transformPath(value, transform.getPath());
-        }
-
-        if (transform.getReplace() != null) {
-            value = value.replace(transform.getReplace().getFrom(), transform.getReplace().getTo());
-        }
-
-        return value;
-    }
-
-    private String transformPath(String path, String mode) {
-        if (path == null) return null;
-
-        if ("yes".equals(mode)) {
-            if (!path.startsWith("./") && !path.startsWith(".\\") && !path.matches("^[A-Za-z]:.*") && !path.startsWith("/") && !path.startsWith("\\")) {
-                return "./" + path;
-            }
-        } else if ("no".equals(mode)) {
-            if (path.startsWith("./") || path.startsWith(".\\")) {
-                return path.substring(2);
-            }
-        }
-        return path;
-    }
-
-    private TransformRule convertToXmlTransform(ExportRule.TransformRule exportTransform) {
-        if (exportTransform == null) return null;
-        TransformRule xmlTransform = new TransformRule();
-        xmlTransform.setPath(exportTransform.getPath());
-        xmlTransform.setCaseType(exportTransform.getCaseType());
-        xmlTransform.setTrim(exportTransform.isTrim());
-        if (exportTransform.getReplace() != null) {
-            ReplaceRule replaceRule = new ReplaceRule();
-            replaceRule.setFrom(exportTransform.getReplace().getFrom());
-            replaceRule.setTo(exportTransform.getReplace().getTo());
-            xmlTransform.setReplace(replaceRule);
-        }
-        return xmlTransform;
     }
 }

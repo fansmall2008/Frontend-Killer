@@ -4,14 +4,18 @@
 
 The import function allows users to import data files and media files from external frontends into the system, supporting multiple frontend formats such as Pegasus, EmulationStation DE (ES-DE), etc. Through import templates, users can flexibly configure import rules to achieve quick migration of data from different frontends.
 
+**Important Note**: The system now supports the **v3 unified template format**, which provides a more powerful expression engine, unified field naming system, and flexible media discovery mechanism. For detailed v3 template documentation, please refer to the [v3 Template System Documentation](v3-templates-en.md).
+
 ### Core Features:
-- Support for importing data files from multiple frontend formats
+- Support for importing data files from multiple frontend formats (v2 and v3 templates)
 - Automatic recognition and processing of different data file formats (XML, text)
-- Intelligent media file matching and association
-- Flexible field mapping configuration
+- Intelligent media file matching and association (supports mediaDiscovery auto-discovery)
+- Flexible field mapping configuration (supports nomcourt / dbColumn / javaField naming)
 - Support for header information extraction and processing
 - Multi-value field processing
 - Automatic file extension recognition
+- Expression engine support (function calls, operators, conditional expressions)
+- Computed variable auto-injection (filename, filepath)
 
 ## 2. Template Configuration Files
 
@@ -1146,12 +1150,22 @@ According to the actual file structure, add or modify media types and path templ
 
 The import function provides a flexible and extensible way to import game data from external frontends, supporting multiple frontend formats to meet different user needs. Through import templates, users can easily configure import rules to achieve quick migration of data from different frontends.
 
+**We recommend using the v3 template format** to enjoy more powerful expression engine, unified field naming, and automatic media discovery features.
+
 ---
 
-**Version**: 1.2
-**Last Updated**: 2026-05-07
+**Version**: 1.3
+**Last Updated**: 2026-09-13
 
 ### Changelog
+
+#### v1.3 (2026-09-13)
+- Added v3 unified template format support
+- Expression engine support (function calls, operators, conditional expressions)
+- Unified field naming system (nomcourt / dbColumn / javaField)
+- New mediaDiscovery auto media discovery mechanism
+- Computed variable auto-injection (filename, filepath)
+- Support for 50 ScreenScraper official media types
 
 #### v1.2 (2026-05-07)
 - Added `{filepath}` template variable for media file matching

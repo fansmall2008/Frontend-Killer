@@ -532,11 +532,11 @@
             <h2 data-i18n="scraper_settings_title">ScreenScraper 设置</h2>
             <div class="setting-item">
                 <label for="scraperUsername" data-i18n="scraper_username">用户名</label>
-                <input type="text" id="scraperUsername" placeholder="ScreenScraper用户名">
+                <input type="text" id="scraperUsername" placeholder="ScreenScraper用户名" data-i18n-placeholder="scraper_username_placeholder">
             </div>
             <div class="setting-item">
                 <label for="scraperPassword" data-i18n="scraper_password">密码</label>
-                <input type="password" id="scraperPassword" placeholder="ScreenScraper密码">
+                <input type="password" id="scraperPassword" placeholder="ScreenScraper密码" data-i18n-placeholder="scraper_password_placeholder">
             </div>
             <div class="button-group">
                 <button class="btn" id="saveScraperSettingsBtn" data-i18n="save_scraper_settings">保存设置</button>
@@ -548,36 +548,36 @@
         
         <!-- 游戏列表展示设置 -->
         <div class="settings-section">
-            <h2>游戏列表展示设置</h2>
+            <h2 data-i18n="game_list_display">游戏列表展示设置</h2>
             <div class="setting-item">
-                <label for="gameListIconField">游戏列表图标字段</label>
+                <label for="gameListIconField" data-i18n="game_list_icon_field">游戏列表图标字段</label>
                 <select id="gameListIconField" style="width: 100%; padding: 12px; border: 2px solid #333; border-radius: 6px; font-size: 16px; background: rgba(0, 0, 0, 0.5); color: #fff; font-family: 'Consolas', 'Courier New', monospace;">
-                    <option value="image">封面图 (image)</option>
-                    <option value="wheel">轮盘图标 (wheel)</option>
-                    <option value="wheelCarbon">轮盘图标-碳 (wheel-carbon)</option>
-                    <option value="wheelSteel">轮盘图标-钢 (wheel-steel)</option>
-                    <option value="logo">Logo (logo)</option>
-                    <option value="thumbnail">缩略图 (thumbnail)</option>
-                    <option value="box2d">包装盒正面 (box-2D)</option>
-                    <option value="box2dBack">包装盒背面 (box-2D-back)</option>
-                    <option value="box3D">3D包装盒 (box-3D)</option>
-                    <option value="box2dSide">包装盒侧面 (box-2D-side)</option>
-                    <option value="banner">横幅图 (banner)</option>
-                    <option value="sstitle">标题画面 (sstitle)</option>
-                    <option value="ss">截图 (ss)</option>
-                    <option value="fanart">粉丝艺术图 (fanart)</option>
-                    <option value="poster">海报 (poster)</option>
-                    <option value="support2d">卡带图 (support-2D)</option>
-                    <option value="bezel">边框图 (bezel)</option>
-                    <option value="panel">面板图 (panel)</option>
-                    <option value="background">背景图 (background)</option>
-                    <option value="steam">Steam图 (steam)</option>
-                    <option value="steamgrid">Steam网格图 (steamgrid)</option>
+                    <option value="image" data-i18n="icon_image">封面图 (image)</option>
+                    <option value="wheel" data-i18n="icon_wheel">轮盘图标 (wheel)</option>
+                    <option value="wheelCarbon" data-i18n="icon_wheel_carbon">轮盘图标-碳 (wheel-carbon)</option>
+                    <option value="wheelSteel" data-i18n="icon_wheel_steel">轮盘图标-钢 (wheel-steel)</option>
+                    <option value="logo" data-i18n="icon_logo">Logo (logo)</option>
+                    <option value="thumbnail" data-i18n="icon_thumbnail">缩略图 (thumbnail)</option>
+                    <option value="box2d" data-i18n="icon_box_2d">包装盒正面 (box-2D)</option>
+                    <option value="box2dBack" data-i18n="icon_box_2d_back">包装盒背面 (box-2D-back)</option>
+                    <option value="box3d" data-i18n="icon_box_3d">3D包装盒 (box-3D)</option>
+                    <option value="box2dSide" data-i18n="icon_box_2d_side">包装盒侧面 (box-2D-side)</option>
+                    <option value="banner" data-i18n="icon_banner">横幅图 (banner)</option>
+                    <option value="sstitle" data-i18n="icon_ss_title">标题画面 (sstitle)</option>
+                    <option value="ss" data-i18n="icon_ss">截图 (ss)</option>
+                    <option value="fanart" data-i18n="icon_fanart">粉丝艺术图 (fanart)</option>
+                    <option value="poster" data-i18n="icon_poster">海报 (poster)</option>
+                    <option value="support2d" data-i18n="icon_support_2d">卡带图 (support-2D)</option>
+                    <option value="bezel" data-i18n="icon_bezel">边框图 (bezel)</option>
+                    <option value="panel" data-i18n="icon_panel">面板图 (panel)</option>
+                    <option value="background" data-i18n="icon_background">背景图 (background)</option>
+                    <option value="steam" data-i18n="icon_steam">Steam图 (steam)</option>
+                    <option value="steamgrid" data-i18n="icon_steam_grid">Steam网格图 (steamgrid)</option>
                 </select>
-                <p style="margin-top: 10px; color: #888; font-size: 14px;">选择在游戏列表中显示的图标类型。设置后需要刷新页面生效。<br/>注意：如果某个游戏没有该类型的媒体文件，图标位置将显示空白。</p>
+                <p data-i18n="game_list_icon_desc" style="margin-top: 10px; color: #888; font-size: 14px;">选择在游戏列表中显示的图标类型。设置后需要刷新页面生效。<br/>注意：如果某个游戏没有该类型的媒体文件，图标位置将显示空白。</p>
             </div>
             <div class="button-group">
-                <button class="btn" id="saveGameListSettingsBtn">保存设置</button>
+                <button class="btn" id="saveGameListSettingsBtn" data-i18n="save_settings">保存设置</button>
             </div>
         </div>
         
@@ -602,7 +602,7 @@
         
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -644,7 +644,7 @@
             // 更新标题
             const titleKey = document.querySelector('title')?.getAttribute('data-i18n');
             if (titleKey) {
-                document.title = I18n.t(titleKey) + ' - 前端杀手';
+                document.title = I18n.t(titleKey) + ' - ' + I18n.t('app_name', '前端杀手');
             }
             
             // 更新所有带有data-i18n属性的元素
@@ -1079,7 +1079,7 @@
         function saveGameListSettings() {
             const iconField = document.getElementById('gameListIconField').value;
             localStorage.setItem('gameListIconField', iconField);
-            showMessage('游戏列表展示设置已保存，刷新页面生效！', true);
+            showMessage(I18n.t('game_list_settings_saved', '游戏列表展示设置已保存，刷新页面生效！'), true);
         }
         
         // 页面加载完成后初始化

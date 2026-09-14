@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.gamelist.mapper.GameMapper;
+import com.gamelist.mapper.MediaDownloadTaskMapper;
 import com.gamelist.mapper.PlatformMapper;
 import com.gamelist.model.FilterResult;
 import com.gamelist.model.Game;
@@ -40,6 +41,7 @@ import com.gamelist.util.ErrorLogWriter;
 import com.gamelist.util.LanguageDetector;
 import com.gamelist.util.MediaFileFinder;
 import com.gamelist.util.PegasusMetadataParser;
+import com.gamelist.service.impl.TemplateV3ImportService;
 import com.gamelist.xml.GameListParser;
 import com.gamelist.xml.GameListXml;
 
@@ -50,6 +52,9 @@ public class GameServiceImpl implements GameService {
     
     @Autowired
     private GameMapper gameMapper;
+    
+    @Autowired
+    private MediaDownloadTaskMapper mediaDownloadTaskMapper;
     
     @Autowired
     private PlatformMapper platformMapper;
@@ -96,7 +101,7 @@ public class GameServiceImpl implements GameService {
     }
     
     /**
-     * 根据 scraperSystemId 设置 platform 的 systemId
+     * 根据 scraperSystemId 设置 platform 的 systemId，并自动下载系统 icon
      */
     private void applyScraperSystemToPlatform(Platform platform, Long scraperSystemId) {
         if (scraperSystemId == null) {
@@ -107,6 +112,15 @@ public class GameServiceImpl implements GameService {
             if (scraperSystem != null && scraperSystem.getSystemId() != null) {
                 platform.setSystemId(scraperSystem.getSystemId());
                 logger.info("已设置平台 systemId 为: {}", scraperSystem.getSystemId());
+                
+                // 自动下载系统 icon（如果尚未刮削）
+                try {
+                    scraperSystemService.scrapeSystemIcon(scraperSystem.getSystemId());
+                } catch (Exception e) {
+                    // icon 下载失败不影响导入流程
+                    logger.warn("自动下载系统 icon 失败，不影响导入: systemId={}, error={}", 
+                            scraperSystem.getSystemId(), e.getMessage());
+                }
             }
         } catch (Exception e) {
             logger.warn("获取 scraper system 失败，scraperSystemId: {}", scraperSystemId, e);
@@ -2205,9 +2219,10 @@ public class GameServiceImpl implements GameService {
     public Statistics getOverallStatistics() {
         Statistics stats = new Statistics();
         stats.setTotalGames(gameMapper.countTotalGames());
-        stats.setFullyScraped(gameMapper.countFullyScrapedGames());
-        stats.setPartiallyScraped(gameMapper.countPartiallyScrapedGames());
-        stats.setNotScraped(gameMapper.countNotScrapedGames());
+        stats.setScraped(gameMapper.countScrapedGames());
+        stats.setOriginalData(gameMapper.countOriginalDataGames());
+        stats.setPoorQuality(gameMapper.countPoorQualityGames());
+        stats.setRawRom(gameMapper.countRawRomGames());
         stats.setTotalPlatforms(platformService.getAllPlatforms().size());
         return stats;
     }
@@ -2280,6 +2295,7 @@ public class GameServiceImpl implements GameService {
         return gameMapper.countGamesByFilter(filterParams);
     }
     
+    @Deprecated // 请使用 ImportService.importWithDataFile()
     @Override
     public ImportStatistics importGamesFromXml(String filePath) {
         ImportStatistics stats = new ImportStatistics();
@@ -2367,6 +2383,7 @@ public class GameServiceImpl implements GameService {
         return stats;
     }
 
+    @Deprecated // 请使用 ImportService.importWithDataFile()
     @Override
     public ImportStatistics importGamesFromXml(String filePath, boolean metadataOnly, int threadCount) {
         ImportStatistics stats = new ImportStatistics();
@@ -3162,6 +3179,67 @@ public class GameServiceImpl implements GameService {
     }
     
     @Override
+    public int swapTranslations(List<Long> gameIds) {
+        if (gameIds == null || gameIds.isEmpty()) {
+            logger.warn("切换译文：游戏ID列表为空");
+            return 0;
+        }
+        
+        int swappedCount = 0;
+        try {
+            for (Long gameId : gameIds) {
+                if (gameId == null) {
+                    continue;
+                }
+                Game game = gameMapper.selectGameById(gameId);
+                if (game != null) {
+                    // 交换名称
+                    String tempName = game.getName();
+                    game.setName(game.getTranslatedName() != null ? game.getTranslatedName() : "");
+                    game.setTranslatedName(tempName != null ? tempName : "");
+                    
+                    // 交换描述
+                    String tempDesc = game.getDesc();
+                    game.setDesc(game.getTranslatedDesc() != null ? game.getTranslatedDesc() : "");
+                    game.setTranslatedDesc(tempDesc != null ? tempDesc : "");
+                    
+                    game.setEdited(true);
+                    int result = gameMapper.updateGame(game);
+                    if (result > 0) {
+                        swappedCount++;
+                    }
+                }
+            }
+            logger.info("批量切换译文：成功切换 {} 个游戏", swappedCount);
+        } catch (Exception e) {
+            logger.error("批量切换译文失败：", e);
+            throw e;
+        }
+        return swappedCount;
+    }
+
+    @Override
+    public int swapTranslationsByPlatformId(Long platformId) {
+        if (platformId == null) {
+            logger.warn("切换译文：平台ID为空");
+            return 0;
+        }
+        List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
+        if (games == null || games.isEmpty()) {
+            logger.warn("切换译文：平台 {} 下没有游戏", platformId);
+            return 0;
+        }
+        List<Long> gameIds = new java.util.ArrayList<>();
+        for (Game g : games) {
+            if (g.getId() != null) {
+                gameIds.add(g.getId());
+            }
+        }
+        logger.info("平台 {} 下共 {} 个游戏，开始切换译文", platformId, gameIds.size());
+        return swapTranslations(gameIds);
+    }
+    
+    @Override
     public int addGame(Game game) {
         if (game == null) {
             logger.warn("新增游戏：游戏对象为空");
@@ -3189,6 +3267,7 @@ public class GameServiceImpl implements GameService {
         }
 
         int deletedCount = 0;
+        int deletedFilesCount = 0;
         try {
             for (Object gameIdObj : gameIds) {
                 if (gameIdObj == null) {
@@ -3199,6 +3278,33 @@ public class GameServiceImpl implements GameService {
                     logger.warn("无法将游戏ID转换为Long类型: {}", gameIdObj);
                     continue;
                 }
+                
+                // 1. 查询关联的媒体下载任务，获取文件路径
+                List<com.gamelist.model.MediaDownloadTask> mediaTasks = mediaDownloadTaskMapper.selectByGameId(gameId);
+                
+                // 2. 删除媒体文件（只删媒体文件，不删 ROM 游戏文件）
+                for (com.gamelist.model.MediaDownloadTask task : mediaTasks) {
+                    String localPath = task.getLocalPath();
+                    if (localPath != null && !localPath.isEmpty()) {
+                        java.io.File mediaFile = new java.io.File(localPath);
+                        if (mediaFile.exists()) {
+                            if (mediaFile.delete()) {
+                                deletedFilesCount++;
+                                logger.debug("删除媒体文件成功: {}", localPath);
+                            } else {
+                                logger.warn("删除媒体文件失败: {}", localPath);
+                            }
+                        }
+                    }
+                }
+                
+                // 3. 删除关联的媒体下载任务记录（避免外键约束冲突）
+                if (!mediaTasks.isEmpty()) {
+                    int deletedTasks = mediaDownloadTaskMapper.deleteByGameId(gameId);
+                    logger.info("删除游戏 {} 的 {} 个媒体下载任务记录", gameId, deletedTasks);
+                }
+                
+                // 4. 删除游戏记录
                 int result = gameMapper.deleteGameById(gameId);
                 if (result > 0) {
                     deletedCount++;
@@ -3210,7 +3316,7 @@ public class GameServiceImpl implements GameService {
             throw e;
         }
 
-        logger.info("批量删除游戏完成，共删除 {} 个游戏", deletedCount);
+        logger.info("批量删除游戏完成，共删除 {} 个游戏，{} 个媒体文件", deletedCount, deletedFilesCount);
         return deletedCount;
     }
 
@@ -3241,8 +3347,13 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId) {
+        return importGamesFromXml(filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId, true);
+    }
+
+    @Override
+    public ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery) {
         ImportStatistics stats = new ImportStatistics();
-        logger.info("开始从文件导入游戏(带模板): {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}, scraperSystemId: {}", 
+        logger.info("开始从XML文件导入游戏: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}, scraperSystemId: {}", 
                 filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId);
         try {
             File file = new File(filePath);
@@ -3251,6 +3362,95 @@ public class GameServiceImpl implements GameService {
                 throw new RuntimeException("导入失败: 文件不存在");
             }
 
+            // —— 优先尝试 v3 模板 ——
+            com.gamelist.model.TemplateV3 v3Template = null;
+            if (importTemplate != null && !importTemplate.isEmpty()) {
+                File v3TemplateFile = new File(com.gamelist.util.PathUtil.getRulesPath() + "/import/" + importTemplate);
+                if (v3TemplateFile.exists()) {
+                    v3Template = com.gamelist.model.TemplateV3.loadFromFile(v3TemplateFile);
+                }
+            }
+
+            if (v3Template != null) {
+                // 使用 v3 模板导入
+                logger.info("使用 v3 模板导入 XML: {}", importTemplate);
+                TemplateV3ImportService v3ImportService = new TemplateV3ImportService();
+                v3ImportService.setEnableMediaDiscovery(enableMediaDiscovery);
+                List<Game> games = v3ImportService.importFile(file, v3Template);
+
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String folderName = file.getParentFile() != null ? file.getParentFile().getName() : "Unknown";
+                String templateName = importTemplate != null ? importTemplate.replaceAll("\\.json$", "") : "v3";
+                String platformName = "export_" + timestamp + "_" + templateName + "_" + folderName;
+
+                Platform platform = new Platform();
+                platform.setSystem(platformName);
+                platform.setName(platformName);
+                platform.setSoftware("WebGamelistOper");
+                platform.setDatabase("Custom Database");
+                platform.setWeb("http://localhost:8081");
+                if (file.getParentFile() != null) {
+                    platform.setFolderPath(file.getParentFile().getAbsolutePath());
+                }
+                applyScraperSystemToPlatform(platform, scraperSystemId);
+
+                Platform existingPlatform = platformService.getPlatformBySystem(platformName);
+                if (existingPlatform == null) {
+                    platformMapper.insertPlatform(platform);
+                } else {
+                    platform.setId(existingPlatform.getId());
+                    platformMapper.updatePlatform(platform);
+                }
+
+                for (Game game : games) {
+                    game.setPlatformId(platform.getId());
+                    if (game.getGameId() == null || game.getGameId().isEmpty()) {
+                        String source = game.getPath() != null ? game.getPath() : game.getName();
+                        if (source != null && !source.isEmpty()) {
+                            try {
+                                java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+                                byte[] bytes = md.digest(source.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                StringBuilder sb = new StringBuilder();
+                                for (byte b : bytes) sb.append(String.format("%02x", b));
+                                game.setGameId(sb.toString());
+                            } catch (Exception e) {
+                                game.setGameId(java.util.UUID.randomUUID().toString());
+                            }
+                        } else {
+                            game.setGameId(java.util.UUID.randomUUID().toString());
+                        }
+                    }
+                    if (game.getAbsolutePath() == null || game.getAbsolutePath().isEmpty()) {
+                        String gamePath = game.getPath();
+                        if (gamePath != null && !gamePath.isEmpty()) {
+                            String folderPath = platform.getFolderPath();
+                            if (folderPath != null && !folderPath.isEmpty()) {
+                                java.io.File platformFolder = new java.io.File(folderPath);
+                                if (!gamePath.matches("^[A-Za-z]:.*") && !gamePath.startsWith("/") && !gamePath.startsWith("\\")) {
+                                    String cleanPath = gamePath;
+                                    if (cleanPath.startsWith("./") || cleanPath.startsWith(".\\")) {
+                                        cleanPath = cleanPath.substring(2);
+                                    }
+                                    java.io.File absFile = new java.io.File(platformFolder, cleanPath);
+                                    game.setAbsolutePath(absFile.getAbsolutePath());
+                                } else {
+                                    game.setAbsolutePath(gamePath);
+                                }
+                                java.io.File checkFile = new java.io.File(game.getAbsolutePath());
+                                game.setExists(checkFile.exists());
+                            }
+                        }
+                    }
+                }
+                importGamesInBatches(games, platform, threadCount);
+                updatePlatformPathForAllGames(platform.getId(), platform.getFolderPath());
+                stats.incrementPlatforms();
+                stats.addGames(games.size());
+                logger.info("v3 XML 模板导入完成: {} 条游戏", stats.getImportedGames());
+                return stats;
+            }
+
+            // —— v2 模板导入（原有逻辑） ——
             GameListParser.PlatformSpecificGameList platformSpecificResult = GameListParser.parseGameListWithPlatformDetection(file);
             GameListXml gameListXml = platformSpecificResult.getGameListXml();
             String platformType = platformSpecificResult.getPlatformType();
@@ -3294,6 +3494,11 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId) {
+        return importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId, true);
+    }
+
+    @Override
+    public ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery) {
         ImportStatistics stats = new ImportStatistics();
         logger.info("开始从Pegasus元数据导入游戏: {}, importMethod: {}, importTemplate: {}, metadataOnly: {}, threadCount: {}, scraperSystemId: {}", 
                 filePath, importMethod, importTemplate, metadataOnly, threadCount, scraperSystemId);
@@ -3303,6 +3508,102 @@ public class GameServiceImpl implements GameService {
                 throw new RuntimeException("文件不存在: " + filePath);
             }
 
+            // 检查是否使用 v3 模板
+            com.gamelist.model.TemplateV3 v3Template = null;
+            if (importTemplate != null && !importTemplate.isEmpty()) {
+                File v3TemplateFile = new File(com.gamelist.util.PathUtil.getRulesPath() + "/import/" + importTemplate);
+                if (v3TemplateFile.exists()) {
+                    v3Template = com.gamelist.model.TemplateV3.loadFromFile(v3TemplateFile);
+                }
+            }
+
+            if (v3Template != null) {
+                // 使用 v3 模板导入
+                logger.info("使用 v3 模板导入: {}", importTemplate);
+                TemplateV3ImportService v3ImportService = new TemplateV3ImportService();
+                v3ImportService.setEnableMediaDiscovery(enableMediaDiscovery);
+                List<Game> games = v3ImportService.importFile(file, v3Template);
+
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String folderName = file.getParentFile() != null ? file.getParentFile().getName() : "Unknown";
+                String platformName = "export_" + timestamp + "_pegasus_" + folderName;
+
+                Platform platform = new Platform();
+                platform.setSystem(platformName);
+                platform.setName(platformName);
+                // 从解析结果获取系统信息
+                if (!games.isEmpty()) {
+                    platform.setSoftware("WebGamelistOper");
+                    platform.setDatabase("Custom Database");
+                    platform.setWeb("http://localhost:8081");
+                    if (file.getParentFile() != null) {
+                        platform.setFolderPath(file.getParentFile().getAbsolutePath());
+                    }
+                    applyScraperSystemToPlatform(platform, scraperSystemId);
+
+                    Platform existingPlatform = platformService.getPlatformBySystem(platformName);
+                    if (existingPlatform == null) {
+                        platformMapper.insertPlatform(platform);
+                    } else {
+                        platform.setId(existingPlatform.getId());
+                        platformMapper.updatePlatform(platform);
+                    }
+
+                    // 设置平台 ID 和生成 gameId
+                    for (Game game : games) {
+                        game.setPlatformId(platform.getId());
+                        // 如果没有 gameId，从 path 或 name 生成
+                        if (game.getGameId() == null || game.getGameId().isEmpty()) {
+                            String source = game.getPath() != null ? game.getPath() : game.getName();
+                            if (source != null && !source.isEmpty()) {
+                                try {
+                                    java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+                                    byte[] bytes = md.digest(source.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                    StringBuilder sb = new StringBuilder();
+                                    for (byte b : bytes) sb.append(String.format("%02x", b));
+                                    game.setGameId(sb.toString());
+                                } catch (Exception e) {
+                                    game.setGameId(java.util.UUID.randomUUID().toString());
+                                }
+                            } else {
+                                game.setGameId(java.util.UUID.randomUUID().toString());
+                            }
+                        }
+                        // 计算 absolutePath（刮削功能依赖此字段）
+                        if (game.getAbsolutePath() == null || game.getAbsolutePath().isEmpty()) {
+                            String gamePath = game.getPath();
+                            if (gamePath != null && !gamePath.isEmpty()) {
+                                String folderPath = platform.getFolderPath();
+                                if (folderPath != null && !folderPath.isEmpty()) {
+                                    java.io.File platformFolder = new java.io.File(folderPath);
+                                    if (!gamePath.matches("^[A-Za-z]:.*") && !gamePath.startsWith("/") && !gamePath.startsWith("\\")) {
+                                        // 相对路径：去除 ./ 前缀后与平台目录拼接
+                                        String cleanPath = gamePath;
+                                        if (cleanPath.startsWith("./") || cleanPath.startsWith(".\\")) {
+                                            cleanPath = cleanPath.substring(2);
+                                        }
+                                        java.io.File absFile = new java.io.File(platformFolder, cleanPath);
+                                        game.setAbsolutePath(absFile.getAbsolutePath());
+                                    } else {
+                                        // 已经是绝对路径
+                                        game.setAbsolutePath(gamePath);
+                                    }
+                                    java.io.File checkFile = new java.io.File(game.getAbsolutePath());
+                                    game.setExists(checkFile.exists());
+                                }
+                            }
+                        }
+                    }
+                    importGamesInBatches(games, platform, threadCount);
+                    updatePlatformPathForAllGames(platform.getId(), platform.getFolderPath());
+                    stats.incrementPlatforms();
+                    stats.addGames(games.size());
+                }
+                logger.info("v3 模板导入完成: {} 条游戏", stats.getImportedGames());
+                return stats;
+            }
+
+            // 旧版导入流程（不使用 v3 模板）
             List<PegasusMetadataParser.GameCollection> pegasusCollections = PegasusMetadataParser.parseMetadata(file);
 
             String timestamp = String.valueOf(System.currentTimeMillis());
@@ -3532,12 +3833,9 @@ public class GameServiceImpl implements GameService {
         // 设置平台路径
         game.setPlatformPath(platformPath);
         
-        // 设置默认值
-        if (game.getDeveloper() == null) game.setDeveloper("");
-        if (game.getPublisher() == null) game.setPublisher("");
-        if (game.getGenre() == null) game.setGenre("");
-        if (game.getPlayers() == null) game.setPlayers("1");
-        if (game.getRating() == null) game.setRating(0.0);
+        // 设置默认值（不再填充占位符，保持 null）
+        // 如果游戏信息确实为空，应该保持 null 而不是填入 ""、"1"、0.0 等占位符
+        // 这样前端才能正确识别为"纯 ROM 文件"而非"部分刮削"
         
         return game;
     }
@@ -3865,10 +4163,7 @@ public class GameServiceImpl implements GameService {
         game.setPlatformId(platformId);
         game.setPlatformPath(platformPath);
         game.setName(gameName);
-        game.setDesc("unknown");
-        game.setGenre("unknown");
-        game.setDeveloper("unknown");
-        game.setPublisher("unknown");
+        // 不设置元数据字段，保持 null，让前端正确识别为"纯 ROM 文件"
         game.setExists(true);
 
         // 根据模板的 mediaRules 查找媒体文件
@@ -3897,10 +4192,7 @@ public class GameServiceImpl implements GameService {
         game.setPlatformId(platformId);
         game.setPlatformPath(platformPath);
         game.setName(gameName);
-        game.setDesc("unknown");
-        game.setGenre("unknown");
-        game.setDeveloper("unknown");
-        game.setPublisher("unknown");
+        // 不设置元数据字段，保持 null，让前端正确识别为"纯 ROM 文件"
         game.setExists(true);
 
         // 根据模板的 mediaRules 查找媒体文件
@@ -4261,9 +4553,12 @@ public class GameServiceImpl implements GameService {
 
     /**
      * 导入模板类
+     * @deprecated 请使用 {@link com.gamelist.model.ImportTemplateV2} 替代
      */
+    @Deprecated
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class ImportTemplate {
-        private static String templatesPath = "/data/rules/import";
+        private static String templatesPath = com.gamelist.util.PathUtil.getRulesPath() + "/import";
         
         private String frontend;
         private String name;

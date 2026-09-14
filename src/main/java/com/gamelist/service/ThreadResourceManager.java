@@ -46,6 +46,15 @@ public class ThreadResourceManager {
     // 等待媒体资源的线程数
     private final AtomicInteger mediaWaiting = new AtomicInteger(0);
     
+    // ========== ScreenScraper 配额信息（从 API 响应动态更新） ==========
+    private volatile int requestsToday = 0;           // 今日已用请求数
+    private volatile int maxRequestsPerDay = 0;       // 每日请求上限
+    private volatile int maxRequestsPerMin = 0;       // 每分钟请求上限
+    private volatile int maxDownloadSpeed = 0;        // 最大下载速度
+    private volatile int requestsKoToday = 0;         // 今日失败请求数
+    private volatile String userNiveau = "";          // 用户等级
+    private volatile String userContribution = "";    // 贡献等级
+    
     // 锁保护状态变更
     private final ReentrantLock lock = new ReentrantLock();
     
@@ -107,6 +116,25 @@ public class ThreadResourceManager {
             logger.info("服务器动态更新线程配额: {} -> {}", this.maxThreads, effective);
         }
         updateMaxThreads(effective);
+    }
+    
+    /**
+     * 从 ScreenScraper API 响应中更新完整配额信息
+     * 每次调用 jeuInfos.php 或 ssuserInfos.php 时调用
+     */
+    public void updateQuotaFromServer(int requestsToday, int maxRequestsPerDay, 
+                                       int maxRequestsPerMin, int maxDownloadSpeed,
+                                       int requestsKoToday, String niveau, String contribution) {
+        this.requestsToday = requestsToday;
+        this.maxRequestsPerDay = maxRequestsPerDay;
+        this.maxRequestsPerMin = maxRequestsPerMin;
+        this.maxDownloadSpeed = maxDownloadSpeed;
+        this.requestsKoToday = requestsKoToday;
+        this.userNiveau = niveau != null ? niveau : "";
+        this.userContribution = contribution != null ? contribution : "";
+        
+        logger.debug("配额信息更新: 今日请求={}/{}, 用户等级={}, 贡献={}", 
+            requestsToday, maxRequestsPerDay, niveau, contribution);
     }
     
     /**
@@ -324,7 +352,14 @@ public class ThreadResourceManager {
                 gameInfoActive.get(),
                 mediaActive.get(),
                 gameInfoWaiting.get(),
-                mediaWaiting.get()
+                mediaWaiting.get(),
+                requestsToday,
+                maxRequestsPerDay,
+                maxRequestsPerMin,
+                maxDownloadSpeed,
+                requestsKoToday,
+                userNiveau,
+                userContribution
             );
         } finally {
             lock.unlock();
@@ -370,22 +405,49 @@ public class ThreadResourceManager {
         public final int mediaActive;
         public final int gameInfoWaiting;
         public final int mediaWaiting;
+        // 配额信息
+        public final int requestsToday;
+        public final int maxRequestsPerDay;
+        public final int maxRequestsPerMin;
+        public final int maxDownloadSpeed;
+        public final int requestsKoToday;
+        public final String userNiveau;
+        public final String userContribution;
         
         public ResourceSnapshot(int maxThreads, int availableThreads, 
                                int gameInfoActive, int mediaActive,
-                               int gameInfoWaiting, int mediaWaiting) {
+                               int gameInfoWaiting, int mediaWaiting,
+                               int requestsToday, int maxRequestsPerDay,
+                               int maxRequestsPerMin, int maxDownloadSpeed,
+                               int requestsKoToday, String userNiveau, String userContribution) {
             this.maxThreads = maxThreads;
             this.availableThreads = availableThreads;
             this.gameInfoActive = gameInfoActive;
             this.mediaActive = mediaActive;
             this.gameInfoWaiting = gameInfoWaiting;
             this.mediaWaiting = mediaWaiting;
+            this.requestsToday = requestsToday;
+            this.maxRequestsPerDay = maxRequestsPerDay;
+            this.maxRequestsPerMin = maxRequestsPerMin;
+            this.maxDownloadSpeed = maxDownloadSpeed;
+            this.requestsKoToday = requestsKoToday;
+            this.userNiveau = userNiveau;
+            this.userContribution = userContribution;
         }
         
         @Override
         public String toString() {
-            return String.format("ResourceSnapshot[max=%d, available=%d, gameInfo=%d, media=%d, gameWaiting=%d, mediaWaiting=%d]",
-                maxThreads, availableThreads, gameInfoActive, mediaActive, gameInfoWaiting, mediaWaiting);
+            return String.format("ResourceSnapshot[max=%d, available=%d, gameInfo=%d, media=%d, gameWaiting=%d, mediaWaiting=%d, requests=%d/%d]",
+                maxThreads, availableThreads, gameInfoActive, mediaActive, gameInfoWaiting, mediaWaiting, requestsToday, maxRequestsPerDay);
         }
     }
+    
+    // ========== 配额信息 Getter ==========
+    public int getRequestsToday() { return requestsToday; }
+    public int getMaxRequestsPerDay() { return maxRequestsPerDay; }
+    public int getMaxRequestsPerMin() { return maxRequestsPerMin; }
+    public int getMaxDownloadSpeed() { return maxDownloadSpeed; }
+    public int getRequestsKoToday() { return requestsKoToday; }
+    public String getUserNiveau() { return userNiveau; }
+    public String getUserContribution() { return userContribution; }
 }

@@ -10,12 +10,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String dataPath = com.gamelist.util.PathUtil.getDataPath();
         registry.addResourceHandler("/scraper/**")
-                .addResourceLocations("file:/data/scraper/", "classpath:/static/", "file:./", "file:./media/", "file:./data")
+                .addResourceLocations("file:" + dataPath + "/scraper/", "classpath:/static/", "file:./", "file:./media/", "file:./data")
                 .setCacheControl(CacheControl.noCache());
         
         registry.addResourceHandler("/data/scraper/**")
-                .addResourceLocations("file:/data/scraper/")
+                .addResourceLocations("file:" + dataPath + "/scraper/")
                 .setCacheControl(CacheControl.noCache());
     }
 }

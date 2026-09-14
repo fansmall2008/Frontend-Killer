@@ -198,6 +198,49 @@ public class ScreenScraperStatusHandler {
         return statusCode == 423 || (statusCode >= 500 && statusCode < 600);
     }
 
+    /**
+     * 是否为软件级限额（与软件版本/开发者凭证相关）
+     * 429: 线程数或每分钟请求数超限
+     * 426: 软件被黑名单
+     * 423: API 完全关闭
+     */
+    public static boolean isSoftwareLimitError(int statusCode) {
+        return statusCode == 429 || statusCode == 426 || statusCode == 423 || statusCode == 400;
+    }
+
+    /**
+     * 是否为用户级限额（与用户账号/等级相关）
+     * 430: 今日刮削次数已达上限
+     * 431: 今日未找到游戏请求次数已达上限
+     * 401: 非会员限制或服务器负载高
+     */
+    public static boolean isUserLimitError(int statusCode) {
+        return statusCode == 430 || statusCode == 431 || statusCode == 401;
+    }
+
+    /**
+     * 获取限额类型的用户友好提示
+     */
+    public static String getLimitWarningMessage(int statusCode) {
+        if (isSoftwareLimitError(statusCode)) {
+            return switch (statusCode) {
+                case 429 -> "⚠️ 软件请求频率超限：ScreenScraper 服务器限制了当前软件的请求速度，已暂停刮削。请稍后手动恢复。";
+                case 426 -> "⚠️ 软件版本受限：当前软件版本被 ScreenScraper 服务器限制（版本过旧或不兼容），已暂停刮削。请更新软件版本。";
+                case 423 -> "⚠️ API 已关闭：ScreenScraper 服务器 API 暂时完全关闭，已暂停刮削。请等待官方修复。";
+                case 400 -> "⚠️ 请求错误：发送给 ScreenScraper 的请求包含错误，已暂停刮削。请检查配置。";
+                default -> "⚠️ 软件级限额：ScreenScraper 服务器返回限制状态 (" + statusCode + ")，已暂停刮削。";
+            };
+        } else if (isUserLimitError(statusCode)) {
+            return switch (statusCode) {
+                case 430 -> "⚠️ 用户刮削配额已满：今日刮削次数已达 ScreenScraper 上限，已暂停刮削。请等待明天或升级用户等级。";
+                case 431 -> "⚠️ 用户未找到配额已满：今日未找到的游戏请求次数已达上限，已暂停刮削。请整理 ROM 文件或等待明天。";
+                case 401 -> "⚠️ 用户权限受限：ScreenScraper 服务器限制当前用户状态（可能需登录或服务器负载过高），已暂停刮削。";
+                default -> "⚠️ 用户级限额：ScreenScraper 服务器返回用户限制状态 (" + statusCode + ")，已暂停刮削。";
+            };
+        }
+        return "⚠️ 刮削遇到限制 (状态码: " + statusCode + ")，已暂停。";
+    }
+
     public static void logStatus(int statusCode, String context) {
         if (statusCode == 200) {
             logger.debug("ScreenScraper API [{}] - 成功", context);

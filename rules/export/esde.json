@@ -12,22 +12,22 @@
   "rules": {
     "media": {
       "boxfront": {
-        "source": "boxFront",
+        "source": "box-2D",
         "target": "{mediaPath}/boxfront/{filename}.png",
         "dataFileTag": null
       },
       "boxback": {
-        "source": "boxBack",
+        "source": "box-2D-back",
         "target": "{mediaPath}/boxback/{filename}.png",
         "dataFileTag": null
       },
       "box3d": {
-        "source": "boxFull",
+        "source": "box-3D",
         "target": "{mediaPath}/box3d/{filename}.png",
         "dataFileTag": null
       },
       "titlescreen": {
-        "source": "thumbnail",
+        "source": "sstitle",
         "target": "{mediaPath}/titlescreen/{filename}.png",
         "dataFileTag": null
       },
@@ -62,17 +62,17 @@
         "dataFileTag": null
       },
       "screenshot": {
-        "source": "screenshot",
+        "source": "ss",
         "target": "{mediaPath}/screenshot/{filename}.png",
         "dataFileTag": null
       },
       "cartridge": {
-        "source": "cartridge",
+        "source": "support-2D",
         "target": "{mediaPath}/support-2d/{filename}.png",
         "dataFileTag": null
       },
       "bezel": {
-        "source": "bezel",
+        "source": "bezel-16-9",
         "target": "{mediaPath}/bezel/{filename}.png",
         "dataFileTag": null
       },

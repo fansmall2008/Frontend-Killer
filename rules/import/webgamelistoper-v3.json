@@ -1,0 +1,66 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "import",
+    "dataFileType": "data",
+    "format": "xml",
+    "dataFile": "gamelist.xml",
+    "author": "Frontend-Killer",
+    "description": "WebGamelistOper 导入模板（v3 统一格式，支持全量 ScreenScraper 媒体类型）",
+    "notes": "XML 格式，系统信息在 provider 标签内，游戏信息在 game 标签内"
+  },
+  "system": {
+    "systemTag": "provider",
+    "fields": {
+      "platform.system": ["system"],
+      "platform.software": ["software"]
+    }
+  },
+  "game": {
+    "gameStartMarker": "game",
+    "computedVariables": {
+      "filename": "stem(path)",
+      "filepath": "replace(path or '', './', '')"
+    },
+    "gameInfo": {
+      "name": ["name"],
+      "desc": ["desc", "description"],
+      "releasedate": ["releasedate", "release"],
+      "developer": ["developer", "dev"],
+      "publisher": ["publisher", "pub"],
+      "genre": ["genre", "category"],
+      "players": ["players", "player"],
+      "rating": ["rating"],
+      "path": ["path", "file"],
+      "hash": ["hash", "crc", "crc32"],
+      "lang": ["lang"],
+      "gameId": ["id", "gameId"]
+    },
+    "mediaInfo": {
+      "video": ["video"],
+      "video-normalized": ["videonormalized"],
+      "marquee": ["marquee"],
+      "wheel": ["wheel"],
+      "wheel-carbon": ["wheelcarbon"],
+      "wheel-steel": ["wheelsteel"],
+      "ss": ["screenshot"],
+      "sstitle": ["titlescreen"],
+      "fanart": ["fanart"],
+      "box-2D": ["boxFront", "box-2D"],
+      "box-2D-back": ["boxBack", "box-2D-back"],
+      "box-2D-side": ["boxside"],
+      "box-3D": ["box3d", "box-3D"],
+      "box-texture": ["boxtexture"],
+      "support-2D": ["cartridge"],
+      "support-texture": ["supporttexture"],
+      "bezel-16-9": ["bezel"],
+      "steamgrid": ["steamgrid", "steam"],
+      "manuel": ["manual"],
+      "background": ["background"],
+      "pictocouleur": ["pictocouleur"],
+      "screenmarqueesmall": ["screenmarqueesmall"],
+      "figurine": ["figurine"],
+      "mixrbv2": ["mixrbv2"]
+    }
+  }
+}

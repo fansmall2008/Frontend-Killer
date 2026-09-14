@@ -548,16 +548,15 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="scraperSystem">选择系统（可选）：</label>
+                    <label for="scraperSystem" data-i18n="select_system_label">选择系统（可选）：</label>
                     <select id="scraperSystem" name="scraperSystem" onchange="onSystemSelect()">
-                        <option value="">不选择系统</option>
+                        <option value="" data-i18n="no_system_selected">不选择系统</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="importMethod" data-i18n="import_method_label">导入方式：</label>
                     <select id="importMethod" name="importMethod" onchange="toggleTemplateOptions(); onSystemSelect()" required>
-                        <option value="traditional" data-i18n="import_method_traditional">传统方式</option>
-                        <option value="template" data-i18n="import_method_template">模板方式</option>
+                        <option value="template" selected data-i18n="import_method_template">模板方式</option>
                         <option value="noDataFile" data-i18n="import_method_no_data_file">无数据文件导入</option>
                     </select>
                 </div>
@@ -588,11 +587,14 @@
                     </select>
                     <div id="templateDescription" style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 6px; border: 1px solid #444; color: #00ffff;"></div>
                 </div>
-                <div class="form-group" id="metadataOnlyOption">
-                    <label>
-                        <input type="checkbox" id="metadataOnly" name="metadataOnly" checked style="margin-right: 8px;">
-                        <span data-i18n="metadata_only_label">仅导入数据文件中存在的媒体文件</span>
+                <div class="form-group" id="mediaDiscoveryGroup" style="display: none;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="enableMediaDiscovery" name="enableMediaDiscovery" checked style="width: 18px; height: 18px; accent-color: #00ffff;">
+                        <span data-i18n="enable_media_discovery">匹配无记录媒体文件（按模板规则扫描磁盘）</span>
                     </label>
+                    <div style="margin-top: 6px; padding: 8px 12px; background: rgba(0, 255, 255, 0.05); border-radius: 4px; border-left: 3px solid #00ffff; color: #aaa; font-size: 0.9em;">
+                        <span data-i18n="enable_media_discovery_hint">勾选：完全按模板执行，包括 mediaDiscovery 规则扫描。不勾选：仅处理数据文件中已声明的媒体路径，跳过 mediaDiscovery。</span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="threadCount" data-i18n="thread_count_label">导入线程数：</label>
@@ -622,7 +624,7 @@
         
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -732,12 +734,12 @@
                     // 先保存当前选中的值
                     const currentValue = scraperSystemSelect.value;
                     // 清空并重新填充
-                    scraperSystemSelect.innerHTML = '<option value="">不选择系统</option>';
+                    scraperSystemSelect.innerHTML = '<option value="" data-i18n="no_system_selected">' + getI18nText('no_system_selected', '不选择系统') + '</option>';
                     if (scraperSystems && scraperSystems.length > 0) {
                         scraperSystems.forEach(system => {
                             const option = document.createElement('option');
                             option.value = system.id;
-                            option.textContent = system.nameCn || system.nameEn || system.name || 'Unknown';
+                            option.textContent = system.nomEu || system.nameCn || system.name || 'Unknown';
                             if (currentValue === String(system.id)) {
                                 option.selected = true;
                             }
@@ -800,7 +802,7 @@
             
             // 检查是否是 dossier 类型
             if (selectedSystem.romType === 'dossier') {
-                showNotification('暂时不支持 dossier 类型的系统，请选择其他系统', 'error');
+                showNotification(getI18nText('dossier_not_supported', '暂时不支持 dossier 类型的系统，请选择其他系统'), 'error');
                 document.getElementById('scraperSystem').value = '';
                 return;
             }
@@ -973,27 +975,22 @@
         function toggleTemplateOptions() {
             const importMethod = document.getElementById('importMethod').value;
             const templateOptions = document.getElementById('templateOptions');
-            const metadataOnlyOption = document.getElementById('metadataOnlyOption');
+            const mediaDiscoveryGroup = document.getElementById('mediaDiscoveryGroup');
             const noDataFileWarning = document.getElementById('noDataFileWarning');
             const fileExtensionsGroup = document.getElementById('fileExtensionsGroup');
 
             if (importMethod === 'template') {
                 templateOptions.style.display = 'block';
-                metadataOnlyOption.style.display = 'none';
+                mediaDiscoveryGroup.style.display = 'block';
                 noDataFileWarning.style.display = 'none';
                 fileExtensionsGroup.style.display = 'none';
-                loadTemplates(); // 加载模板列表
+                loadTemplates();
             } else if (importMethod === 'noDataFile') {
                 templateOptions.style.display = 'block';
-                metadataOnlyOption.style.display = 'none';
+                mediaDiscoveryGroup.style.display = 'none';
                 noDataFileWarning.style.display = 'block';
                 fileExtensionsGroup.style.display = 'block';
-                loadTemplates(); // 加载模板列表
-            } else {
-                templateOptions.style.display = 'none';
-                metadataOnlyOption.style.display = 'block';
-                noDataFileWarning.style.display = 'none';
-                fileExtensionsGroup.style.display = 'none';
+                loadTemplates();
             }
         }
         
@@ -1118,13 +1115,13 @@
                             directoryItems.appendChild(dirElement);
                         });
                     } else {
-                        directoryItems.innerHTML = '<p style="text-align: center; color: #aaa;">该目录下没有子目录</p>';
+                        directoryItems.innerHTML = '<p style="text-align: center; color: #aaa;">' + getI18nText('no_subdirectories', '该目录下没有子目录') + '</p>';
                     }
                 } else {
-                    directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">${escapeHtml(result.message || '无法浏览目录')}</p>`;
+                    directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">${escapeHtml(result.message || getI18nText('browse_failed', '无法浏览目录'))}</p>`;
                 }
             } catch (error) {
-                directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">浏览目录失败: ${escapeHtml(error.message)}</p>`;
+                directoryItems.innerHTML = `<p style="text-align: center; color: #e74c3c;">${getI18nText('browse_error_prefix', '浏览目录失败: ')}${escapeHtml(error.message)}</p>`;
             }
         }
         
@@ -1165,12 +1162,12 @@
 
             const path = document.getElementById('path').value;
             const scanDepth = parseInt(document.getElementById('scanDepth').value);
-            const metadataOnly = document.getElementById('metadataOnly').checked;
             const threadCount = parseInt(document.getElementById('threadCount').value);
             const importMethod = document.getElementById('importMethod').value;
             const importTemplate = document.getElementById('importTemplate').value;
             const fileExtensions = document.getElementById('fileExtensions').value;
             const scraperSystemId = document.getElementById('scraperSystem').value;
+            const enableMediaDiscovery = document.getElementById('enableMediaDiscovery').checked;
             const noDataFile = importMethod === 'noDataFile';
             const submitBtn = document.getElementById('submitBtn');
             const loading = document.getElementById('loading');
@@ -1184,7 +1181,7 @@
 
             try {
                 if (noDataFile) {
-                    showNotification('开始执行无数据文件导入任务...', 'info');
+                    showNotification(getI18nText('start_nodata_import', '开始执行无数据文件导入任务...'), 'info');
                     const importResponse = await fetch('/api/scan/import', {
                         method: 'POST',
                         headers: {
@@ -1193,28 +1190,28 @@
                         body: JSON.stringify({
                             files: [],
                             type: 'none',
-                            metadataOnly: false,
                             threadCount: threadCount,
                             importMethod: importMethod,
                             importTemplate: importTemplate,
                             noDataFile: true,
                             fileExtensions: fileExtensions,
                             scanPath: path,
-                            scraperSystemId: scraperSystemId
+                            scraperSystemId: scraperSystemId,
+                            enableMediaDiscovery: enableMediaDiscovery
                         }),
                     });
 
                     const importResult = await importResponse.json();
 
                     if (importResponse.ok) {
-                        showNotification('导入任务已创建，正在后台执行', 'success');
-                        showNotification(`任务ID: ${importResult.id}`, 'info');
-                        showNotification('请前往任务管理页面查看执行情况', 'info');
+                        showNotification(getI18nText('import_task_created', '导入任务已创建，正在后台执行'), 'success');
+                        showNotification(getI18nText('task_id_prefix', '任务ID: ') + importResult.id, 'info');
+                        showNotification(getI18nText('go_task_management', '请前往任务管理页面查看执行情况'), 'info');
                     } else {
                         showNotification(getI18nText('error_prefix', importResult.message || '创建导入任务失败'), 'error');
                     }
                 } else {
-                    showNotification('开始扫描文件...', 'info');
+                    showNotification(getI18nText('start_scanning_files', '开始扫描文件...'), 'info');
                     const scanResponse = await fetch('/api/scan/scan', {
                         method: 'POST',
                         headers: {
@@ -1225,7 +1222,8 @@
                             depth: scanDepth,
                             importMethod: importMethod,
                             importTemplate: importTemplate,
-                            scraperSystemId: scraperSystemId
+                            scraperSystemId: scraperSystemId,
+                            enableMediaDiscovery: enableMediaDiscovery
                         }),
                     });
 
@@ -1244,11 +1242,11 @@
                         showNotification(getI18nText('found_files', dataFiles.length), 'success');
 
                         if (dataFiles.length === 0) {
-                            showNotification('未找到数据文件', 'info');
+                            showNotification(getI18nText('no_data_files_found', '未找到数据文件'), 'info');
                             return;
                         }
 
-                        showNotification('开始执行异步导入任务...', 'info');
+                        showNotification(getI18nText('start_async_import', '开始执行异步导入任务...'), 'info');
                         const importResponse = await fetch('/api/scan/import', {
                             method: 'POST',
                             headers: {
@@ -1257,26 +1255,26 @@
                             body: JSON.stringify({
                                 files: dataFiles.map(detail => detail.filePath),
                                 type: dataFiles.length > 0 ? dataFiles[0].type : 'none',
-                                metadataOnly: metadataOnly,
                                 threadCount: threadCount,
                                 importMethod: importMethod,
                                 importTemplate: importTemplate,
                                 scanPath: path,
-                                scraperSystemId: scraperSystemId
+                                scraperSystemId: scraperSystemId,
+                                enableMediaDiscovery: enableMediaDiscovery
                             }),
                         });
 
                         const importResult = await importResponse.json();
 
                         if (importResponse.ok) {
-                            showNotification('导入任务已创建，正在后台执行', 'success');
-                            showNotification(`任务ID: ${importResult.id}`, 'info');
-                            showNotification('请前往任务管理页面查看执行情况', 'info');
+                            showNotification(getI18nText('import_task_created', '导入任务已创建，正在后台执行'), 'success');
+                            showNotification(getI18nText('task_id_prefix', '任务ID: ') + importResult.id, 'info');
+                            showNotification(getI18nText('go_task_management', '请前往任务管理页面查看执行情况'), 'info');
                         } else {
                             showNotification(getI18nText('error_prefix', importResult.message || '创建导入任务失败'), 'error');
                         }
                     } else {
-                        showNotification('未找到数据文件', 'info');
+                        showNotification(getI18nText('no_data_files_found', '未找到数据文件'), 'info');
                     }
                 }
             } catch (error) {

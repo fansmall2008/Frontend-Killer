@@ -378,7 +378,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">← 返回首页</a>
+        <a href="index.html" class="back-link" data-i18n="back_to_home">← 返回首页</a>
         
         <div class="header">
             <div class="header-content">
@@ -411,6 +411,7 @@
                         <th data-i18n="col_company">制造商</th>
                         <th data-i18n="col_type">类型</th>
                         <th data-i18n="col_release_year">发行年份</th>
+                        <th data-i18n="col_media_status">媒体状态</th>
                         <th data-i18n="col_actions">操作</th>
                     </tr>
                 </thead>
@@ -545,6 +546,11 @@
                     <td>${escapeHtml(system.type || '-')}</td>
                     <td>${system.releaseYear || '-'}</td>
                     <td>
+                        ${system.mediaScraped ? 
+                            '<span style="color: #00ff00; font-weight: bold;" data-i18n="media_scraped">已刮削</span>' : 
+                            '<span style="color: #888;" data-i18n="media_not_scraped">未刮削</span>'}
+                    </td>
+                    <td>
                         <button class="btn btn-primary btn-small" onclick="editSystem(${system.id})" data-i18n="btn_edit">编辑</button>
                         <button class="btn btn-success btn-small" onclick="openScrapeModal(${system.systemId}, '${escapeHtml(system.name)}')" data-i18n="btn_scrape">刮削</button>
                         <button class="btn btn-danger btn-small" onclick="openDeleteModal(${system.id}, '${escapeHtml(system.name)}')" data-i18n="btn_delete">删除</button>
@@ -642,30 +648,30 @@
                     const useGuestMode = !statusData.hasUserCredentials;
                     
                     if (useGuestMode) {
-                        if (!confirm('您尚未配置ScreenScraper用户名和密码，将使用游客模式初始化（每日请求限制约20000次）。是否继续？')) {
+                        if (!confirm(I18n.t('init_guest_mode_confirm', '您尚未配置ScreenScraper用户名和密码，将使用游客模式初始化（每日请求限制约20000次）。是否继续？'))) {
                             return;
                         }
                     }
                     
-                    showStatus('正在初始化刮削系统...', 'success');
+                    showStatus(I18n.t('initializing_systems', '正在初始化刮削系统...'), 'success');
                     fetch('/api/screenscraper/init', {
                         method: 'POST'
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            showStatus('初始化成功！已导入 ' + data.count + ' 个系统', 'success');
+                            showStatus(I18n.t('init_success_count', '初始化成功，已导入 {0} 个系统').replace('{0}', data.count), 'success');
                             loadSystems();
                         } else {
                             showStatus(data.message, 'error');
                         }
                     })
                     .catch(error => {
-                        showStatus('初始化失败: ' + error.message, 'error');
+                        showStatus(I18n.t('init_failed_msg', '初始化失败: ') + error.message, 'error');
                     });
                 })
                 .catch(error => {
-                    showStatus('检查凭证状态失败: ' + error.message, 'error');
+                    showStatus(I18n.t('cred_check_failed_msg', '获取凭据状态失败: ') + error.message, 'error');
                 });
         }
 
@@ -675,7 +681,7 @@
                 .then(data => {
                     if (!data.hasUserCredentials) {
                         const statusDiv = document.getElementById('status-message');
-                        statusDiv.innerHTML = '提示：您正在使用游客模式。如需更高请求限额，请在<a href="system-settings.html" style="color: #00ffff;">系统设置</a>中配置ScreenScraper账号。';
+                        statusDiv.innerHTML = I18n.t('cred_guest_mode_hint', '提示：您正在使用游客模式。如需更高请求限额，请在<a href="system-settings.html" style="color: #00ffff;">系统设置</a>中配置ScreenScraper账号。');
                         statusDiv.className = 'status-message status-error';
                         statusDiv.style.display = 'block';
                     }
@@ -709,7 +715,7 @@
 
         function submitScrape() {
             if (!scrapeSystemId) {
-                const msg = typeof I18n !== 'undefined' && I18n.t ? I18n.t('please_select_system', '请选择要刮削的系统') : '请选择要刮削的系统';
+                const msg = I18n.t('please_select_scrape_system', '请选择要刮削的系统');
                 showStatus(msg, 'error');
                 return;
             }
@@ -720,7 +726,7 @@
 
             closeScrapeModal();
 
-            const scrapingMsg = (typeof I18n !== 'undefined' && I18n.t ? I18n.t('scraping_system', '正在刮削系统') : '正在刮削系统') + ' ' + scrapeSystemName + '...';
+            const scrapingMsg = I18n.t('scraping_system_name', '正在刮削系统') + ' ' + scrapeSystemName + '...';
             showStatus(scrapingMsg, 'success');
 
             fetch('/api/scraper-systems/scrape-all', {
@@ -733,15 +739,15 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    const successMsg = typeof I18n !== 'undefined' && I18n.t ? I18n.t('scrape_task_started', '刮削任务已启动！请在任务管理页面查看进度') : '刮削任务已启动！请在任务管理页面查看进度';
+                    const successMsg = I18n.t('scrape_task_started_msg', '刮削任务已启动！请前往任务管理页面查看进度');
                     showStatus(successMsg, 'success');
                 } else {
-                    const failedMsg = (typeof I18n !== 'undefined' && I18n.t ? I18n.t('scrape_failed', '刮削失败') : '刮削失败') + ': ' + (result.message || '未知错误');
+                    const failedMsg = I18n.t('scrape_failed_msg', '刮削失败') + ': ' + (result.message || I18n.t('unknown_error', '未知错误'));
                     showStatus(failedMsg, 'error');
                 }
             })
             .catch(error => {
-                const errorMsg = (typeof I18n !== 'undefined' && I18n.t ? I18n.t('scrape_failed', '刮削失败') : '刮削失败') + ': ' + error.message;
+                const errorMsg = I18n.t('scrape_failed_msg', '刮削失败') + ': ' + error.message;
                 showStatus(errorMsg, 'error');
             });
         }

@@ -2,6 +2,8 @@ package com.gamelist.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.gamelist.model.ScraperSystem;
 
 public interface ScraperSystemMapper {
@@ -12,4 +14,5 @@ public interface ScraperSystemMapper {
     ScraperSystem selectBySystemId(Integer systemId);
     List<ScraperSystem> selectAll();
     int deleteAll();
+    int updateMediaScraped(@Param("systemId") Integer systemId, @Param("scraped") boolean scraped);
 }

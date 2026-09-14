@@ -51,6 +51,7 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     private final AtomicBoolean isPaused = new AtomicBoolean(false);
     private final AtomicBoolean isStopped = new AtomicBoolean(false);
     private final AtomicBoolean stopRequested = new AtomicBoolean(false);
+    private volatile Long currentPlatformId; // 当前下载的平台ID，用于按平台查找待下载任务
     private static final int BATCH_SIZE = 100;
     private static final long BATCH_PAUSE_MS = 30000;
 
@@ -64,8 +65,14 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     private static final long NOT_FOUND_WINDOW_MS = 10000;
 
     @Override
-    @Async
     public void startMediaDownloadTask(Long taskId, int maxThreads) {
+        // 使用专用线程而非 ForkJoinPool.commonPool，避免公共池耗尽导致任务无法启动
+        Thread thread = new Thread(() -> doStartMediaDownload(taskId, maxThreads), "media-download-main");
+        thread.setDaemon(true);
+        thread.start();
+    }
+    
+    private void doStartMediaDownload(Long taskId, int maxThreads) {
         if (!isRunning.compareAndSet(false, true)) {
             logger.warn("媒体下载任务已在运行中");
             return;
@@ -74,6 +81,17 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
         isStopped.set(false);
 
         logger.info("开始媒体下载任务，任务ID: {}, 最大线程数: {}", taskId, maxThreads);
+
+        // 从任务中获取 platformId，后续下载线程按平台查找任务（避免不同批次 taskId 互相找不到）
+        MediaDownloadTask sampleTask = mediaDownloadTaskMapper.selectByTaskId(taskId).stream().findFirst().orElse(null);
+        if (sampleTask != null) {
+            currentPlatformId = sampleTask.getPlatformId();
+            logger.info("关联平台ID: {}", currentPlatformId);
+        } else {
+            logger.warn("未找到taskId={}的任务，无法确定平台ID", taskId);
+            isRunning.set(false);
+            return;
+        }
 
         // 更新线程资源管理器的最大线程数（实际并发由资源管理器控制）
         threadResourceManager.updateMaxThreads(maxThreads);
@@ -86,11 +104,26 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
 
         try {
             long totalPending = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
-            logger.info("待下载媒体文件总数: {}", totalPending);
+            long totalPendingByPlatform = mediaDownloadTaskMapper.countPendingByPlatformId(currentPlatformId);
+            logger.info("待下载媒体文件总数: {} (taskId={}), 按平台: {} (platformId={})", totalPending, taskId, totalPendingByPlatform, currentPlatformId);
+            
+            // 诊断：验证 selectOnePendingTaskByPlatformId 能否正常返回
+            MediaDownloadTask diagTask = mediaDownloadTaskMapper.selectOnePendingTaskByPlatformId(currentPlatformId);
+            if (diagTask != null) {
+                logger.info("诊断查询成功: 找到待下载任务 id={}, gameId={}, mediaType={}, platformId={}", 
+                    diagTask.getId(), diagTask.getGameId(), diagTask.getMediaType(), diagTask.getPlatformId());
+            } else {
+                logger.warn("诊断查询失败: selectOnePendingTaskByPlatformId({}) 返回 null，但 count 显示有 {} 条 PENDING 任务", 
+                    currentPlatformId, totalPendingByPlatform);
+            }
 
             // 启动下载工作线程
+            List<Future<?>> workerFutures = new java.util.ArrayList<>();
             for (int i = 0; i < poolSize; i++) {
-                executor.submit(() -> {
+                int threadIndex = i;
+                Future<?> future = executor.submit(() -> {
+                    logger.info("媒体工作线程-{} 已启动, isRunning={}, isStopped={}, stopRequested={}", 
+                        threadIndex, isRunning.get(), isStopped.get(), stopRequested.get());
                     try {
                         while (isRunning.get() && !isStopped.get() && !stopRequested.get()) {
                             // 检查全局暂停
@@ -120,13 +153,18 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                             }
 
                             try {
-                                // 获取一个待下载任务
-                                MediaDownloadTask mediaTask = mediaDownloadTaskMapper.selectOnePendingTask(taskId);
+                                // 获取一个待下载任务（按平台ID查找，不限制 taskId，确保所有批次的任务都能被拾取）
+                                MediaDownloadTask mediaTask = (currentPlatformId != null)
+                                    ? mediaDownloadTaskMapper.selectOnePendingTaskByPlatformId(currentPlatformId)
+                                    : mediaDownloadTaskMapper.selectOnePendingTask(taskId);
                                 if (mediaTask == null) {
                                     // 没有待下载任务，短暂等待后继续循环
+                                    logger.info("未找到平台{}的待下载任务(线程-{})，等待中...", currentPlatformId, threadIndex);
                                     Thread.sleep(500);
                                     continue;
                                 }
+                                logger.info("拾取到待下载任务: id={}, gameId={}, mediaType={}, platformId={}", 
+                                    mediaTask.getId(), mediaTask.getGameId(), mediaTask.getMediaType(), mediaTask.getPlatformId());
 
                                 // 尝试更新状态为下载中（乐观锁）
                                 int updated = mediaDownloadTaskMapper.tryUpdateStatus(
@@ -136,10 +174,12 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                 );
                                 
                                 if (updated == 0) {
-                                    // 状态已被其他线程修改，跳过
+                                    // 状态已被其他线程修改，跳过（乐观锁冲突）
+                                    logger.info("乐观锁冲突: 任务id={}已被其他线程拾取(线程-{})", mediaTask.getId(), threadIndex);
                                     Thread.yield();
                                     continue;
                                 }
+                                logger.info("任务id={}状态已更新为DOWNLOADING(线程-{})", mediaTask.getId(), threadIndex);
 
                                 try {
                                     // 尝试获取限流许可
@@ -155,12 +195,14 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                     int statusCode = (Integer) downloadResult.get("statusCode");
 
                                     if (success) {
+                                        logger.info("下载成功: 任务id={}, 路径={}(线程-{})", mediaTask.getId(), mediaTask.getLocalPath(), threadIndex);
                                         mediaDownloadTaskMapper.updateStatusById(mediaTask.getId(), MediaDownloadTask.STATUS_COMPLETED, null);
                                         totalProcessed.incrementAndGet();
                                         updateGameMediaPath(mediaTask);
                                         resetNotFoundCount();
                                     } else {
                                         String errorMessage = (String) downloadResult.get("message");
+                                        logger.info("下载失败: 任务id={}, 状态码={}, 错误={}(线程-{})", mediaTask.getId(), statusCode, errorMessage, threadIndex);
                                         
                                         if (statusCode == 404) {
                                             if (shouldStopDueToNotFound()) {
@@ -169,16 +211,26 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                                 sendNotification("媒体下载停止", "10秒内出现10次404错误，已停止媒体下载");
                                             }
                                         } else if (ScreenScraperStatusHandler.shouldStopImmediately(statusCode)) {
-                                            logger.error("遇到特殊状态码 {}，停止媒体下载: {}", statusCode, errorMessage);
-                                            isStopped.set(true);
-                                            sendNotification("媒体下载停止", ScreenScraperStatusHandler.getSuggestion(statusCode));
+                                            if (ScreenScraperStatusHandler.isSoftwareLimitError(statusCode) 
+                                                || ScreenScraperStatusHandler.isUserLimitError(statusCode)) {
+                                                // 限额错误：暂停而非停止（可恢复）
+                                                String limitWarning = ScreenScraperStatusHandler.getLimitWarningMessage(statusCode);
+                                                logger.error("限额触发，暂停媒体下载: 状态码={}, 消息={}", statusCode, limitWarning);
+                                                isPaused.set(true);
+                                                sendNotification("媒体下载已暂停", limitWarning);
+                                            } else {
+                                                // 非限额的严重错误：停止
+                                                logger.error("遇到严重状态码 {}，停止媒体下载: {}", statusCode, errorMessage);
+                                                isStopped.set(true);
+                                                sendNotification("媒体下载停止", ScreenScraperStatusHandler.getSuggestion(statusCode));
+                                            }
                                         }
 
                                         mediaDownloadTaskMapper.updateStatusById(mediaTask.getId(), MediaDownloadTask.STATUS_FAILED, errorMessage);
                                     }
 
                                 } catch (Exception e) {
-                                    logger.error("下载媒体文件失败: {}", e.getMessage());
+                                    logger.error("下载媒体文件失败(线程-{}): taskId={}, error={}", threadIndex, mediaTask.getId(), e.getMessage(), e);
                                     mediaDownloadTaskMapper.updateStatusById(mediaTask.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
                                 }
                             } finally {
@@ -188,17 +240,31 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                         }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
+                    } catch (Exception e) {
+                        logger.error("媒体工作线程-{} 发生未捕获异常: {}", threadIndex, e.getMessage(), e);
                     }
                 });
+                workerFutures.add(future);
             }
+            logger.info("已提交 {} 个工作线程到线程池", poolSize);
 
-            // 等待所有任务完成或被停止
+            // 等待所有任务完成或被停止（按平台ID计数，确保所有批次的任务都被监控）
+            boolean firstCheck = true;
             while (isRunning.get() && !isStopped.get()) {
-                long pendingCount = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
-                long downloadingCount = mediaDownloadTaskMapper.countDownloadingByTaskId(taskId);
+                long pendingCount = (currentPlatformId != null)
+                    ? mediaDownloadTaskMapper.countPendingByPlatformId(currentPlatformId)
+                    : mediaDownloadTaskMapper.countPendingByTaskId(taskId);
+                long downloadingCount = (currentPlatformId != null)
+                    ? mediaDownloadTaskMapper.countDownloadingByPlatformId(currentPlatformId)
+                    : mediaDownloadTaskMapper.countDownloadingByTaskId(taskId);
+                
+                if (firstCheck) {
+                    logger.info("监控循环启动: platformId={}, pending={}, downloading={}", currentPlatformId, pendingCount, downloadingCount);
+                    firstCheck = false;
+                }
                 
                 if (pendingCount == 0 && downloadingCount == 0) {
-                    logger.info("所有媒体下载任务已完成");
+                    logger.info("所有媒体下载任务已完成 (platformId={})", currentPlatformId);
                     break;
                 }
                 
@@ -284,6 +350,10 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
             logger.debug("正在下载媒体文件 - URL: {}, 本地路径: {}", maskSensitiveParams(authenticatedUrl), localPath);
 
             if (statusCode == 200) {
+                // 确保父目录存在
+                java.nio.file.Path filePath = java.nio.file.Paths.get(localPath);
+                java.nio.file.Files.createDirectories(filePath.getParent());
+                
                 try (InputStream inputStream = connection.getInputStream();
                      FileOutputStream outputStream = new FileOutputStream(localPath)) {
 
@@ -547,8 +617,19 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
         mediaDownloadTaskMapper.updateFailedToPendingByPlatformId(platformId);
         
         // 启动下载任务（并发由 ThreadResourceManager 统一管控）
-        if (!isRunning.get()) {
-            // 获取第一个待下载任务的taskId来启动下载
+        if (isRunning.get()) {
+            // 下载已在运行但可能因额度耗尽而暂停，清除暂停标志让工作线程继续
+            if (isPaused.get()) {
+                logger.info("检测到媒体下载处于暂停状态，清除暂停标志以恢复下载");
+                isPaused.set(false);
+            }
+            if (stopRequested.get()) {
+                logger.info("检测到停止请求标志，清除以恢复下载");
+                stopRequested.set(false);
+                isStopped.set(false);
+            }
+        } else {
+            // 下载未运行，启动新的下载任务
             MediaDownloadTask pendingTask = mediaDownloadTaskMapper.selectPendingTasksByPlatformId(platformId, 1).stream().findFirst().orElse(null);
             if (pendingTask != null) {
                 // 直接使用服务器返回的 maxthreads，并发由 ThreadResourceManager 统一控制

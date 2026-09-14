@@ -24,9 +24,10 @@ public interface GameMapper {
     
     // 统计相关方法
     long countTotalGames();
-    long countFullyScrapedGames();
-    long countPartiallyScrapedGames();
-    long countNotScrapedGames();
+    long countScrapedGames();
+    long countOriginalDataGames();
+    long countPoorQualityGames();
+    long countRawRomGames();
     List<PlatformStatistics> selectPlatformStatistics();
     List<Game> selectGamesByScrapeStatus(Long platformId, String status, int offset, int limit);
     int updateGame(Game game);

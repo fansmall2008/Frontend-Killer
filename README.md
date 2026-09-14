@@ -1,307 +1,277 @@
 # Frontend-Killer
 
-## 📢 Major Update Announcement
+A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.
 
-**Important**: No code updates will be released until version 1.1. We are focusing all development efforts on preparing the **v1.1 Official Release**.
+## What's New in 1.1-RC1
 
-### What's Coming in v1.1:
-
-1. **ScreenScraper Integration**
-   - Full game scraping functionality using ScreenScraper API
-   - Auto-fetch game metadata, covers, screenshots, and descriptions
-   - **Note**: To use this feature, you will need a ScreenScraper account. Please register in advance at [ScreenScraper.fr](https://www.screenscraper.fr/)
-
-2. **Native Windows EXE Support**
-   - Standalone Windows executable distribution
-   - No Java installation required
-   - Simplified deployment for Windows users
-
-⚠️ **Important Notice**: This is a **beta/test version**. We welcome bug reports and feedback to help improve the project!
-
-⚠️ **Known Limitation**: This software does not handle multi-file platform games well (e.g., DOS games), but it can handle multi-disc single-file games.
-
----
-
-## Recent Updates
-
-### v1.0.6-beta3 (2026-05-11)
-- Added file existence verification during game import (traditional and template import methods)
-- Added file status filtering in game list search and platform separation
-- Game list displays games with missing files in red font for easy identification
-- Added internationalization support for file status UI elements (Chinese, English, Japanese)
-
-### v1.0.6-beta (2026-05-01)
-- Fixed template description display: Now dynamically reads description from template JSON files instead of hardcoded values
-- Improved XML parsing logic for better compatibility with various frontend templates
-- Added ErrorLogWriter utility for centralized error logging
-- Enhanced game filtering and search functionality
-- Added FilterResult model for improved data processing
-- Updated Docker image with latest dependencies
-
-### v1.0.5-beta (2026-04-30)
-- Fixed page internationalization logic in multiple HTML files
-- Corrected numerous untranslated internationalization entries
-- Fixed translation keys not being applied after dynamic content updates
-- Resolved language switching issues in game-list.html, task-management.html, and other pages
-- Added complete multi-language support (Chinese, English, Japanese)
-- Improved updateTranslations() function to properly handle dynamically generated content
-
-### v1.0.4-beta
-- Initial public release
-- Game list management (CRUD)
-- Import from multiple frontend templates (Pegasus, RetroBat, etc.)
-- Export to multiple frontend templates
-- Media file management (images, videos)
-- Platform merge and data migration
-
----
-
-## Future Roadmap (v1.1+)
-
-### Planned Features
-- 📁 **Multi-file Game Support**: Support for games that require multiple files (e.g., DOS games) by treating entire game folders as game entries
-- ⚙️ **Folder Export Configuration**: Add folder export options in export JSON rules with configurable parent directory levels
-- 🎯 **Advanced Game Filtering**: More sophisticated filtering and sorting options
-- 📊 **Statistics Dashboard**: Game collection statistics and analytics
-- 🪟 **Native Windows Support**: Standalone EXE distribution for Windows users
-
-### v1.2+ Features
-- 🔍 **ScreenScraper API Integration**: Automated game metadata scraping functionality
-
-### v1.3+ Features
-- 📈 **Analytics Dashboard**: Comprehensive game collection statistics and insights
+- **ScreenScraper Integration** - Full game scraping via ScreenScraper API with auto metadata/media download, CRC32 calculation, quota monitoring
+- **v3 Template System** - New generation import/export templates with expression engine, media discovery, and support for Pegasus, ES-DE, RetroBat, EmuELEC
+- **Game Edit Page** - Dedicated game editing page with full field support and media preview
+- **SS Standard Field Migration** - Unified MediaType enum with 50 media types aligned to ScreenScraper standard
+- **File Existence Verification** - Validate game files exist on filesystem during import, with visual indicators
+- **Task Recovery** - Auto-resume interrupted media download and background tasks on startup
+- **Multi-language** - Full Chinese, English, and Japanese support
 
 ---
 
 ## English
 
 ### Features
-- 🎮 Game list management (CRUD)
-- 📥 Import from multiple frontend templates (Pegasus, RetroBat, etc.)
-- 📤 Export to multiple frontend templates
-- 🌐 Multi-language support (Chinese, English, Japanese)
-- 🖼️ Media file management (images, videos)
-- 🔄 Platform merge and data migration
+- Game list management (CRUD) with search and filtering
+- Import from multiple frontend templates (Pegasus, RetroBat, ES-DE, EmuELEC, Lakka, Skraper, and more)
+- Export to multiple frontend templates with v3 expression engine
+- ScreenScraper integration for automated game metadata and media scraping
+- Media file management (images, videos, manuals)
+- Platform merge and data migration
+- Background task management with progress tracking
+- Multi-language support (Chinese, English, Japanese)
 
 ### Tech Stack
-- Java 17
-- Spring Boot 3.2.x
-- SQLite Database
-- HTML5 + JavaScript
-- Docker
+- Java 17 + Spring Boot 3.2.x
+- H2 Database (embedded)
+- MyBatis + Flyway
+- HTML5 + JavaScript (no frontend framework)
+- Docker support
 
 ### Deployment
 
 #### Option 1: Docker (Recommended)
 ```bash
-docker pull fansmall/webgamelistoper:latest
+docker pull fansmall/webgamelistoper:1.1-RC1
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup ./roms
 
 docker run -d \
   --name webgamelistoper \
-  -p 8081:8080 \
-  -v /path/to/output:/data/output \
-  -v /path/to/roms:/data/roms \
-  -v ./logs:/app/logs \
+  -p 8080:8080 \
+  -v ./output:/data/output \
+  -v ./roms:/data/roms \
+  -v ./logs:/data/logs \
   -v ./data:/data \
   -v ./backup:/data/backup \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
-  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:latest
+  fansmall/webgamelistoper:1.1-RC1
 ```
 
 #### Option 2: Docker Compose
-Create `docker-compose.yml`:
 ```yaml
-version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:latest
+    image: fansmall/webgamelistoper:1.1-RC1
     container_name: webgamelistoper
     ports:
-      - "8081:8080"
+      - "8080:8080"
     volumes:
-      - /path/to/output:/data/output
-      - /path/to/roms:/data/roms
-      - ./logs:/app/logs
+      - ./output:/data/output
+      - ./roms:/data/roms
+      - ./logs:/data/logs
       - ./data:/data
       - ./backup:/data/backup
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
 ```
-Run: `docker-compose up -d`
+Run: `docker compose up -d`
 
 #### Option 3: JAR File
+Requires Java 17+.
 ```bash
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-java -jar webGamelistOper-1.0.6-beta.jar
+java -jar webGamelistOper-1.1-RC1.jar
 ```
 
+#### Option 4: Windows EXE (No Java Required)
+Download the EXE package from GitHub Releases, extract and run `Frontend-Killer.exe`.
+
 ### Access
-http://localhost:8081
+http://localhost:8080
 
 ---
 
 ## 中文
 
 ### 功能特性
-- 🎮 游戏列表管理（增删改查）
-- 📥 支持多种前端模板导入（Pegasus、RetroBat 等）
-- 📤 支持多种前端模板导出
-- 🌐 多语言国际化支持（中文、英文、日文）
-- 🖼️ 媒体文件管理（图片、视频）
-- 🔄 平台合并与数据迁移
+- 游戏列表管理（增删改查），支持搜索和过滤
+- 支持多种前端模板导入（Pegasus、RetroBat、ES-DE、EmuELEC、Lakka、Skraper 等）
+- 支持多种前端模板导出，v3 表达式引擎支持
+- ScreenScraper 集成，自动刮削游戏元数据和媒体文件
+- 媒体文件管理（图片、视频、手册）
+- 平台合并与数据迁移
+- 后台任务管理与进度追踪
+- 多语言支持（中文、英文、日文）
 
 ### 技术栈
-- Java 17
-- Spring Boot 3.2.x
-- SQLite 数据库
-- HTML5 + JavaScript
-- Docker
+- Java 17 + Spring Boot 3.2.x
+- H2 数据库（嵌入式）
+- MyBatis + Flyway
+- HTML5 + JavaScript（无前端框架）
+- Docker 支持
 
 ### 部署方式
 
 #### 方式一：Docker 部署（推荐）
 ```bash
-docker pull fansmall/webgamelistoper:latest
+docker pull fansmall/webgamelistoper:1.1-RC1
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup ./roms
 
 docker run -d \
   --name webgamelistoper \
-  -p 8081:8080 \
-  -v /path/to/output:/data/output \
-  -v /path/to/roms:/data/roms \
-  -v ./logs:/app/logs \
+  -p 8080:8080 \
+  -v ./output:/data/output \
+  -v ./roms:/data/roms \
+  -v ./logs:/data/logs \
   -v ./data:/data \
   -v ./backup:/data/backup \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
-  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:latest
+  fansmall/webgamelistoper:1.1-RC1
 ```
 
 #### 方式二：Docker Compose 部署
-创建 `docker-compose.yml` 文件：
 ```yaml
-version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:latest
+    image: fansmall/webgamelistoper:1.1-RC1
     container_name: webgamelistoper
     ports:
-      - "8081:8080"
+      - "8080:8080"
     volumes:
-      - /path/to/output:/data/output
-      - /path/to/roms:/data/roms
-      - ./logs:/app/logs
+      - ./output:/data/output
+      - ./roms:/data/roms
+      - ./logs:/data/logs
       - ./data:/data
       - ./backup:/data/backup
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
 ```
-运行：`docker-compose up -d`
+运行：`docker compose up -d`
 
 #### 方式三：JAR 包运行
+需要 Java 17+。
 ```bash
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-java -jar webGamelistOper-1.0.6-beta.jar
+java -jar webGamelistOper-1.1-RC1.jar
 ```
 
+#### 方式四：Windows EXE（无需 Java）
+从 GitHub Releases 下载 EXE 安装包，解压后运行 `Frontend-Killer.exe`。
+
 ### 访问地址
-http://localhost:8081
+http://localhost:8080
 
 ---
 
 ## 日本語
 
 ### 機能特徴
-- 🎮 ゲームリスト管理（追加、削除、更新、検索）
-- 📥 複数のフロントエンドテンプレートからのインポート（Pegasus、RetroBat など）
-- 📤 複数のフロントエンドテンプレートへのエクスポート
-- 🌐 多言語国際化サポート（中国語、英語、日本語）
-- 🖼️ メディアファイル管理（画像、動画）
-- 🔄 プラットフォーム統合とデータ移行
+- ゲームリスト管理（追加、削除、更新、検索）、フィルタリング対応
+- 複数のフロントエンドテンプレートからのインポート（Pegasus、RetroBat、ES-DE、EmuELEC、Lakka、Skraper など）
+- 複数のフロントエンドテンプレートへのエクスポート、v3 式エンジン対応
+- ScreenScraper 統合、ゲームメタデータとメディアファイルの自動スクレイピング
+- メディアファイル管理（画像、動画、マニュアル）
+- プラットフォーム統合とデータ移行
+- バックグラウンドタスク管理と進捗追跡
+- 多言語サポート（中国語、英語、日本語）
 
 ### 技術スタック
-- Java 17
-- Spring Boot 3.2.x
-- SQLite データベース
-- HTML5 + JavaScript
-- Docker
+- Java 17 + Spring Boot 3.2.x
+- H2 データベース（組み込み）
+- MyBatis + Flyway
+- HTML5 + JavaScript（フロントエンドフレームワークなし）
+- Docker サポート
 
 ### デプロイ方法
 
 #### オプション1：Docker（推奨）
 ```bash
-docker pull fansmall/webgamelistoper:latest
+docker pull fansmall/webgamelistoper:1.1-RC1
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup
+mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup ./roms
 
 docker run -d \
   --name webgamelistoper \
-  -p 8081:8080 \
-  -v /path/to/output:/data/output \
-  -v /path/to/roms:/data/roms \
-  -v ./logs:/app/logs \
+  -p 8080:8080 \
+  -v ./output:/data/output \
+  -v ./roms:/data/roms \
+  -v ./logs:/data/logs \
   -v ./data:/data \
   -v ./backup:/data/backup \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
-  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:latest
+  fansmall/webgamelistoper:1.1-RC1
 ```
 
 #### オプション2：Docker Compose
-`docker-compose.yml` を作成：
 ```yaml
-version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:latest
+    image: fansmall/webgamelistoper:1.1-RC1
     container_name: webgamelistoper
     ports:
-      - "8081:8080"
+      - "8080:8080"
     volumes:
-      - /path/to/output:/data/output
-      - /path/to/roms:/data/roms
-      - ./logs:/app/logs
+      - ./output:/data/output
+      - ./roms:/data/roms
+      - ./logs:/data/logs
       - ./data:/data
       - ./backup:/data/backup
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
 ```
-実行：`docker-compose up -d`
+実行：`docker compose up -d`
 
 #### オプション3：JARファイル
+Java 17+ が必要です。
 ```bash
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
-java -jar webGamelistOper-1.0.6-beta.jar
+java -jar webGamelistOper-1.1-RC1.jar
 ```
 
+#### オプション4：Windows EXE（Java不要）
+GitHub Releases から EXE パッケージをダウンロードし、解凍して `Frontend-Killer.exe` を実行してください。
+
 ### アクセスアドレス
-http://localhost:8081
+http://localhost:8080
 
 ---
 
-**Version**: 1.0.6-beta
+## Roadmap
+
+### Completed
+- [x] Import/export templates: Pegasus, RetroBat, ES-DE, EmuELEC, Lakka, Skraper
+- [x] ScreenScraper API integration for game scraping
+- [x] v3 template system with expression engine
+- [x] Native Windows EXE distribution (jpackage)
+- [x] Multi-language support (Chinese, English, Japanese)
+- [x] File existence verification
+- [x] Background task recovery
+
+### Planned
+- [ ] Multi-file game support (e.g., DOS games) - treat entire game folders as entries
+- [ ] Folder export configuration with configurable parent directory levels
+- [ ] Advanced game filtering options
+- [ ] Statistics dashboard for game collection analytics
+- [ ] Additional frontend templates: EmuDeck, Recalbox, Batocera
+
+---
+
+**Version**: 1.1-RC1

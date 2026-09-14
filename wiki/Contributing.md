@@ -36,7 +36,7 @@ mvn test
 mvn clean package -DskipTests
 
 # Run the application
-java -jar target/webGamelistOper-1.0.4-beta.jar
+java -jar target/webGamelistOper-1.1-RC1.jar
 ```
 
 ### 6. Commit Your Changes
@@ -115,7 +115,7 @@ cd Frontend-Killer
 mvn clean package -DskipTests
 
 # Run the application
-java -jar target/webGamelistOper-1.0.4-beta.jar
+java -jar target/webGamelistOper-1.1-RC1.jar
 
 # Access the application
 open http://localhost:8081

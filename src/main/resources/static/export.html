@@ -456,7 +456,7 @@
                     </select>
                     <div id="frontendDescription" style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 6px; border: 1px solid #444; color: #00ffff;"></div>
                     <div id="templateWarning" style="margin-top: 10px; padding: 10px; background: rgba(255, 193, 7, 0.2); border-radius: 6px; border: 1px solid #ffc107; color: #ffc107; display: none;">
-                        <strong>⚠️ 模板限制提示：</strong>
+                        <strong data-i18n="template_limit_hint">⚠️ 模板限制提示：</strong>
                         <span id="warningMessage"></span>
                     </div>
                 </div>
@@ -507,7 +507,7 @@
         
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -645,7 +645,8 @@
                     data.forEach(rule => {
                         const option = document.createElement('option');
                         option.value = rule.frontend;
-                        option.textContent = rule.name;
+                        // v3 模板显示版本标记
+                        option.textContent = rule.name + (rule.version === 3 ? ' (v3)' : '');
                         frontendSelect.appendChild(option);
                     });
                     showNotification(getI18nText('frontends_loaded'), 'success');
@@ -721,9 +722,13 @@
             // 查找选中的前端规则
             currentFrontendRule = frontendRules.find(rule => rule.frontend === selectedFrontend);
             
-            // 设置描述
-            if (currentFrontendRule && currentFrontendRule.description) {
-                descriptionDiv.textContent = currentFrontendRule.description;
+            // 设置描述（优先使用 API 返回的 name，v3 模板的 name 即描述）
+            if (currentFrontendRule && currentFrontendRule.name) {
+                let descText = currentFrontendRule.name;
+                if (currentFrontendRule.version === 3) {
+                    descText = '[v3] ' + descText;
+                }
+                descriptionDiv.textContent = descText;
             } else {
                 const descriptions = {
                     'pegasus': {

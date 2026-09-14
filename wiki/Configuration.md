@@ -114,7 +114,7 @@ The `translation-config.json` file contains language translations:
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.4-beta
+    image: fansmall/webgamelistoper:1.1-RC1
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -134,7 +134,7 @@ services:
 ### Command Line Arguments
 
 ```bash
-java -jar webGamelistOper-1.0.4-beta.jar \
+java -jar webGamelistOper-1.1-RC1.jar \
   --server.port=8081 \
   --app.data.path=/custom/data \
   --app.output.path=/custom/output
@@ -145,7 +145,7 @@ java -jar webGamelistOper-1.0.4-beta.jar \
 ```bash
 java -Dserver.port=8081 \
      -Dapp.data.path=/custom/data \
-     -jar webGamelistOper-1.0.4-beta.jar
+     -jar webGamelistOper-1.1-RC1.jar
 ```
 
 ## Logging Configuration
@@ -170,16 +170,16 @@ Logs are stored in:
 
 ### Memory Settings
 ```bash
-java -Xmx2g -Xms512m -jar webGamelistOper-1.0.4-beta.jar
+java -Xmx2g -Xms512m -jar webGamelistOper-1.1-RC1.jar
 ```
 
 ### G1GC Garbage Collector
 ```bash
-java -XX:+UseG1GC -jar webGamelistOper-1.0.4-beta.jar
+java -XX:+UseG1GC -jar webGamelistOper-1.1-RC1.jar
 ```
 
 ### Remote Debugging
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
-     -jar webGamelistOper-1.0.4-beta.jar
+     -jar webGamelistOper-1.1-RC1.jar
 ```

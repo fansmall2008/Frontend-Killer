@@ -30,6 +30,11 @@ public interface MediaDownloadTaskMapper {
     MediaDownloadTask selectOnePendingTask(@Param("taskId") Long taskId);
     
     /**
+     * 按平台ID选择一个待下载任务（不限制 taskId，避免不同批次任务互相找不到）
+     */
+    MediaDownloadTask selectOnePendingTaskByPlatformId(@Param("platformId") Long platformId);
+    
+    /**
      * 尝试更新任务状态（乐观锁方式，防止重复下载）
      * @return 更新成功返回1，失败返回0
      */
@@ -51,6 +56,22 @@ public interface MediaDownloadTaskMapper {
     int updateStoppedToPendingByPlatformId(@Param("platformId") Long platformId);
     int updateFailedToPendingByPlatformId(@Param("platformId") Long platformId);
     int updateStoppedToPendingByTaskId(@Param("taskId") Long taskId);
+    
+    /**
+     * 启动时恢复：将 DOWNLOADING 状态的任务重置为 PENDING（处理断电/异常关闭的情况）
+     */
+    int updateDownloadingToPending();
+    
     List<MediaDownloadTask> selectDownloadingByPlatformId(Long platformId);
     List<Long> selectDistinctPlatformIds();
+    
+    /**
+     * 按游戏ID查询媒体下载任务（删除游戏前需先调用）
+     */
+    List<MediaDownloadTask> selectByGameId(@Param("gameId") Long gameId);
+    
+    /**
+     * 按游戏ID删除媒体下载任务（删除游戏前需先调用）
+     */
+    int deleteByGameId(@Param("gameId") Long gameId);
 }

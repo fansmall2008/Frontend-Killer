@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -24,12 +25,14 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamelist.model.ExportRule;
+import com.gamelist.model.TemplateV3;
 import com.gamelist.service.ExportRuleService;
 
 @Service
 public class ExportRuleServiceImpl implements ExportRuleService {
     private static final Logger logger = LoggerFactory.getLogger(ExportRuleServiceImpl.class);
     private final Map<String, ExportRule> rules = new HashMap<>();
+    private final Map<String, TemplateV3> v3Rules = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Value("${app.export.rules.path:#{T(com.gamelist.util.PathUtil).getRulesPath() + '/export'}}")
@@ -74,30 +77,57 @@ public class ExportRuleServiceImpl implements ExportRuleService {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(rulesDirPath, "*.json")) {
                 int loadedCount = 0;
                 for (Path path : stream) {
-                    logger.info("Processing rule file: {}", path.getFileName());
+                    String fileName = path.getFileName().toString();
+                    logger.info("Processing rule file: {}", fileName);
+
+                    // 优先尝试加载 v3 模板
+                    TemplateV3 v3Template = TemplateV3.loadFromFile(path.toFile());
+                    if (v3Template != null && v3Template.getTemplateInfo() != null
+                            && v3Template.getTemplateInfo().isExport()) {
+                        // v3 导出模板：从文件名提取 frontend key（去掉 -v3 后缀）
+                        String frontend = extractFrontendFromFilename(fileName);
+                        v3Rules.put(frontend, v3Template);
+                        logger.info("Loaded v3 export template: {} -> {}", fileName, frontend);
+                        loadedCount++;
+                        continue;
+                    }
+
+                    // 回退到 v2 模板加载
                     try (InputStream is = Files.newInputStream(path)) {
                         ExportRule rule = objectMapper.readValue(is, ExportRule.class);
-                        logger.info("Parsed rule - frontend: {}, name: {}", rule.getFrontend(), rule.getName());
                         if (rule != null && rule.getFrontend() != null) {
                             rules.put(rule.getFrontend(), rule);
-                            logger.info("Loaded export rule from file: {} -> {}", path.getFileName(), rule.getFrontend());
+                            logger.info("Loaded v2 export rule: {} -> {}", fileName, rule.getFrontend());
                             loadedCount++;
                         } else {
-                            logger.warn("Rule file {} has null frontend, skipping", path.getFileName());
+                            logger.warn("Rule file {} has null frontend, skipping", fileName);
                         }
-                    } catch (IOException e) {
-                        logger.error("Failed to load rule file: {} - {}", path.getFileName(), e.getMessage());
                     } catch (Exception e) {
-                        logger.error("Failed to parse rule file: {} - {}", path.getFileName(), e.getMessage());
+                        logger.error("Failed to parse rule file: {} - {}", fileName, e.getMessage());
                     }
                 }
-                logger.info("Total rules loaded from {}: {}/{}", rulesDirPath, loadedCount, rules.size());
+                logger.info("Total rules loaded: v2={}, v3={}", rules.size(), v3Rules.size());
             }
-            return !rules.isEmpty();
+            return !rules.isEmpty() || !v3Rules.isEmpty();
         } catch (IOException e) {
             logger.error("Error loading rules from directory: {}", rulesDirPath, e);
             return false;
         }
+    }
+
+    /**
+     * 从文件名提取 frontend key。
+     * 例如: "pegasus-v3.json" → "pegasus", "esde-v3.json" → "esde"
+     */
+    private String extractFrontendFromFilename(String fileName) {
+        String name = fileName;
+        if (name.endsWith(".json")) {
+            name = name.substring(0, name.length() - 5);
+        }
+        if (name.endsWith("-v3")) {
+            name = name.substring(0, name.length() - 3);
+        }
+        return name;
     }
     
     private boolean loadRulesFromClasspath() {
@@ -157,5 +187,27 @@ public class ExportRuleServiceImpl implements ExportRuleService {
     @Override
     public List<ExportRule> getRuleList() {
         return new ArrayList<>(rules.values());
+    }
+
+    // ==================== v3 模板支持 ====================
+
+    @Override
+    public TemplateV3 getV3RuleByFrontend(String frontend) {
+        return v3Rules.get(frontend);
+    }
+
+    @Override
+    public List<TemplateV3> getV3RuleList() {
+        return new ArrayList<>(v3Rules.values());
+    }
+
+    @Override
+    public boolean isV3Template(String frontend) {
+        return v3Rules.containsKey(frontend);
+    }
+
+    @Override
+    public Set<String> getV3FrontendKeys() {
+        return Collections.unmodifiableSet(v3Rules.keySet());
     }
 }

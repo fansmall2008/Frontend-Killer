@@ -1,0 +1,139 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "dataFileType": "text",
+    "delimiter": ": ",
+    "dataFile": "metadata.pegasus.txt",
+    "author": "Frontend-Killer",
+    "description": "Pegasus Frontend",
+    "notes": "输出 metadata.pegasus.txt 格式，支持多盘游戏的 files 多行输出"
+  },
+  "system": {
+    "header": [
+      "collection: {platform.system}",
+      "sort-by: 064",
+      "{platform.launch}",
+      ""
+    ],
+    "footer": [
+      "# End of file"
+    ],
+    "fields": {
+      "collection": "platform.system",
+      "launch": "platform.launch"
+    }
+  },
+  "game": {
+    "gameStartMarker": "game:",
+    "entrySeparator": "\n\n",
+    "gameInfo": {
+      "game": "name",
+      "files": "path",
+      "sort-by": "sort-by",
+      "developer": "developer",
+      "publisher": "publisher",
+      "genre": "genre",
+      "players": "players",
+      "description": "desc",
+      "rating": "rating",
+      "release": "releasedate",
+      "region": "region"
+    },
+    "mediaInfo": {
+      "assets.boxFront": "box-2D",
+      "assets.boxBack": "box-2D-back",
+      "assets.boxSpine": "box-2D-side",
+      "assets.boxFull": "box-3D",
+      "assets.box3d": "box-3D",
+      "assets.screenshot": "ss",
+      "assets.titlescreen": "sstitle",
+      "assets.video": "video",
+      "assets.logo": "wheel-carbon",
+      "assets.wheel": "wheel",
+      "assets.marquee": "marquee",
+      "assets.fanart": "fanart",
+      "assets.bezel": "bezel-16-9",
+      "assets.background": "background",
+      "assets.cartridge": "support-2D"
+    }
+  },
+  "output": {
+    "exportOptions": {
+      "gameFiles": true,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": false
+    },
+    "roms": {
+      "enabled": true,
+      "directory": "{outputPath}/{platform.system}",
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": true,
+        "target": "{outputPath}/{platform.system}"
+      }
+    },
+    "media": {
+      "directory": "{outputPath}/{platform.system}/media",
+      "rules": {
+        "video": {
+          "source": "video",
+          "target": "{gameName}/video.mp4",
+          "dataFileTag": "assets.video"
+        },
+        "box-2D": {
+          "source": "box-2D",
+          "target": "{gameName}/boxFront.png",
+          "dataFileTag": "assets.boxFront"
+        },
+        "box-2D-back": {
+          "source": "box-2D-back",
+          "target": "{gameName}/boxBack.png",
+          "dataFileTag": "assets.boxBack"
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "{gameName}/box3d.png",
+          "dataFileTag": "assets.box3d"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "{gameName}/screenshot.png",
+          "dataFileTag": "assets.screenshot"
+        },
+        "wheel": {
+          "source": "wheel",
+          "target": "{gameName}/wheel.png",
+          "dataFileTag": "assets.wheel"
+        },
+        "marquee": {
+          "source": "marquee",
+          "target": "{gameName}/marquee.png",
+          "dataFileTag": "assets.marquee"
+        },
+        "fanart": {
+          "source": "fanart",
+          "target": "{gameName}/fanart.png",
+          "dataFileTag": "assets.fanart"
+        },
+        "bezel-16-9": {
+          "source": "bezel-16-9",
+          "target": "{gameName}/bezel.png",
+          "dataFileTag": "assets.bezel"
+        },
+        "background": {
+          "source": "background",
+          "target": "{gameName}/background.png",
+          "dataFileTag": "assets.background"
+        }
+      }
+    },
+    "dataFile": {
+      "directory": "{outputPath}/{platform.system}",
+      "filename": "metadata.pegasus.txt",
+      "pathFormat": "relative",
+      "pathPrefix": ""
+    }
+  }
+}

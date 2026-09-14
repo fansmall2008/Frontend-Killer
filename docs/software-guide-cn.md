@@ -8,7 +8,8 @@
 
 ### 1.2 主要特性
 
-- 🕹️ **多格式支持**：支持导入导出Pegasus、ES-DE、RetroBat等多种前端格式
+- 🕹️ **多格式支持**：支持导入导出Pegasus、ES-DE、RetroBat等多种前端格式（v3 统一模板）
+- 📡 **在线刮削**：集成 ScreenScraper 刮削功能，支持 50 种媒体类型，自动 CRC32 匹配
 - 📁 **批量处理**：支持批量导入导出游戏数据和媒体文件
 - 🔄 **平台合并**：支持将多个游戏平台合并为一个统一管理
 - 🌐 **多语言界面**：支持中文、英文、日文三种语言界面
@@ -382,6 +383,70 @@
 
 支持生成符合各前端要求的标准格式文件，包括XML和纯文本格式。
 
+### 3.5 刮削（Scraper）模块
+
+刮削模块是系统的核心数据来源功能，通过连接 ScreenScraper 在线数据库，自动为游戏抓取元数据和媒体文件。
+
+#### 3.5.1 刮削流程
+
+```
+选择平台 → 扫描 ROM 文件 → 计算 CRC32 校验 → 向 ScreenScraper 发起查询 → 解析响应数据 → 下载媒体文件 → 写入数据库
+```
+
+#### 3.5.2 CRC32 匹配策略
+
+系统使用 CRC32 校验值在 ScreenScraper 数据库中匹配游戏。针对不同平台和文件格式采用不同的匹配策略：
+
+**单文件 ROM**：
+- 直接计算文件的 CRC32 校验值
+
+**压缩包 ROM（ZIP / 7z）— 主机/掌机平台**：
+- 读取压缩包内部 ROM 文件的 CRC32（非压缩包自身的 CRC）
+- 如果包含多个 ROM 文件，优先选择与 ROM 同名的文件，否则选择最大的文件
+- ZIP 格式直接从文件头读取 CRC32，无需解压
+- 7z 格式需要解压后计算 CRC32（7z 不在文件头存储 CRC）
+
+**压缩包 ROM（ZIP）— 街机平台**：
+- 使用压缩包自身的 CRC32 校验值
+- 街机游戏通常以 ZIP 包形式分发，ScreenScraper 按整个 ZIP 包进行匹配
+
+**中文编码兼容**：
+- 对于 GBK 编码的中文 ZIP 文件，系统自动使用 Apache Commons Compress 进行兼容处理
+- 避免因编码问题导致 `invalid CEN header` 错误
+
+#### 3.5.3 支持抓取的媒体类型
+
+系统支持 ScreenScraper 全部 50 种官方媒体类型，按分类如下：
+
+| 分类 | 数量 | 主要类型 |
+|------|------|----------|
+| Bezels（边框） | 6 | bezel-16-9, bezel-4-3 等 |
+| Boitiers（包装盒） | 2 | box-3D, box-texture |
+| Elements Boitiers（包装盒元素） | 3 | box-2D, box-2D-back, box-2D-side |
+| Logos/Wheels（标志） | 4 | wheel, wheel-carbon, wheel-steel, wheel-hd |
+| Marquee（霓虹灯） | 3 | marquee, screenmarquee 等 |
+| Médias（通用媒体） | 7 | ss, sstitle, fanart, video, steamgrid 等 |
+| Médias Pincab（弹球台） | 13 | ssdmd, sstable, videotable 等 |
+| Médias Secondaires（次要媒体） | 4 | flyer, manuel, maps, figurine |
+| Images Secondaires（补充图片） | 4 | background, pictoliste 等 |
+| Mixes（混合） | 2 | mixrbv1, mixrbv2 |
+| Sources（源） | 2 | box-scan, support-scan |
+| Supports（支撑） | 2 | support-2D, support-texture |
+| Themes（主题） | 2 | themehb, themehs |
+
+详细的媒体类型名称对照表请参考 [v3 模板系统文档](v3-templates-cn.md)。
+
+#### 3.5.4 刮削配置
+
+- **线程控制**：系统通过 ThreadResourceManager 统一管理并发线程数，遵循 ScreenScraper API 限制
+- **媒体下载**：可选择下载全部或部分媒体类型
+- **线程配额**：从 ScreenScraper API 响应中动态刷新可用线程数
+
+#### 3.5.5 刮削数据来源
+
+- **ScreenScraper.fr**：主要的元数据数据来源，提供游戏信息、封面、截图、视频等
+- **匹配方式**：主要通过 CRC32 校验匹配，支持文件名匹配作为备选
+
 ## 4. 使用流程指南
 
 ### 4.1 首次使用流程
@@ -534,9 +599,11 @@ A: 检查H2控制台的JDBC URL配置是否正确，默认应为 `jdbc:h2:file:/
 
 ### 9.1 文档资源
 
-- 📘 **导入模板配置文档**：`import-templates-cn.md`（中文）
-- 📗 **导出功能配置文档**：`export-functionality-cn.md`（中文）
-- 📙 **安装部署文档**：`INSTALL.md` / `INSTALL_zh.md`
+- 📘 **v3 模板系统文档**：`v3-templates-cn.md`（中文）/ `v3-templates-en.md`（English）/ `v3-templates-ja.md`（日本語）
+- 📗 **导入模板配置文档**：`import-templates-cn.md`（中文）
+- 📙 **导出功能配置文档**：`export-functionality-cn.md`（中文）
+- 📕 **安装部署文档**：`INSTALL.md` / `INSTALL_zh.md`
+- 📔 **媒体映射文档**：`media-mapping-cn.md`（中文）
 
 ### 9.2 技术支持
 
@@ -546,8 +613,8 @@ A: 检查H2控制台的JDBC URL配置是否正确，默认应为 `jdbc:h2:file:/
 
 ## 10. 版本信息
 
-**当前版本**：1.0.2-beta
-**最后更新**：2026-04-26
+**当前版本**：1.1-RC1
+**最后更新**：2026-09-13
 
 ## 11. Docker 部署指南
 

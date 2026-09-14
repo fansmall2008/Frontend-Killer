@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: docs_wiki
-title: 项目文档与 Wiki 知识库
-scope:
-    - docs/
-    - wiki/
-source_files: []
-depends_on: []
-related_to: []

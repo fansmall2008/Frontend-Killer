@@ -25,7 +25,7 @@ public enum MediaType {
     BEZEL_4_3_V("bezel-4-3-v", "bezel_4_3_v", "bezel43V", "Bezels", "image"),
 
     // ==================== Boitiers (包装盒类) ====================
-    BOX_3D("box-3D", "box_3d", "box3d", "Boitiers", "image"),
+    BOX_3D("box-3D", "box_3d", "box3D", "Boitiers", "image"),
     BOX_TEXTURE("box-texture", "box_texture", "boxTexture", "Boitiers", "image"),
 
     // ==================== Elements Boitiers (包装盒元素类) ====================

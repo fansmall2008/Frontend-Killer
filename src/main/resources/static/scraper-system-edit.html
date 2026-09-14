@@ -245,7 +245,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="scraper-system-list.html" class="back-link">← 返回系统列表</a>
+        <a href="scraper-system-list.html" class="back-link" data-i18n="back_to_scraper_list">← 返回系统列表</a>
         
         <div class="header">
             <div class="header-content">
@@ -263,18 +263,18 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="systemId" data-i18n="label_system_id">系统ID <span class="required">*</span></label>
-                        <input type="number" id="systemId" name="systemId" required placeholder="ScreenScraper系统ID">
+                        <input type="number" id="systemId" name="systemId" required placeholder="ScreenScraper系统ID" data-i18n-placeholder="system_id_placeholder">
                     </div>
                     
                     <div class="form-group">
                         <label for="type" data-i18n="label_type">类型</label>
-                        <input type="text" id="type" name="type" placeholder="如: console, arcade, handheld">
+                        <input type="text" id="type" name="type" placeholder="如: console, arcade, handheld" data-i18n-placeholder="type_placeholder">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="name" data-i18n="label_name">名称（法语）<span class="required">*</span></label>
-                    <input type="text" id="name" name="name" required placeholder="系统名称（法语）">
+                    <input type="text" id="name" name="name" required placeholder="系统名称（法语）" data-i18n-placeholder="name_placeholder">
                 </div>
 
                 <div class="language-section">
@@ -295,12 +295,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nameJp" data-i18n="label_name_jp">日语名称</label>
-                            <input type="text" id="nameJp" name="nameJp" placeholder="日本語名">
+                            <input type="text" id="nameJp" name="nameJp" placeholder="日本語名" data-i18n-placeholder="name_jp_placeholder">
                         </div>
                         
                         <div class="form-group">
                             <label for="nameCn" data-i18n="label_name_cn">中文名称</label>
-                            <input type="text" id="nameCn" name="nameCn" placeholder="中文名称">
+                            <input type="text" id="nameCn" name="nameCn" placeholder="中文名称" data-i18n-placeholder="name_cn_placeholder">
                         </div>
                     </div>
                 </div>
@@ -308,18 +308,18 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="company" data-i18n="label_company">制造商</label>
-                        <input type="text" id="company" name="company" placeholder="如: Nintendo, Sony, Sega">
+                        <input type="text" id="company" name="company" placeholder="如: Nintendo, Sony, Sega" data-i18n-placeholder="company_placeholder">
                     </div>
                     
                     <div class="form-group">
                         <label for="releaseYear" data-i18n="label_release_year">发行年份</label>
-                        <input type="number" id="releaseYear" name="releaseYear" placeholder="如: 1990">
+                        <input type="number" id="releaseYear" name="releaseYear" placeholder="如: 1990" data-i18n-placeholder="release_year_placeholder">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="iconUrl" data-i18n="label_icon_url">图标URL</label>
-                    <input type="text" id="iconUrl" name="iconUrl" placeholder="系统图标链接">
+                    <input type="text" id="iconUrl" name="iconUrl" placeholder="系统图标链接" data-i18n-placeholder="icon_url_placeholder">
                 </div>
 
                 <div class="form-actions">
@@ -356,15 +356,15 @@
                         document.getElementById('releaseYear').value = system.releaseYear || '';
                         document.getElementById('iconUrl').value = system.iconUrl || '';
 
-                        document.getElementById('page-title').textContent = '编辑刮削系统';
-                        document.getElementById('page-desc').textContent = '修改刮削系统信息';
+                        document.getElementById('page-title').textContent = I18n.t('edit_scraper_system_title', '编辑刮削系统');
+                        document.getElementById('page-desc').textContent = I18n.t('edit_scraper_system_desc', '修改刮削系统信息');
                         isEdit = true;
                     } else {
-                        showStatus(data.message || '加载系统数据失败', 'error');
+                        showStatus(data.message || I18n.t('load_system_failed', '加载系统数据失败'), 'error');
                     }
                 })
                 .catch(error => {
-                    showStatus('加载系统数据失败: ' + error.message, 'error');
+                    showStatus(I18n.t('load_system_failed', '加载系统数据失败') + ': ' + error.message, 'error');
                 });
         }
 
@@ -396,7 +396,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showStatus(isEdit ? '更新成功' : '创建成功', 'success');
+                    showStatus(isEdit ? I18n.t('update_success', '更新成功') : I18n.t('create_success', '创建成功'), 'success');
                     setTimeout(() => {
                         window.location.href = 'scraper-system-list.html';
                     }, 1500);
@@ -405,7 +405,7 @@
                 }
             })
             .catch(error => {
-                showStatus('保存失败: ' + error.message, 'error');
+                showStatus(I18n.t('save_failed_prefix', '保存失败: ') + error.message, 'error');
             });
         }
 

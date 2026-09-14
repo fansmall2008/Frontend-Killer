@@ -59,5 +59,30 @@ database/
 
 # Distribution
 distribution/*.jar
+distribution/*.zip
 !distribution/rules/
 distribution/
+
+# Screenshots and temp files
+screenshot_*.png
+maven_*.txt
+mvn_*.txt
+cp.txt
+task_response.json
+fix_*.py
+merge_*.ps1
+game_edit_keys_zh.json
+
+# Build artifacts
+META-INF/
+
+# Tool/IDE
+.qoder/
+
+# Runtime directories
+output/
+roms/
+backup/
+
+# EXE build output
+distribution/exe/

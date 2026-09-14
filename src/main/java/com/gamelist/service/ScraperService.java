@@ -60,4 +60,14 @@ public interface ScraperService {
      * @param medias 媒体文件信息
      */
     void downloadGameMedia(Long gameId, String gameName, Long platformId, Map<String, Object> medias);
+
+    /**
+     * 将游戏媒体下载任务加入队列（不立即开始下载）
+     * @param gameId 游戏ID
+     * @param gameName 游戏名称
+     * @param platformId 平台ID
+     * @param medias 媒体文件信息
+     * @return 创建的任务数量
+     */
+    int enqueueGameMedia(Long gameId, String gameName, Long platformId, Map<String, Object> medias);
 }

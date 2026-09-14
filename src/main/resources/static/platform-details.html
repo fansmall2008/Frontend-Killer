@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>平台详情 - 前端杀手</title>
+    <title data-i18n="platform_details_title">平台详情 - 前端杀手</title>
     <style>
         * {
             margin: 0;
@@ -195,6 +195,36 @@
         .btn.active {
             background: linear-gradient(45deg, #00ff88, #00aa55);
             box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        
+        /* 状态筛选按钮颜色 */
+        .status-btn[data-status="scraped"] {
+            background: linear-gradient(45deg, #00cc00, #009900);
+        }
+        .status-btn[data-status="scraped"].active {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        .status-btn[data-status="original"] {
+            background: linear-gradient(45deg, #5ba3c9, #3a7ca5);
+        }
+        .status-btn[data-status="original"].active {
+            background: linear-gradient(45deg, #87ceeb, #5ba3c9);
+            box-shadow: 0 0 15px rgba(135, 206, 235, 0.5);
+        }
+        .status-btn[data-status="poor_quality"] {
+            background: linear-gradient(45deg, #cc8400, #996300);
+        }
+        .status-btn[data-status="poor_quality"].active {
+            background: linear-gradient(45deg, #ffa500, #cc8400);
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+        }
+        .status-btn[data-status="raw"] {
+            background: linear-gradient(45deg, #666666, #444444);
+        }
+        .status-btn[data-status="raw"].active {
+            background: linear-gradient(45deg, #888888, #666666);
+            box-shadow: 0 0 15px rgba(136, 136, 136, 0.5);
         }
         
         .btn.back-btn {
@@ -573,9 +603,10 @@
             <h2 data-i18n="game_list_title">游戏列表</h2>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <div class="status-filter">
-                    <button class="btn status-btn active" data-status="fully" data-i18n="fully_scraped">完全刮削</button>
-                    <button class="btn status-btn" data-status="partially" data-i18n="partially_scraped">部分刮削</button>
-                    <button class="btn status-btn" data-status="not" data-i18n="not_scraped">未完成刮削</button>
+                    <button class="btn status-btn active" data-status="scraped" data-i18n="status_scraped">已刮削</button>
+                    <button class="btn status-btn" data-status="original" data-i18n="status_original">有原始数据</button>
+                    <button class="btn status-btn" data-status="poor_quality" data-i18n="status_poor_quality">质量差</button>
+                    <button class="btn status-btn" data-status="raw" data-i18n="status_raw_rom">纯ROM</button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <label data-i18n="items_per_page">每页显示：</label>
@@ -594,7 +625,7 @@
         
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：0.6.0</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -632,7 +663,7 @@
     <div id="notificationModal" class="notification-modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>任务消息</h2>
+            <h2 data-i18n="task_messages">任务消息</h2>
             <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
                 <!-- 消息将通过JavaScript动态填充 -->
             </div>
@@ -646,7 +677,7 @@
         // 全局变量
         let currentPlatformId = null;
         let currentPlatformName = null;
-        let currentStatus = 'fully';
+        let currentStatus = 'scraped';
         let currentPage = 1;
         let pageSize = 10;
         
@@ -720,16 +751,20 @@
                     statsContent.innerHTML = `
                         <div class="platform-stats-grid">
                             <div class="platform-stat-item">
-                                <h4 data-i18n="fully_scraped">完全刮削</h4>
-                                <div class="value fully-scraped">${platform.fullyScraped}</div>
+                                <h4 data-i18n="status_scraped">已刮削</h4>
+                                <div class="value scraped">${platform.scraped}</div>
                             </div>
                             <div class="platform-stat-item">
-                                <h4 data-i18n="partially_scraped">部分刮削</h4>
-                                <div class="value partially-scraped">${platform.partiallyScraped}</div>
+                                <h4 data-i18n="status_original">有原始数据</h4>
+                                <div class="value original-data">${platform.originalData}</div>
                             </div>
                             <div class="platform-stat-item">
-                                <h4 data-i18n="not_scraped">未完成刮削</h4>
-                                <div class="value not-scraped">${platform.notScraped}</div>
+                                <h4 data-i18n="status_poor_quality">质量差</h4>
+                                <div class="value poor-quality">${platform.poorQuality}</div>
+                            </div>
+                            <div class="platform-stat-item">
+                                <h4 data-i18n="status_raw_rom">纯ROM</h4>
+                                <div class="value raw-rom">${platform.rawRom}</div>
                             </div>
                             <div class="platform-stat-item">
                                 <h4 data-i18n="total_games">总游戏数</h4>

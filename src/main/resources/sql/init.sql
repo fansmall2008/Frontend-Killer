@@ -357,9 +357,13 @@ CREATE TABLE IF NOT EXISTS scraper_system (
     support_type VARCHAR(50),
     extensions VARCHAR(200),
     icon_url VARCHAR(500),
+    media_scraped BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 为 scraper_system 表添加媒体刮削状态字段（兼容旧数据库）
+ALTER TABLE scraper_system ADD COLUMN IF NOT EXISTS media_scraped BOOLEAN DEFAULT FALSE;
 
 -- 创建后台任务表
 CREATE TABLE IF NOT EXISTS background_task (

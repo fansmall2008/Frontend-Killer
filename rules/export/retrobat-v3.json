@@ -1,0 +1,126 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "dataFileType": "data",
+    "format": "xml",
+    "dataFile": "gamelist.xml",
+    "author": "Frontend-Killer",
+    "description": "RetroBat",
+    "notes": "输出 gamelist.xml 格式，含 provider 头部信息"
+  },
+  "system": {
+    "systemTag": "provider",
+    "header": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<gameList>",
+      "  <provider>",
+      "    <System>{platform.system}</System>",
+      "    <software>{platform.software}</software>",
+      "    <database>{platform.database}</database>",
+      "    <web>{platform.web}</web>",
+      "  </provider>"
+    ],
+    "footer": [
+      "</gameList>"
+    ],
+    "fields": {
+      "system": "platform.system",
+      "software": "platform.software",
+      "database": "platform.database",
+      "web": "platform.web"
+    }
+  },
+  "game": {
+    "gameStartMarker": "game",
+    "gameInfo": {
+      "path": "path",
+      "name": "name",
+      "desc": "desc",
+      "rating": "rating",
+      "releasedate": "releasedate",
+      "developer": "developer",
+      "publisher": "publisher",
+      "genre": "genre",
+      "players": "players",
+      "region": "lang"
+    },
+    "mediaInfo": {
+      "box2dfront": "box-2D",
+      "box2dback": "box-2D-back",
+      "box3d": "box-3D",
+      "screenshot": "ss",
+      "video": "video",
+      "wheel": "wheel",
+      "marquee": "marquee",
+      "fanart": "fanart"
+    }
+  },
+  "output": {
+    "exportOptions": {
+      "gameFiles": true,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": false
+    },
+    "roms": {
+      "enabled": true,
+      "directory": "{outputPath}/{platform.system}",
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": false
+      }
+    },
+    "media": {
+      "directory": "{outputPath}/{platform.system}/media",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "box2dfront/{gameName}.png",
+          "dataFileTag": "box2dfront"
+        },
+        "box-2D-back": {
+          "source": "box-2D-back",
+          "target": "box2dback/{gameName}.png",
+          "dataFileTag": "box2dback"
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "box3d/{gameName}.png",
+          "dataFileTag": "box3d"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "screenshot/{gameName}.png",
+          "dataFileTag": "screenshot"
+        },
+        "video": {
+          "source": "video",
+          "target": "video/{gameName}.mp4",
+          "dataFileTag": "video"
+        },
+        "wheel": {
+          "source": "wheel",
+          "target": "wheel/{gameName}.png",
+          "dataFileTag": "wheel"
+        },
+        "marquee": {
+          "source": "marquee",
+          "target": "marquee/{gameName}.png",
+          "dataFileTag": "marquee"
+        },
+        "fanart": {
+          "source": "fanart",
+          "target": "fanart/{gameName}.png",
+          "dataFileTag": "fanart"
+        }
+      }
+    },
+    "dataFile": {
+      "directory": "{outputPath}/{platform.system}",
+      "filename": "gamelist.xml",
+      "pathFormat": "absoluteWithDot",
+      "pathPrefix": ""
+    }
+  }
+}

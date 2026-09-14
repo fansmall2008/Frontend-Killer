@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="edit-game-title">游戏编辑 - 平台管理系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff; line-height: 1.6; min-height: 100vh; background-attachment: fixed;
+        }
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 25% 25%, rgba(50,100,200,0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 75% 75%, rgba(200,50,100,0.1) 0%, transparent 50%);
+            pointer-events: none; z-index: -1;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* 顶部导航栏 */
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; margin-bottom: 20px;
+            background: rgba(0,0,0,0.8); border: 2px solid #00ffff; border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,255,255,0.5);
+        }
+        .top-bar-left { display: flex; align-items: center; gap: 15px; }
+        .top-bar-title { font-size: 20px; color: #00ffff; font-weight: bold; }
+        .top-bar-game-name { color: #ff00ff; font-size: 16px; }
+        .btn {
+            padding: 8px 16px; border: 2px solid #00ffff; border-radius: 4px;
+            cursor: pointer; font-family: inherit; font-size: 14px;
+            background: #1a1a2e; color: #00ffff;
+            box-shadow: 0 0 10px rgba(0,255,255,0.3); transition: all 0.3s ease;
+        }
+        .btn:hover { background: #00ffff; color: #1a1a2e; box-shadow: 0 0 20px rgba(0,255,255,0.8); }
+        .btn-primary { background: #00ffff; color: #1a1a2e; }
+        .btn-primary:hover { background: #fff; border-color: #fff; }
+        .btn-danger { border-color: #ff4444; color: #ff4444; }
+        .btn-danger:hover { background: #ff4444; color: #fff; }
+        .btn-success { border-color: #4CAF50; color: #4CAF50; }
+        .btn-success:hover { background: #4CAF50; color: #fff; }
+        .btn-small { padding: 4px 10px; font-size: 12px; }
+
+        /* Tab 导航 */
+        .tab-nav {
+            display: flex; gap: 0; margin-bottom: 0;
+            border-bottom: 2px solid #00ffff;
+        }
+        .tab-btn {
+            padding: 12px 24px; cursor: pointer; font-family: inherit; font-size: 14px;
+            background: rgba(0,0,0,0.5); color: #888; border: none;
+            border-bottom: 3px solid transparent; transition: all 0.3s ease;
+            border-top: 2px solid transparent; border-left: 2px solid transparent; border-right: 2px solid transparent;
+        }
+        .tab-btn:hover { color: #00ffff; background: rgba(0,255,255,0.05); }
+        .tab-btn.active { color: #00ffff; background: rgba(0,255,255,0.1); border-bottom-color: #00ffff; }
+        .tab-content { display: none; padding: 20px; background: rgba(0,0,0,0.4); border: 2px solid #333; border-top: none; border-radius: 0 0 8px 8px; }
+        .tab-content.active { display: block; }
+
+        /* 表单样式 */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { color: #00ffff; font-size: 13px; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select {
+            padding: 8px 12px; background: rgba(0,0,0,0.6); border: 1px solid #444;
+            border-radius: 4px; color: #fff; font-family: inherit; font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: #00ffff; box-shadow: 0 0 8px rgba(0,255,255,0.3);
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group input[readonly] { opacity: 0.6; cursor: not-allowed; }
+
+        /* 分组折叠 */
+        .media-category {
+            margin-bottom: 15px; border: 1px solid #333; border-radius: 8px;
+            background: rgba(0,0,0,0.3); overflow: hidden;
+        }
+        .category-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; cursor: pointer; background: rgba(0,255,255,0.05);
+            border-bottom: 1px solid #333; transition: background 0.3s;
+        }
+        .category-header:hover { background: rgba(0,255,255,0.1); }
+        .category-title { color: #00ffff; font-size: 15px; font-weight: bold; }
+        .category-count { color: #888; font-size: 13px; }
+        .category-body { padding: 15px; display: none; }
+        .category-body.open { display: block; }
+
+        /* 媒体卡片网格 */
+        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .media-card {
+            border: 2px solid #333; border-radius: 8px; padding: 12px;
+            background: rgba(0,0,0,0.4); text-align: center; transition: all 0.3s;
+            min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        }
+        .media-card:hover { border-color: #00ffff; box-shadow: 0 0 10px rgba(0,255,255,0.2); }
+        .media-card.has-file { border-color: #4CAF50; }
+        .media-card .card-title { color: #ff00ff; font-size: 13px; margin-bottom: 8px; font-weight: bold; }
+        .media-card .card-preview {
+            width: 100%; height: 120px; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); border-radius: 4px; margin-bottom: 8px; overflow: hidden;
+        }
+        .media-card .card-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .media-card .card-preview .empty-icon { color: #555; font-size: 36px; }
+        .media-card .card-preview video { max-width: 100%; max-height: 100%; }
+        .media-card .card-actions { display: flex; gap: 6px; margin-top: auto; }
+
+        /* 底部操作栏 */
+        .bottom-bar {
+            display: flex; justify-content: center; gap: 15px; padding: 15px 20px; margin-top: 20px;
+            background: rgba(0,0,0,0.8); border: 2px solid #00ffff; border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,255,255,0.5);
+        }
+
+        /* 媒体预览画廊 (Tab 4) */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .gallery-item {
+            border: 2px solid #00ffff; border-radius: 8px; padding: 10px;
+            background: rgba(0,0,0,0.4); text-align: center;
+        }
+        .gallery-item .gallery-title { color: #ff00ff; font-size: 14px; margin-bottom: 10px; }
+        .gallery-item img, .gallery-item video { max-width: 100%; max-height: 300px; border-radius: 4px; }
+        .gallery-empty { text-align: center; color: #666; padding: 60px 20px; font-size: 16px; }
+
+        /* 通知 */
+        .notification {
+            position: fixed; top: 20px; right: 20px; padding: 15px 25px;
+            border-radius: 8px; z-index: 10000; font-family: inherit;
+            animation: slideIn 0.3s ease; max-width: 400px;
+        }
+        .notification.success { background: rgba(76,175,80,0.9); border: 2px solid #4CAF50; color: #fff; }
+        .notification.error { background: rgba(244,67,54,0.9); border: 2px solid #f44336; color: #fff; }
+        .notification.info { background: rgba(0,150,255,0.9); border: 2px solid #0096ff; color: #fff; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* 加载遮罩 */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 9999; flex-direction: column; gap: 15px;
+        }
+        .loading-spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: #00ffff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 搜索模态框 */
+        .search-modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: hidden;
+            background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+        }
+        .search-modal-content {
+            max-width: 800px; margin: 40px auto; padding: 20px;
+            background: #1a1a2e; border: 2px solid #00ffff; border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,255,255,0.5); max-height: 85vh; display: flex; flex-direction: column;
+        }
+        .search-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .search-modal-header h2 { color: #00ffff; font-size: 18px; margin: 0; }
+        .search-close { color: #aaa; font-size: 28px; cursor: pointer; background: none; border: none; }
+        .search-close:hover { color: #fff; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input {
+            flex: 1; padding: 8px 12px; border: 2px solid #00ffff; border-radius: 4px;
+            background: #0c0c0c; color: #fff; font-family: inherit; font-size: 14px;
+        }
+        .search-bar input:focus { outline: none; box-shadow: 0 0 10px rgba(0,255,255,0.5); }
+        .search-options {
+            display: flex; align-items: center; gap: 15px; margin-bottom: 12px;
+            padding: 8px 12px; background: rgba(0,255,255,0.05); border: 1px solid #333; border-radius: 4px;
+        }
+        .search-options label {
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
+            font-size: 13px; color: #ccc; transition: color 0.2s;
+        }
+        .search-options label:hover { color: #00ffff; }
+        .search-options input[type="checkbox"] { accent-color: #00ffff; width: 15px; height: 15px; cursor: pointer; }
+        .search-options .option-hint { color: #666; font-size: 11px; margin-left: auto; }
+        .search-results {
+            flex: 1; overflow-y: auto; border: 1px solid #333; border-radius: 4px;
+            background: #0c0c0c; min-height: 200px;
+        }
+        .search-result-item {
+            display: flex; gap: 15px; padding: 12px 15px; cursor: pointer;
+            border-bottom: 1px solid #222; transition: background 0.2s;
+        }
+        .search-result-item:hover { background: rgba(0,255,255,0.1); }
+        .search-result-thumb {
+            width: 80px; height: 80px; flex-shrink: 0; border-radius: 4px;
+            background: #222; display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .search-result-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .search-result-info { flex: 1; min-width: 0; }
+        .search-result-name { color: #00ffff; font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .search-result-meta { color: #999; font-size: 12px; line-height: 1.6; }
+        .search-result-meta span { margin-right: 12px; }
+        .search-result-desc { color: #aaa; font-size: 12px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .search-empty { padding: 40px; text-align: center; color: #666; }
+        .search-loading { padding: 40px; text-align: center; color: #00ffff; }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .media-grid { grid-template-columns: repeat(2, 1fr); }
+            .tab-btn { padding: 10px 14px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载遮罩 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div style="color: #00ffff;">加载中...</div>
+    </div>
+
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="btn" onclick="goBack()" data-i18n="back-to-list">← 返回列表</button>
+                <span class="top-bar-title" data-i18n="edit-game-title">游戏编辑</span>
+                <span class="top-bar-game-name" id="gameNameDisplay"></span>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-success" onclick="openSearchModal()" data-i18n="search-game">检索游戏</button>
+            </div>
+        </div>
+
+        <!-- Tab 导航 -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('basic')" data-i18n="tab-basic">基本信息</button>
+            <button class="tab-btn" onclick="switchTab('metadata')" data-i18n="tab-metadata">元数据</button>
+            <button class="tab-btn" onclick="switchTab('media')" data-i18n="tab-media">媒体管理</button>
+            <button class="tab-btn" onclick="switchTab('preview')" data-i18n="tab-preview">媒体预览</button>
+        </div>
+
+        <!-- Tab 1: 基本信息 -->
+        <div id="tab-basic" class="tab-content active">
+            <form id="editGameForm">
+                <input type="hidden" id="gameId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-i18n="game-name">游戏名称（name）</label>
+                        <input type="text" id="gameName" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="game-path">游戏路径（path）</label>
+                        <input type="text" id="gamePath" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label data-i18n="game-desc">游戏描述（desc）</label>
+                        <textarea id="gameDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="translated-name">翻译名称（translatedName）</label>
+                        <input type="text" id="translatedName">
+                    </div>
+                    <div class="form-group full-width">
+                        <label data-i18n="translated-desc">翻译描述（translatedDesc）</label>
+                        <textarea id="translatedDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="developer">开发商（developer）</label>
+                        <input type="text" id="gameDeveloper">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="publisher">发行商（publisher）</label>
+                        <input type="text" id="gamePublisher">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="genre">游戏类型（genre）</label>
+                        <input type="text" id="gameType">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="players">玩家数（players）</label>
+                        <input type="text" id="playerCount">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="releasedate">发布日期（releasedate）</label>
+                        <input type="text" id="releaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="rating">评分（rating）</label>
+                        <input type="text" id="rating">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="language">语言（lang）</label>
+                        <input type="text" id="language">
+                    </div>
+                    <div class="form-group full-width">
+                        <label data-i18n="game-filename">游戏文件名（filename）</label>
+                        <input type="text" id="gameFilename">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="platform-path">平台路径（platformPath）</label>
+                        <input type="text" id="platformPathEdit">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="absolute-path">绝对路径（absolutePath）</label>
+                        <input type="text" id="absolutePathEdit">
+                    </div>
+                </div>
+                <!-- 切换译文快捷按钮 -->
+                <div style="margin-top: 20px; padding: 15px; background: rgba(0,255,255,0.05); border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; gap: 15px;">
+                    <button class="btn btn-success" onclick="swapTranslationInEditor()" style="padding: 8px 16px;">🔄 切换译文</button>
+                    <span style="color: #aaa; font-size: 13px;">将原文名称/描述与译文名称/描述互换</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab 2: 元数据 -->
+        <div id="tab-metadata" class="tab-content">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label data-i18n="game-id">游戏ID（gameId）</label>
+                    <input type="text" id="gameIdInput" readonly>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="source">来源（source）</label>
+                    <input type="text" id="sourceEdit">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="crc32">CRC32（crc32）</label>
+                    <input type="text" id="crc32" readonly>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="genre-id">类型ID（genreid）</label>
+                    <input type="text" id="genreid" readonly>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="platform-id">平台ID（platformId）</label>
+                    <input type="text" id="platformIdInput" readonly>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="platform-path">平台路径（platformPath）</label>
+                    <input type="text" id="platformPathMeta">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="sort-by">排序字段（sortBy）</label>
+                    <input type="text" id="sortByEdit">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 媒体管理 (JS 动态生成) -->
+        <div id="tab-media" class="tab-content">
+            <div id="mediaCardsContainer"></div>
+        </div>
+
+        <!-- Tab 4: 媒体预览 (JS 动态生成) -->
+        <div id="tab-preview" class="tab-content">
+            <div id="mediaPreviewContainer"></div>
+        </div>
+
+        <!-- 底部操作栏 -->
+        <div class="bottom-bar">
+            <button class="btn btn-primary" onclick="saveGame()" data-i18n="save-changes">保存修改</button>
+            <button class="btn btn-success" onclick="openSearchModal()" data-i18n="search-game">检索游戏</button>
+            <button class="btn" onclick="goBack()" data-i18n="cancel">取消</button>
+        </div>
+    </div>
+
+    <!-- 检索游戏模态框 -->
+    <div id="searchModal" class="search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h2 data-i18n="search-game">检索游戏</h2>
+                <button class="search-close" onclick="closeSearchModal()">&times;</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchTermInput" placeholder="输入游戏名称搜索..." data-i18n-placeholder="search-placeholder" onkeydown="if(event.key==='Enter')searchGames()">
+                <button class="btn btn-primary" onclick="searchGames()" data-i18n="search">搜索</button>
+            </div>
+            <div class="search-options">
+                <label><input type="checkbox" id="autoDownloadMedia" checked> <span data-i18n="auto_download_media">☁️ 顺手下载媒体文件</span></label>
+                <span class="option-hint" data-i18n="auto_download_hint">选中结果后自动下载对应媒体到本地</span>
+            </div>
+            <div class="search-results" id="searchResults">
+                <div class="search-empty" data-i18n="search_input_hint">输入游戏名称后点击搜索</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的 file input 用于上传 -->
+    <input type="file" id="mediaFileInput" style="display:none" onchange="handleFileSelected(event)">
+
+    <script src="js/i18n.js"></script>
+    <script>
+    // ==================== 全局变量 ====================
+    let currentGameId = null;
+    let currentGameCache = null;
+    let mediaStatusData = null;
+    let currentUploadMediaType = null; // 当前正在上传的媒体类型 nomcourt
+
+    // ==================== 媒体类型定义（按分类分组） ====================
+    const MEDIA_CATEGORIES = {
+        'Elements Boitiers': { label: 'media_cat_elements_boitiers', icon: '📦', types: ['box-2D','box-2D-back','box-2D-side'] },
+        'Boitiers': { label: 'media_cat_boitiers', icon: '🎁', types: ['box-3D','box-texture'] },
+        'Sources': { label: 'media_cat_sources', icon: '📋', types: ['box-scan'] },
+        'Supports': { label: 'media_cat_supports', icon: '💿', types: ['support-2D','support-texture'] },
+        'Supports-scan': { label: 'media_cat_supports_scan', icon: '🔍', types: ['support-scan'] },
+        'Logos (Wheels)': { label: 'media_cat_logos', icon: '🎯', types: ['wheel','wheel-hd','wheel-carbon','wheel-steel','wheel-tarcisios'] },
+        'Marquee': { label: 'media_cat_marquee', icon: '💡', types: ['marquee','screenmarquee','screenmarqueesmall'] },
+        'Médias': { label: 'media_cat_medias', icon: '🖼️', types: ['ss','sstitle','steamgrid','fanart','overlay','video','video-normalized'] },
+        'Bezels': { label: 'media_cat_bezels', icon: '🖥️', types: ['bezel-4-3','bezel-4-3-v','bezel-4-3-cocktail','bezel-16-9','bezel-16-9-v','bezel-16-9-cocktail'] },
+        'Médias Secondaires': { label: 'media_cat_medias_secondaires', icon: '📄', types: ['flyer','manuel','maps','figurine'] },
+        'Mixes': { label: 'media_cat_mixes', icon: '🎨', types: ['mixrbv1','mixrbv2'] },
+        'Themes': { label: 'media_cat_themes', icon: '🎭', types: ['themehb','themehs'] },
+        'Médias Pincab': { label: 'media_cat_medias_pincab', icon: '🎰', types: ['ssdmd','ssfronton16-9','ssfronton1-1','ssfronton4-3','sstable','sstopper','videodmd','videofronton4-3','videofronton16-9','videotable','videotable4k','videotopper'] },
+        'Images Secondaires': { label: 'media_cat_images_secondaires', icon: '🗃️', types: ['background','pictoliste','pictocouleur','pictomonochrome'] }
+    };
+
+    // nomcourt → 中文名映射
+    const MEDIA_LABELS = {
+        'box-2D':'ml_box_2d','box-2D-back':'ml_box_2d_back','box-2D-side':'ml_box_2d_side',
+        'box-3D':'ml_box_3d','box-texture':'ml_box_texture','box-scan':'ml_box_scan',
+        'support-2D':'ml_support_2d','support-texture':'ml_support_texture','support-scan':'ml_support_scan',
+        'wheel':'ml_wheel','wheel-hd':'ml_wheel_hd','wheel-carbon':'ml_wheel_carbon','wheel-steel':'ml_wheel_steel','wheel-tarcisios':'ml_wheel_tarcisios',
+        'marquee':'ml_marquee','screenmarquee':'ml_screenmarquee','screenmarqueesmall':'ml_screenmarqueesmall',
+        'ss':'ml_ss','sstitle':'ml_sstitle','steamgrid':'ml_steamgrid','fanart':'ml_fanart','overlay':'ml_overlay','video':'ml_video','video-normalized':'ml_video_normalized',
+        'bezel-4-3':'ml_bezel_4_3','bezel-4-3-v':'ml_bezel_4_3_v','bezel-4-3-cocktail':'ml_bezel_4_3_cocktail',
+        'bezel-16-9':'ml_bezel_16_9','bezel-16-9-v':'ml_bezel_16_9_v','bezel-16-9-cocktail':'ml_bezel_16_9_cocktail',
+        'flyer':'ml_flyer','manuel':'ml_manuel','maps':'ml_maps','figurine':'ml_figurine',
+        'mixrbv1':'ml_mixrbv1','mixrbv2':'ml_mixrbv2',
+        'themehb':'ml_themehb','themehs':'ml_themehs',
+        'ssdmd':'ml_ssdmd','ssfronton16-9':'ml_ssfronton16_9','ssfronton1-1':'ml_ssfronton1_1','ssfronton4-3':'ml_ssfronton4_3',
+        'sstable':'ml_sstable','sstopper':'ml_sstopper',
+        'videodmd':'ml_videodmd','videofronton4-3':'ml_videofronton4_3','videofronton16-9':'ml_videofronton16_9',
+        'videotable':'ml_videotable','videotable4k':'ml_videotable4k','videotopper':'ml_videotopper',
+        'background':'ml_background','pictoliste':'ml_pictoliste','pictocouleur':'ml_pictocouleur','pictomonochrome':'ml_pictomonochrome'
+    };
+
+    // ==================== 页面初始化 ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        currentGameId = getUrlParameter('id');
+        if (!currentGameId) {
+            showNotification(I18n.t('missing_game_id', '缺少游戏ID参数'), 'error');
+            document.getElementById('loadingOverlay').style.display = 'none';
+            return;
+        }
+        loadGameData();
+    });
+
+    function getUrlParameter(name) {
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    function goBack() {
+        const platformId = getUrlParameter('platformId');
+        if (platformId) {
+            window.location.href = 'game-list.html?platformId=' + platformId;
+        } else if (document.referrer && document.referrer.includes('game-list')) {
+            history.back();
+        } else {
+            window.location.href = 'game-list.html';
+        }
+    }
+
+    // ==================== Tab 切换 ====================
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        event.target.classList.add('active');
+
+        // 切换到预览 Tab 时刷新预览
+        if (tabName === 'preview') {
+            renderMediaPreview();
+        }
+    }
+
+    // ==================== 加载游戏数据 ====================
+    function loadGameData() {
+        fetch('/api/gamelist/games/' + currentGameId)
+            .then(r => r.json())
+            .then(game => {
+                currentGameCache = game;
+                populateForm(game);
+                // 同时加载媒体状态
+                return fetch('/api/media/status?gameId=' + currentGameId);
+            })
+            .then(r => r.json())
+            .then(statusResult => {
+                if (statusResult.success) {
+                    mediaStatusData = statusResult.data;
+                    renderMediaCards();
+                }
+                document.getElementById('loadingOverlay').style.display = 'none';
+            })
+            .catch(err => {
+                console.error('加载游戏数据失败:', err);
+                showNotification(I18n.t('load_failed_prefix', '加载失败: ') + err.message, 'error');
+                document.getElementById('loadingOverlay').style.display = 'none';
+            });
+    }
+
+    function populateForm(game) {
+        // Tab 1: 基本信息
+        document.getElementById('gameId').value = game.id || '';
+        document.getElementById('gameName').value = game.name || '';
+        document.getElementById('gamePath').value = game.path || '';
+        document.getElementById('gameDescription').value = game.desc || '';
+        document.getElementById('translatedName').value = game.translatedName || '';
+        document.getElementById('translatedDescription').value = game.translatedDesc || '';
+        document.getElementById('gameDeveloper').value = game.developer || '';
+        document.getElementById('gamePublisher').value = game.publisher || '';
+        document.getElementById('gameType').value = game.genre || '';
+        document.getElementById('playerCount').value = game.players || '';
+        document.getElementById('releaseDate').value = game.releasedate || '';
+        document.getElementById('rating').value = game.rating || '';
+        document.getElementById('language').value = game.language || '';
+        
+        // 新增字段：游戏文件名、平台路径、绝对路径
+        const pathParts = (game.path || '').split('/');
+        document.getElementById('gameFilename').value = pathParts.length > 0 ? pathParts[pathParts.length - 1] : '';
+        document.getElementById('platformPathEdit').value = game.platformPath || '';
+        document.getElementById('absolutePathEdit').value = game.absolutePath || '';
+
+        // Tab 2: 元数据
+        document.getElementById('gameIdInput').value = game.gameId || '';
+        document.getElementById('sourceEdit').value = game.source || '';
+        document.getElementById('crc32').value = game.crc32 || '';
+        document.getElementById('genreid').value = game.genreid || '';
+        document.getElementById('platformIdInput').value = game.platformId || '';
+        document.getElementById('platformPathMeta').value = game.platformPath || '';
+        document.getElementById('sortByEdit').value = game.sortBy || '';
+
+        // 顶部显示游戏名
+        document.getElementById('gameNameDisplay').textContent = '- ' + (game.name || '');
+    }
+
+    // ==================== 保存游戏 ====================
+    function saveGame() {
+        const gameData = {
+            id: parseInt(document.getElementById('gameId').value),
+            name: document.getElementById('gameName').value,
+            path: document.getElementById('gamePath').value,
+            desc: document.getElementById('gameDescription').value,
+            translatedName: document.getElementById('translatedName').value,
+            translatedDesc: document.getElementById('translatedDescription').value,
+            developer: document.getElementById('gameDeveloper').value,
+            publisher: document.getElementById('gamePublisher').value,
+            genre: document.getElementById('gameType').value,
+            players: document.getElementById('playerCount').value,
+            releasedate: document.getElementById('releaseDate').value,
+            rating: document.getElementById('rating').value,
+            language: document.getElementById('language').value,
+            platformId: parseInt(document.getElementById('platformIdInput').value) || null,
+            platformPath: document.getElementById('platformPathEdit').value,
+            absolutePath: document.getElementById('absolutePathEdit').value,
+            sortBy: document.getElementById('sortByEdit').value,
+            gameId: document.getElementById('gameIdInput').value,
+            source: document.getElementById('sourceEdit').value,
+            crc32: document.getElementById('crc32').value,
+            genreid: document.getElementById('genreid').value
+        };
+
+        // 保留废弃字段的双写兼容
+        if (currentGameCache) {
+            gameData.boxFront = currentGameCache.boxFront || currentGameCache.box2d || null;
+            gameData.boxBack = currentGameCache.boxBack || currentGameCache.box2dBack || null;
+            gameData.boxSpine = currentGameCache.boxSpine || currentGameCache.box2dSide || null;
+        }
+
+        fetch('/api/gamelist/games', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(gameData)
+        })
+        .then(r => {
+            if (r.ok) {
+                showNotification(I18n.t('save_success', '保存成功'), 'success');
+            } else {
+                return r.text().then(text => showNotification(I18n.t('save_failed_prefix', '保存失败: ') + text, 'error'));
+            }
+        })
+        .catch(err => showNotification(I18n.t('save_failed_prefix', '保存失败: ') + err.message, 'error'));
+    }
+
+    // ==================== Tab 3: 媒体卡片渲染 ====================
+    function renderMediaCards() {
+        const container = document.getElementById('mediaCardsContainer');
+        container.innerHTML = '';
+
+        for (const [catKey, catInfo] of Object.entries(MEDIA_CATEGORIES)) {
+            const realKey = catKey.replace('-scan','').replace('-scan','');
+            // 统计已有文件数
+            let filledCount = 0;
+            catInfo.types.forEach(nomcourt => {
+                const status = mediaStatusData && mediaStatusData[nomcourt];
+                if (status && status.exists) filledCount++;
+            });
+
+            const catDiv = document.createElement('div');
+            catDiv.className = 'media-category';
+            catDiv.innerHTML = `
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="category-title">${catInfo.icon} ${I18n.t(catInfo.label)}</span>
+                    <span class="category-count">${filledCount}/${catInfo.types.length} ${I18n.t('filled', '已填充')} ▾</span>
+                </div>
+                <div class="category-body">
+                    <div class="media-grid" id="grid-${catKey}"></div>
+                </div>
+            `;
+            container.appendChild(catDiv);
+
+            const grid = catDiv.querySelector('.media-grid');
+            catInfo.types.forEach(nomcourt => {
+                grid.appendChild(createMediaCard(nomcourt));
+            });
+        }
+    }
+
+    function createMediaCard(nomcourt) {
+        const status = mediaStatusData && mediaStatusData[nomcourt];
+        const exists = status && status.exists;
+        const mediaFormat = status ? status.mediaFormat : 'image';
+        const filePath = status ? status.path : '';
+        const label = I18n.t(MEDIA_LABELS[nomcourt], nomcourt);
+
+        const card = document.createElement('div');
+        card.className = 'media-card' + (exists ? ' has-file' : '');
+        card.id = 'card-' + nomcourt;
+
+        let previewHTML = '';
+        if (exists && (mediaFormat === 'image')) {
+            const viewUrl = '/api/media/view?localPath=' + encodeURIComponent(filePath) + '&gameId=' + currentGameId;
+            previewHTML = `<img src="${viewUrl}" alt="${label}" loading="lazy">`;
+        } else if (exists && mediaFormat === 'video') {
+            const viewUrl = '/api/media/view?localPath=' + encodeURIComponent(filePath) + '&gameId=' + currentGameId;
+            previewHTML = `<video muted preload="metadata"><source src="${viewUrl}"> 浏览器不支持视频</video>`;
+        } else if (exists) {
+            previewHTML = `<span style="color:#4CAF50;font-size:14px;">📄 ${I18n.t('file_exists_label', '文件已存在')}</span>`;
+        } else {
+            previewHTML = `<span class="empty-icon">+</span>`;
+        }
+
+        let actionsHTML = `<button class="btn btn-small btn-success" onclick="triggerUpload('${nomcourt}')" data-i18n="upload">上传</button>`;
+        if (exists) {
+            actionsHTML += ` <button class="btn btn-small btn-danger" onclick="deleteMedia('${nomcourt}')" data-i18n="delete">删除</button>`;
+        }
+
+        card.innerHTML = `
+            <div class="card-title">${label}</div>
+            <div class="card-preview">${previewHTML}</div>
+            <div class="card-actions">${actionsHTML}</div>
+        `;
+        return card;
+    }
+
+    function toggleCategory(header) {
+        const body = header.nextElementSibling;
+        body.classList.toggle('open');
+    }
+
+    // ==================== 上传/删除媒体 ====================
+    function triggerUpload(nomcourt) {
+        currentUploadMediaType = nomcourt;
+        document.getElementById('mediaFileInput').click();
+    }
+
+    function handleFileSelected(event) {
+        const file = event.target.files[0];
+        if (!file || !currentUploadMediaType) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('gameId', currentGameId);
+        formData.append('mediaType', currentUploadMediaType);
+
+        showNotification(I18n.t('uploading_prefix', '正在上传 ') + (I18n.t(MEDIA_LABELS[currentUploadMediaType]) || currentUploadMediaType) + '...', 'info');
+
+        fetch('/api/media/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                showNotification(I18n.t('upload_success', '上传成功'), 'success');
+                refreshMediaStatus();
+            } else {
+                showNotification(I18n.t('upload_failed_prefix', '上传失败: ') + result.message, 'error');
+            }
+        })
+        .catch(err => showNotification(I18n.t('upload_failed_prefix', '上传失败: ') + err.message, 'error'));
+
+        // 重置 file input
+        event.target.value = '';
+        currentUploadMediaType = null;
+    }
+
+    function deleteMedia(nomcourt) {
+        const label = I18n.t(MEDIA_LABELS[nomcourt], nomcourt);
+        if (!confirm(I18n.t('confirm_delete_prefix', '确定要删除 "') + label + '"?')) return;
+
+        fetch('/api/media/delete?gameId=' + currentGameId + '&mediaType=' + encodeURIComponent(nomcourt), {
+            method: 'DELETE'
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                showNotification(I18n.t('delete_success', '删除成功'), 'success');
+                refreshMediaStatus();
+            } else {
+                showNotification(I18n.t('delete_failed_prefix', '删除失败: ') + result.message, 'error');
+            }
+        })
+        .catch(err => showNotification(I18n.t('delete_failed_prefix', '删除失败: ') + err.message, 'error'));
+    }
+
+    function refreshMediaStatus() {
+        fetch('/api/media/status?gameId=' + currentGameId)
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    mediaStatusData = result.data;
+                    renderMediaCards();
+                }
+            });
+    }
+
+    // ==================== Tab 4: 媒体预览画廊 ====================
+    function renderMediaPreview() {
+        const container = document.getElementById('mediaPreviewContainer');
+        container.innerHTML = '';
+
+        if (!mediaStatusData) {
+            container.innerHTML = '<div class="gallery-empty">' + I18n.t('no_media_data', '暂无媒体数据') + '</div>';
+            return;
+        }
+
+        const existItems = [];
+        for (const [nomcourt, status] of Object.entries(mediaStatusData)) {
+            if (status.exists) {
+                existItems.push({ nomcourt, ...status });
+            }
+        }
+
+        if (existItems.length === 0) {
+            container.innerHTML = '<div class="gallery-empty">' + I18n.t('no_media_for_game', '该游戏暂无媒体文件') + '</div>';
+            return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'gallery-grid';
+
+        existItems.forEach(item => {
+            const label = I18n.t(MEDIA_LABELS[item.nomcourt], item.nomcourt);
+            const viewUrl = '/api/media/view?localPath=' + encodeURIComponent(item.path) + '&gameId=' + currentGameId;
+            const div = document.createElement('div');
+            div.className = 'gallery-item';
+
+            let contentHTML = '';
+            if (item.mediaFormat === 'image') {
+                contentHTML = `<img src="${viewUrl}" alt="${label}" loading="lazy">`;
+            } else if (item.mediaFormat === 'video') {
+                contentHTML = `<video controls preload="metadata"><source src="${viewUrl}"> 浏览器不支持</video>`;
+            } else {
+                contentHTML = `<a href="${viewUrl}" target="_blank" class="btn btn-small btn-success" style="margin:20px 0;">查看/下载文件</a>`;
+            }
+
+            div.innerHTML = `<div class="gallery-title">${label}</div>${contentHTML}`;
+            grid.appendChild(div);
+        });
+
+        container.appendChild(grid);
+    }
+
+    // ==================== 检索游戏 ====================
+    let searchResultsCache = [];
+
+    function openSearchModal() {
+        const platformId = document.getElementById('platformIdInput').value;
+        if (!platformId) {
+            showNotification(I18n.t('confirm_platform_id', '请先确认平台ID'), 'error');
+            return;
+        }
+        // 用当前游戏名预填搜索框
+        const currentName = document.getElementById('gameName').value;
+        if (currentName) {
+            document.getElementById('searchTermInput').value = currentName;
+        }
+        document.getElementById('searchResults').innerHTML = '<div class="search-empty">' + I18n.t('search_input_hint', '输入游戏名称后点击搜索') + '</div>';
+        document.getElementById('searchModal').style.display = 'block';
+        document.getElementById('searchTermInput').focus();
+        document.getElementById('searchTermInput').select();
+    }
+
+    function closeSearchModal() {
+        document.getElementById('searchModal').style.display = 'none';
+    }
+
+    function searchGames() {
+        const platformId = document.getElementById('platformIdInput').value;
+        const searchTerm = document.getElementById('searchTermInput').value.trim();
+        if (!searchTerm) {
+            showNotification(I18n.t('enter_search_keyword', '请输入搜索关键词'), 'error');
+            return;
+        }
+
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.innerHTML = '<div class="search-loading">' + I18n.t('searching', '正在搜索...') + '</div>';
+
+        fetch('/api/scraper/search?platformId=' + encodeURIComponent(platformId) + '&searchTerm=' + encodeURIComponent(searchTerm))
+            .then(r => r.json())
+            .then(result => {
+                if (result.success && result.data && result.data.length > 0) {
+                    searchResultsCache = result.data;
+                    renderSearchResults(result.data);
+                } else if (result.success) {
+                    resultsDiv.innerHTML = '<div class="search-empty">' + I18n.t('no_matching_games', '未找到匹配的游戏') + '</div>';
+                } else {
+                    resultsDiv.innerHTML = '<div class="search-empty">' + I18n.t('search_failed_prefix', '搜索失败: ') + (result.message || I18n.t('unknown_error', '未知错误')) + '</div>';
+                }
+            })
+            .catch(err => {
+                resultsDiv.innerHTML = '<div class="search-empty">' + I18n.t('search_request_failed', '搜索请求失败: ') + err.message + '</div>';
+            });
+    }
+
+    function renderSearchResults(games) {
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.innerHTML = '';
+
+        games.forEach((game, index) => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.onclick = function() { selectSearchResult(index); };
+
+            // 缩略图（API返回的medias值为数组格式: type -> [{url, format, region, size}]）
+            let thumbHTML = '<span style="color:#666;font-size:24px;">🎮</span>';
+            if (game.medias) {
+                const thumbTypes = ['box-2D', 'ss', 'steamgrid', 'fanart', 'flyer'];
+                for (const t of thumbTypes) {
+                    const arr = game.medias[t];
+                    if (Array.isArray(arr) && arr.length > 0 && arr[0].url) {
+                        thumbHTML = '<img src="' + arr[0].url + '" alt="" onerror="this.style.display=\'none\'">';
+                        break;
+                    }
+                }
+            }
+
+            // 元数据
+            let metaParts = [];
+            if (game.annee) metaParts.push('<span>📅 ' + game.annee + '</span>');
+            if (game.genre) metaParts.push('<span>🏷️ ' + game.genre + '</span>');
+            if (game.joueurs) metaParts.push('<span>👥 ' + game.joueurs + '</span>');
+            if (game.note) metaParts.push('<span>⭐ ' + game.note + '</span>');
+            if (game.developpeur) metaParts.push('<span>🔧 ' + game.developpeur + '</span>');
+            if (game.editeur) metaParts.push('<span>📢 ' + game.editeur + '</span>');
+
+            // 多语言名称
+            let namesHTML = '';
+            if (game.noms && Object.keys(game.noms).length > 1) {
+                const regionLabels = {ss:'SS', eu:'EU', us:'US', wor:'World', jp:'JP'};
+                const parts = [];
+                for (const [region, name] of Object.entries(game.noms)) {
+                    parts.push((regionLabels[region] || region) + ': ' + name);
+                }
+                namesHTML = '<div style="color:#888;font-size:11px;margin-top:2px;">' + parts.join(' | ') + '</div>';
+            }
+
+            item.innerHTML = `
+                <div class="search-result-thumb">${thumbHTML}</div>
+                <div class="search-result-info">
+                    <div class="search-result-name">${game.nom || I18n.t('unknown_game', '未知游戏')}</div>
+                    ${namesHTML}
+                    <div class="search-result-meta">${metaParts.join('')}</div>
+                    ${game.description ? '<div class="search-result-desc">' + game.description + '</div>' : ''}
+                </div>
+            `;
+            resultsDiv.appendChild(item);
+        });
+    }
+
+    function selectSearchResult(index) {
+        const game = searchResultsCache[index];
+        if (!game) return;
+
+        // 回填基本信息字段
+        if (game.nom) document.getElementById('gameName').value = game.nom;
+        if (game.description) document.getElementById('gameDescription').value = game.description;
+        if (game.developpeur) document.getElementById('gameDeveloper').value = game.developpeur;
+        if (game.editeur) document.getElementById('gamePublisher').value = game.editeur;
+        if (game.genre) document.getElementById('gameType').value = game.genre;
+        if (game.joueurs) document.getElementById('playerCount').value = game.joueurs;
+        if (game.annee) document.getElementById('releaseDate').value = game.annee;
+        if (game.note) document.getElementById('rating').value = game.note;
+
+        closeSearchModal();
+        showNotification(I18n.t('filled_prefix', '已填入: ') + (game.nom || ''), 'success');
+
+        // 顺手下载媒体文件
+        if (document.getElementById('autoDownloadMedia').checked && game.medias) {
+            triggerMediaDownload(game);
+        }
+    }
+
+    function triggerMediaDownload(game) {
+        const localGameId = document.getElementById('gameId').value;
+        const platformId = document.getElementById('platformIdInput').value;
+        if (!localGameId || !platformId) {
+            console.warn('缺少 gameId 或 platformId，跳过媒体下载');
+            return;
+        }
+
+        // 统计媒体类型数
+        const mediaTypes = Object.keys(game.medias);
+        if (mediaTypes.length === 0) return;
+
+        showNotification(I18n.t('enqueue_media_prefix', '正在将 ') + mediaTypes.length + I18n.t('enqueue_media_suffix', ' 种媒体加入下载队列...'), 'info');
+
+        fetch('/api/scraper/enqueueMedia', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gameId: parseInt(localGameId),
+                gameName: game.nom || '',
+                platformId: parseInt(platformId),
+                medias: game.medias
+            })
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                const count = result.taskCount || mediaTypes.length;
+                showNotification(I18n.t('enqueued_prefix', '已加入下载队列 (') + count + I18n.t('enqueued_suffix', ' 个任务)，可在媒体下载页面手动开始'), 'success');
+            } else {
+                showNotification(I18n.t('enqueue_failed_prefix', '加入队列失败: ') + (result.message || ''), 'error');
+            }
+        })
+        .catch(err => {
+            showNotification(I18n.t('enqueue_request_failed', '加入队列请求失败: ') + err.message, 'error');
+        });
+    }
+
+    // ==================== 通知 ====================
+    function showNotification(message, type) {
+        const div = document.createElement('div');
+        div.className = 'notification ' + (type || 'info');
+        div.textContent = message;
+        document.body.appendChild(div);
+        setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 300); }, 3000);
+    }
+
+    // ==================== 切换译文（编辑页面）====================
+    function swapTranslationInEditor() {
+        const nameEl = document.getElementById('gameName');
+        const descEl = document.getElementById('gameDescription');
+        const transNameEl = document.getElementById('translatedName');
+        const transDescEl = document.getElementById('translatedDescription');
+
+        // 交换名称
+        const tempName = nameEl.value;
+        nameEl.value = transNameEl.value;
+        transNameEl.value = tempName;
+
+        // 交换描述
+        const tempDesc = descEl.value;
+        descEl.value = transDescEl.value;
+        transDescEl.value = tempDesc;
+
+        showNotification(I18n.t('translation_swapped', '已互换原文与译文'), 'success');
+    }
+    </script>
+</body>
+</html>

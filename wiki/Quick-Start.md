@@ -26,7 +26,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.4-beta
+  fansmall/webgamelistoper:1.1-RC1
 ```
 
 **Note:** Replace `/path/to/output` and `/path/to/roms` with your actual paths.
@@ -34,7 +34,7 @@ docker run -d \
 ### Using JAR File
 
 ```bash
-java -jar webGamelistOper-1.0.4-beta.jar
+java -jar webGamelistOper-1.1-RC1.jar
 ```
 
 ## Step 2: Access the Application

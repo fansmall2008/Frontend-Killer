@@ -40,11 +40,12 @@ public class ScanController {
     public static class ScanRequest {
         private String path;
         private int depth; // -1: 递归所有子目录, 0: 当前目录, 1-3: 指定深度
-        private String importMethod; // traditional 或 template 或 noDataFile
+        private String importMethod; // template 或 noDataFile
         private String importTemplate; // 导入模板文件名
         private boolean noDataFile; // 无数据文件导入模式
         private String fileExtensions; // 文件扩展名（逗号分隔）
         private String scraperSystemId; // 选中的 scraper 系统 ID
+        private boolean enableMediaDiscovery = true; // 是否执行 mediaDiscovery 规则扫描
 
         public String getPath() {
             return path;
@@ -88,6 +89,12 @@ public class ScanController {
         public void setScraperSystemId(String scraperSystemId) {
             this.scraperSystemId = scraperSystemId;
         }
+        public boolean isEnableMediaDiscovery() {
+            return enableMediaDiscovery;
+        }
+        public void setEnableMediaDiscovery(boolean enableMediaDiscovery) {
+            this.enableMediaDiscovery = enableMediaDiscovery;
+        }
     }
 
     /**
@@ -96,14 +103,14 @@ public class ScanController {
     public static class ImportRequest {
         private List<String> files;
         private String type; // gamelist.xml 或 metadata.pegasus.txt 或 none
-        private boolean metadataOnly; // 只使用数据文件标签，不进行自动匹配
         private int threadCount; // 导入线程数
-        private String importMethod; // traditional 或 template 或 noDataFile
+        private String importMethod; // template 或 noDataFile
         private String importTemplate; // 导入模板文件名
         private String scanPath; // 扫描路径
         private boolean noDataFile; // 无数据文件导入模式
         private String fileExtensions; // 文件扩展名（逗号分隔）
         private String scraperSystemId; // 选中的 scraper 系统 ID
+        private boolean enableMediaDiscovery = true; // 是否执行 mediaDiscovery 规则扫描
 
         public List<String> getFiles() {
             return files;
@@ -116,12 +123,6 @@ public class ScanController {
         }
         public void setType(String type) {
             this.type = type;
-        }
-        public boolean isMetadataOnly() {
-            return metadataOnly;
-        }
-        public void setMetadataOnly(boolean metadataOnly) {
-            this.metadataOnly = metadataOnly;
         }
         public int getThreadCount() {
             return threadCount;
@@ -165,6 +166,12 @@ public class ScanController {
         public void setScraperSystemId(String scraperSystemId) {
             this.scraperSystemId = scraperSystemId;
         }
+        public boolean isEnableMediaDiscovery() {
+            return enableMediaDiscovery;
+        }
+        public void setEnableMediaDiscovery(boolean enableMediaDiscovery) {
+            this.enableMediaDiscovery = enableMediaDiscovery;
+        }
     }
     
     /**
@@ -189,16 +196,37 @@ public class ScanController {
         // 确定要扫描的数据文件类型
         String targetDataFile = null;
         if ("template".equals(request.getImportMethod()) && request.getImportTemplate() != null && !request.getImportTemplate().isEmpty()) {
-            // 如果使用模板方式，加载模板并获取指定的数据文件类型
+            // 尝试加载 v3 模板
             try {
-                com.gamelist.service.impl.GameServiceImpl.ImportTemplate template = 
-                    com.gamelist.service.impl.GameServiceImpl.ImportTemplate.loadTemplate(request.getImportTemplate());
-                if (template != null && template.getDataFile() != null && !template.getDataFile().isEmpty()) {
-                    targetDataFile = template.getDataFile();
-                    logger.info("使用模板 {}，指定的数据文件类型: {}", request.getImportTemplate(), targetDataFile);
+                File v3TemplateFile = new File(com.gamelist.util.PathUtil.getRulesPath() + "/import/" + request.getImportTemplate());
+                if (v3TemplateFile.exists()) {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> templateData = mapper.readValue(v3TemplateFile, java.util.Map.class);
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> v3Info = (java.util.Map<String, Object>) templateData.get("templateInfo");
+                    if (v3Info != null && v3Info.containsKey("version") && 
+                            Integer.parseInt(v3Info.get("version").toString()) == 3) {
+                        targetDataFile = (String) v3Info.get("dataFile");
+                        logger.info("使用 v3 模板 {}，指定的数据文件类型: {}", request.getImportTemplate(), targetDataFile);
+                    }
                 }
             } catch (Exception e) {
-                logger.warn("加载模板失败，将使用默认扫描方式: {}", e.getMessage());
+                logger.debug("v3 模板检测失败，尝试旧版模板: {}", e.getMessage());
+            }
+            
+            // 回退到旧版 v2 模板
+            if (targetDataFile == null) {
+                try {
+                    com.gamelist.service.impl.GameServiceImpl.ImportTemplate template = 
+                        com.gamelist.service.impl.GameServiceImpl.ImportTemplate.loadTemplate(request.getImportTemplate());
+                    if (template != null && template.getDataFile() != null && !template.getDataFile().isEmpty()) {
+                        targetDataFile = template.getDataFile();
+                        logger.info("使用模板 {}，指定的数据文件类型: {}", request.getImportTemplate(), targetDataFile);
+                    }
+                } catch (Exception e) {
+                    logger.warn("加载模板失败，将使用默认扫描方式: {}", e.getMessage());
+                }
             }
         }
         
@@ -263,9 +291,10 @@ public class ScanController {
         }
 
         // 异步执行导入
-        importFilesAsync(task.getId(), request.getFiles(), request.getType(), request.isMetadataOnly(), threadCount,
+        importFilesAsync(task.getId(), request.getFiles(), request.getType(), threadCount,
                          request.getImportMethod(), request.getImportTemplate(), request.getScanPath(),
-                         request.isNoDataFile(), request.getFileExtensions(), scraperSystemIdLong);
+                         request.isNoDataFile(), request.getFileExtensions(), scraperSystemIdLong,
+                         request.isEnableMediaDiscovery());
 
         return task;
     }
@@ -274,9 +303,10 @@ public class ScanController {
      * 异步导入文件
      */
     @Async
-    public Future<Void> importFilesAsync(Long taskId, List<String> files, String type, boolean metadataOnly, int threadCount,
+    public Future<Void> importFilesAsync(Long taskId, List<String> files, String type, int threadCount,
                                          String importMethod, String importTemplate, String scanPath,
-                                         boolean noDataFile, String fileExtensions, Long scraperSystemId) {
+                                         boolean noDataFile, String fileExtensions, Long scraperSystemId,
+                                         boolean enableMediaDiscovery) {
         try {
             if (noDataFile) {
                 taskService.updateTaskLog(taskId, "使用无数据文件导入模式");
@@ -296,16 +326,10 @@ public class ScanController {
                 return new AsyncResult<>(null);
             }
 
-            boolean effectiveMetadataOnly = metadataOnly;
-
-            if ("template".equals(importMethod)) {
-                taskService.updateTaskLog(taskId, "使用模板模式，忽略metadataOnly参数的值");
-                effectiveMetadataOnly = false;
-            }
-
             taskService.updateTaskProgress(taskId, 0, "开始导入", 0, files.size() > 0 ? files.size() : 1);
-            taskService.updateTaskLog(taskId, "开始导入任务，共 " + files.size() + " 个文件，线程数：" + threadCount + "，metadataOnly：" + effectiveMetadataOnly);
+            taskService.updateTaskLog(taskId, "开始导入任务，共 " + files.size() + " 个文件，线程数：" + threadCount);
             taskService.updateTaskLog(taskId, "导入方式：" + importMethod + "，模板：" + importTemplate);
+            taskService.updateTaskLog(taskId, "匹配无记录媒体文件：" + (enableMediaDiscovery ? "是" : "否"));
             if (scraperSystemId != null) {
                 taskService.updateTaskLog(taskId, "选中的 scraper 系统 ID：" + scraperSystemId);
             }
@@ -331,17 +355,17 @@ public class ScanController {
                     // 根据文件扩展名动态选择解析方式
                     if (filePath.endsWith("gamelist.xml")) {
                         // 导入gamelist.xml
-                        ImportStatistics stats = gameService.importGamesFromXml(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount, scraperSystemId);
+                        ImportStatistics stats = gameService.importGamesFromXml(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else if (filePath.endsWith("metadata.pegasus.txt")) {
                         // 导入metadata.pegasus.txt
-                        ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount, scraperSystemId);
+                        ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else if (filePath.endsWith(".lpl")) {
                         // 导入Lakka .lpl播放列表文件
-                        ImportStatistics stats = gameService.importGamesFromLplFile(filePath, importMethod, importTemplate, effectiveMetadataOnly, threadCount, scraperSystemId);
+                        ImportStatistics stats = gameService.importGamesFromLplFile(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else {

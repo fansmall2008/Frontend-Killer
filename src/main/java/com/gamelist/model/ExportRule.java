@@ -23,6 +23,14 @@ public class ExportRule {
     private ExportOptions exportOptions;
     private Rules rules;
 
+    /**
+     * 判断是否为 v2 格式模板（nomcourt 标准）。
+     * v2 模板的 version 字段以 "2" 开头。
+     */
+    public boolean isV2() {
+        return version != null && version.startsWith("2");
+    }
+
     public static class Rules {
         private Map<String, MediaRule> media;
         private DataFileRule dataFile;
@@ -152,10 +160,15 @@ public class ExportRule {
     }
 
     public static class MediaRule {
-        private String source;
+        private String source;  // v1: nomcourt value to look up in Game; v2: absent (key IS the nomcourt)
         private String target;
         private String dataFileTag;
 
+        /**
+         * 获取媒体源字段名。
+         * v1 模板：返回 source 字段值（如 "box-2D"）
+         * v2 模板：source 为空时返回 null，调用方应使用 map key（即 nomcourt 值）
+         */
         public String getSource() {
             return source;
         }
@@ -185,12 +198,14 @@ public class ExportRule {
     public static class DataFileRule {
         private String filename;
         private String format;
-        private Map<String, String> fields;
+        private Map<String, String> fields;       // v1 name
+        private Map<String, String> fieldMappings; // v2 name (alias for fields)
         private HeaderRule header;
         private List<String> footer;
         private String fieldSeparator;
         private String entrySeparator;
         private String pathFormat;
+        private String pathPrefix;
         private Map<String, TransformRule> fieldTransforms;
 
         public String getFilename() {
@@ -209,12 +224,26 @@ public class ExportRule {
             this.format = format;
         }
 
+        /**
+         * 获取字段映射（统一入口）。
+         * 优先返回 v2 的 fieldMappings，否则回退到 v1 的 fields。
+         * v1: key=导出标签名, value=旧字段名（如 "description"）
+         * v2: key=导出标签名, value=数据库列名（如 "desc"）— 通过 GameFieldAccessor 获取值
+         */
         public Map<String, String> getFields() {
-            return fields;
+            return fieldMappings != null ? fieldMappings : fields;
         }
 
         public void setFields(Map<String, String> fields) {
             this.fields = fields;
+        }
+
+        public Map<String, String> getFieldMappings() {
+            return fieldMappings != null ? fieldMappings : fields;
+        }
+
+        public void setFieldMappings(Map<String, String> fieldMappings) {
+            this.fieldMappings = fieldMappings;
         }
 
         public HeaderRule getHeader() {
@@ -255,6 +284,14 @@ public class ExportRule {
 
         public void setPathFormat(String pathFormat) {
             this.pathFormat = pathFormat;
+        }
+
+        public String getPathPrefix() {
+            return pathPrefix;
+        }
+
+        public void setPathPrefix(String pathPrefix) {
+            this.pathPrefix = pathPrefix;
         }
 
         public Map<String, TransformRule> getFieldTransforms() {

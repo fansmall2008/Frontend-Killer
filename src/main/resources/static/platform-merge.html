@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>平台合并 - 前端杀手</title>
+    <title data-i18n="platform_merge_title">平台合并 - 前端杀手</title>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <style>
         * {
@@ -477,15 +477,15 @@
                         if (prevStatus && prevStatus !== task.status && 
                             (task.status === 'COMPLETED' || task.status === 'FAILED')) {
                             if (task.status === 'COMPLETED') {
-                                showNotification('任务已完成: ' + (task.description || task.type), 'success');
+                                showNotification(I18n.t('task_completed_prefix', '任务已完成: ') + (task.description || task.type), 'success');
                                 notificationChannel.postMessage({
-                                    message: '任务已完成: ' + (task.description || task.type),
+                                    message: I18n.t('task_completed_prefix', '任务已完成: ') + (task.description || task.type),
                                     type: 'success'
                                 });
                             } else {
-                                showNotification('任务失败: ' + (task.description || task.type), 'error');
+                                showNotification(I18n.t('task_failed_prefix', '任务失败: ') + (task.description || task.type), 'error');
                                 notificationChannel.postMessage({
-                                    message: '任务失败: ' + (task.description || task.type),
+                                    message: I18n.t('task_failed_prefix', '任务失败: ') + (task.description || task.type),
                                     type: 'error'
                                 });
                             }
@@ -541,7 +541,7 @@
         <!-- 页脚 -->
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -616,17 +616,17 @@
             const newPlatformFolderPath = $('#newPlatformFolderPath').val();
             
             if (!sourcePlatforms || sourcePlatforms.length < 2) {
-                showResult('请至少选择两个源平台', 'error');
+                showResult(I18n.t('select_two_platforms', '请至少选择两个源平台'), 'error');
                 return;
             }
             
             if (!newPlatformName) {
-                showResult('请输入新平台名称', 'error');
+                showResult(I18n.t('no_new_platform_name', '请输入新平台名称'), 'error');
                 return;
             }
             
             // 显示覆盖确认弹窗
-            if (confirm('合并过程中可能会遇到文件已存在的情况，是否覆盖已存在的文件？')) {
+            if (confirm(I18n.t('merge_overwrite_confirm', '合并过程中可能会遇到文件已存在的情况，是否覆盖已存在的文件？'))) {
                 console.log(getI18nText('merge_started'));
                 
                 $.ajax({
@@ -657,7 +657,7 @@
                     }
                 });
             } else {
-                showResult('合并操作已取消', 'error');
+                showResult(I18n.t('merge_cancelled', '合并操作已取消'), 'error');
             }
         }
         

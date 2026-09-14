@@ -18,7 +18,7 @@ services:
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q 'HTTP'"]
       interval: 30s
       timeout: 10s
       retries: 3

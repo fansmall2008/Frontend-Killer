@@ -69,4 +69,9 @@
         UPDATE background_task SET progress = #{progress}, processed_items = #{processedItems} WHERE id = #{id}
     </update>
 
+    <!-- 启动时恢复：将 RUNNING 状态的任务标记为 FAILED（处理断电/异常关闭的情况） -->
+    <update id="resetRunningTasks">
+        UPDATE background_task SET status = 'FAILED', error_message = '应用异常关闭，任务被中断', end_time = NOW() WHERE status = 'RUNNING'
+    </update>
+
 </mapper>

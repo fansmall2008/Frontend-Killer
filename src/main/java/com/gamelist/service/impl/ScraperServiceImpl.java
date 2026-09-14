@@ -25,6 +25,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +58,7 @@ import com.gamelist.service.ScraperSettingsService;
 import com.gamelist.service.ScraperSystemService;
 import com.gamelist.service.TaskService;
 import com.gamelist.service.ThreadResourceManager;
+import com.gamelist.util.ScreenScraperApiException;
 import com.gamelist.util.ScreenScraperStatusHandler;
 import com.gamelist.util.EncryptionUtil;
 
@@ -253,6 +259,11 @@ public class ScraperServiceImpl implements ScraperService {
             List<String> scope = request.getScope();
             boolean scrapeMedia = scope == null || scope.isEmpty() || scope.contains("media");
             boolean scrapeGameInfo = scope == null || scope.isEmpty() || scope.contains("gameInfo");
+            boolean scrapeAllMedia = Boolean.TRUE.equals(request.getScrapeAllMedia());
+            List<String> requestedMediaTypes = request.getMediaTypes();
+            
+            logger.info("刮削配置: scrapeGameInfo={}, scrapeMedia={}, scrapeAllMedia={}, mediaTypes={}", 
+                scrapeGameInfo, scrapeMedia, scrapeAllMedia, requestedMediaTypes);
             
             // 线程池大小 = maxThreads * 4，留余量给 ThreadResourceManager 调度
             // 实际并发数由 ThreadResourceManager 控制，避免创建过多空转线程导致资源竞争超时
@@ -270,9 +281,17 @@ public class ScraperServiceImpl implements ScraperService {
             
             for (Game game : games) {
                 executor.submit(() -> {
-                    // 尝试获取资源
                     boolean acquired = false;
                     try {
+                        // ★ 暂停检查放在获取资源之前，避免暂停时占用资源槽位
+                        while (isScrapingPaused.get() && !isScrapingStopped.get()) {
+                            Thread.sleep(1000);
+                        }
+                        if (isScrapingStopped.get()) {
+                            return;
+                        }
+                        
+                        // 获取资源（在暂停检查之后）
                         acquired = threadResourceManager.acquireForGameInfo(60000); // 60秒超时
                         if (!acquired) {
                             logger.error("游戏信息刮削获取资源超时: {}", game.getName());
@@ -280,18 +299,28 @@ public class ScraperServiceImpl implements ScraperService {
                             return;
                         }
                         
+                        // 二次检查：获取资源期间可能被暂停/停止
                         if (isScrapingStopped.get()) {
                             return;
                         }
-                        
-                        // 检查暂停状态
                         while (isScrapingPaused.get() && !isScrapingStopped.get()) {
-                            logger.info("游戏刮削任务已暂停，等待恢复...");
-                            Thread.sleep(2000);
-                        }
-                        
-                        if (isScrapingStopped.get()) {
-                            return;
+                            // 释放资源后再等待暂停，避免占用槽位
+                            threadResourceManager.releaseForGameInfo();
+                            acquired = false;
+                            logger.info("游戏刮削任务已暂停，已释放资源，等待恢复...");
+                            while (isScrapingPaused.get() && !isScrapingStopped.get()) {
+                                Thread.sleep(1000);
+                            }
+                            if (isScrapingStopped.get()) {
+                                return;
+                            }
+                            // 恢复后重新获取资源
+                            acquired = threadResourceManager.acquireForGameInfo(60000);
+                            if (!acquired) {
+                                logger.error("恢复后获取资源超时: {}", game.getName());
+                                failedCount.incrementAndGet();
+                                return;
+                            }
                         }
                         
                         logger.info("开始刮削游戏: {} [资源状态: {}]", game.getName(), 
@@ -303,15 +332,24 @@ public class ScraperServiceImpl implements ScraperService {
                         // 调用ScreenScraper API搜索游戏
                         Map<String, Object> searchResult = searchGameWithStatus(fileInfo, system.getSystemId(), request);
                         
-                        if ((Boolean) searchResult.get("shouldStop")) {
+                        // 限额错误：暂停刮削（可恢复），线程进入等待而非退出
+                        if (Boolean.TRUE.equals(searchResult.get("shouldPause"))) {
+                            String warningMessage = (String) searchResult.get("message");
+                            Integer statusCode = (Integer) searchResult.get("statusCode");
+                            logger.error("限额触发，暂停刮削: 状态码={}, 消息={}", statusCode, warningMessage);
+                            isScrapingPaused.set(true);
+                            taskService.updateTaskLog(taskId, warningMessage);
+                            sendNotification(warningMessage, "warning");
+                            // ★ 不 return，释放资源后进入 finally，latch 正常 countDown
+                            // 其他尚未开始的游戏线程会在暂停检查处等待
+                        } else if ((Boolean) searchResult.get("shouldStop")) {
                             String errorMessage = (String) searchResult.get("message");
-                            logger.error("遇到特殊状态码，停止刮削: {}", errorMessage);
+                            logger.error("遇到不可恢复的错误，停止刮削: {}", errorMessage);
                             isScrapingStopped.set(true);
+                            taskService.updateTaskLog(taskId, "刮削已停止: " + errorMessage);
                             sendNotification("刮削停止", errorMessage);
                             return;
-                        }
-                        
-                        if ((Boolean) searchResult.get("found")) {
+                        } else if ((Boolean) searchResult.get("found")) {
                             logger.info("游戏已找到，开始处理: gameId={}, gameName={}", game.getId(), game.getName());
                             
                             Map<String, Object> data = (Map<String, Object>) searchResult.get("data");
@@ -371,7 +409,16 @@ public class ScraperServiceImpl implements ScraperService {
                                 logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                             }
                             
+                            // ★ 同时检查停止和暂停，暂停时不退出而是等待
                             while (!isScrapingStopped.get()) {
+                                // ★ 暂停检查：等待恢复，不占用资源
+                                while (isScrapingPaused.get() && !isScrapingStopped.get()) {
+                                    Thread.sleep(1000);
+                                }
+                                if (isScrapingStopped.get()) {
+                                    break;
+                                }
+                                
                                 // 尝试获取资源（低优先级，游戏信息线程优先）
                                 boolean acquired = threadResourceManager.acquireForMedia(5000);
                                 if (!acquired) {
@@ -381,6 +428,11 @@ public class ScraperServiceImpl implements ScraperService {
                                 }
                                 
                                 try {
+                                    // 获取资源后再次检查暂停（获取资源期间可能被暂停）
+                                    if (isScrapingPaused.get() || isScrapingStopped.get()) {
+                                        continue; // 释放资源后重新循环
+                                    }
+                                    
                                     // 尝试获取一个待下载任务
                                     MediaDownloadTask task = mediaDownloadTaskMapper.selectOnePendingTask(taskId);
                                     if (task != null) {
@@ -397,6 +449,16 @@ public class ScraperServiceImpl implements ScraperService {
                                                 logger.info("媒体下载完成: {} [资源状态: {}]", task.getLocalPath(), 
                                                     threadResourceManager.getSnapshot());
                                             }
+                                        } catch (ScreenScraperApiException e) {
+                                            if (e.isLimitError()) {
+                                                logger.error("媒体下载遇到限额限制，暂停刮削: 状态码={}, 消息={}", e.getStatusCode(), e.getLimitWarningMessage());
+                                                isScrapingPaused.set(true);
+                                                taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
+                                                sendNotification(e.getLimitWarningMessage(), "warning");
+                                                break; // 退出媒体下载循环，等待用户恢复
+                                            }
+                                            logger.error("下载媒体文件API错误: {}", e.getMessage());
+                                            mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
                                         } catch (Exception e) {
                                             logger.error("下载媒体文件失败: {}", e.getMessage());
                                             mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
@@ -452,6 +514,12 @@ public class ScraperServiceImpl implements ScraperService {
                 long lastPendingCount = -1;
                 int noChangeCount = 0;
                 while (!isScrapingStopped.get()) {
+                    // ★ 暂停时不检测“卡住”，等待恢复即可
+                    if (isScrapingPaused.get()) {
+                        Thread.sleep(1000);
+                        continue;
+                    }
+                    
                     long pendingCount = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
                     long downloadingCount = mediaDownloadTaskMapper.countByTaskIdAndStatus(taskId, MediaDownloadTask.STATUS_DOWNLOADING);
                     
@@ -571,6 +639,16 @@ public class ScraperServiceImpl implements ScraperService {
                                     updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
                                     logger.debug("提前下载完成: {}", task.getLocalPath());
                                 }
+                            } catch (ScreenScraperApiException e) {
+                                if (e.isLimitError()) {
+                                    logger.error("提前媒体下载遇到限额限制，暂停刮削: 状态码={}", e.getStatusCode());
+                                    isScrapingPaused.set(true);
+                                    taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
+                                    sendNotification(e.getLimitWarningMessage(), "warning");
+                                    break;
+                                }
+                                logger.error("提前下载媒体文件API错误: {}", e.getMessage());
+                                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
                             } catch (Exception e) {
                                 logger.error("提前下载媒体文件失败: {}", e.getMessage());
                                 mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
@@ -638,6 +716,16 @@ public class ScraperServiceImpl implements ScraperService {
                     int current = processedCount.incrementAndGet();
                     logger.info("媒体下载进度: {}/{}", current, allPendingTasks.size());
                     
+                } catch (ScreenScraperApiException e) {
+                    if (e.isLimitError()) {
+                        logger.error("批量媒体下载遇到限额限制，暂停刮削: 状态码={}", e.getStatusCode());
+                        isScrapingPaused.set(true);
+                        taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
+                        sendNotification(e.getLimitWarningMessage(), "warning");
+                    } else {
+                        logger.error("下载媒体文件API错误: {}", e.getMessage());
+                        mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
+                    }
                 } catch (Exception e) {
                     logger.error("下载媒体文件失败: {}", e.getMessage());
                     mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
@@ -656,23 +744,55 @@ public class ScraperServiceImpl implements ScraperService {
     
     /**
      * 搜索游戏（带状态码处理）
+     * 关键改进：检测 ScreenScraper 限额状态码，返回 shouldPause 而非 shouldStop
      */
     private Map<String, Object> searchGameWithStatus(GameFileInfo fileInfo, Integer systemId, ScraperRequest request) {
         try {
             Map<String, Object> searchResult = searchGame(fileInfo, systemId, request);
             
-            // 检查是否需要停止
+            // 检查是否遇到限额错误（可恢复的暂停）
+            Boolean isLimitError = (Boolean) searchResult.get("isLimitError");
+            Integer apiStatusCode = (Integer) searchResult.get("apiStatusCode");
+            if (Boolean.TRUE.equals(isLimitError) && apiStatusCode != null) {
+                String warningMessage = ScreenScraperStatusHandler.getLimitWarningMessage(apiStatusCode);
+                logger.error("检测到限额限制，暂停刮削: 状态码={}, 消息={}", apiStatusCode, warningMessage);
+                
+                Map<String, Object> result = new HashMap<>();
+                result.put("found", false);
+                result.put("shouldStop", false);
+                result.put("shouldPause", true);
+                result.put("message", warningMessage);
+                result.put("statusCode", apiStatusCode);
+                result.put("data", searchResult);
+                return result;
+            }
+            
+            // 检查是否需要因404过多而停止
             if (!(Boolean) searchResult.get("found")) {
-                // 检查404计数
                 if (shouldStopDueToNotFound()) {
-                    return Map.of("found", false, "shouldStop", true, "message", "10秒内出现10次404错误");
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("found", false);
+                    result.put("shouldStop", true);
+                    result.put("shouldPause", false);
+                    result.put("message", "10秒内出现10次404错误");
+                    result.put("data", searchResult);
+                    return result;
                 }
             }
             
-            return Map.of("found", searchResult.get("found"), "shouldStop", false, "data", searchResult);
+            Map<String, Object> result = new HashMap<>();
+            result.put("found", searchResult.get("found"));
+            result.put("shouldStop", false);
+            result.put("shouldPause", false);
+            result.put("data", searchResult);
+            return result;
         } catch (Exception e) {
             logger.error("搜索游戏异常: {}", e.getMessage());
-            return Map.of("found", false, "shouldStop", false);
+            Map<String, Object> result = new HashMap<>();
+            result.put("found", false);
+            result.put("shouldStop", false);
+            result.put("shouldPause", false);
+            return result;
         }
     }
     
@@ -801,7 +921,17 @@ public class ScraperServiceImpl implements ScraperService {
             logger.info("正在调用ssuserInfos.php获取用户信息...");
             logger.info("请求URL: {}", url.replace(password, "***"));
 
-            String response = executeRequest(url);
+            String response;
+            try {
+                response = executeRequest(url);
+            } catch (ScreenScraperApiException e) {
+                if (e.isLimitError()) {
+                    logger.error("获取用户信息时遇到限额限制: 状态码={}, 消息={}", e.getStatusCode(), e.getLimitWarningMessage());
+                } else {
+                    logger.error("获取用户信息时遇到 API 错误: 状态码={}, 消息={}", e.getStatusCode(), e.getMessage());
+                }
+                return 1;
+            }
             logger.info("ssuserInfos.php原始响应: {}", response);
 
             if (response == null || response.isEmpty()) {
@@ -969,7 +1099,16 @@ public class ScraperServiceImpl implements ScraperService {
             String url = urlBuilder.build().toString();
             logger.info("搜索游戏URL: {}", url);
             
-            String response = executeRequest(url);
+            String response;
+            try {
+                response = executeRequest(url);
+            } catch (ScreenScraperApiException e) {
+                // 将 API 状态码传递给调用方（限额检测关键）
+                logger.error("搜索游戏遇到 API 状态码: {} - {}", e.getStatusCode(), e.getMessage());
+                result.put("apiStatusCode", e.getStatusCode());
+                result.put("isLimitError", e.isLimitError());
+                return result;
+            }
             if (response == null || response.isEmpty()) {
                 logger.warn("搜索游戏返回空响应");
                 return result;
@@ -982,14 +1121,30 @@ public class ScraperServiceImpl implements ScraperService {
                 if (root.has("response")) {
                     JsonNode responseNode = root.get("response");
                     
-                    // 从每次 API 响应中提取 ssuser.maxthreads，动态更新线程配额
+                    // 从每次 API 响应中提取 ssuser 信息，动态更新线程配额和配额信息
                     if (responseNode.has("ssuser")) {
                         JsonNode ssuserNode = responseNode.get("ssuser");
+                        
+                        // 更新线程配额
                         if (ssuserNode.has("maxthreads")) {
                             int serverMaxThreads = ssuserNode.get("maxthreads").asInt();
                             cachedMaxThreads = serverMaxThreads;
                             threadResourceManager.updateFromServerResponse(serverMaxThreads);
                         }
+                        
+                        // 更新完整配额信息
+                        int requestsToday = ssuserNode.has("requeststoday") ? ssuserNode.get("requeststoday").asInt(0) : 0;
+                        int maxRequestsPerDay = ssuserNode.has("maxrequestsperday") ? ssuserNode.get("maxrequestsperday").asInt(0) : 0;
+                        int maxRequestsPerMin = ssuserNode.has("maxrequestspermin") ? ssuserNode.get("maxrequestspermin").asInt(0) : 0;
+                        int maxDownloadSpeed = ssuserNode.has("maxdownloadspeed") ? ssuserNode.get("maxdownloadspeed").asInt(0) : 0;
+                        int requestsKoToday = ssuserNode.has("requestskotoday") ? ssuserNode.get("requestskotoday").asInt(0) : 0;
+                        String niveau = ssuserNode.has("niveau") ? ssuserNode.get("niveau").asText("") : "";
+                        String contribution = ssuserNode.has("contribution") ? ssuserNode.get("contribution").asText("") : "";
+                        
+                        threadResourceManager.updateQuotaFromServer(
+                            requestsToday, maxRequestsPerDay, maxRequestsPerMin,
+                            maxDownloadSpeed, requestsKoToday, niveau, contribution
+                        );
                     }
                     
                     if (responseNode.has("jeu")) {
@@ -1022,7 +1177,7 @@ public class ScraperServiceImpl implements ScraperService {
         return result;
     }
     
-    private String executeRequest(String url) {
+    private String executeRequest(String url) throws ScreenScraperApiException {
         try {
             Request request = new Request.Builder()
                     .url(url)
@@ -1032,23 +1187,28 @@ public class ScraperServiceImpl implements ScraperService {
             try (Response response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     int statusCode = response.code();
-                    logger.error("HTTP请求失败，状态码: {}", statusCode);
+                    String statusDesc = ScreenScraperStatusHandler.getStatusInfo(statusCode).getDescription();
+                    logger.error("HTTP请求失败，状态码: {} - {}", statusCode, statusDesc);
 
-                    // 处理特殊状态码
                     if (ScreenScraperStatusHandler.shouldStopImmediately(statusCode)) {
-                        String message = ScreenScraperStatusHandler.getSuggestion(statusCode);
-                        logger.error("遇到特殊状态码，需要停止刮削: {}", message);
-                        // 这里可以添加通知逻辑
+                        logger.error("遇到需要停止刮削的状态码: {} - {}", statusCode, statusDesc);
+                        if (ScreenScraperStatusHandler.isSoftwareLimitError(statusCode)) {
+                            logger.error("⚠️ 软件级限额触发: {}", ScreenScraperStatusHandler.getLimitWarningMessage(statusCode));
+                        } else if (ScreenScraperStatusHandler.isUserLimitError(statusCode)) {
+                            logger.error("⚠️ 用户级限额触发: {}", ScreenScraperStatusHandler.getLimitWarningMessage(statusCode));
+                        }
                     }
 
-                    return null;
+                    throw new ScreenScraperApiException(statusCode, statusDesc);
                 }
 
                 return response.body() != null ? response.body().string() : null;
             }
+        } catch (ScreenScraperApiException e) {
+            throw e;
         } catch (IOException e) {
             logger.error("执行HTTP请求失败: {}", e.getMessage());
-            return null;
+            throw new ScreenScraperApiException(-1, "网络请求失败: " + e.getMessage());
         }
     }
 
@@ -1354,6 +1514,78 @@ public class ScraperServiceImpl implements ScraperService {
         }
     }
 
+    @Override
+    public int enqueueGameMedia(Long gameId, String gameName, Long platformId, Map<String, Object> medias) {
+        try {
+            Platform platform = platformService.getPlatformById(platformId);
+            if (platform == null) {
+                logger.error("平台不存在: {}", platformId);
+                return 0;
+            }
+
+            // 创建后台任务（用于跟踪进度）
+            BackgroundTask bgTask = taskService.createTask("MEDIA_DOWNLOAD", "下载游戏媒体: " + gameName);
+            Long bgTaskId = bgTask.getId();
+
+            int orderIndex = 0;
+            for (Map.Entry<String, Object> entry : medias.entrySet()) {
+                String mediaType = entry.getKey();
+                @SuppressWarnings("unchecked")
+                List<Map<String, String>> mediaList = (List<Map<String, String>>) entry.getValue();
+
+                com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromNomcourt(mediaType);
+                String gameFieldName = (mt != null) ? mt.getJavaField() : null;
+
+                if (mediaList != null && !mediaList.isEmpty()) {
+                    // 优先选择英文或无语言限制的媒体
+                    Map<String, String> selectedMedia = null;
+                    for (Map<String, String> media : mediaList) {
+                        String langue = media.get("langue");
+                        if ("en".equals(langue) || langue == null || langue.isEmpty()) {
+                            selectedMedia = media;
+                            break;
+                        }
+                    }
+                    if (selectedMedia == null) {
+                        selectedMedia = mediaList.get(0);
+                    }
+
+                    String url = selectedMedia.get("url");
+                    if (url != null && !url.isEmpty()) {
+                        MediaDownloadTask task = new MediaDownloadTask();
+                        task.setTaskId(bgTaskId);
+                        task.setGameId(gameId);
+                        task.setGameFieldName(gameFieldName);
+                        task.setPlatformId(platformId);
+                        task.setPlatformName(platform.getName());
+                        task.setGameName(gameName);
+                        task.setMediaType(mediaType);
+                        task.setDownloadUrl(EncryptionUtil.encrypt(url));
+                        task.setStatus("PENDING");
+                        task.setOrderIndex((long) orderIndex++);
+
+                        // 计算本地存储路径
+                        Path gameMediaDir = Paths.get("./data/scraper/games", platform.getName(), String.valueOf(gameId));
+                        String extension = "." + (selectedMedia.containsKey("format") ? selectedMedia.get("format").toLowerCase() : "bin");
+                        String localPath = gameMediaDir.resolve(mediaType + extension).toString();
+                        task.setLocalPath(localPath);
+
+                        mediaDownloadTaskMapper.insert(task);
+                    }
+                }
+            }
+
+            // 更新后台任务进度（仅记录，不启动下载）
+            taskService.updateTaskProgress(bgTaskId, 0, "媒体下载任务已加入队列", 0, orderIndex);
+            logger.info("媒体下载任务已加入队列: gameId={}, gameName={}, 任务数={}", gameId, gameName, orderIndex);
+            return orderIndex;
+
+        } catch (Exception e) {
+            logger.error("加入媒体下载队列失败: {}", e.getMessage());
+            return 0;
+        }
+    }
+
     /**
      * 获取目标游戏列表
      */
@@ -1432,6 +1664,7 @@ public class ScraperServiceImpl implements ScraperService {
         }
         
         String romType = system.getRomType();
+        String systemType = system.getType();
         File file = new File(absolutePath);
         
         // 判断文件类型
@@ -1442,8 +1675,8 @@ public class ScraperServiceImpl implements ScraperService {
         String gameName = extractGameName(file, fileType);
         fileInfo.setGameName(gameName);
         
-        // 计算CRC32
-        String crc32 = calculateCRC32(file, fileType, romType);
+        // 计算CRC32（传入 systemType 区分街机/主机）
+        String crc32 = calculateCRC32(file, fileType, romType, systemType);
         fileInfo.setCrc32(crc32);
         
         // 获取文件大小
@@ -1476,7 +1709,39 @@ public class ScraperServiceImpl implements ScraperService {
     }
     
     private int countRomFilesInArchive(File file) {
-        // 简化实现，实际应该解压检查
+        String fileName = file.getName().toLowerCase();
+        if (fileName.endsWith(".zip")) {
+            try (ZipFile zipFile = new ZipFile(file)) {
+                int count = 0;
+                var entries = zipFile.entries();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    // 只计算非目录、非隐藏文件的 ROM 文件
+                    if (!entry.isDirectory() && !entry.getName().startsWith("__")) {
+                        count++;
+                    }
+                }
+                return count;
+            } catch (IOException e) {
+                // 标准 ZipFile 失败（如中文编码 ZIP），尝试 Commons Compress
+                logger.info("标准ZIP读取失败({})，尝试使用 Commons Compress 回退: {}", e.getMessage(), file.getName());
+                return countRomFilesInArchiveFallback(file);
+            }
+        } else if (fileName.endsWith(".7z")) {
+            try (SevenZFile sevenZFile = new SevenZFile(file)) {
+                int count = 0;
+                SevenZArchiveEntry entry;
+                while ((entry = sevenZFile.getNextEntry()) != null) {
+                    if (!entry.isDirectory() && !entry.getName().startsWith("__")) {
+                        count++;
+                    }
+                }
+                return count;
+            } catch (IOException e) {
+                logger.error("读取7z文件失败: {}", e.getMessage());
+                return 1;
+            }
+        }
         return 1;
     }
     
@@ -1493,12 +1758,22 @@ public class ScraperServiceImpl implements ScraperService {
         return fileName;
     }
     
-    private String calculateCRC32(File file, FileType fileType, String romType) {
+    private String calculateCRC32(File file, FileType fileType, String romType, String systemType) {
         try {
+            boolean isArcade = systemType != null && systemType.toLowerCase().contains("arcade");
+            
             if (fileType == FileType.SINGLE_FILE) {
                 return calculateSingleFileCRC(file);
+            } else if (fileType == FileType.SINGLE_ARCHIVE || fileType == FileType.MULTI_ARCHIVE) {
+                if (isArcade) {
+                    // 街机平台：ScreenScraper 要压缩包本身的 CRC（无论内含多少 ROM）
+                    logger.info("街机平台(systemType={})，使用压缩包自身CRC: {}", systemType, file.getName());
+                    return calculateSingleFileCRC(file);
+                } else {
+                    // 非街机平台（主机/掌机）：ScreenScraper 要内部 ROM 的 CRC
+                    return calculateArchiveCRC(file, fileType);
+                }
             } else {
-                // 简化实现
                 return null;
             }
         } catch (Exception e) {
@@ -1517,6 +1792,273 @@ public class ScraperServiceImpl implements ScraperService {
             }
         }
         return String.format("%08X", crc32.getValue());
+    }
+    
+    /**
+     * 计算单 ROM 压缩归档文件内 ROM 的 CRC32（仅用于 SINGLE_ARCHIVE）
+     * 
+     * ScreenScraper 期望的是 ROM 文件本身的 CRC，而非压缩包的 CRC。
+     * - ZIP 文件：直接从 ZIP 文件头读取 entry 的 CRC32（无需解压，速度极快）
+     * - 7z 文件：需要解压数据并计算 CRC
+     * 
+     * 优先选择与归档同名的 ROM 文件，否则选最大的 ROM 文件。
+     * 
+     * 注意：MULTI_ARCHIVE（街机多ROM包）不走此方法，而是使用压缩包自身的 CRC。
+     */
+    private String calculateArchiveCRC(File archiveFile, FileType fileType) {
+        String fileName = archiveFile.getName().toLowerCase();
+        
+        if (fileName.endsWith(".zip")) {
+            return calculateZipCRC(archiveFile);
+        } else if (fileName.endsWith(".7z")) {
+            return calculate7zCRC(archiveFile);
+        }
+        return null;
+    }
+    
+    /**
+     * 从 ZIP 文件中提取 ROM 的 CRC32
+     * 直接读取 ZIP entry header 中的 CRC 值，无需解压数据
+     */
+    private String calculateZipCRC(File zipFile) {
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            String archiveBaseName = zipFile.getName();
+            // 移除扩展名
+            int lastDot = archiveBaseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                archiveBaseName = archiveBaseName.substring(0, lastDot);
+            }
+            
+            ZipEntry bestMatch = null;
+            long largestSize = 0;
+            
+            var entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                
+                // 跳过目录和隐藏文件
+                if (entry.isDirectory() || entry.getName().startsWith("__") 
+                    || entry.getName().startsWith(".")) {
+                    continue;
+                }
+                
+                String entryName = entry.getName();
+                // 移除路径前缀（有些 ZIP 内有子目录）
+                int lastSlash = entryName.lastIndexOf('/');
+                if (lastSlash >= 0) {
+                    entryName = entryName.substring(lastSlash + 1);
+                }
+                // 移除扩展名
+                String entryBaseName = entryName;
+                int entryDot = entryBaseName.lastIndexOf('.');
+                if (entryDot > 0) {
+                    entryBaseName = entryBaseName.substring(0, entryDot);
+                }
+                
+                // 优先匹配与归档同名的 ROM
+                if (entryBaseName.equalsIgnoreCase(archiveBaseName)) {
+                    bestMatch = entry;
+                    logger.info("ZIP 中找到同名 ROM: {} (CRC={})", entry.getName(), 
+                        String.format("%08X", entry.getCrc()));
+                    break;
+                }
+                
+                // 记录最大的 ROM 文件作为备选
+                if (entry.getSize() > largestSize) {
+                    largestSize = entry.getSize();
+                    bestMatch = entry;
+                }
+            }
+            
+            if (bestMatch != null) {
+                long crc = bestMatch.getCrc();
+                if (crc >= 0) {
+                    String crcHex = String.format("%08X", crc);
+                    logger.info("ZIP CRC32: 文件={}, entry={}, CRC={}", 
+                        zipFile.getName(), bestMatch.getName(), crcHex);
+                    return crcHex;
+                }
+            }
+            
+            logger.warn("ZIP 中未找到有效的 ROM entry: {}", zipFile.getName());
+            return null;
+            
+        } catch (IOException e) {
+            // 标准 ZipFile 失败（如中文编码 ZIP），尝试 Commons Compress
+            logger.info("标准ZIP读取失败({})，尝试使用 Commons Compress 回退: {}", e.getMessage(), zipFile.getName());
+            return calculateZipCRCFallback(zipFile);
+        }
+    }
+    
+    /**
+     * 使用 Apache Commons Compress 读取 ZIP（回退方案）
+     * 适用于非标准编码（如 GBK）的 ZIP 文件，Commons Compress 对 CEN header 更宽容。
+     */
+    private int countRomFilesInArchiveFallback(File file) {
+        try (org.apache.commons.compress.archivers.zip.ZipFile zipFile =
+                new org.apache.commons.compress.archivers.zip.ZipFile(file)) {
+            int count = 0;
+            var entries = zipFile.getEntries();
+            while (entries.hasMoreElements()) {
+                org.apache.commons.compress.archivers.zip.ZipArchiveEntry entry = entries.nextElement();
+                if (!entry.isDirectory() && !entry.getName().startsWith("__")) {
+                    count++;
+                }
+            }
+            logger.info("Commons Compress 回退计数: {} 内含 {} 个 ROM", file.getName(), count);
+            return count;
+        } catch (IOException e) {
+            logger.error("Commons Compress 也无法读取ZIP文件: {}", e.getMessage());
+            return 1;
+        }
+    }
+    
+    /**
+     * 使用 Apache Commons Compress 计算 ZIP 内 ROM 的 CRC（回退方案）
+     */
+    private String calculateZipCRCFallback(File zipFile) {
+        try (org.apache.commons.compress.archivers.zip.ZipFile zip =
+                new org.apache.commons.compress.archivers.zip.ZipFile(zipFile)) {
+            String archiveBaseName = zipFile.getName();
+            int lastDot = archiveBaseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                archiveBaseName = archiveBaseName.substring(0, lastDot);
+            }
+            
+            long bestCrc = -1;
+            long largestSize = 0;
+            String bestEntryName = null;
+            
+            var entries = zip.getEntries();
+            while (entries.hasMoreElements()) {
+                org.apache.commons.compress.archivers.zip.ZipArchiveEntry entry = entries.nextElement();
+                
+                if (entry.isDirectory() || entry.getName().startsWith("__") 
+                    || entry.getName().startsWith(".")) {
+                    continue;
+                }
+                
+                String entryName = entry.getName();
+                int lastSlash = entryName.lastIndexOf('/');
+                if (lastSlash >= 0) {
+                    entryName = entryName.substring(lastSlash + 1);
+                }
+                String entryBaseName = entryName;
+                int entryDot = entryBaseName.lastIndexOf('.');
+                if (entryDot > 0) {
+                    entryBaseName = entryBaseName.substring(0, entryDot);
+                }
+                
+                long entryCrc = entry.getCrc();
+                
+                // 优先匹配与归档同名的 ROM
+                if (entryBaseName.equalsIgnoreCase(archiveBaseName)) {
+                    String crcHex = String.format("%08X", entryCrc);
+                    logger.info("ZIP(fallback) 中找到同名 ROM: {} (CRC={})", entry.getName(), crcHex);
+                    return crcHex;
+                }
+                
+                // 记录最大的 ROM 文件作为备选
+                if (entry.getSize() > largestSize) {
+                    largestSize = entry.getSize();
+                    bestCrc = entryCrc;
+                    bestEntryName = entry.getName();
+                }
+            }
+            
+            if (bestCrc >= 0) {
+                String crcHex = String.format("%08X", bestCrc);
+                logger.info("ZIP(fallback) CRC32: 文件={}, entry={}, CRC={}", 
+                    zipFile.getName(), bestEntryName, crcHex);
+                return crcHex;
+            }
+            
+            logger.warn("ZIP(fallback) 中未找到有效的 ROM entry: {}", zipFile.getName());
+            return null;
+            
+        } catch (IOException e) {
+            logger.error("Commons Compress 也无法读取 ZIP 文件: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 从 7z 文件中提取 ROM 的 CRC32
+     * 7z 不像 ZIP 直接在文件头存储 CRC，需要解压数据并计算。
+     * 选择策略与 ZIP 相同：优先同名 ROM，否则选最大 ROM。
+     */
+    private String calculate7zCRC(File sevenZFile) {
+        try (SevenZFile archive = new SevenZFile(sevenZFile)) {
+            String archiveBaseName = sevenZFile.getName();
+            int lastDot = archiveBaseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                archiveBaseName = archiveBaseName.substring(0, lastDot);
+            }
+            
+            String bestCrc = null;
+            long largestSize = 0;
+            String bestEntryName = null;
+            
+            SevenZArchiveEntry entry;
+            while ((entry = archive.getNextEntry()) != null) {
+                if (entry.isDirectory() || entry.getName().startsWith("__") 
+                    || entry.getName().startsWith(".")) {
+                    continue;
+                }
+                
+                String entryName = entry.getName();
+                // 移除路径前缀
+                int lastSlash = entryName.lastIndexOf('/');
+                if (lastSlash >= 0) {
+                    entryName = entryName.substring(lastSlash + 1);
+                }
+                // 也处理反斜杠（Windows 风格路径）
+                int lastBackSlash = entryName.lastIndexOf('\\');
+                if (lastBackSlash >= 0) {
+                    entryName = entryName.substring(lastBackSlash + 1);
+                }
+                String entryBaseName = entryName;
+                int entryDot = entryBaseName.lastIndexOf('.');
+                if (entryDot > 0) {
+                    entryBaseName = entryBaseName.substring(0, entryDot);
+                }
+                
+                // 解压并计算此 entry 的 CRC32
+                CRC32 crc32 = new CRC32();
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = archive.read(buffer)) != -1) {
+                    crc32.update(buffer, 0, bytesRead);
+                }
+                String crcHex = String.format("%08X", crc32.getValue());
+                
+                // 优先匹配与归档同名的 ROM
+                if (entryBaseName.equalsIgnoreCase(archiveBaseName)) {
+                    logger.info("7z 中找到同名 ROM: {} (CRC={})", entry.getName(), crcHex);
+                    return crcHex;
+                }
+                
+                // 记录最大的 ROM 文件作为备选
+                if (entry.getSize() > largestSize) {
+                    largestSize = entry.getSize();
+                    bestCrc = crcHex;
+                    bestEntryName = entry.getName();
+                }
+            }
+            
+            if (bestCrc != null) {
+                logger.info("7z CRC32: 文件={}, entry={}, CRC={}", 
+                    sevenZFile.getName(), bestEntryName, bestCrc);
+                return bestCrc;
+            }
+            
+            logger.warn("7z 中未找到有效的 ROM entry: {}", sevenZFile.getName());
+            return null;
+            
+        } catch (IOException e) {
+            logger.error("读取 7z 文件失败: {}", e.getMessage());
+            return null;
+        }
     }
     
     private long getFileSize(File file) {
@@ -1811,7 +2353,7 @@ public class ScraperServiceImpl implements ScraperService {
             String preferredRegion = request.getRegion() != null ? request.getRegion().toLowerCase() : "wor";
             Long gameId = game.getId();
 
-            Path gameMediaDir = Paths.get("/data/scraper/games", platformName, String.valueOf(gameId), preferredRegion);
+            Path gameMediaDir = Paths.get("./data/scraper/games", platformName, String.valueOf(gameId), preferredRegion);
             Files.createDirectories(gameMediaDir);
 
             List<MediaDownloadTask> tasksToSave = new ArrayList<>();
@@ -1946,8 +2488,33 @@ public class ScraperServiceImpl implements ScraperService {
             String extension = "." + format.toLowerCase();
             Path mediaPath = gameMediaDir.resolve(mediaType + extension);
 
-            if (Files.exists(mediaPath) && !request.getOverwrite()) {
-                if (!request.getOnlyMissing()) return;
+            // null-safe Boolean 检查，避免自动拆箱 NPE
+            boolean fileExists = Files.exists(mediaPath);
+            boolean overwrite = Boolean.TRUE.equals(request.getOverwrite());
+            boolean onlyMissing = Boolean.TRUE.equals(request.getOnlyMissing());
+
+            if (fileExists && !overwrite) {
+                if (onlyMissing) {
+                    // 仅刮削缺失内容模式：文件已存在则完全跳过
+                    return;
+                }
+                // 文件已存在但不覆盖：创建已完成状态的任务，并直接更新游戏记录的媒体路径
+                MediaDownloadTask existingTask = new MediaDownloadTask();
+                existingTask.setTaskId(taskId);
+                existingTask.setGameId(gameId);
+                existingTask.setGameName(gameName);
+                existingTask.setPlatformId(platformId);
+                existingTask.setPlatformName(platformName);
+                existingTask.setMediaType(mediaType);
+                existingTask.setDownloadUrl(EncryptionUtil.encrypt(url));
+                existingTask.setLocalPath(mediaPath.toString());
+                existingTask.setStatus(MediaDownloadTask.STATUS_COMPLETED);
+                existingTask.setOrderIndex(Long.valueOf(mediaTaskCounter.getAndIncrement()));
+                tasksToSave.add(existingTask);
+                // 文件已存在，直接更新游戏记录的媒体路径（COMPLETED 任务不会被下载线程拾取，需在此处同步更新）
+                updateGameMediaPath(gameId, mediaType, mediaPath.toString());
+                logger.info("媒体文件已存在，标记为已完成: {} (区域: {}) for game {}", mediaType, region, gameName);
+                return;
             }
 
             MediaDownloadTask mediaTask = new MediaDownloadTask();
@@ -2158,7 +2725,8 @@ public class ScraperServiceImpl implements ScraperService {
     }
     
     /**
-     * 下载媒体文件
+     * 下载媒体文件（带状态码检查）
+     * 遇到限额状态码时抛出 ScreenScraperApiException，以便调用方处理限额暂停逻辑
      */
     private void downloadMediaFile(String urlStr, String localPath) throws Exception {
         URL url = new URL(urlStr);
@@ -2166,6 +2734,17 @@ public class ScraperServiceImpl implements ScraperService {
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(30000);
         connection.setReadTimeout(60000);
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode != 200) {
+            connection.disconnect();
+            if (ScreenScraperStatusHandler.shouldStopImmediately(responseCode)) {
+                throw new ScreenScraperApiException(responseCode, 
+                    ScreenScraperStatusHandler.getStatusInfo(responseCode).getDescription());
+            }
+            throw new Exception("媒体下载HTTP错误: " + responseCode + " - " + 
+                ScreenScraperStatusHandler.getStatusInfo(responseCode).getDescription());
+        }
 
         try (java.io.InputStream inputStream = connection.getInputStream();
              java.io.FileOutputStream outputStream = new java.io.FileOutputStream(localPath)) {

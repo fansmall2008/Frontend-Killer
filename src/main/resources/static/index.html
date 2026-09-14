@@ -583,15 +583,15 @@
                         </div>
                         
                         <div class="sub-feature-card">
-                            <h3>刮削系统管理</h3>
-                            <p>管理ScreenScraper刮削系统配置，支持平台与刮削系统的绑定管理。</p>
-                            <a href="scraper-system-list.html" class="btn">进入刮削系统管理</a>
+                            <h3 data-i18n="scraper_system_mgmt_title">刮削系统管理</h3>
+                            <p data-i18n="scraper_system_mgmt_desc">管理ScreenScraper刮削系统配置，支持平台与刮削系统的绑定管理。</p>
+                            <a href="scraper-system-list.html" class="btn" data-i18n="scraper_system_mgmt_btn">进入刮削系统管理</a>
                         </div>
                         
                         <div class="sub-feature-card">
-                            <h3>媒体下载管理</h3>
-                            <p>管理刮削任务生成的媒体文件下载队列，支持暂停、恢复和批量删除。</p>
-                            <a href="media-download.html" class="btn">进入媒体下载管理</a>
+                            <h3 data-i18n="media_download_mgmt_title">媒体下载管理</h3>
+                            <p data-i18n="media_download_mgmt_desc">管理刮削任务生成的媒体文件下载队列，支持暂停、恢复和批量删除。</p>
+                            <a href="media-download.html" class="btn" data-i18n="media_download_mgmt_btn">进入媒体下载管理</a>
                         </div>
                         
                         <div class="sub-feature-card">
@@ -612,7 +612,7 @@
         <!-- 页脚 -->
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：1.0 beta</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -620,7 +620,7 @@
     <div id="notificationModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>任务消息</h2>
+            <h2 data-i18n="task_messages_title">任务消息</h2>
             <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
                 <!-- 消息将通过JavaScript动态填充 -->
             </div>
@@ -631,12 +631,12 @@
     <div class="warning-overlay" id="startupWarning">
         <div class="warning-box">
             <div class="warn-icon">⚠️</div>
-            <h3>刮削环境未就绪</h3>
-            <p>未登录 ScreenScraper 或数据库中缺少刮削系统信息，<br>刮削功能将无法正常获取游戏数据，请先完成以下配置：</p>
+            <h3 data-i18n="warn_scraper_not_ready">刮削环境未就绪</h3>
+            <p data-i18n="warn_scraper_desc">未登录 ScreenScraper 或数据库中缺少刮削系统信息，<br>刮削功能将无法正常获取游戏数据，请先完成以下配置：</p>
             <div class="warn-items" id="warnItems"></div>
             <div>
-                <button class="btn-go-settings" onclick="window.location.href='system-settings.html'">前往配置</button>
-                <button class="btn-dismiss" onclick="document.getElementById('startupWarning').style.display='none'">我知道了</button>
+                <button class="btn-go-settings" onclick="window.location.href='system-settings.html'" data-i18n="warn_go_settings">前往配置</button>
+                <button class="btn-dismiss" onclick="document.getElementById('startupWarning').style.display='none'" data-i18n="warn_i_know">我知道了</button>
             </div>
         </div>
     </div>
@@ -656,12 +656,12 @@
             
             const credItem = document.createElement('div');
             credItem.className = 'warn-item ' + (hasCredentials ? 'ok' : 'bad');
-            credItem.textContent = hasCredentials ? '✔ ScreenScraper 账号已配置' : '✘ ScreenScraper 账号未登录';
+            credItem.textContent = hasCredentials ? I18n.t('warn_cred_ok', '✔ ScreenScraper 账号已配置') : I18n.t('warn_cred_bad', '✘ ScreenScraper 账号未登录');
             items.appendChild(credItem);
             
             const sysItem = document.createElement('div');
             sysItem.className = 'warn-item ' + (hasSystems ? 'ok' : 'bad');
-            sysItem.textContent = hasSystems ? '✔ 刮削系统数据已就绪' : '✘ 数据库中没有刮削系统信息';
+            sysItem.textContent = hasSystems ? I18n.t('warn_sys_ok', '✔ 刮削系统数据已就绪') : I18n.t('warn_sys_bad', '✘ 数据库中没有刮削系统信息');
             items.appendChild(sysItem);
             
             document.getElementById('startupWarning').style.display = 'block';
@@ -795,7 +795,7 @@
             content.innerHTML = '';
             
             if (notifications.length === 0) {
-                content.innerHTML = '<p style="text-align: center; color: #aaa;">暂无通知</p>';
+                content.innerHTML = '<p style="text-align: center; color: #aaa;">' + I18n.t('no_notifications_text', '暂无通知') + '</p>';
             } else {
                 notifications.forEach(notification => {
                     const notificationItem = document.createElement('div');

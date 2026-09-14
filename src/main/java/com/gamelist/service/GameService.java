@@ -18,11 +18,13 @@ public interface GameService {
     ImportStatistics importGamesFromXml(String filePath, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
+    ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery);
 
     ImportStatistics importGamesFromPegasusMetadata(String filePath);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
+    ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery);
 
     ImportStatistics importGamesFromLplFile(String filePath);
     ImportStatistics importGamesFromLplFile(String filePath, boolean metadataOnly, int threadCount);
@@ -58,4 +60,6 @@ public interface GameService {
     int migrateGames(List<Long> gameIds, Long targetPlatformId);
     int addGame(Game game);
     int batchDeleteGames(List<?> gameIds);
+    int swapTranslations(List<Long> gameIds);
+    int swapTranslationsByPlatformId(Long platformId);
 }

@@ -8,7 +8,8 @@
 
 ### 1.2 Key Features
 
-- 🕹️ **Multi-format Support**: Supports importing and exporting multiple frontend formats including Pegasus, ES-DE, and RetroBat
+- 🕹️ **Multi-format Support**: Supports importing and exporting multiple frontend formats including Pegasus, ES-DE, and RetroBat (v3 unified templates)
+- 📡 **Online Scraping**: Integrated ScreenScraper support for 50 media types with automatic CRC32 matching
 - 📁 **Batch Processing**: Supports batch import and export of game data and media files
 - 🔄 **Platform Merging**: Supports merging multiple game platforms into a unified management system
 - 🌐 **Multi-language Interface**: Supports Chinese, English, and Japanese language interfaces
@@ -382,6 +383,70 @@ Data Source Selection → Template Matching → Field Mapping → Data Validatio
 
 Supports generating standard format files that meet the requirements of each frontend, including XML and plain text formats.
 
+### 3.5 Scraper Module
+
+The scraper module is the core data source function of the system. It connects to the ScreenScraper online database to automatically fetch metadata and media files for games.
+
+#### 3.5.1 Scraping Workflow
+
+```
+Select Platform → Scan ROM Files → Calculate CRC32 → Query ScreenScraper → Parse Response → Download Media → Write to Database
+```
+
+#### 3.5.2 CRC32 Matching Strategy
+
+The system uses CRC32 checksums to match games in the ScreenScraper database. Different matching strategies are used for different platforms and file formats:
+
+**Single File ROMs**:
+- Directly calculate the file's CRC32 checksum
+
+**Archive ROMs (ZIP / 7z) — Console/Handheld Platforms**:
+- Read the CRC32 of the inner ROM file inside the archive (not the archive's own CRC)
+- If multiple ROM files are present, prefer the one matching the ROM name, otherwise select the largest file
+- ZIP format reads CRC32 directly from the file header without extraction
+- 7z format requires extraction before calculating CRC32 (7z doesn't store CRC in header)
+
+**Archive ROMs (ZIP) — Arcade Platforms**:
+- Use the archive's own CRC32 checksum
+- Arcade games are typically distributed as ZIP packages, and ScreenScraper matches by the entire ZIP package
+
+**Chinese Encoding Compatibility**:
+- For GBK-encoded Chinese ZIP files, the system automatically uses Apache Commons Compress for compatibility
+- Prevents `invalid CEN header` errors caused by encoding issues
+
+#### 3.5.3 Supported Media Types
+
+The system supports all 50 official ScreenScraper media types, categorized as follows:
+
+| Category | Count | Main Types |
+|----------|-------|------------|
+| Bezels | 6 | bezel-16-9, bezel-4-3, etc. |
+| Boitiers (Boxes) | 2 | box-3D, box-texture |
+| Elements Boitiers (Box Elements) | 3 | box-2D, box-2D-back, box-2D-side |
+| Logos/Wheels | 4 | wheel, wheel-carbon, wheel-steel, wheel-hd |
+| Marquee | 3 | marquee, screenmarquee, etc. |
+| Médias (General Media) | 7 | ss, sstitle, fanart, video, steamgrid, etc. |
+| Médias Pincab (Pinball) | 13 | ssdmd, sstable, videotable, etc. |
+| Médias Secondaires (Secondary) | 4 | flyer, manuel, maps, figurine |
+| Images Secondaires (Supplementary) | 4 | background, pictoliste, etc. |
+| Mixes | 2 | mixrbv1, mixrbv2 |
+| Sources | 2 | box-scan, support-scan |
+| Supports | 2 | support-2D, support-texture |
+| Themes | 2 | themehb, themehs |
+
+For detailed media type name mapping, refer to the [v3 Template System Documentation](v3-templates-en.md).
+
+#### 3.5.4 Scraper Configuration
+
+- **Thread Control**: The system manages concurrent threads through ThreadResourceManager, respecting ScreenScraper API limits
+- **Media Download**: Choose to download all or selected media types
+- **Thread Quota**: Dynamically refresh available thread count from ScreenScraper API responses
+
+#### 3.5.5 Scraping Data Sources
+
+- **ScreenScraper.fr**: Primary metadata source, providing game information, covers, screenshots, videos, etc.
+- **Matching Method**: Primarily CRC32 checksum matching, with filename matching as fallback
+
 ## 4. Usage Process Guide
 
 ### 4.1 First-time Usage Process
@@ -534,9 +599,11 @@ A: Check if the H2 console JDBC URL configuration is correct, the default should
 
 ### 9.1 Documentation Resources
 
-- 📘 **Import Template Configuration Documentation**: `import-templates-en.md` (English)
-- 📗 **Export Functionality Configuration Documentation**: `export-functionality-en.md` (English)
-- 📙 **Installation and Deployment Documentation**: `INSTALL.md`
+- 📘 **v3 Template System Documentation**: `v3-templates-en.md` (English) / `v3-templates-cn.md` (中文) / `v3-templates-ja.md` (日本語)
+- 📗 **Import Template Configuration Documentation**: `import-templates-en.md` (English)
+- 📙 **Export Functionality Configuration Documentation**: `export-functionality-en.md` (English)
+- 📕 **Installation and Deployment Documentation**: `INSTALL.md`
+- 📔 **Media Mapping Documentation**: `media-mapping-en.md` (English)
 
 ### 9.2 Technical Support
 
@@ -546,8 +613,8 @@ A: Check if the H2 console JDBC URL configuration is correct, the default should
 
 ## 10. Version Information
 
-**Current Version**: 1.0.2-beta
-**Last Updated**: 2026-04-26
+**Current Version**: 1.1-RC1
+**Last Updated**: 2026-09-13
 
 ## 11. Docker Deployment Guide
 

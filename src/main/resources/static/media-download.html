@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>媒体下载管理 - 前端杀手</title>
+    <title data-i18n="media_download_mgmt_title">媒体下载管理 - 前端杀手</title>
     <style>
         * {
             margin: 0;
@@ -264,6 +264,12 @@
             border: 1px solid #aaaaaa;
         }
         
+        .platform-status.waiting {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+            border: 1px solid #ffaa00;
+        }
+        
         .platform-status.idle {
             background: rgba(0, 136, 255, 0.2);
             color: #0088ff;
@@ -471,54 +477,54 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">← 返回主页</a>
+    <a href="index.html" class="back-link" data-i18n="back_to_home">← 返回主页</a>
     
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>媒体下载管理</h1>
-                <p>管理各平台的媒体文件刮削状态</p>
+                <h1 data-i18n="media_download_mgmt_title">媒体下载管理</h1>
+                <p data-i18n="media_download_mgmt_desc">管理各平台的媒体文件刮削状态</p>
             </div>
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-danger" onclick="stopAllDownloads()">⏹️ 停止所有刮削</button>
-            <button class="btn" onclick="refreshPlatforms()">🔄 刷新状态</button>
+            <button class="btn btn-danger" onclick="stopAllDownloads()" data-i18n="stop_all_scrape">⏹️ 停止所有刮削</button>
+            <button class="btn" onclick="refreshPlatforms()" data-i18n="refresh_status">🔄 刷新状态</button>
         </div>
 
         <!-- 游戏信息刮削状态卡片 -->
         <div class="platform-card" style="border-color: #ff00ff; margin-bottom: 30px;">
             <div class="platform-header">
-                <div class="platform-name" style="color: #ff00ff;">🎮 游戏信息刮削</div>
-                <span class="platform-status" id="scrapingStatusBadge">空闲</span>
+                <div class="platform-name" style="color: #ff00ff;" data-i18n="game_info_scrape" data-i18n="game_info_scrape">🎮 游戏信息刮削</div>
+                <span class="platform-status" id="scrapingStatusBadge" data-i18n="status_idle">空闲</span>
             </div>
             
             <div class="platform-stats">
                 <div class="stat-item pending">
-                    <div class="stat-label">待处理</div>
+                    <div class="stat-label" data-i18n="pending_label" data-i18n="pending_label">待处理</div>
                     <div class="stat-value" id="pendingGames">0</div>
                 </div>
                 <div class="stat-item downloading">
-                    <div class="stat-label">处理中</div>
+                    <div class="stat-label" data-i18n="processing_label" data-i18n="processing_label">处理中</div>
                     <div class="stat-value" id="processingGames">0</div>
                 </div>
                 <div class="stat-item completed">
-                    <div class="stat-label">已完成</div>
+                    <div class="stat-label" data-i18n="completed_label" data-i18n="completed_label">已完成</div>
                     <div class="stat-value" id="scrapedGames">0</div>
                 </div>
             </div>
 
             <div class="platform-stats">
                 <div class="stat-item failed">
-                    <div class="stat-label">失败</div>
+                    <div class="stat-label" data-i18n="failed_label" data-i18n="failed_label">失败</div>
                     <div class="stat-value" id="failedGames">0</div>
                 </div>
                 <div class="stat-item stopped">
-                    <div class="stat-label">已停止</div>
+                    <div class="stat-label" data-i18n="stopped_label" data-i18n="stopped_label">已停止</div>
                     <div class="stat-value" id="stoppedGames">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">总计</div>
+                    <div class="stat-label" data-i18n="total_count_label" data-i18n="total_count_label">总计</div>
                     <div class="stat-value" style="color: #00ffff;" id="totalGames">0</div>
                 </div>
             </div>
@@ -526,35 +532,79 @@
             <div class="progress-bar">
                 <div class="progress-fill" id="scrapingProgressFill" style="width: 0%"></div>
             </div>
-            <div style="text-align: right; font-size: 12px; color: #888; margin-top: 5px;">进度: <span id="scrapingProgress">0%</span></div>
+            <div style="text-align: right; font-size: 12px; color: #888; margin-top: 5px;"><span data-i18n="progress_label">进度</span>: <span id="scrapingProgress">0%</span></div>
 
             <div class="platform-actions">
-                <button class="btn btn-warning" id="pauseScrapingBtn" onclick="pauseScraping()" style="display: none;">⏸️ 暂停</button>
-                <button class="btn btn-success" id="resumeScrapingBtn" onclick="resumeScraping()" style="display: none;">▶️ 恢复</button>
-                <button class="btn btn-danger" id="stopScrapingBtn" onclick="stopScraping()" style="display: none;">⏹️ 停止</button>
-                <button class="btn btn-danger" id="deleteScrapingTaskBtn" onclick="deleteScrapingTask()" style="display: none;">🗑️ 删除任务</button>
+                <button class="btn btn-warning" id="pauseScrapingBtn" onclick="pauseScraping()" style="display: none;" data-i18n="btn_pause">⏸️ 暂停</button>
+                <button class="btn btn-success" id="resumeScrapingBtn" onclick="resumeScraping()" style="display: none;" data-i18n="btn_resume">▶️ 恢复</button>
+                <button class="btn btn-danger" id="stopScrapingBtn" onclick="stopScraping()" style="display: none;" data-i18n="btn_stop">⏹️ 停止</button>
+                <button class="btn btn-danger" id="deleteScrapingTaskBtn" onclick="deleteScrapingTask()" style="display: none;" data-i18n="btn_delete_task">🗑️ 删除任务</button>
+            </div>
+        </div>
+
+        <!-- ScreenScraper 配额信息面板 -->
+        <div class="quota-panel" style="margin: 20px 0; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="color: #00ffff; margin: 0; font-size: 14px;" data-i18n="quota_info_title" data-i18n="quota_info_title">📊 ScreenScraper 配额信息</h3>
+                <span id="quotaUpdateTime" data-i18n="quota_waiting" style="color: #888; font-size: 11px;" data-i18n="quota_waiting">等待数据...</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <div style="text-align: center;">
+                    <div style="color: #888; font-size: 11px;" data-i18n="quota_today_requests" data-i18n="quota_today_requests">今日请求</div>
+                    <div style="color: #ffd700; font-size: 18px; font-weight: bold;" id="quotaRequestsToday">-</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #888; font-size: 11px;" data-i18n="quota_daily_limit" data-i18n="quota_daily_limit">每日上限</div>
+                    <div style="color: #00ffff; font-size: 18px;" id="quotaMaxPerDay">-</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #888; font-size: 11px;" data-i18n="quota_usage_rate" data-i18n="quota_usage_rate">使用率</div>
+                    <div style="font-size: 18px; font-weight: bold;" id="quotaUsagePercent">-</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #888; font-size: 11px;" data-i18n="quota_threads" data-i18n="quota_threads">并发线程</div>
+                    <div style="color: #00ffff; font-size: 18px;" id="quotaMaxThreads">-</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #888; font-size: 11px;" data-i18n="quota_user_level" data-i18n="quota_user_level">用户等级</div>
+                    <div style="color: #ccc; font-size: 14px;" id="quotaUserNiveau">-</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #888; font-size: 11px;" data-i18n="quota_contrib_level" data-i18n="quota_contrib_level">贡献等级</div>
+                    <div style="color: #ccc; font-size: 14px;" id="quotaUserContribution">-</div>
+                </div>
+            </div>
+            <!-- 配额进度条 -->
+            <div style="margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 3px;">
+                    <span data-i18n="quota_usage_progress">配额使用进度</span>
+                    <span id="quotaProgressText">0 / 0</span>
+                </div>
+                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 4px; height: 8px; overflow: hidden;">
+                    <div id="quotaProgressBar" style="background: linear-gradient(90deg, #00ffff, #ffd700); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                </div>
             </div>
         </div>
 
         <div class="status-bar">
             <div class="status-item">
-                <div class="label">平台总数</div>
+                <div class="label" data-i18n="total_platforms">平台总数</div>
                 <div class="value" id="totalPlatforms">0</div>
             </div>
             <div class="status-item downloading">
-                <div class="label">正在刮削</div>
+                <div class="label" data-i18n="scraping_now">正在刮削</div>
                 <div class="value" id="totalDownloading">0</div>
             </div>
             <div class="status-item completed">
-                <div class="label">已完成</div>
+                <div class="label" data-i18n="completed_label">已完成</div>
                 <div class="value" id="totalCompleted">0</div>
             </div>
             <div class="status-item failed">
-                <div class="label">失败</div>
+                <div class="label" data-i18n="failed_label">失败</div>
                 <div class="value" id="totalFailed">0</div>
             </div>
             <div class="status-item stopped">
-                <div class="label">已停止</div>
+                <div class="label" data-i18n="stopped_label">已停止</div>
                 <div class="value" id="totalStopped">0</div>
             </div>
         </div>
@@ -562,13 +612,14 @@
         <div id="platformGrid" class="platform-grid">
             <div class="loading">
                 <div class="loading-spinner"></div>
-                <p>加载中...</p>
+                <p data-i18n="loading_text">加载中...</p>
             </div>
         </div>
     </div>
 
     <button class="refresh-btn" onclick="refreshPlatforms()">🔄</button>
 
+    <script src="js/i18n.js"></script>
     <script>
         let platforms = [];
 
@@ -606,10 +657,10 @@
                 statusText = '运行中';
                 statusClass = 'running';
             } else if (isPaused) {
-                statusText = '已暂停';
+                statusText = I18n.t('status_paused', '已暂停');
                 statusClass = 'stopped';
             } else {
-                statusText = '空闲';
+                statusText = I18n.t('status_idle', '空闲');
                 statusClass = 'idle';
             }
             
@@ -628,6 +679,64 @@
 
             // 更新按钮显示状态
             updateScrapingButtons(isRunning, isPaused);
+            
+            // 更新配额信息
+            updateQuotaInfo();
+        }
+
+        // 更新配额信息显示
+        async function updateQuotaInfo() {
+            try {
+                const response = await fetch('/api/scraper/thread-status');
+                const data = await response.json();
+                if (data.success && data.data && data.data.quota) {
+                    const quota = data.data.quota;
+                    const maxThreads = data.data.maxThreads;
+                    
+                    // 更新配额数据
+                    document.getElementById('quotaRequestsToday').textContent = quota.requestsToday.toLocaleString();
+                    document.getElementById('quotaMaxPerDay').textContent = quota.maxRequestsPerDay.toLocaleString();
+                    document.getElementById('quotaMaxThreads').textContent = maxThreads;
+                    document.getElementById('quotaUserNiveau').textContent = quota.userNiveau || '-';
+                    document.getElementById('quotaUserContribution').textContent = quota.userContribution || '-';
+                    
+                    // 更新使用率
+                    const usagePercent = quota.usagePercent || 0;
+                    const usageElement = document.getElementById('quotaUsagePercent');
+                    usageElement.textContent = usagePercent + '%';
+                    
+                    // 根据使用率设置颜色
+                    if (usagePercent >= 90) {
+                        usageElement.style.color = '#ff4444'; // 红色 - 危险
+                    } else if (usagePercent >= 70) {
+                        usageElement.style.color = '#ffa500'; // 橙色 - 警告
+                    } else {
+                        usageElement.style.color = '#00ff00'; // 绿色 - 正常
+                    }
+                    
+                    // 更新进度条
+                    document.getElementById('quotaProgressBar').style.width = usagePercent + '%';
+                    document.getElementById('quotaProgressText').textContent = 
+                        `${quota.requestsToday.toLocaleString()} / ${quota.maxRequestsPerDay.toLocaleString()}`;
+                    
+                    // 更新进度条颜色（高使用率时变红）
+                    const progressBar = document.getElementById('quotaProgressBar');
+                    if (usagePercent >= 90) {
+                        progressBar.style.background = 'linear-gradient(90deg, #ffa500, #ff4444)';
+                    } else if (usagePercent >= 70) {
+                        progressBar.style.background = 'linear-gradient(90deg, #00ffff, #ffa500)';
+                    } else {
+                        progressBar.style.background = 'linear-gradient(90deg, #00ffff, #ffd700)';
+                    }
+                    
+                    // 更新时间
+                    const now = new Date();
+                    document.getElementById('quotaUpdateTime').textContent = 
+                        `更新于 ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                }
+            } catch (error) {
+                console.error('获取配额信息失败:', error);
+            }
         }
 
         // 更新刮削按钮状态
@@ -669,11 +778,11 @@
                     showToast('游戏信息刮削已暂停', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '暂停失败', 'error');
+                    showToast(data.message || I18n.t('pause_failed', '暂停失败'), 'error');
                 }
             } catch (error) {
                 console.error('暂停游戏信息刮削失败:', error);
-                showToast('暂停失败', 'error');
+                showToast(I18n.t('pause_failed', '暂停失败'), 'error');
             }
         }
 
@@ -688,11 +797,11 @@
                     showToast('游戏信息刮削已恢复', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '恢复失败', 'error');
+                    showToast(data.message || I18n.t('resume_failed', '恢复失败'), 'error');
                 }
             } catch (error) {
                 console.error('恢复游戏信息刮削失败:', error);
-                showToast('恢复失败', 'error');
+                showToast(I18n.t('resume_failed', '恢复失败'), 'error');
             }
         }
 
@@ -711,11 +820,11 @@
                     showToast('游戏信息刮削已停止', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '停止失败', 'error');
+                    showToast(data.message || I18n.t('stop_failed', '停止失败'), 'error');
                 }
             } catch (error) {
                 console.error('停止游戏信息刮削失败:', error);
-                showToast('停止失败', 'error');
+                showToast(I18n.t('stop_failed', '停止失败'), 'error');
             }
         }
 
@@ -734,11 +843,11 @@
                     showToast('游戏信息刮削任务已删除', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '删除失败', 'error');
+                    showToast(data.message || I18n.t('delete_failed', '删除失败'), 'error');
                 }
             } catch (error) {
                 console.error('删除游戏信息刮削任务失败:', error);
-                showToast('删除失败', 'error');
+                showToast(I18n.t('delete_failed', '删除失败'), 'error');
             }
         }
 
@@ -789,6 +898,9 @@
                 return 'stopped';
             } else if (stats.downloading > 0) {
                 return 'running';
+            } else if (stats.pending > 0) {
+                // 有 PENDING 任务但无下载进行中（重启后恢复/额度耗尽后等待恢复）
+                return 'waiting';
             } else {
                 return 'idle';
             }
@@ -798,6 +910,7 @@
             switch (status) {
                 case 'running': return '运行中';
                 case 'stopped': return '已停止';
+                case 'waiting': return '等待中';
                 case 'idle': return '空闲';
                 default: return '未知';
             }
@@ -828,30 +941,30 @@
                     
                     <div class="platform-stats">
                         <div class="stat-item pending">
-                            <div class="stat-label">待下载</div>
+                            <div class="stat-label" data-i18n="pending_download">待下载</div>
                             <div class="stat-value">${stats.pending || 0}</div>
                         </div>
                         <div class="stat-item downloading">
-                            <div class="stat-label">下载中</div>
+                            <div class="stat-label" data-i18n="downloading_label">下载中</div>
                             <div class="stat-value">${stats.downloading || 0}</div>
                         </div>
                         <div class="stat-item completed">
-                            <div class="stat-label">已完成</div>
+                            <div class="stat-label" data-i18n="completed_label" data-i18n="completed_label">已完成</div>
                             <div class="stat-value">${stats.completed || 0}</div>
                         </div>
                     </div>
 
                     <div class="platform-stats">
                         <div class="stat-item failed">
-                            <div class="stat-label">失败</div>
+                            <div class="stat-label" data-i18n="failed_label" data-i18n="failed_label">失败</div>
                             <div class="stat-value">${stats.failed || 0}</div>
                         </div>
                         <div class="stat-item stopped">
-                            <div class="stat-label">已停止</div>
+                            <div class="stat-label" data-i18n="stopped_label" data-i18n="stopped_label">已停止</div>
                             <div class="stat-value">${stats.stopped || 0}</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-label">总计</div>
+                            <div class="stat-label" data-i18n="total_count_label" data-i18n="total_count_label">总计</div>
                             <div class="stat-value" style="color: #00ffff;">${stats.total || 0}</div>
                         </div>
                     </div>
@@ -862,7 +975,7 @@
                     <div style="text-align: right; font-size: 12px; color: #888; margin-top: 5px;">进度: ${progress}%</div>
 
                     <div class="platform-actions">
-                        ${status === 'stopped' ? `
+                        ${status === 'stopped' || status === 'waiting' ? `
                             <button class="btn btn-success" onclick="resumePlatform(${platformId})">▶️ 恢复</button>
                         ` : `
                             <button class="btn btn-danger" onclick="stopPlatform(${platformId})">⏹️ 停止</button>
@@ -891,7 +1004,7 @@
                 return;
             }
 
-            platformGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>加载中...</p></div>';
+            platformGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p data-i18n="loading_text">加载中...</p></div>';
 
             const cards = await Promise.all(platformIds.map(id => buildPlatformCard(id)));
             const validCards = cards.filter(c => c !== null);
@@ -945,11 +1058,11 @@
                     showToast('平台刮削已停止', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '停止失败', 'error');
+                    showToast(data.message || I18n.t('stop_failed', '停止失败'), 'error');
                 }
             } catch (error) {
                 console.error('停止平台刮削失败:', error);
-                showToast('停止失败', 'error');
+                showToast(I18n.t('stop_failed', '停止失败'), 'error');
             }
         }
 
@@ -963,11 +1076,11 @@
                     showToast('平台刮削已恢复', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '恢复失败', 'error');
+                    showToast(data.message || I18n.t('resume_failed', '恢复失败'), 'error');
                 }
             } catch (error) {
                 console.error('恢复平台刮削失败:', error);
-                showToast('恢复失败', 'error');
+                showToast(I18n.t('resume_failed', '恢复失败'), 'error');
             }
         }
         
@@ -985,11 +1098,11 @@
                     showToast('平台刮削任务已删除', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '删除失败', 'error');
+                    showToast(data.message || I18n.t('delete_failed', '删除失败'), 'error');
                 }
             } catch (error) {
                 console.error('删除平台刮削任务失败:', error);
-                showToast('删除失败', 'error');
+                showToast(I18n.t('delete_failed', '删除失败'), 'error');
             }
         }
 
@@ -1007,11 +1120,11 @@
                     showToast('所有平台刮削已停止', 'success');
                     await refreshPlatforms();
                 } else {
-                    showToast(data.message || '停止失败', 'error');
+                    showToast(data.message || I18n.t('stop_failed', '停止失败'), 'error');
                 }
             } catch (error) {
                 console.error('停止所有平台刮削失败:', error);
-                showToast('停止失败', 'error');
+                showToast(I18n.t('stop_failed', '停止失败'), 'error');
             }
         }
 

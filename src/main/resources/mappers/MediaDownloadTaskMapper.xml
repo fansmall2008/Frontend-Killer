@@ -93,7 +93,11 @@
     </select>
 
     <select id="selectOnePendingTask" resultMap="MediaDownloadTaskResultMap">
-        SELECT * FROM media_download_task WHERE task_id = #{taskId} AND status = 'PENDING' ORDER BY order_index ASC LIMIT 1 FOR UPDATE SKIP LOCKED
+        SELECT * FROM media_download_task WHERE task_id = #{taskId} AND status = 'PENDING' ORDER BY order_index ASC LIMIT 1
+    </select>
+
+    <select id="selectOnePendingTaskByPlatformId" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task WHERE platform_id = #{platformId} AND status = 'PENDING' ORDER BY order_index ASC LIMIT 1
     </select>
 
     <update id="tryUpdateStatus">
@@ -169,6 +173,11 @@
         UPDATE media_download_task SET status = 'PENDING', error_message = NULL, retry_count = retry_count + 1 WHERE platform_id = #{platformId} AND status = 'FAILED'
     </update>
 
+    <!-- 启动时恢复：将 DOWNLOADING 状态的任务重置为 PENDING（处理断电/异常关闭的情况） -->
+    <update id="updateDownloadingToPending">
+        UPDATE media_download_task SET status = 'PENDING' WHERE status = 'DOWNLOADING'
+    </update>
+
     <select id="selectDownloadingByPlatformId" resultMap="MediaDownloadTaskResultMap">
         SELECT * FROM media_download_task WHERE platform_id = #{platformId} AND status = 'DOWNLOADING'
     </select>
@@ -176,5 +185,13 @@
     <select id="selectDistinctPlatformIds" resultType="long">
         SELECT DISTINCT platform_id FROM media_download_task
     </select>
+
+    <select id="selectByGameId" parameterType="java.lang.Long" resultType="com.gamelist.model.MediaDownloadTask">
+        SELECT * FROM media_download_task WHERE game_id = #{gameId}
+    </select>
+
+    <delete id="deleteByGameId" parameterType="java.lang.Long">
+        DELETE FROM media_download_task WHERE game_id = #{gameId}
+    </delete>
 
 </mapper>

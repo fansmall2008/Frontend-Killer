@@ -163,6 +163,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             int totalTasks = totalRegions * totalMediaTypes;
             int completedTasks = 0;
             
+            int successCount = 0;
             for (String region : regions) {
                 for (String mediaType : mediaTypes) {
                     completedTasks++;
@@ -183,6 +184,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
                             String filePath = downloadAndSaveMedia(url, systemId, reg, type);
                             if (filePath != null) {
                                 logger.info("媒体文件下载成功: {}", filePath);
+                                successCount++;
                             }
                         }
                     }
@@ -192,6 +194,13 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             taskService.updateTaskProgress(taskId, 100, "刮削完成", totalTasks, totalTasks);
             taskService.completeTask(taskId, "刮削系统完成", "");
             
+            // 只有实际下载成功时才标记系统媒体已刮削
+            if (successCount > 0) {
+                markAsScraped(systemId);
+            } else {
+                logger.warn("系统媒体刮削完成但无有效下载，不标记为已刮削: systemId={}", systemId);
+            }
+            
         } catch (Exception e) {
             logger.error("刮削系统失败: {}", e.getMessage(), e);
             taskService.failTask(taskId, "刮削失败", e.getMessage());
@@ -200,7 +209,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     
     private String downloadAndSaveMedia(String url, Integer systemId, String region, String mediaType) {
         try {
-            java.io.File baseDir = new java.io.File("/data/scraper/system/" + systemId + "/" + region + "/" + mediaType);
+            java.io.File baseDir = new java.io.File(com.gamelist.util.PathUtil.getDataPath() + "/scraper/system/" + systemId + "/" + region + "/" + mediaType);
             if (!baseDir.exists()) {
                 baseDir.mkdirs();
             }
@@ -209,8 +218,10 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             java.io.File outputFile = new java.io.File(baseDir, fileName);
             
             java.net.URL downloadUrl = new java.net.URL(url);
+            // 先下载到临时文件，验证后再移动
+            java.io.File tempFile = new java.io.File(baseDir, fileName + ".tmp");
             try (java.io.InputStream is = downloadUrl.openStream();
-                 java.io.FileOutputStream fos = new java.io.FileOutputStream(outputFile)) {
+                 java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFile)) {
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = is.read(buffer)) != -1) {
@@ -218,11 +229,206 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
                 }
             }
             
-            return outputFile.getAbsolutePath();
+            // 检查是否为 NOMEDIA 响应（ScreenScraper 无媒体时返回 7 字节 "NOMEDIA"）
+            if (tempFile.length() <= 100) {
+                byte[] content = java.nio.file.Files.readAllBytes(tempFile.toPath());
+                String text = new String(content, java.nio.charset.StandardCharsets.UTF_8).trim();
+                if ("NOMEDIA".equalsIgnoreCase(text) || content.length <= 7) {
+                    tempFile.delete();
+                    logger.warn("ScreenScraper 返回 NOMEDIA，跳过保存: systemId={}, type={}, region={}", systemId, mediaType, region);
+                    return null;
+                }
+            }
+            
+            // 验证通过，移动临时文件到最终位置
+            if (tempFile.renameTo(outputFile)) {
+                return outputFile.getAbsolutePath();
+            } else {
+                tempFile.delete();
+                logger.warn("重命名临时文件失败: {}", tempFile.getAbsolutePath());
+                return null;
+            }
         } catch (Exception e) {
             logger.error("下载媒体文件失败: url={}, error={}", url, e.getMessage());
             return null;
         }
+    }
+    
+    @Override
+    public void markAsScraped(Integer systemId) {
+        try {
+            scraperSystemMapper.updateMediaScraped(systemId, true);
+            logger.info("已标记系统媒体已刮削: systemId={}", systemId);
+        } catch (Exception e) {
+            logger.warn("标记系统媒体刮削状态失败: systemId={}, error={}", systemId, e.getMessage());
+        }
+    }
+    
+    @Override
+    public boolean isMediaScraped(Integer systemId) {
+        try {
+            ScraperSystem system = scraperSystemMapper.selectBySystemId(systemId);
+            return system != null && Boolean.TRUE.equals(system.getMediaScraped());
+        } catch (Exception e) {
+            logger.warn("查询系统媒体刮削状态失败: systemId={}, error={}", systemId, e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public void scrapeSystemIcon(Integer systemId) {
+        if (systemId == null) {
+            return;
+        }
+        
+        // 检查是否已刮削且文件实际存在
+        if (isMediaScraped(systemId) && hasIconOnDisk(systemId)) {
+            logger.debug("系统 icon 已存在，跳过下载: systemId={}", systemId);
+            return;
+        }
+        
+        try {
+            logger.info("开始自动下载系统 icon: systemId={}", systemId);
+            Map<String, String> scraperSettings = scraperSettingsService.getSettings();
+            String username = scraperSettings.get("username");
+            String password = scraperSettings.get("password");
+            
+            // 按优先级尝试多种媒体类型和区域
+            // ScreenScraper 系统媒体类型: wheel, wheel-carbon, logo-svg, logo-monochrome 等
+            String[] mediaTypes = {"wheel", "wheel-carbon", "logo-svg", "logo-monochrome"};
+            String[] regions = {"wor", "us", "eu", "jp"};
+            
+            boolean downloaded = false;
+            for (String mediaType : mediaTypes) {
+                if (downloaded) break;
+                for (String region : regions) {
+                    if (downloaded) break;
+                    
+                    Map<String, Object> mediaResult = screenScraperApiService.fetchSystemMedia(
+                            systemId, region, java.util.Collections.singletonList(mediaType), username, password);
+                    
+                    if ((Boolean) mediaResult.get("success")) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, String>> mediaUrls = (List<Map<String, String>>) mediaResult.get("mediaUrls");
+                        
+                        for (Map<String, String> mediaInfo : mediaUrls) {
+                            String url = mediaInfo.get("url");
+                            String reg = mediaInfo.get("region");
+                            
+                            // 下载并保存为 icon.png（前端统一查找 icon 类型）
+                            String filePath = downloadAndSaveAsIcon(url, systemId, reg);
+                            if (filePath != null) {
+                                logger.info("系统 icon 下载成功 (类型={}, 区域={}): {}", mediaType, reg, filePath);
+                                downloaded = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (downloaded) {
+                markAsScraped(systemId);
+            } else {
+                logger.warn("ScreenScraper 无此系统的可用 icon/logo/screen: systemId={}", systemId);
+            }
+        } catch (Exception e) {
+            logger.warn("自动下载系统 icon 失败: systemId={}, error={}", systemId, e.getMessage());
+        }
+    }
+    
+    /**
+     * 下载并保存为 icon.png 或 icon.svg（前端统一查找 icon 类型）
+     */
+    private String downloadAndSaveAsIcon(String url, Integer systemId, String region) {
+        try {
+            java.io.File baseDir = new java.io.File(com.gamelist.util.PathUtil.getDataPath() + "/scraper/system/" + systemId + "/" + region + "/icon");
+            if (!baseDir.exists()) {
+                baseDir.mkdirs();
+            }
+            
+            // 从 URL 推断文件格式（logo-svg 返回 SVG，其他返回 PNG）
+            String extension = "png";
+            if (url != null && (url.contains("logo-svg") || url.contains(".svg"))) {
+                extension = "svg";
+            }
+            
+            java.io.File tempFile = new java.io.File(baseDir, "icon." + extension + ".tmp");
+            java.net.URL downloadUrl = new java.net.URL(url);
+            try (java.io.InputStream is = downloadUrl.openStream();
+                 java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                }
+            }
+            
+            // 检查 NOMEDIA
+            if (tempFile.length() <= 100) {
+                byte[] content = java.nio.file.Files.readAllBytes(tempFile.toPath());
+                String text = new String(content, java.nio.charset.StandardCharsets.UTF_8).trim();
+                if ("NOMEDIA".equalsIgnoreCase(text) || content.length <= 7) {
+                    tempFile.delete();
+                    return null;
+                }
+            }
+            
+            // 检测实际内容格式（以防 URL 推断不准确）
+            byte[] head = new byte[Math.min(200, (int) tempFile.length())];
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(tempFile)) {
+                fis.read(head);
+            }
+            String headStr = new String(head, java.nio.charset.StandardCharsets.UTF_8).trim();
+            boolean isPng = head.length >= 4 && head[0] == (byte) 0x89 && head[1] == (byte) 0x50 && head[2] == (byte) 0x4E && head[3] == (byte) 0x47; // \x89PNG
+            boolean isJpeg = head.length >= 3 && head[0] == (byte) 0xFF && head[1] == (byte) 0xD8 && head[2] == (byte) 0xFF; // \xFF\xD8\xFF
+            if (headStr.startsWith("<svg") || headStr.startsWith("<?xml")) {
+                extension = "svg";
+            } else if (!isPng && !isJpeg && !headStr.startsWith("<")) {
+                // 不是 SVG、PNG 或 JPEG，可能是 NOMEDIA 文本
+                tempFile.delete();
+                return null;
+            }
+            
+            java.io.File outputFile = new java.io.File(baseDir, "icon." + extension);
+            if (tempFile.renameTo(outputFile)) {
+                return outputFile.getAbsolutePath();
+            } else {
+                tempFile.delete();
+                return null;
+            }
+        } catch (Exception e) {
+            logger.warn("下载 icon 失败: url={}, error={}", url, e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 检查系统 icon 文件是否实际存在于磁盘（检查多个区域）
+     */
+    private boolean hasIconOnDisk(Integer systemId) {
+        String[] regions = {"wor", "us", "eu", "jp"};
+        try {
+            for (String region : regions) {
+                java.io.File iconDir = new java.io.File(com.gamelist.util.PathUtil.getDataPath() + "/scraper/system/" + systemId + "/" + region + "/icon");
+                if (iconDir.exists() && iconDir.isDirectory()) {
+                    java.io.File[] files = iconDir.listFiles((dir, name) -> {
+                        String lower = name.toLowerCase();
+                        return lower.startsWith("icon.") && !lower.endsWith(".tmp");
+                    });
+                    if (files != null) {
+                        for (java.io.File f : files) {
+                            if (f.length() > 100) { // 排除 NOMEDIA 等无效文件
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("检查 icon 文件是否存在失败: systemId={}, error={}", systemId, e.getMessage());
+        }
+        return false;
     }
     
     @Override
@@ -309,6 +515,9 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             taskService.updateTaskProgress(taskId, 100, "刮削完成", totalTasks, totalTasks);
             taskService.completeTask(taskId, "刮削完成", "成功下载 " + successCount + " 个文件，失败 " + failCount + " 个");
             
+            // 标记系统媒体已刮削
+            markAsScraped(systemId);
+            
         } catch (Exception e) {
             logger.error("刮削系统失败: {}", e.getMessage(), e);
             taskService.failTask(taskId, "刮削失败", e.getMessage());
@@ -318,7 +527,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     private String downloadMediaWithFormat(String url, Integer systemId, String region, String mediaType, String format) {
         try {
             String regionPath = (region != null && !region.isEmpty()) ? region : "wor";
-            java.io.File baseDir = new java.io.File("/data/scraper/system/" + systemId + "/" + regionPath + "/" + mediaType);
+            java.io.File baseDir = new java.io.File(com.gamelist.util.PathUtil.getDataPath() + "/scraper/system/" + systemId + "/" + regionPath + "/" + mediaType);
             if (!baseDir.exists()) {
                 baseDir.mkdirs();
             }

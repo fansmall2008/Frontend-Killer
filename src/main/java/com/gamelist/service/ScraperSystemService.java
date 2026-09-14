@@ -16,4 +16,19 @@ public interface ScraperSystemService {
     void clearAll();
     Map<String, Object> scrapeSystem(Integer systemId, List<String> regions, List<String> mediaTypes);
     Map<String, Object> scrapeSystemAllMedia(Integer systemId);
+    
+    /**
+     * 标记系统媒体已刮削
+     */
+    void markAsScraped(Integer systemId);
+    
+    /**
+     * 检查系统媒体是否已刮削
+     */
+    boolean isMediaScraped(Integer systemId);
+    
+    /**
+     * 同步下载系统 icon（wor 区域），用于导入时立即获取 logo
+     */
+    void scrapeSystemIcon(Integer systemId);
 }

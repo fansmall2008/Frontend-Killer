@@ -13,7 +13,7 @@ This guide covers multiple ways to install and run Frontend-Killer.
 
 ```bash
 # Pull the latest image
-docker pull fansmall/webgamelistoper:1.0.4-beta
+docker pull fansmall/webgamelistoper:1.1-RC1
 
 # Create necessary directories
 mkdir -p ./data ./output ./logs ./backup
@@ -32,7 +32,7 @@ docker run -d \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.4-beta
+  fansmall/webgamelistoper:1.1-RC1
 ```
 
 ### Docker Compose
@@ -43,7 +43,7 @@ Create a `docker-compose.yml` file:
 version: '3.8'
 services:
   webgamelistoper:
-    image: fansmall/webgamelistoper:1.0.4-beta
+    image: fansmall/webgamelistoper:1.1-RC1
     container_name: webgamelistoper
     ports:
       - "8081:8080"
@@ -79,7 +79,7 @@ docker-compose up -d
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
 
 # Run the JAR file
-java -jar webGamelistOper-1.0.4-beta.jar
+java -jar webGamelistOper-1.1-RC1.jar
 ```
 
 ### Configuration
@@ -87,7 +87,7 @@ java -jar webGamelistOper-1.0.4-beta.jar
 You can override default settings using environment variables:
 
 ```bash
-java -jar webGamelistOper-1.0.4-beta.jar \
+java -jar webGamelistOper-1.1-RC1.jar \
   --server.port=8081 \
   --app.data.path=/custom/data/path
 ```

@@ -1043,24 +1043,24 @@ public class PlatformServiceImpl implements PlatformService {
         // 获取平台的所有游戏
         List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
         
-        // 统计刮削状态
+        // 统计刮削状态（4级分类）
         int totalGames = games.size();
-        int fullyScraped = 0;
-        int partiallyScraped = 0;
-        int notScraped = 0;
+        int scraped = 0;
+        int originalData = 0;
+        int poorQuality = 0;
+        int rawRom = 0;
         
         // 用于文件名查重
         Map<String, List<Map<String, Object>>> fileNameMap = new HashMap<>();
         
         for (Game game : games) {
             // 统计刮削状态
-            int scrapeStatus = getScrapeStatus(game);
-            if (scrapeStatus == 2) {
-                fullyScraped++;
-            } else if (scrapeStatus == 1) {
-                partiallyScraped++;
-            } else {
-                notScraped++;
+            String category = getScrapeCategory(game);
+            switch (category) {
+                case "scraped": scraped++; break;
+                case "originalData": originalData++; break;
+                case "poorQuality": poorQuality++; break;
+                case "rawRom": rawRom++; break;
             }
             
             // 提取文件名用于查重
@@ -1100,9 +1100,10 @@ public class PlatformServiceImpl implements PlatformService {
         
         // 构建统计结果
         statistics.put("totalGames", totalGames);
-        statistics.put("fullyScraped", fullyScraped);
-        statistics.put("partiallyScraped", partiallyScraped);
-        statistics.put("notScraped", notScraped);
+        statistics.put("scraped", scraped);
+        statistics.put("originalData", originalData);
+        statistics.put("poorQuality", poorQuality);
+        statistics.put("rawRom", rawRom);
         statistics.put("duplicateFiles", duplicateFiles);
         statistics.put("duplicateFilesCount", duplicateFilesCount);
         
@@ -1110,56 +1111,75 @@ public class PlatformServiceImpl implements PlatformService {
     }
     
     /**
-     * 获取游戏的刮削状态
-     * 0: 红色 - 完全没有信息（无 description 且无任何媒体）
-     * 1: 黄色 - 部分信息（只有 description 或只有媒体）
-     * 2: 绿色 - 信息完整（既有 description 又有媒体）
+     * 获取游戏的刮削分类（4级）
+     * scraped: 已刮削（scraped=true 且非低质量）
+     * originalData: 原始数据（未刮削但有一定数据）
+     * poorQuality: 低质量（已刮削但数据不完整）
+     * rawRom: 原始ROM（完全没有数据）
      */
-    private int getScrapeStatus(Game game) {
-        // 判断游戏信息：只关注 description
-        boolean hasDescription = game.getDesc() != null && !game.getDesc().isEmpty();
+    private String getScrapeCategory(Game game) {
+        boolean isScraped = Boolean.TRUE.equals(game.getScraped());
         
-        // 判断媒体信息：任意媒体字段有值就算有
-        boolean hasMedia = hasAnyMedia(game);
+        // 判断是否为低质量：缺少关键媒体或描述信息
+        boolean isPoorQuality = isPoorQualityGame(game);
         
-        // 返回状态码
-        if (!hasDescription && !hasMedia) {
-            return 0; // 红色 - 完全没有信息
-        } else if (hasDescription && hasMedia) {
-            return 2; // 绿色 - 两种信息都有
+        if (isScraped) {
+            return isPoorQuality ? "poorQuality" : "scraped";
         } else {
-            return 1; // 黄色 - 只有一种信息
+            return hasOriginalData(game) ? "originalData" : "rawRom";
         }
     }
     
     /**
-     * 判断游戏是否有任何媒体信息
+     * 判断已刮削的游戏是否为低质量
+     * 缺少 box2d/ss/wheel 之一，或者描述+开发者+流派都为空
      */
-    private boolean hasAnyMedia(Game game) {
-        return game.getImage() != null && !game.getImage().isEmpty() ||
-               game.getBoxFront() != null && !game.getBoxFront().isEmpty() ||
-               game.getBoxBack() != null && !game.getBoxBack().isEmpty() ||
-               game.getBoxSpine() != null && !game.getBoxSpine().isEmpty() ||
-               game.getBoxFull() != null && !game.getBoxFull().isEmpty() ||
-               game.getCartridge() != null && !game.getCartridge().isEmpty() ||
-               game.getLogo() != null && !game.getLogo().isEmpty() ||
-               game.getBezel() != null && !game.getBezel().isEmpty() ||
-               game.getPanel() != null && !game.getPanel().isEmpty() ||
-               game.getCabinetLeft() != null && !game.getCabinetLeft().isEmpty() ||
-               game.getCabinetRight() != null && !game.getCabinetRight().isEmpty() ||
-               game.getTile() != null && !game.getTile().isEmpty() ||
-               game.getBanner() != null && !game.getBanner().isEmpty() ||
-               game.getSteam() != null && !game.getSteam().isEmpty() ||
-               game.getPoster() != null && !game.getPoster().isEmpty() ||
-               game.getBackground() != null && !game.getBackground().isEmpty() ||
-               game.getMusic() != null && !game.getMusic().isEmpty() ||
-               game.getScreenshot() != null && !game.getScreenshot().isEmpty() ||
-               game.getTitlescreen() != null && !game.getTitlescreen().isEmpty() ||
-               game.getBox3D() != null && !game.getBox3D().isEmpty() ||
-               game.getSteamgrid() != null && !game.getSteamgrid().isEmpty() ||
-               game.getFanart() != null && !game.getFanart().isEmpty() ||
-               game.getBoxtexture() != null && !game.getBoxtexture().isEmpty() ||
-               game.getSupporttexture() != null && !game.getSupporttexture().isEmpty();
+    private boolean isPoorQualityGame(Game game) {
+        boolean missingBox2d = game.getBox2d() == null || game.getBox2d().isEmpty();
+        boolean missingSs = game.getSs() == null || game.getSs().isEmpty();
+        boolean missingWheel = game.getWheel() == null || game.getWheel().isEmpty();
+        
+        boolean descEmpty = game.getDesc() == null || game.getDesc().isEmpty() || game.getDesc().length() <= 20;
+        boolean devEmpty = game.getDeveloper() == null || game.getDeveloper().isEmpty() || "unknown".equals(game.getDeveloper());
+        boolean genreEmpty = game.getGenre() == null || game.getGenre().isEmpty() || "unknown".equals(game.getGenre());
+        
+        return missingBox2d || missingSs || missingWheel || (descEmpty && devEmpty && genreEmpty);
+    }
+    
+    /**
+     * 判断未刮削的游戏是否有一定原始数据
+     */
+    private boolean hasOriginalData(Game game) {
+        return hasField(game.getDeveloper()) && !"unknown".equals(game.getDeveloper()) ||
+               hasField(game.getPublisher()) && !"unknown".equals(game.getPublisher()) ||
+               hasField(game.getGenre()) && !"unknown".equals(game.getGenre()) ||
+               hasField(game.getDesc()) && !"unknown".equals(game.getDesc()) && game.getDesc().length() > 10 ||
+               hasField(game.getTranslatedDesc()) && game.getTranslatedDesc().length() > 10 ||
+               hasField(game.getReleasedate()) ||
+               hasField(game.getPlayers()) && !"1".equals(game.getPlayers()) ||
+               game.getRating() != null ||
+               hasField(game.getImage()) ||
+               hasField(game.getBox2d()) ||
+               hasField(game.getSs()) ||
+               hasField(game.getWheel()) ||
+               hasField(game.getVideo()) ||
+               hasField(game.getMarquee()) ||
+               hasField(game.getThumbnail()) ||
+               hasField(game.getManual()) ||
+               hasField(game.getSstitle()) ||
+               hasField(game.getSteamgrid()) ||
+               hasField(game.getFanart()) ||
+               hasField(game.getBezel43()) ||
+               hasField(game.getBezel169()) ||
+               hasField(game.getMixrbv1()) ||
+               hasField(game.getMixrbv2()) ||
+               hasField(game.getFlyer()) ||
+               hasField(game.getMaps()) ||
+               hasField(game.getFigurine());
+    }
+    
+    private boolean hasField(String value) {
+        return value != null && !value.isEmpty();
     }
     
     @Override

@@ -22,11 +22,14 @@ import com.gamelist.model.ExportRequest;
 import com.gamelist.model.ExportRule;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
+import com.gamelist.model.TemplateV3;
 import com.gamelist.service.DataFileGenerator;
 import com.gamelist.service.ExportRuleService;
 import com.gamelist.service.ExportService;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.TaskService;
+import com.gamelist.util.GameFieldAccessor;
+import com.gamelist.util.TemplateExpressionEngine;
 
 @Service
 public class ExportServiceImpl implements ExportService {
@@ -43,6 +46,9 @@ public class ExportServiceImpl implements ExportService {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private ExportOrchestrator exportOrchestrator;
 
     // 默认线程池大小 - 根据CPU核心数设置
     private static final int DEFAULT_THREAD_POOL_SIZE = Math.max(4, Runtime.getRuntime().availableProcessors());
@@ -98,6 +104,40 @@ public class ExportServiceImpl implements ExportService {
             // 加载规则
             logger.info("Loading export rules");
             exportRuleService.loadRules();
+
+            // v3 模板分发：如果该前端有 v3 模板，走 v3 导出路径
+            if (exportRuleService.isV3Template(frontend)) {
+                logger.info("Detected v3 template for frontend: {}, dispatching to ExportOrchestrator", frontend);
+                TemplateV3 v3Template = exportRuleService.getV3RuleByFrontend(frontend);
+                if (v3Template == null) {
+                    result.put("success", false);
+                    result.put("error", "v3 template not found for frontend: " + frontend);
+                    return result;
+                }
+
+                String taskDescription = "导出平台(v3): " + platformName + " (" + frontend + ")";
+                final com.gamelist.model.BackgroundTask task = taskService.createTask("export", taskDescription);
+                logger.info("Created v3 export task with ID: {}", task.getId());
+
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.submit(() -> {
+                    try {
+                        taskService.updateTaskProgress(task.getId(), 0, "开始 v3 导出", 0, 100);
+                        exportOrchestrator.executeExport(v3Template, platform, request, task);
+                    } catch (Exception e) {
+                        logger.error("v3 export failed", e);
+                        taskService.failTask(task.getId(), "v3 导出失败", e.getMessage());
+                    }
+                });
+                executorService.shutdown();
+
+                result.put("success", true);
+                result.put("message", "v3 导出任务已启动");
+                result.put("taskId", task.getId());
+                return result;
+            }
+
+            // v2 路径：加载旧版 ExportRule
             logger.info("Getting export rule for frontend: {}", frontend);
             ExportRule rule = exportRuleService.getRuleByFrontend(frontend);
 
@@ -298,11 +338,17 @@ public class ExportServiceImpl implements ExportService {
                                     }
                                     renameVariables.put("ext", ext);
                                     
-                                    // 替换模板中的变量
-                                    String newFileName = renameTemplate;
-                                    for (Map.Entry<String, String> entry : renameVariables.entrySet()) {
-                                        if (entry.getValue() != null) {
-                                            newFileName = newFileName.replace("{" + entry.getKey() + "}", entry.getValue());
+                                    // 使用表达式引擎或简单变量替换处理重命名模板
+                                    String newFileName;
+                                    if (TemplateExpressionEngine.isExpression(renameTemplate)) {
+                                        TemplateExpressionEngine.Context ctx = new TemplateExpressionEngine.Context(game, platform, renameVariables);
+                                        newFileName = TemplateExpressionEngine.evaluate(renameTemplate, ctx);
+                                    } else {
+                                        newFileName = renameTemplate;
+                                        for (Map.Entry<String, String> entry : renameVariables.entrySet()) {
+                                            if (entry.getValue() != null) {
+                                                newFileName = newFileName.replace("{" + entry.getKey() + "}", entry.getValue());
+                                            }
                                         }
                                     }
                                     // 确保扩展名正确
@@ -438,7 +484,11 @@ public class ExportServiceImpl implements ExportService {
                             // 处理每种媒体类型
                             for (Map.Entry<String, ExportRule.MediaRule> entry : mediaRules) {
                                 ExportRule.MediaRule mediaRule = entry.getValue();
+                                // v2: source 为空时使用 map key（即 nomcourt 值）
                                 String sourceField = mediaRule.getSource();
+                                if (sourceField == null || sourceField.isEmpty()) {
+                                    sourceField = entry.getKey();
+                                }
                                 String targetTemplate = mediaRule.getTarget();
                                 
                                 // 只在DEBUG模式下输出处理信息
@@ -562,10 +612,10 @@ public class ExportServiceImpl implements ExportService {
             }
             
             if (generator != null) {
-                // 对于 LPL 格式，只使用 lplExport 配置生成播放列表，不生成 dataFile
+                // 对于 LPL 格式，委托给 LplDataFileGenerator
                 if ("lpl".equals(format)) {
                     if (rule.getRules().getLplExport() != null && rule.getRules().getLplExport().isEnabled()) {
-                        generateLplFile(games, targetPath, rule, platform, variables);
+                        generator.generateDataFile(games, dataFilePath, rule, platform, variables);
                     } else {
                         logger.warn("LPL format configured but lplExport is not enabled");
                     }
@@ -580,113 +630,6 @@ public class ExportServiceImpl implements ExportService {
         }
     }
     
-    /**
-     * 生成 Lakka .lpl 播放列表文件
-     */
-    private void generateLplFile(List<Game> games, String targetPath, ExportRule rule, Platform platform, Map<String, String> variables) {
-        try {
-            ExportRule.LplExportRule lplExport = rule.getRules().getLplExport();
-            if (lplExport == null || lplExport.getOutputPath() == null) {
-                logger.warn("LPL export rule not properly configured");
-                return;
-            }
-            
-            // 构建 LPL 文件路径
-            Map<String, String> lplVariables = new HashMap<>(variables);
-            String platformName = platform.getName();
-            
-            // 获取平台映射
-            Map<String, String> platformMappings = rule.getRules().getPlatformMappings();
-            String mappedPlatformName = platformName;
-            if (platformMappings != null && platformMappings.containsKey(platformName)) {
-                mappedPlatformName = platformMappings.get(platformName);
-            }
-            lplVariables.put("platformName", mappedPlatformName);
-            
-            String lplFilePathStr = replaceVariables(lplExport.getOutputPath(), lplVariables);
-            Path lplFilePath = Paths.get(lplFilePathStr);
-            
-            // 创建目标目录
-            Files.createDirectories(lplFilePath.getParent());
-            
-            // 获取核心映射
-            Map<String, ExportRule.CoreMapping> coreMappings = rule.getRules().getCoreMappings();
-            ExportRule.CoreMapping coreMapping = null;
-            if (coreMappings != null) {
-                if (coreMappings.containsKey(platformName)) {
-                    coreMapping = coreMappings.get(platformName);
-                } else if (coreMappings.containsKey("default")) {
-                    coreMapping = coreMappings.get("default");
-                }
-            }
-            
-            String corePath = coreMapping != null ? coreMapping.getPath() : "DETECT";
-            String coreName = coreMapping != null ? coreMapping.getName() : "DETECT";
-            
-            // 生成 LPL 内容
-            StringBuilder content = new StringBuilder();
-            List<String> lineFormat = lplExport.getLineFormat();
-            
-            for (int i = 0; i < games.size(); i++) {
-                Game game = games.get(i);
-                
-                // 构建游戏特定变量
-                Map<String, String> gameVariables = new HashMap<>(lplVariables);
-                
-                // 获取游戏文件名
-                String gameFileName = getGameFileName(game);
-                gameVariables.put("gameFileName", gameFileName);
-                gameVariables.put("gameName", game.getName() != null ? game.getName() : gameFileName);
-                gameVariables.put("corePath", corePath);
-                gameVariables.put("coreName", coreName);
-                
-                // 处理每一行格式
-                for (int j = 0; j < lineFormat.size(); j++) {
-                    String line = lineFormat.get(j);
-                    String processedLine = replaceVariables(line, gameVariables);
-                    content.append(processedLine);
-                    
-                    // 最后一行不加换行符
-                    if (j < lineFormat.size() - 1) {
-                        content.append("\n");
-                    }
-                }
-                
-                // 游戏条目之间的分隔符（空行），最后一个游戏不加
-                if (i < games.size() - 1) {
-                    content.append("\n");
-                }
-            }
-            
-            // 写入文件
-            Files.write(lplFilePath, content.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            logger.info("Generated LPL playlist file: {}", lplFilePath);
-            
-        } catch (Exception e) {
-            logger.error("Generate LPL file failed", e);
-        }
-    }
-    
-    /**
-     * 从游戏对象获取文件名（包含扩展名）
-     */
-    private String getGameFileName(Game game) {
-        String path = game.getPath();
-        if (path != null) {
-            // 提取文件名
-            int lastSlashIndex = path.lastIndexOf('/');
-            int lastBackslashIndex = path.lastIndexOf('\\');
-            int lastSeparatorIndex = Math.max(lastSlashIndex, lastBackslashIndex);
-            String fileName = lastSeparatorIndex >= 0 ? path.substring(lastSeparatorIndex + 1) : path;
-            return fileName;
-        }
-        // 如果没有路径，使用游戏名称
-        if (game.getName() != null) {
-            return game.getName() + ".zip";
-        }
-        return "unknown.zip";
-    }
-
     private void createDirectoryStructure(ExportRule rule, Long platformId, String outputPath, String platformName) throws IOException {
         // 构建变量映射
         Map<String, String> variables = new HashMap<>();
@@ -753,89 +696,47 @@ public class ExportServiceImpl implements ExportService {
         return null;
     }
     
+    /**
+     * @deprecated 使用 {@link GameFieldAccessor#getValue(Game, String)} 替代
+     */
     private String getSingleGameFieldValue(Game game, String fieldName) {
-        switch (fieldName) {
-            case "name":
-                return game.getName();
-            case "translatedName":
-                return game.getTranslatedName();
-            case "description":
-                return game.getDesc();
-            case "translatedDesc":
-                return game.getTranslatedDesc();
-            case "rating":
-                return game.getRating() != null ? game.getRating().toString() : null;
-            case "releaseYear":
-                String releaseDate = game.getReleasedate();
-                if (releaseDate != null && releaseDate.length() >= 4) {
-                    return releaseDate.substring(0, 4);
-                }
-                return null;
-            case "developer":
-                return game.getDeveloper();
-            case "publisher":
-                return game.getPublisher();
-            case "genre":
-                return game.getGenre();
-            case "players":
-                return game.getPlayers();
-            case "region":
-                return game.getLang();
-            case "filename":
-                // 从path中提取文件名，去掉扩展名和前面的路径
-                String path = game.getPath();
-                if (path != null) {
-                    // 提取文件名
-                    int lastSlashIndex = path.lastIndexOf('/');
-                    int lastBackslashIndex = path.lastIndexOf('\\');
-                    int lastSeparatorIndex = Math.max(lastSlashIndex, lastBackslashIndex);
-                    String fileName = lastSeparatorIndex >= 0 ? path.substring(lastSeparatorIndex + 1) : path;
-                    // 去掉扩展名
-                    int lastDotIndex = fileName.lastIndexOf('.');
-                    if (lastDotIndex >= 0) {
-                        fileName = fileName.substring(0, lastDotIndex);
-                    }
-                    return fileName;
-                }
-                return null;
-            default:
-                return null;
-        }
+        return GameFieldAccessor.getValue(game, fieldName);
     }
 
+    /**
+     * 根据 nomcourt 值或旧版字段名获取媒体文件路径。
+     * 优先通过 GameFieldAccessor（支持 nomcourt / dbColumn / javaField / 旧别名），
+     * 回退到旧版 switch-case 兼容。
+     */
     private String getMediaFilePathFromGame(Game game, String sourceField) {
-        switch (sourceField) {
-            case "box2dfront":
-                return game.getBoxFront();
-            case "box2dback":
-                return game.getBoxBack();
-            case "box3d":
-                return game.getBox3D();
-            case "screenshot":
-                return game.getScreenshot();
-            case "video":
-                return game.getVideo();
-            case "wheel":
-                return game.getLogo(); // 使用 logo 作为 wheel
-            case "marquee":
-                return game.getMarquee();
-            case "fanart":
-                return game.getFanart();
-            case "videonormalized":
-                return game.getVideonormalized();
-            case "wheelcarbon":
-                return game.getWheelcarbon();
-            case "wheelsteel":
-                return game.getWheelsteel();
-            case "screenmarqueesmall":
-                return game.getScreenmarqueesmall();
-            case "boxside":
-                return game.getBoxside();
-            case "figurine":
-                return game.getFigurine();
-            default:
-                return null;
-        }
+        // 优先使用统一字段访问器（支持 nomcourt、dbColumn、javaField、旧别名）
+        String value = GameFieldAccessor.getValue(game, sourceField);
+        if (value != null) return value;
+        // 回退：旧版 source 名称映射（兼容旧模板）
+        return switch (sourceField.toLowerCase().replace("-", "").replace("_", "")) {
+            case "box2dfront", "boxfront" -> game.getBoxFront();
+            case "box2dback", "boxback" -> game.getBoxBack();
+            case "box3d" -> game.getBox3D();
+            case "screenshot" -> game.getScreenshot();
+            case "video" -> game.getVideo();
+            case "wheel" -> game.getLogo();
+            case "marquee" -> game.getMarquee();
+            case "fanart" -> game.getFanart();
+            case "videonormalized" -> game.getVideonormalized();
+            case "wheelcarbon" -> game.getWheelcarbon();
+            case "wheelsteel" -> game.getWheelsteel();
+            case "screenmarqueesmall" -> game.getScreenmarqueesmall();
+            case "boxside" -> game.getBoxside();
+            case "figurine" -> game.getFigurine();
+            case "image" -> game.getImage();
+            case "thumbnail" -> game.getThumbnail();
+            case "logo" -> game.getLogo();
+            case "background" -> game.getBackground();
+            case "manual", "manuel" -> game.getManual();
+            case "bezel" -> game.getBezel();
+            case "steamgrid" -> game.getSteamgrid();
+            default -> null;
+        };
     }
 
     private String getRelativePath(Path basePath, Path targetPath) {

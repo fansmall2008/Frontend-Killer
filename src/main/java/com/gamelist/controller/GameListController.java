@@ -240,7 +240,7 @@ public class GameListController {
             List<PlatformStatistics> stats = gameService.getPlatformStatistics();
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("获取平台统计信息失败", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
@@ -271,6 +271,12 @@ public class GameListController {
     @PutMapping("/games")
     public ResponseEntity<String> updateGame(@RequestBody Game game) {
         try {
+            // 检查文件存在性并更新 exists 字段
+            if (game.getPath() != null && !game.getPath().isEmpty()) {
+                java.io.File gameFile = new java.io.File(game.getPath());
+                game.setExists(gameFile.exists());
+            }
+            
             int result = gameService.updateGame(game);
             if (result > 0) {
                 return ResponseEntity.ok("游戏信息更新成功！");
@@ -412,7 +418,86 @@ public class GameListController {
         }
     }
 
-    
+    /**
+     * 批量切换译文（交换 name/desc 与 translatedName/translatedDesc）
+     */
+    @PutMapping("/games/swap-translations")
+    public ResponseEntity<java.util.Map<String, Object>> swapTranslations(@RequestBody java.util.Map<String, Object> request) {
+        try {
+            @SuppressWarnings("unchecked")
+            java.util.List<Object> gameIdsObj = (java.util.List<Object>) request.get("gameIds");
+            
+            if (gameIdsObj == null || gameIdsObj.isEmpty()) {
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空"));
+            }
+            
+            // 转换为 Long 类型
+            java.util.List<Long> gameIds = new java.util.ArrayList<>();
+            for (Object obj : gameIdsObj) {
+                if (obj instanceof Number) {
+                    gameIds.add(((Number) obj).longValue());
+                } else if (obj instanceof String) {
+                    try {
+                        gameIds.add(Long.parseLong((String) obj));
+                    } catch (NumberFormatException e) {
+                        // 忽略无效 ID
+                    }
+                }
+            }
+            
+            if (gameIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表为空或包含无效ID"));
+            }
+            
+            int swappedCount = gameService.swapTranslations(gameIds);
+            
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("success", true);
+            result.put("swappedCount", swappedCount);
+            result.put("message", "成功切换 " + swappedCount + " 个游戏的译文");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            java.util.Map<String, Object> errorResult = new java.util.HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("error", "切换译文失败：" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+        }
+    }
+
+    /**
+     * 按平台切换译文（交换该平台下所有游戏的 name/desc 与 translatedName/translatedDesc）
+     */
+    @PutMapping("/games/swap-translations-by-platform")
+    public ResponseEntity<java.util.Map<String, Object>> swapTranslationsByPlatform(@RequestBody java.util.Map<String, Object> request) {
+        try {
+            Object platformIdObj = request.get("platformId");
+            if (platformIdObj == null) {
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "平台ID不能为空"));
+            }
+            Long platformId;
+            if (platformIdObj instanceof Number) {
+                platformId = ((Number) platformIdObj).longValue();
+            } else {
+                platformId = Long.parseLong(platformIdObj.toString());
+            }
+
+            int swappedCount = gameService.swapTranslationsByPlatformId(platformId);
+
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("success", true);
+            result.put("swappedCount", swappedCount);
+            result.put("message", "成功切换 " + swappedCount + " 个游戏的译文");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("按平台切换译文失败", e);
+            java.util.Map<String, Object> errorResult = new java.util.HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("error", "切换译文失败：" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+        }
+    }
+
     /**
      * 根据条件筛选游戏
      */
@@ -512,8 +597,8 @@ public class GameListController {
     @GetMapping("/import/templates")
     public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getImportTemplates() {
         try {
-            // 读取导入模板目录
-            java.io.File templatesDir = new java.io.File("/data/rules/import");
+            // 读取导入模板目录（兼容 Docker 和本地路径）
+            java.io.File templatesDir = new java.io.File(com.gamelist.util.PathUtil.getRulesPath() + "/import");
             java.util.List<java.util.Map<String, Object>> templates = new java.util.ArrayList<>();
             
             if (templatesDir.exists() && templatesDir.isDirectory()) {
@@ -525,13 +610,29 @@ public class GameListController {
                             com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
                             java.util.Map<String, Object> templateData = objectMapper.readValue(file, java.util.Map.class);
                             
-                            // 创建模板信息对象
+                            // 创建模板信息对象（兼容 v2 和 v3 格式）
                             java.util.Map<String, Object> templateInfo = new java.util.HashMap<>();
                             templateInfo.put("fileName", file.getName());
-                            templateInfo.put("name", templateData.getOrDefault("name", file.getName()));
-                            templateInfo.put("frontend", templateData.get("frontend"));
-                            templateInfo.put("version", templateData.get("version"));
-                            templateInfo.put("description", templateData.get("description"));
+                            
+                            // v3 格式：元数据在 templateInfo 块内
+                            @SuppressWarnings("unchecked")
+                            java.util.Map<String, Object> v3Info = (java.util.Map<String, Object>) templateData.get("templateInfo");
+                            if (v3Info != null && v3Info.containsKey("version") && 
+                                    Integer.parseInt(v3Info.get("version").toString()) == 3) {
+                                // v3 模板
+                                templateInfo.put("version", 3);
+                                templateInfo.put("name", v3Info.getOrDefault("description", file.getName()));
+                                templateInfo.put("frontend", v3Info.get("dataFile"));
+                                templateInfo.put("description", v3Info.getOrDefault("description", ""));
+                                templateInfo.put("direction", v3Info.get("direction"));
+                                templateInfo.put("dataFileType", v3Info.get("dataFileType"));
+                            } else {
+                                // v2 模板
+                                templateInfo.put("name", templateData.getOrDefault("name", file.getName()));
+                                templateInfo.put("frontend", templateData.get("frontend"));
+                                templateInfo.put("version", templateData.get("version"));
+                                templateInfo.put("description", templateData.get("description"));
+                            }
                             
                             templates.add(templateInfo);
                         } catch (Exception e) {

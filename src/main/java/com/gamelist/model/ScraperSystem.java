@@ -31,6 +31,7 @@ public class ScraperSystem {
     
     // 图标和时间字段
     private String iconUrl;
+    private Boolean mediaScraped;
     private String createdAt;
     private String updatedAt;
 
@@ -224,5 +225,13 @@ public class ScraperSystem {
 
     public void setNomsCommun(String nomsCommun) {
         this.nomsCommun = nomsCommun;
+    }
+
+    public Boolean getMediaScraped() {
+        return mediaScraped;
+    }
+
+    public void setMediaScraped(Boolean mediaScraped) {
+        this.mediaScraped = mediaScraped;
     }
 }

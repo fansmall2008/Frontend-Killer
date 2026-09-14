@@ -1,5 +1,70 @@
 # Changelog
 
+## [1.1-RC1] - 2026-09-14
+
+### Added
+- ScreenScraper full integration
+  - Game metadata and media scraping via ScreenScraper API v2
+  - CRC32 calculation for accurate ROM identification
+  - Real-time quota monitoring and thread resource management
+  - Batch scraping with configurable concurrency
+  - Media download task queue with pause/resume support
+- v3 Template System
+  - New generation import/export templates with expression engine
+  - Template variables: {filename}, {filepath}, {stem}, {ext}, {dir}, {sub}, etc.
+  - Built-in functions: upper(), lower(), trim(), replace(), if(), default()
+  - mediaDiscovery configuration for intelligent media file matching
+  - Support for Pegasus, ES-DE, RetroBat, EmuELEC, EmuELEC, Skraper-ES v3 templates
+- Game Edit Page (game-edit.html)
+  - Dedicated standalone page for game editing
+  - Full field support with media preview
+  - Path field enhancement with absolute path display
+- File existence verification during import
+  - Validates game files exist on filesystem
+  - Visual indicators (red font) for missing files in game list
+  - File status filtering in search and platform separation
+- Background task recovery
+  - Auto-resume interrupted media download tasks on startup
+  - Auto-resume background tasks after application restart
+- Windows EXE distribution
+  - jpackage-based app-image packaging with bundled JRE
+  - No Java installation required for end users
+
+### Changed
+- SS Standard Field Migration
+  - Unified MediaType enum with 50 media types aligned to ScreenScraper nomcourt standard
+  - Database schema updated with all SS standard columns
+  - Frontend UI fields aligned with database schema
+  - Backward compatibility maintained for legacy field names
+- H2 Database schema completion
+  - Added all missing columns via ALTER TABLE ... ADD COLUMN IF NOT EXISTS
+  - init.sql now serves as single source of truth for schema
+- Docker improvements
+  - Runtime base image changed from openjdk:27-ea-17-jdk-slim to eclipse-temurin:17-jre (stable)
+  - Health check no longer depends on actuator endpoint
+  - Consolidated to 2 Dockerfile variants (standard + China mirror)
+- Import media discovery moved to template-driven matching
+  - Media file lookup now follows template rules instead of hardcoded paths
+  - ROM filename vs display name priority strategy for media matching
+- Pegasus v3 import handles multi-file entries via files field expansion
+
+### Fixed
+- Fixed Spring Boot circular dependency between ScraperService and MediaDownloadServiceImpl (@Lazy)
+- Fixed H2 database FOR UPDATE SKIP LOCKED compatibility
+- Fixed v3 import missing absolutePath causing scraper API 400 errors
+- Fixed frontend relative path rendering for media files
+- Fixed template parameter not passed to conversion method
+- Fixed media type name case sensitivity
+- Fixed platform statistics table overflow
+- Fixed Flyway disabled causing init.sql and database schema inconsistency
+
+### Improved
+- Enhanced game filtering and search with file status options
+- Improved XML parsing for better frontend template compatibility
+- Added ErrorLogWriter for centralized error logging
+- Template expression engine with comprehensive built-in function set
+- Import media matcher with detailed logging for path resolution
+
 ## [1.0.6-beta3] - 2026-05-11
 
 ### Added

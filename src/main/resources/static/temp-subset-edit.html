@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>临时子集修改 - 前端杀手</title>
+    <title data-i18n="temp_subset_edit_title">临时子集修改 - 前端杀手</title>
     <style>
         * {
             margin: 0;
@@ -596,15 +596,15 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="gameName" data-i18n="game_name">游戏名称</label>
-                        <input type="text" id="gameName" placeholder="请输入游戏名称">
+                        <input type="text" id="gameName" placeholder="请输入游戏名称" data-i18n-placeholder="game_name_placeholder">
                     </div>
                     <div class="form-group">
                         <label for="gamePath" data-i18n="game_path">游戏路径</label>
-                        <input type="text" id="gamePath" placeholder="请输入游戏路径">
+                        <input type="text" id="gamePath" placeholder="请输入游戏路径" data-i18n-placeholder="game_path_placeholder">
                     </div>
                     <div class="form-group">
                         <label for="gameDesc" data-i18n="game_description">游戏描述</label>
-                        <textarea id="gameDesc" placeholder="请输入游戏描述"></textarea>
+                        <textarea id="gameDesc" placeholder="请输入游戏描述" data-i18n-placeholder="game_desc_placeholder"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="gameTranslatedName" data-i18n="translated_name">翻译名称</label>
@@ -667,7 +667,7 @@
         
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：0.6.0</p>
+            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
         </div>
     </div>
     
@@ -675,7 +675,7 @@
     <div id="notificationModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>任务消息</h2>
+            <h2 data-i18n="task_messages">任务消息</h2>
             <div id="notificationContent" style="max-height: 400px; overflow-y: auto;">
                 <!-- 消息将通过JavaScript动态填充 -->
             </div>

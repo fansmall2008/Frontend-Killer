@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!-- VERSION: 2026-05-18-COLOR-CODING-FIX -->
 <html lang="zh-CN">
 <head>
@@ -210,37 +210,13 @@
             gap: 10px;
         }
         
-        .page-navigation button {
-            padding: 6px 12px;
-            background: #1a1a2e;
-            color: #00ffff;
-            border: 2px solid #00ffff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            transition: all 0.3s ease;
-        }
-        
-        .page-navigation button:hover {
-            background: #00ffff;
-            color: #1a1a2e;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-        
-        .page-navigation button:disabled {
-            background: #1a1a2e;
-            color: #666;
-            border-color: #666;
-            cursor: not-allowed;
-        }
-        
         .page-info {
             font-size: 14px;
             color: #00ffff;
         }
         
-        #mergeDiscsBtn {
+        /* 工具栏按钮统一样式 */
+        .toolbar-btn {
             padding: 6px 12px;
             background: #1a1a2e;
             color: #00ffff;
@@ -251,130 +227,12 @@
             font-family: 'Consolas', 'Courier New', monospace;
             transition: all 0.3s ease;
         }
-        
-        #mergeDiscsBtn:hover:not(:disabled) {
+        .toolbar-btn:hover:not(:disabled) {
             background: #00ffff;
             color: #1a1a2e;
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
-        
-        #mergeDiscsBtn:disabled {
-            background: #1a1a2e;
-            color: #666;
-            border-color: #666;
-            cursor: not-allowed;
-        }
-
-        #batchEditBtn {
-            padding: 6px 12px;
-            background: #1a1a2e;
-            color: #ff00ff;
-            border: 2px solid #ff00ff;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        #batchEditBtn:hover:not(:disabled) {
-            background: #ff00ff;
-            color: #1a1a2e;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-        }
-
-        #batchEditBtn:disabled {
-            background: #1a1a2e;
-            color: #666;
-            border-color: #666;
-            cursor: not-allowed;
-        }
-        
-        #migrateBtn {
-            padding: 6px 12px;
-            background: #1a1a2e;
-            color: #ff6600;
-            border: 1px solid #ff6600;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        #migrateBtn:hover:not(:disabled) {
-            background: #ff6600;
-            color: #1a1a2e;
-            box-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
-        }
-        
-        #migrateBtn:disabled {
-            background: #1a1a2e;
-            color: #666;
-            border-color: #666;
-            cursor: not-allowed;
-        }
-
-        #translateBtn {
-            padding: 6px 12px;
-            background: #1a1a2e;
-            color: #00ffff;
-            border: 2px solid #00ffff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            transition: all 0.3s ease;
-        }
-
-        #translateBtn:hover:not(:disabled) {
-            background: #00ffff;
-            color: #1a1a2e;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        #translateBtn:disabled {
-            background: #1a1a2e;
-            color: #666;
-            border-color: #666;
-            cursor: not-allowed;
-        }
-
-        #addGameBtn {
-            padding: 6px 12px;
-            background: #1a1a2e;
-            color: #00ff00;
-            border: 2px solid #00ff00;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            transition: all 0.3s ease;
-        }
-
-        #addGameBtn:hover {
-            background: #00ff00;
-            color: #1a1a2e;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-        }
-
-        #deleteSelectedBtn {
-            padding: 6px 12px;
-            background: #1a1a2e;
-            color: #f44336;
-            border: 2px solid #f44336;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            transition: all 0.3s ease;
-        }
-
-        #deleteSelectedBtn:hover:not(:disabled) {
-            background: #f44336;
-            color: #1a1a2e;
-            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
-        }
-
-        #deleteSelectedBtn:disabled {
+        .toolbar-btn:disabled {
             background: #1a1a2e;
             color: #666;
             border-color: #666;
@@ -434,7 +292,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
+            overflow: hidden;
             background-color: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(5px);
         }
@@ -556,8 +414,6 @@
         
         .media-category label {
             display: flex;
-            flex-direction: row-reverse;
-            justify-content: space-between;
             align-items: center;
             margin: 5px 0;
             font-size: 12px;
@@ -574,7 +430,7 @@
         }
         
         .media-category label input[type="checkbox"] {
-            margin-left: 8px;
+            margin-right: 8px;
             accent-color: #00ffff;
             width: 14px;
             height: 14px;
@@ -1185,14 +1041,14 @@
             <h3 data-i18n="search">搜索</h3>
             <div class="search-fields">
                 <div class="field-group search-input-group">
-                    <input type="text" id="searchInput" placeholder="搜索游戏名称或路径...">
+                    <input type="text" id="searchInput" placeholder="搜索游戏名称或路径..." data-i18n-placeholder="search_games_placeholder">
                 </div>
                 <div class="field-group">
                     <label data-i18n="release-date-range">发行日期范围:</label>
                     <div class="date-range">
-                        <input type="number" id="startYear" placeholder="开始年份" min="1900" max="2100">
+                        <input type="number" id="startYear" placeholder="开始年份" min="1900" max="2100" data-i18n-placeholder="start_year_placeholder">
                         <span data-i18n="to">至</span>
-                        <input type="number" id="endYear" placeholder="结束年份" min="1900" max="2100">
+                        <input type="number" id="endYear" placeholder="结束年份" min="1900" max="2100" data-i18n-placeholder="end_year_placeholder">
                     </div>
                 </div>
                 <div class="field-group">
@@ -1229,9 +1085,9 @@
                     </div>
                 </div>
                 <div class="field-group">
-                    <label>文件夹路径:</label>
-                    <input type="text" id="folderPath" placeholder="输入文件夹名称（支持任意层级）">
-                    <span style="color: #999; font-size: 12px; margin-left: 10px;">例如: a 或 b 都能匹配 a/b/c/xxx.nes</span>
+                    <label data-i18n="folder_path_label">文件夹路径:</label>
+                    <input type="text" id="folderPath" placeholder="输入文件夹名称（支持任意层级）" data-i18n-placeholder="folder_path_placeholder">
+                    <span style="color: #999; font-size: 12px; margin-left: 10px;" data-i18n="folder_path_example">例如: a 或 b 都能匹配 a/b/c/xxx.nes</span>
                 </div>
                 <div class="field-group">
                     <button onclick="searchGames()" data-i18n="search">搜索</button>
@@ -1248,33 +1104,34 @@
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
-                <button id="addGameBtn" onclick="showModalDirect('addGameModal')" data-i18n="add">新增</button>
-                <button id="deleteSelectedBtn" onclick="deleteSelectedGames()" disabled data-i18n="delete-selected">删除选中</button>
-                <button id="batchScrapeBtn" onclick="openBatchScrapeModal()" disabled>批量刮削</button>
-                <button id="mergeDiscsBtn" onclick="mergeDiscs()" disabled data-i18n="merge-discs">合盘</button>
-                <button id="batchEditBtn" onclick="openBatchEditModal()" disabled data-i18n="batch-edit">批量修改</button>
-                <button id="translateBtn" onclick="openTranslateModal()" disabled data-i18n="translate">翻译</button>
-                <button id="migrateBtn" onclick="openMigrateModal()" disabled data-i18n="migrate">迁转</button>
+                <button id="addGameBtn" class="toolbar-btn" onclick="openAddGameModal()" data-i18n="add">新增</button>
+                <button id="deleteSelectedBtn" class="toolbar-btn" onclick="deleteSelectedGames()" disabled data-i18n="delete-selected">删除选中</button>
+                <button id="batchScrapeBtn" class="toolbar-btn" onclick="openBatchScrapeModal()" disabled data-i18n="batch_scrape">批量刮削</button>
+                <button id="mergeDiscsBtn" class="toolbar-btn" onclick="mergeDiscs()" disabled data-i18n="merge-discs">合盘</button>
+                <button id="batchEditBtn" class="toolbar-btn" onclick="openBatchEditModal()" disabled data-i18n="batch-edit">批量修改</button>
+                <button id="translateBtn" class="toolbar-btn" onclick="openTranslateModal()" disabled data-i18n="translate">翻译</button>
+                <button id="migrateBtn" class="toolbar-btn" onclick="openMigrateModal()" disabled data-i18n="migrate">迁转</button>
+                <button id="swapTranslationBtn" class="toolbar-btn" onclick="swapTranslations()" disabled data-i18n="swap_translation">切换译文</button>
             </div>
             <div class="page-navigation">
-                <button onclick="previousPage()" id="prevBtn" data-i18n="prev-page">上一页</button>
+                <button class="toolbar-btn" onclick="previousPage()" id="prevBtn" data-i18n="prev-page">上一页</button>
                 <span class="page-info" id="pageInfo" data-i18n="page-info">第 1 页，共 0 页</span>
-                <button onclick="nextPage()" id="nextBtn" data-i18n="next-page">下一页</button>
+                <button class="toolbar-btn" onclick="nextPage()" id="nextBtn" data-i18n="next-page">下一页</button>
             </div>
         </div>
         
         <div style="display: flex; flex-direction: row; gap: 20px; padding: 10px 15px; background: rgba(0, 0, 0, 0.8); border: 1px solid #333; border-radius: 8px; margin-bottom: 15px;">
             <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc;">
                 <span style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; background-color: #ff4444; box-shadow: 0 0 8px #ff4444;"></span>
-                <span>无信息</span>
+                <span data-i18n="status_no_info">无信息</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc;">
                 <span style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; background-color: #ffaa00; box-shadow: 0 0 8px #ffaa00;"></span>
-                <span>部分缺失</span>
+                <span data-i18n="status_partial">部分缺失</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc;">
                 <span style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; background-color: #44ff44; box-shadow: 0 0 8px #44ff44;"></span>
-                <span>信息完整</span>
+                <span data-i18n="status_complete">信息完整</span>
             </div>
         </div>
         
@@ -1283,9 +1140,9 @@
                 <thead>
                     <tr>
                         <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
-                        <th style="width: 40px;">状态</th>
+                        <th style="width: 40px;" data-i18n="col_status">状态</th>
                         <th style="width: 50px;">ID</th>
-                        <th style="width: 60px;">图标</th>
+                        <th style="width: 60px;" data-i18n="col_icon">图标</th>
                         <th style="width: 150px;" data-i18n="game-name">游戏名称</th>
                         <th style="width: 150px;" data-i18n="game-path">游戏路径</th>
                         <th style="width: 150px;" data-i18n="platform-path">平台路径</th>
@@ -1416,363 +1273,6 @@
                     <button type="button" onclick="closeTranslateModal()" class="action-btn" style="margin-left: 10px;" data-i18n="cancel">取消</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- 游戏编辑模态框 -->
-    <div id="editGameModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 data-i18n="edit-game-title">编辑游戏</h2>
-                <span class="close" onclick="closeEditGameModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="editGameForm">
-                    <input type="hidden" id="gameId">
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                        <div class="form-group">
-                            <label for="gameName" data-i18n="game-name">游戏名称</label>
-                            <input type="text" id="gameName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="gamePath" data-i18n="game-path">游戏路径</label>
-                            <input type="text" id="gamePath" required>
-                        </div>
-                    <div class="form-group">
-                        <label for="gameDescription" data-i18n="game-desc">游戏描述</label>
-                        <textarea id="gameDescription"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="translatedName" data-i18n="translated-name">翻译名称</label>
-                        <input type="text" id="translatedName">
-                    </div>
-                    <div class="form-group">
-                        <label for="translatedDescription" data-i18n="translated-desc">翻译描述</label>
-                        <textarea id="translatedDescription"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="gameDeveloper" data-i18n="developer">开发商</label>
-                        <input type="text" id="gameDeveloper">
-                    </div>
-                    <div class="form-group">
-                        <label for="gamePublisher" data-i18n="publisher">发行商</label>
-                        <input type="text" id="gamePublisher">
-                    </div>
-                    <div class="form-group">
-                        <label for="gameType" data-i18n="genre">游戏类型</label>
-                        <input type="text" id="gameType">
-                    </div>
-                    <div class="form-group">
-                        <label for="playerCount" data-i18n="players">玩家数</label>
-                        <input type="text" id="playerCount">
-                    </div>
-                    <div class="form-group">
-                        <label for="releaseDate" data-i18n="release-date">发布日期</label>
-                        <input type="text" id="releaseDate">
-                    </div>
-                    <div class="form-group">
-                        <label for="rating" data-i18n="rating">评分</label>
-                        <input type="text" id="rating">
-                    </div>
-                    <div class="form-group">
-                        <label for="language" data-i18n="language">语言</label>
-                        <input type="text" id="language">
-                    </div>
-                    <div class="form-group">
-                        <label for="gameId" data-i18n="game-id">游戏ID</label>
-                        <input type="text" id="gameIdInput">
-                    </div>
-                    <div class="form-group">
-                        <label for="source" data-i18n="source">来源</label>
-                        <input type="text" id="source">
-                    </div>
-                    <div class="form-group">
-                        <label for="image" data-i18n="image-path">图片路径</label>
-                        <input type="text" id="image">
-                    </div>
-                    <div class="form-group">
-                        <label for="video" data-i18n="video-path">视频路径</label>
-                        <input type="text" id="video">
-                    </div>
-                    <div class="form-group">
-                        <label for="marquee" data-i18n="marquee-path">横幅路径</label>
-                        <input type="text" id="marquee">
-                    </div>
-                    <div class="form-group">
-                        <label for="thumbnail" data-i18n="thumbnail-path">缩略图路径</label>
-                        <input type="text" id="thumbnail">
-                    </div>
-                    <div class="form-group">
-                        <label for="manual" data-i18n="manual-path">手册路径</label>
-                        <input type="text" id="manual">
-                    </div>
-                    <div class="form-group">
-                        <label for="box-2D" data-i18n="box-front">包装盒正面</label>
-                        <input type="text" id="box-2D">
-                    </div>
-                    <div class="form-group">
-                        <label for="box-2D-back" data-i18n="box-back">包装盒背面</label>
-                        <input type="text" id="box-2D-back">
-                    </div>
-                    <div class="form-group">
-                        <label for="box-2D-side" data-i18n="box-spine">包装盒侧脊</label>
-                        <input type="text" id="box-2D-side">
-                    </div>
-                    <div class="form-group">
-                        <label for="box-3D" data-i18n="box-full">完整包装盒</label>
-                        <input type="text" id="box-3D">
-                    </div>
-                    <div class="form-group">
-                        <label for="support-2D" data-i18n="cartridge">卡带/光盘</label>
-                        <input type="text" id="support-2D">
-                    </div>
-                    <div class="form-group">
-                        <label for="support-2D" data-i18n="cartridge">卡带/光盘</label>
-                        <input type="text" id="support-2D">
-                    </div>
-                    <!-- SS标准字段: 支撑纹理/扫描 -->
-                    <div class="form-group">
-                        <label for="support-texture">支撑纹理</label>
-                        <input type="text" id="support-texture">
-                    </div>
-                    <div class="form-group">
-                        <label for="support-scan">支撑扫描源</label>
-                        <input type="text" id="support-scan">
-                    </div>
-                    <!-- SS标准字段: 轮盘扩展 -->
-                    <div class="form-group">
-                        <label for="wheel-hd">高清轮盘</label>
-                        <input type="text" id="wheel-hd">
-                    </div>
-                    <div class="form-group">
-                        <label for="wheel-tarcisios">Tarcisios轮盘</label>
-                        <input type="text" id="wheel-tarcisios">
-                    </div>
-                    <!-- SS标准字段: 边框系列 -->
-                    <div class="form-group">
-                        <label for="bezel-4-3">边框 4:3 横屏</label>
-                        <input type="text" id="bezel-4-3">
-                    </div>
-                    <div class="form-group">
-                        <label for="bezel-4-3-v">边框 4:3 竖屏</label>
-                        <input type="text" id="bezel-4-3-v">
-                    </div>
-                    <div class="form-group">
-                        <label for="bezel-4-3-cocktail">边框 4:3 鸡尾酒</label>
-                        <input type="text" id="bezel-4-3-cocktail">
-                    </div>
-                    <div class="form-group">
-                        <label for="bezel-16-9">边框 16:9 横屏</label>
-                        <input type="text" id="bezel-16-9">
-                    </div>
-                    <div class="form-group">
-                        <label for="bezel-16-9-v">边框 16:9 竖屏</label>
-                        <input type="text" id="bezel-16-9-v">
-                    </div>
-                    <div class="form-group">
-                        <label for="bezel-16-9-cocktail">边框 16:9 鸡尾酒</label>
-                        <input type="text" id="bezel-16-9-cocktail">
-                    </div>
-                    <!-- SS标准字段: 次要媒体 -->
-                    <div class="form-group">
-                        <label for="overlay">覆盖层</label>
-                        <input type="text" id="overlay">
-                    </div>
-                    <div class="form-group">
-                        <label for="flyer">传单</label>
-                        <input type="text" id="flyer">
-                    </div>
-                    <div class="form-group">
-                        <label for="manuel">手册 (SS标准)</label>
-                        <input type="text" id="manuel">
-                    </div>
-                    <div class="form-group">
-                        <label for="maps">地图</label>
-                        <input type="text" id="maps">
-                    </div>
-                    <!-- SS标准字段: 屏幕霓虹灯扩展 -->
-                    <div class="form-group">
-                        <label for="screenmarquee">屏幕霓虹灯</label>
-                        <input type="text" id="screenmarquee">
-                    </div>
-                    <!-- SS标准字段: 包装盒扫描 -->
-                    <div class="form-group">
-                        <label for="box-scan">包装盒扫描源</label>
-                        <input type="text" id="box-scan">
-                    </div>
-                    <!-- SS标准字段: 混合 -->
-                    <div class="form-group">
-                        <label for="mixrbv1">Mix RB V1</label>
-                        <input type="text" id="mixrbv1">
-                    </div>
-                    <div class="form-group">
-                        <label for="mixrbv2">Mix RB V2</label>
-                        <input type="text" id="mixrbv2">
-                    </div>
-                    <!-- SS标准字段: 主题 -->
-                    <div class="form-group">
-                        <label for="themehb">主题 HB</label>
-                        <input type="text" id="themehb">
-                    </div>
-                    <div class="form-group">
-                        <label for="themehs">主题 HS</label>
-                        <input type="text" id="themehs">
-                    </div>
-                    <!-- SS标准字段: 弹球台专用 -->
-                    <div class="form-group">
-                        <label for="ssdmd">弹球 DMD 截图</label>
-                        <input type="text" id="ssdmd">
-                    </div>
-                    <div class="form-group">
-                        <label for="ssfronton169">弹球正面 16:9</label>
-                        <input type="text" id="ssfronton169">
-                    </div>
-                    <div class="form-group">
-                        <label for="ssfronton11">弹球正面 1:1</label>
-                        <input type="text" id="ssfronton11">
-                    </div>
-                    <div class="form-group">
-                        <label for="ssfronton43">弹球正面 4:3</label>
-                        <input type="text" id="ssfronton43">
-                    </div>
-                    <div class="form-group">
-                        <label for="sstable">弹球台面截图</label>
-                        <input type="text" id="sstable">
-                    </div>
-                    <div class="form-group">
-                        <label for="sstopper">弹球顶部截图</label>
-                        <input type="text" id="sstopper">
-                    </div>
-                    <div class="form-group">
-                        <label for="videodmd">弹球 DMD 视频</label>
-                        <input type="text" id="videodmd">
-                    </div>
-                    <div class="form-group">
-                        <label for="videofronton43">弹球正面视频 4:3</label>
-                        <input type="text" id="videofronton43">
-                    </div>
-                    <div class="form-group">
-                        <label for="videofronton169">弹球正面视频 16:9</label>
-                        <input type="text" id="videofronton169">
-                    </div>
-                    <div class="form-group">
-                        <label for="videotable">弹球台面视频</label>
-                        <input type="text" id="videotable">
-                    </div>
-                    <div class="form-group">
-                        <label for="videotable4k">弹球台面视频 4K</label>
-                        <input type="text" id="videotable4k">
-                    </div>
-                    <div class="form-group">
-                        <label for="videotopper">弹球顶部视频</label>
-                        <input type="text" id="videotopper">
-                    </div>
-                    <div class="form-group">
-                        <label for="ss" data-i18n="screenshot">游戏截图</label>
-                        <input type="text" id="ss">
-                    </div>
-                    <div class="form-group">
-                        <label for="sstitle" data-i18n="titlescreen">标题画面</label>
-                        <input type="text" id="sstitle">
-                    </div>
-                    <div class="form-group">
-                        <label for="wheel" data-i18n="wheel">轮盘图标</label>
-                        <input type="text" id="wheel">
-                    </div>
-                    <div class="form-group">
-                        <label for="wheel-carbon" data-i18n="wheel-carbon">碳纤维轮盘</label>
-                        <input type="text" id="wheel-carbon">
-                    </div>
-                    <div class="form-group">
-                        <label for="wheel-steel" data-i18n="wheel-steel">钢铁轮盘</label>
-                        <input type="text" id="wheel-steel">
-                    </div>
-                    <div class="form-group">
-                        <label for="screenmarqueesmall" data-i18n="screen-marquee-small">小横幅</label>
-                        <input type="text" id="screenmarqueesmall">
-                    </div>
-                    <div class="form-group">
-                        <label for="video-normalized" data-i18n="video-normalized">归一化视频</label>
-                        <input type="text" id="video-normalized">
-                    </div>
-                    <div class="form-group">
-                        <label for="steamgrid" data-i18n="steamgrid">Steam网格</label>
-                        <input type="text" id="steamgrid">
-                    </div>
-                    <div class="form-group">
-                        <label for="fanart" data-i18n="fanart">粉丝艺术图</label>
-                        <input type="text" id="fanart">
-                    </div>
-                    <div class="form-group">
-                        <label for="box-texture" data-i18n="box-texture">包装盒纹理</label>
-                        <input type="text" id="box-texture">
-                    </div>
-                    <div class="form-group">
-                        <label for="supporttexture" data-i18n="support-texture">支架纹理</label>
-                        <input type="text" id="supporttexture">
-                    </div>
-                    <div class="form-group">
-                        <label for="figurine" data-i18n="figurine">手办图片</label>
-                        <input type="text" id="figurine">
-                    </div>
-                    <div class="form-group">
-                        <label for="crc32" data-i18n="crc32">CRC32</label>
-                        <input type="text" id="crc32">
-                    </div>
-                    <div class="form-group">
-                        <label for="genreid" data-i18n="genre-id">类型ID</label>
-                        <input type="text" id="genreid">
-                    </div>
-                    <div class="form-group">
-                        <label for="platformId" data-i18n="platform-id">平台ID</label>
-                        <input type="text" id="platformIdInput">
-                    </div>
-                    <div class="form-group">
-                        <label for="platformPath" data-i18n="platform-path">平台路径</label>
-                        <input type="text" id="platformPath">
-                    </div>
-                    <div class="form-group">
-                        <label for="sortBy" data-i18n="sort-by">排序字段</label>
-                        <input type="text" id="sortBy">
-                    </div>
-                </div>
-            </form>
-            <div class="modal-footer">
-                <button type="button" onclick="saveGame()" class="btn btn-primary" data-i18n="save-changes">保存修改</button>
-                <button type="button" onclick="viewMediaFiles()" class="btn btn-info" data-i18n="view-media">查看媒体文件</button>
-                <button type="button" onclick="openSearchModal()" class="btn btn-success" data-i18n="search-game">检索游戏</button>
-                <button type="button" onclick="closeEditGameModal()" class="btn btn-secondary" data-i18n="cancel">取消</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 搜索游戏模态框 -->
-    <div id="searchGameModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <h2>🔍 检索游戏</h2>
-                <span class="close" onclick="closeSearchModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="searchGameName">搜索游戏名</label>
-                    <input type="text" id="searchGameName" placeholder="例如：Final Fantasy" onkeyup="if(event.keyCode === 13) searchGameFromScraper()">
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="downloadMedia" checked>
-                        同时下载媒体文件
-                    </label>
-                </div>
-                <button type="button" onclick="searchGameFromScraper()" class="btn btn-primary" style="margin-bottom: 15px;">搜索</button>
-                
-                <div id="searchResults" style="max-height: 400px; overflow-y: auto;">
-                    <p>请输入游戏名称进行搜索</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" onclick="closeSearchModal()" class="btn btn-secondary">关闭</button>
-            </div>
         </div>
     </div>
 
@@ -1955,23 +1455,12 @@
                 </div>
                 <div class="form-actions" style="margin-top: 20px;">
                     <button type="button" onclick="addGame()" class="btn btn-primary" data-i18n="add-game">添加游戏</button>
-                    <button type="button" class="btn btn-info" onclick="viewMediaFiles()" data-i18n="view-media">查看媒体文件</button>
                     <button type="button" class="btn btn-secondary" onclick="closeAddGameModal()" data-i18n="cancel">取消</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- 媒体文件查看模态框 -->
-    <div id="mediaViewModal" class="modal">
-        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
-            <span class="close" onclick="closeMediaViewModal()">&times;</span>
-            <h2 data-i18n="view-media-files">媒体文件查看</h2>
-            <div id="mediaContent" style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-height: 70vh; overflow-y: auto;">
-                <!-- 媒体文件将动态添加到这里 -->
-            </div>
-        </div>
-    </div>
     
     <!-- 通知容器 -->
     <div id="notificationContainer"></div>
@@ -1989,6 +1478,18 @@
         let currentPage = 1;
         let pageSize = 20;
         let totalGames = 0;
+
+        /**
+         * 解析媒体路径为浏览器可加载的 URL。
+         * - 绝对路径 / http URL → 直接使用
+         * - 相对路径 → 通过 /api/media/view 代理，附带 platformId
+         */
+        function resolveMediaUrl(mediaPath) {
+            if (!mediaPath) return '';
+            if (mediaPath.startsWith('/') || mediaPath.startsWith('http')) return mediaPath;
+            // 相对路径，通过后端代理加载
+            return '/api/media/view?localPath=' + encodeURIComponent(mediaPath) + '&platformId=' + platformId;
+        }
         let totalPages = 0;
         let currentSearchTerm = '';
         let currentSearchParams = {};
@@ -2257,7 +1758,7 @@
                                 row.setAttribute('data-game-id', game.id);
                                 row.style.cssText = getScrapeStatusStyle(game);  // 添加刮削状态样式
                                 row.onclick = function() {
-                                    openEditGameModal(game.id);
+                                    openGameEditPage(game.id);
                                 };
                                 row.style.cursor = 'pointer';
                                 
@@ -2267,23 +1768,26 @@
                                 const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
                                                    game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
                                 
-                                const validIconFields = ['image', 'wheel', 'wheelCarbon', 'wheelcarbon', 'wheelSteel', 'wheelsteel', 'logo', 'thumbnail', 'box2d', 'boxFront', 'box2dBack', 'boxBack', 'box3d', 'box3D', 'box2dSide', 'boxside', 'banner', 'sstitle', 'titlescreen', 'ss', 'screenshot', 'fanart', 'poster', 'support2d', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
-                                const savedIconField = localStorage.getItem('gameListIconField') || 'image';
-                                const iconField = validIconFields.includes(savedIconField) ? savedIconField : 'image';
+                                const validIconFields = ['image', 'wheelCarbon', 'wheelcarbon', 'wheelSteel', 'wheelsteel', 'box2d', 'boxFront', 'ss', 'sstitle', 'fanart', 'poster', 'support2d', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
+                                const defaultIconChain = ['wheelCarbon', 'box2d', 'ss', 'image', 'fanart'];
+                                const savedIconField = localStorage.getItem('gameListIconField') || '';
+                                const iconField = savedIconField && validIconFields.includes(savedIconField) ? savedIconField : (defaultIconChain.find(f => game[f]) || '');
                                 const iconPath = game[iconField] || '';
+                                const resolvedIconUrl = resolveMediaUrl(iconPath);
                                 const isWheel = iconField.startsWith('wheel');
                                 const iconWidth = isWheel ? '60px' : '40px';
-                                const screenshotPath = game.screenshot || game.image || game.fanart || '';
-                                const titleScreenPath = game.titlescreen || '';
+                                const screenshotPath = resolveMediaUrl(game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '');
+                                const titleScreenPath = resolveMediaUrl(game.sstitle || '');
+                                const videoPath = resolveMediaUrl(game.video || game.videoNormalized || '');
                                 const gameName = game.name || game.translatedName || '';
-                                const iconContent = iconPath && (iconPath.startsWith('/') || iconPath.startsWith('http')) ? 
-                                    `<img src="${iconPath}" 
+                                const iconContent = resolvedIconUrl ? 
+                                    `<img src="${resolvedIconUrl}" 
                                            style="width: ${iconWidth}; height: 40px; object-fit: contain; border-radius: 4px; background: #222; cursor: pointer;" 
                                            alt="图标" 
                                            onerror="this.style.display='none';"
-                                           onmouseenter="showGamePreview(event, '${screenshotPath}', '${gameName.replace(/'/g, "\\'")}', '${titleScreenPath.replace(/'/g, "\\'")}')"
+                                           onmouseenter="showGamePreview(event, '${screenshotPath}', '${gameName.replace(/'/g, "\\'")}', '${titleScreenPath.replace(/'/g, "\\'")}', '${videoPath.replace(/'/g, "\\'")}')" 
                                            onmouseleave="hideGamePreview()"/>` : '';
-                                
+                                                                
                                 row.innerHTML = `
                                     <td style="cursor: default;"><input type="checkbox" class="game-checkbox" value="${game.id}" onchange="updateSelectedGames()"></td>
                                     <td>${getStatusIndicator(game)}</td>
@@ -2327,7 +1831,7 @@
         }
         
         // 显示游戏预览弹窗
-        function showGamePreview(event, screenshotPath, gameName, titleScreenPath) {
+        function showGamePreview(event, screenshotPath, gameName, titleScreenPath, videoPath) {
             // 动态创建预览元素
             let preview = document.getElementById('gamePreview');
             if (!preview) {
@@ -2410,32 +1914,51 @@
                 document.body.appendChild(preview);
             }
             
-            const screenshotImg = document.getElementById('previewScreenshot');
+            const screenshotDiv = document.getElementById('previewScreenshotDiv');
             const titleScreenImg = document.getElementById('previewTitleScreen');
             const previewTitle = document.getElementById('previewTitle');
             
-            let fixedScreenshotPath = screenshotPath;
-            if (fixedScreenshotPath && fixedScreenshotPath.startsWith('/data/scraper/')) {
-                fixedScreenshotPath = fixedScreenshotPath.replace('/data/scraper/', '/scraper/');
-            }
+            // 主预览区：优先显示视频，其次图片
+            const existingVideo = screenshotDiv.querySelector('video');
+            const existingImg = screenshotDiv.querySelector('img');
             
-            let fixedTitlePath = titleScreenPath;
-            if (fixedTitlePath && fixedTitlePath.startsWith('/data/scraper/')) {
-                fixedTitlePath = fixedTitlePath.replace('/data/scraper/', '/scraper/');
-            }
-            
-            if (fixedScreenshotPath && (fixedScreenshotPath.startsWith('/') || fixedScreenshotPath.startsWith('http'))) {
-                screenshotImg.src = fixedScreenshotPath;
-                screenshotImg.style.display = 'block';
+            if (videoPath && (videoPath.startsWith('/') || videoPath.startsWith('http'))) {
+                // 有视频，显示视频预览
+                if (existingImg) existingImg.style.display = 'none';
+                let videoEl = existingVideo;
+                if (!videoEl) {
+                    videoEl = document.createElement('video');
+                    videoEl.id = 'previewVideo';
+                    videoEl.style.cssText = 'max-width: 100%; max-height: 180px; object-fit: contain;';
+                    videoEl.autoplay = true;
+                    videoEl.muted = true;
+                    videoEl.loop = true;
+                    videoEl.controls = false;
+                    screenshotDiv.appendChild(videoEl);
+                }
+                videoEl.src = videoPath;
+                videoEl.style.display = 'block';
             } else {
-                screenshotImg.style.display = 'none';
+                // 无视频，显示图片
+                if (existingVideo) { existingVideo.src = ''; existingVideo.style.display = 'none'; }
+                if (screenshotPath && (screenshotPath.startsWith('/') || screenshotPath.startsWith('http'))) {
+                    if (existingImg) {
+                        existingImg.src = screenshotPath;
+                        existingImg.style.display = 'block';
+                    }
+                } else {
+                    if (existingImg) existingImg.style.display = 'none';
+                }
             }
             
-            if (fixedTitlePath && (fixedTitlePath.startsWith('/') || fixedTitlePath.startsWith('http'))) {
-                titleScreenImg.src = fixedTitlePath;
+            // 标题画面
+            if (titleScreenPath && (titleScreenPath.startsWith('/') || titleScreenPath.startsWith('http'))) {
+                titleScreenImg.src = titleScreenPath;
                 titleScreenImg.style.display = 'block';
+                document.getElementById('previewTitleScreenDiv').style.display = 'flex';
             } else {
                 titleScreenImg.style.display = 'none';
+                document.getElementById('previewTitleScreenDiv').style.display = 'none';
             }
             
             previewTitle.textContent = gameName;
@@ -2459,6 +1982,12 @@
         function hideGamePreview() {
             const preview = document.getElementById('gamePreview');
             preview.style.display = 'none';
+            // 停止视频播放
+            const videoEl = document.getElementById('previewVideo');
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.src = '';
+            }
         }
         
         // 移动游戏预览弹窗
@@ -2650,107 +2179,11 @@
             return gameIds;
         }
         
-        // 打开编辑游戏模态框
-        function openEditGameModal(gameId) {
-            let url = '';
-            if (platformId) {
-                url = `/api/gamelist/games/${gameId}`;
-            } else if (subsetId) {
-                url = `/api/temp-subsets/games/${gameId}`;
-            }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(game => {
-                    currentGameCache = game; // 缓存原始数据
-                    document.getElementById('gameId').value = game.id;
-                    document.getElementById('gameName').value = game.name;
-                    document.getElementById('gamePath').value = game.path;
-                    // 添加platformPath字段
-                    if (document.getElementById('platformPath')) {
-                        document.getElementById('platformPath').value = game.platformPath || '';
-                    }
-                    document.getElementById('gameDescription').value = game.description || game.desc || '';
-                    document.getElementById('translatedName').value = game.translatedName || '';
-                    document.getElementById('translatedDescription').value = game.translatedDescription || game.translatedDesc || '';
-                    document.getElementById('gameDeveloper').value = game.developer || '';
-                    document.getElementById('gamePublisher').value = game.publisher || '';
-                    document.getElementById('gameType').value = game.gameType || game.genre || '';
-                    document.getElementById('playerCount').value = game.playerCount || game.players || '';
-                    document.getElementById('releaseDate').value = game.releaseDate || game.releasedate || '';
-                    document.getElementById('rating').value = game.rating || '';
-                    document.getElementById('language').value = game.language || game.lang || '';
-                    document.getElementById('gameIdInput').value = game.gameId || '';
-                    document.getElementById('source').value = game.source || '';
-                    document.getElementById('image').value = game.image || '';
-                    document.getElementById('video').value = game.video || '';
-                    document.getElementById('marquee').value = game.marquee || '';
-                    document.getElementById('thumbnail').value = game.thumbnail || '';
-                    document.getElementById('manual').value = game.manual || '';
-                    document.getElementById('box-2D').value = game.box2d || game.boxFront || '';
-                    document.getElementById('box-2D-back').value = game.box2dBack || game.boxBack || '';
-                    document.getElementById('box-2D-side').value = game.box2dSide || game.boxSpine || '';
-                    document.getElementById('box-3D').value = game.box3d || game.box3D || game.boxFull || '';
-                    document.getElementById('support-2D').value = game.support2d || game.cartridge || '';
-                    // 废弃字段保留（从缓存读取，UI 已迁移到 SS 标准字段）
-                    // boxFront/boxBack/boxSpine/cartridge/logo/bezel/panel/cabinetLeft/cabinetRight
-                    // tile/banner/steam/poster/background/music/screenshot/titlescreen
-                    // boxtexture/supporttexture/videonormalized/wheelcarbon/wheelsteel
-                    // SS 标准媒体字段
-                    document.getElementById('ss').value = game.ss || game.screenshot || '';
-                    document.getElementById('sstitle').value = game.sstitle || game.titlescreen || '';
-                    // 新增媒体字段
-                    document.getElementById('wheel').value = game.wheel || '';
-                    document.getElementById('wheel-carbon').value = game.wheelCarbon || game.wheelcarbon || '';
-                    document.getElementById('wheel-steel').value = game.wheelSteel || game.wheelsteel || '';
-                    document.getElementById('screenmarqueesmall').value = game.screenmarqueesmall || '';
-                    document.getElementById('video-normalized').value = game.videoNormalized || game.videonormalized || '';
-                    document.getElementById('steamgrid').value = game.steamgrid || '';
-                    document.getElementById('fanart').value = game.fanart || '';
-                    document.getElementById('box-texture').value = game.boxTexture || game.boxtexture || '';
-                    document.getElementById('supporttexture').value = game.supportTexture || game.supporttexture || '';
-                    document.getElementById('figurine').value = game.figurine || '';
-                    // 新增 SS 标准字段
-                    document.getElementById('support-scan').value = game.supportScan || '';
-                    document.getElementById('wheel-hd').value = game.wheelHd || '';
-                    document.getElementById('wheel-tarcisios').value = game.wheelTarcisios || '';
-                    document.getElementById('bezel-4-3').value = game.bezel43 || '';
-                    document.getElementById('bezel-4-3-v').value = game.bezel43V || '';
-                    document.getElementById('bezel-4-3-cocktail').value = game.bezel43Cocktail || '';
-                    document.getElementById('bezel-16-9').value = game.bezel169 || '';
-                    document.getElementById('bezel-16-9-v').value = game.bezel169V || '';
-                    document.getElementById('bezel-16-9-cocktail').value = game.bezel169Cocktail || '';
-                    document.getElementById('overlay').value = game.overlay || '';
-                    document.getElementById('flyer').value = game.flyer || '';
-                    document.getElementById('manuel').value = game.manuel || '';
-                    document.getElementById('maps').value = game.maps || '';
-                    document.getElementById('screenmarquee').value = game.screenmarquee || '';
-                    document.getElementById('box-scan').value = game.boxScan || '';
-                    document.getElementById('mixrbv1').value = game.mixrbv1 || '';
-                    document.getElementById('mixrbv2').value = game.mixrbv2 || '';
-                    document.getElementById('themehb').value = game.themehb || '';
-                    document.getElementById('themehs').value = game.themehs || '';
-                    // 弹球台专用字段
-                    document.getElementById('ssdmd').value = game.ssdmd || '';
-                    document.getElementById('ssfronton169').value = game.ssfronton169 || '';
-                    document.getElementById('ssfronton11').value = game.ssfronton11 || '';
-                    document.getElementById('ssfronton43').value = game.ssfronton43 || '';
-                    document.getElementById('sstable').value = game.sstable || '';
-                    document.getElementById('sstopper').value = game.sstopper || '';
-                    document.getElementById('videodmd').value = game.videodmd || '';
-                    document.getElementById('videofronton43').value = game.videofronton43 || '';
-                    document.getElementById('videofronton169').value = game.videofronton169 || '';
-                    document.getElementById('videotable').value = game.videotable || '';
-                    document.getElementById('videotable4k').value = game.videotable4k || '';
-                    document.getElementById('videotopper').value = game.videotopper || '';
-                    document.getElementById('crc32').value = game.crc32 || '';
-                    document.getElementById('genreid').value = game.genreid || '';
-                    document.getElementById('platformIdInput').value = game.platformId || '';
-                    document.getElementById('sortBy').value = game.sortBy || '';
-                    document.getElementById('editGameModal').style.display = 'block';
-                })
-                .catch(error => console.error('Error fetching game:', error));
+        // 跳转到游戏编辑独立页面
+        function openGameEditPage(gameId) {
+            window.location.href = 'game-edit.html?id=' + gameId + '&platformId=' + (platformId || '');
         }
+        
         
         // 打开新增游戏模态框
         function openAddGameModal() {
@@ -2929,745 +2362,42 @@
             }
         }
         
-        // 关闭编辑游戏模态框
-        function closeEditGameModal() {
-            document.getElementById('editGameModal').style.display = 'none';
-        }
-
-        // 打开搜索游戏模态框
-        function openSearchModal() {
-            // 自动填充当前游戏名称到搜索框
-            const gameName = document.getElementById('gameName').value.trim();
-            if (gameName) {
-                document.getElementById('searchGameName').value = gameName;
-            }
-            document.getElementById('searchGameModal').style.display = 'block';
-            document.getElementById('searchGameName').focus();
-        }
-
-        // 关闭搜索游戏模态框
-        function closeSearchModal() {
-            document.getElementById('searchGameModal').style.display = 'none';
-            document.getElementById('searchResults').innerHTML = '<p>请输入游戏名称进行搜索</p>';
-        }
-
-        // 从ScreenScraper检索游戏
-        async function searchGameFromScraper() {
-            const searchTerm = document.getElementById('searchGameName').value.trim();
-            if (!searchTerm) {
-                showNotification('请输入搜索关键词', 'warning');
+        // 批量切换译文
+        function swapTranslations() {
+            const selectedGameIds = getSelectedGameIds();
+            
+            if (selectedGameIds.length === 0) {
+                showNotification('请先选择要切换译文的游戏', 'info');
                 return;
             }
             
-            if (searchTerm.length < 3) {
-                showNotification('搜索关键词至少需要3个字符', 'warning');
+            if (!confirm(`确定要切换选中 ${selectedGameIds.length} 个游戏的原文/译文吗？\n\n这将交换游戏名称和描述与翻译后的内容。`)) {
                 return;
             }
-
-            const platformId = document.getElementById('platformIdInput').value;
-            if (!platformId) {
-                showNotification('无法获取平台ID', 'warning');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/scraper/search?platformId=${platformId}&searchTerm=${encodeURIComponent(searchTerm)}`);
-                const data = await response.json();
-                
-                if (data.success && data.data && data.data.length > 0) {
-                    displaySearchResults(data.data);
-                } else {
-                    document.getElementById('searchResults').innerHTML = '<p>未找到匹配的游戏</p>';
-                }
-            } catch (error) {
-                console.error('搜索游戏失败:', error);
-                showNotification('搜索游戏失败', 'error');
-            }
-        }
-
-        // 存储搜索结果用于选择
-        let currentSearchResults = [];
-        
-        // 显示搜索结果
-        function displaySearchResults(games) {
-            // 保存搜索结果
-            currentSearchResults = games;
             
-            let html = '<div style="display: grid; gap: 10px;">';
-            
-            games.forEach((game, index) => {
-                const name = game.nom || game.name || '未知名称';
-                const regionInfo = [];
-                if (game.noms) {
-                    if (game.noms.nom_eu) regionInfo.push(`EU: ${game.noms.nom_eu}`);
-                    if (game.noms.nom_us) regionInfo.push(`US: ${game.noms.nom_us}`);
-                    if (game.noms.nom_jp) regionInfo.push(`JP: ${game.noms.nom_jp}`);
-                }
-                
-                html += `
-                    <div style="border: 1px solid #444; padding: 12px; border-radius: 8px; cursor: pointer;" 
-                         onclick="selectGameByIndex(${index})">
-                        <h4 style="margin: 0 0 8px 0; color: #00ffff;">${name}</h4>
-                        ${regionInfo.length > 0 ? `<p style="margin: 4px 0; font-size: 12px; color: #888;">${regionInfo.join(' | ')}</p>` : ''}
-                        ${game.description ? `<p style="margin: 4px 0; font-size: 12px; color: #aaa;">${game.description.substring(0, 100)}...</p>` : ''}
-                        <div style="margin-top: 8px; display: flex; gap: 15px; font-size: 12px; color: #888;">
-                            ${game.editeur ? `<span>发行商: ${game.editeur}</span>` : ''}
-                            ${game.developpeur ? `<span>开发商: ${game.developpeur}</span>` : ''}
-                            ${game.annee ? `<span>年份: ${game.annee}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            document.getElementById('searchResults').innerHTML = html;
-        }
-        
-        // 通过索引选择游戏
-        function selectGameByIndex(index) {
-            const game = currentSearchResults[index];
-            if (game) {
-                selectGame(game);
-            }
-        }
-
-        // 选择游戏并填充表单
-        function selectGame(game) {
-            // 在关闭模态框之前获取下载选项状态
-            const downloadMedia = document.getElementById('downloadMedia').checked;
-            
-            // 获取当前编辑表单中的本地游戏ID（隐藏字段 gameId 存储的是本地数据库ID）
-            const localGameId = document.getElementById('gameId').value;
-            
-            // 填充表单字段
-            if (game.nom) document.getElementById('gameName').value = game.nom;
-            if (game.description) document.getElementById('gameDescription').value = game.description;
-            if (game.editeur) document.getElementById('gamePublisher').value = game.editeur;
-            if (game.developpeur) document.getElementById('gameDeveloper').value = game.developpeur;
-            if (game.annee) document.getElementById('releaseDate').value = game.annee;
-            if (game.genre) document.getElementById('gameType').value = game.genre;
-            if (game.joueurs) document.getElementById('playerCount').value = game.joueurs;
-            if (game.note) document.getElementById('rating').value = game.note;
-            
-            // 设置远程ScreenScraper ID到文本框（用于显示和后续刮削）
-            if (game.id) {
-                document.getElementById('gameIdInput').value = game.id;
-            }
-            
-            // 填充多语言名称
-            if (game.noms) {
-                if (game.noms.nom_eu) document.getElementById('translatedName').value = game.noms.nom_eu;
-                if (game.noms.nom_us) document.getElementById('gameNameEn').value = game.noms.nom_us;
-                if (game.noms.nom_jp) document.getElementById('gameNameJp').value = game.noms.nom_jp;
-            }
-            
-            closeSearchModal();
-            showNotification('游戏信息已填充', 'success');
-            
-            // 检查是否需要下载媒体文件
-            // 使用本地数据库ID（如果存在），否则不下载（新建游戏场景需要先保存游戏）
-            if (downloadMedia && game.medias && localGameId) {
-                downloadGameMedia(localGameId, game.medias);
-            } else if (downloadMedia && !localGameId) {
-                showNotification('请先保存游戏，然后再下载媒体文件', 'warning');
-            }
-        }
-
-        // 下载游戏媒体文件
-        async function downloadGameMedia(gameId, medias) {
-            try {
-                const response = await fetch('/api/scraper/downloadMedia', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        gameId: gameId,
-                        gameName: document.getElementById('gameName').value,
-                        platformId: document.getElementById('platformIdInput').value,
-                        medias: medias
-                    })
-                });
-                const data = await response.json();
+            fetch('/api/gamelist/games/swap-translations', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameIds: selectedGameIds })
+            })
+            .then(response => response.json())
+            .then(data => {
                 if (data.success) {
-                    showNotification('媒体文件下载任务已创建', 'success');
+                    showNotification(`成功切换 ${data.swappedCount} 个游戏的译文`, 'success');
+                    refreshCurrentPage();
                 } else {
-                    showNotification('创建媒体下载任务失败: ' + data.message, 'error');
+                    showNotification('切换失败：' + (data.error || '未知错误'), 'error');
                 }
-            } catch (error) {
-                console.error('下载媒体文件失败:', error);
-                showNotification('下载媒体文件失败', 'error');
-            }
-        }
-        
-        // 获取国际化文本
-        function getI18nText(key) {
-            return I18n.t(key) || key;
-        }
-        
-        // 查看媒体文件
-        function viewMediaFiles() {
-            const gameId = document.getElementById('gameId').value;
-            const gamePath = document.getElementById('gamePath').value;
-            const platformPath = document.getElementById('platformPath') ? document.getElementById('platformPath').value : null;
-            const mediaFiles = [
-                { type: 'image', path: document.getElementById('image').value, name: getI18nText('image'), displayType: 'image' },
-                { type: 'video', path: document.getElementById('video').value, name: getI18nText('video'), displayType: 'video' },
-                { type: 'marquee', path: document.getElementById('marquee').value, name: getI18nText('marquee'), displayType: 'image' },
-                { type: 'thumbnail', path: document.getElementById('thumbnail').value, name: getI18nText('thumbnail'), displayType: 'image' },
-                { type: 'manuel', path: document.getElementById('manual').value || document.getElementById('manuel').value, name: '手册', displayType: 'manual' },
-                // 包装盒类
-                { type: 'box-2D', path: document.getElementById('box-2D').value, name: '包装盒正面', displayType: 'image' },
-                { type: 'box-2D-back', path: document.getElementById('box-2D-back').value, name: '包装盒背面', displayType: 'image' },
-                { type: 'box-2D-side', path: document.getElementById('box-2D-side').value, name: '包装盒侧面', displayType: 'image' },
-                { type: 'box-3D', path: document.getElementById('box-3D').value, name: '3D包装盒', displayType: 'image' },
-                { type: 'box-scan', path: document.getElementById('box-scan').value, name: '包装盒扫描源', displayType: 'image' },
-                { type: 'box-texture', path: document.getElementById('box-texture').value, name: '包装盒纹理', displayType: 'image' },
-                // 支撑类
-                { type: 'support-2D', path: document.getElementById('support-2D').value, name: '卡带/光盘', displayType: 'image' },
-                { type: 'support-texture', path: document.getElementById('support-texture').value, name: '支撑纹理', displayType: 'image' },
-                { type: 'support-scan', path: document.getElementById('support-scan').value, name: '支撑扫描源', displayType: 'image' },
-                // 轮盘类
-                { type: 'wheel', path: document.getElementById('wheel').value, name: '轮盘图标', displayType: 'image' },
-                { type: 'wheel-carbon', path: document.getElementById('wheel-carbon').value, name: '碳纤维轮盘', displayType: 'image' },
-                { type: 'wheel-steel', path: document.getElementById('wheel-steel').value, name: '钢铁轮盘', displayType: 'image' },
-                { type: 'wheel-hd', path: document.getElementById('wheel-hd').value, name: '高清轮盘', displayType: 'image' },
-                { type: 'wheel-tarcisios', path: document.getElementById('wheel-tarcisios').value, name: 'Tarcisios轮盘', displayType: 'image' },
-                // 边框类
-                { type: 'bezel-4-3', path: document.getElementById('bezel-4-3').value, name: '边框 4:3 横屏', displayType: 'image' },
-                { type: 'bezel-4-3-v', path: document.getElementById('bezel-4-3-v').value, name: '边框 4:3 竖屏', displayType: 'image' },
-                { type: 'bezel-4-3-cocktail', path: document.getElementById('bezel-4-3-cocktail').value, name: '边框 4:3 鸡尾酒', displayType: 'image' },
-                { type: 'bezel-16-9', path: document.getElementById('bezel-16-9').value, name: '边框 16:9 横屏', displayType: 'image' },
-                { type: 'bezel-16-9-v', path: document.getElementById('bezel-16-9-v').value, name: '边框 16:9 竖屏', displayType: 'image' },
-                { type: 'bezel-16-9-cocktail', path: document.getElementById('bezel-16-9-cocktail').value, name: '边框 16:9 鸡尾酒', displayType: 'image' },
-                // 截图/标题
-                { type: 'ss', path: document.getElementById('ss').value, name: '游戏截图', displayType: 'image' },
-                { type: 'sstitle', path: document.getElementById('sstitle').value, name: '标题画面', displayType: 'image' },
-                // 通用媒体
-                { type: 'screenmarquee', path: document.getElementById('screenmarquee').value, name: '屏幕霓虹灯', displayType: 'image' },
-                { type: 'screenmarqueesmall', path: document.getElementById('screenmarqueesmall').value, name: '小横幅', displayType: 'image' },
-                { type: 'video-normalized', path: document.getElementById('video-normalized').value, name: '归一化视频', displayType: 'video' },
-                { type: 'steamgrid', path: document.getElementById('steamgrid').value, name: 'Steam网格', displayType: 'image' },
-                { type: 'fanart', path: document.getElementById('fanart').value, name: '粉丝艺术图', displayType: 'image' },
-                { type: 'overlay', path: document.getElementById('overlay').value, name: '覆盖层', displayType: 'image' },
-                // 次要媒体
-                { type: 'flyer', path: document.getElementById('flyer').value, name: '传单', displayType: 'image' },
-                { type: 'maps', path: document.getElementById('maps').value, name: '地图', displayType: 'image' },
-                { type: 'figurine', path: document.getElementById('figurine').value, name: '手办图片', displayType: 'image' },
-                // 混合
-                { type: 'mixrbv1', path: document.getElementById('mixrbv1').value, name: 'Mix RB V1', displayType: 'image' },
-                { type: 'mixrbv2', path: document.getElementById('mixrbv2').value, name: 'Mix RB V2', displayType: 'image' },
-                // 主题
-                { type: 'themehb', path: document.getElementById('themehb').value, name: '主题 HB', displayType: 'image' },
-                { type: 'themehs', path: document.getElementById('themehs').value, name: '主题 HS', displayType: 'image' },
-                // 弹球台专用
-                { type: 'ssdmd', path: document.getElementById('ssdmd').value, name: '弹球 DMD 截图', displayType: 'image' },
-                { type: 'ssfronton169', path: document.getElementById('ssfronton169').value, name: '弹球正面 16:9', displayType: 'image' },
-                { type: 'ssfronton11', path: document.getElementById('ssfronton11').value, name: '弹球正面 1:1', displayType: 'image' },
-                { type: 'ssfronton43', path: document.getElementById('ssfronton43').value, name: '弹球正面 4:3', displayType: 'image' },
-                { type: 'sstable', path: document.getElementById('sstable').value, name: '弹球台面截图', displayType: 'image' },
-                { type: 'sstopper', path: document.getElementById('sstopper').value, name: '弹球顶部截图', displayType: 'image' },
-                { type: 'videodmd', path: document.getElementById('videodmd').value, name: '弹球 DMD 视频', displayType: 'video' },
-                { type: 'videofronton43', path: document.getElementById('videofronton43').value, name: '弹球正面视频 4:3', displayType: 'video' },
-                { type: 'videofronton169', path: document.getElementById('videofronton169').value, name: '弹球正面视频 16:9', displayType: 'video' },
-                { type: 'videotable', path: document.getElementById('videotable').value, name: '弹球台面视频', displayType: 'video' },
-                { type: 'videotable4k', path: document.getElementById('videotable4k').value, name: '弹球台面视频 4K', displayType: 'video' },
-                { type: 'videotopper', path: document.getElementById('videotopper').value, name: '弹球顶部视频', displayType: 'video' }
-            ].filter(f => f.path && f.path.trim() !== '');
-            
-            const mediaContent = document.getElementById('mediaContent');
-            mediaContent.innerHTML = '';
-            mediaContent.style.display = 'flex';
-            mediaContent.style.flexDirection = 'column';
-            mediaContent.style.gap = '20px';
-            mediaContent.style.overflowY = 'auto';
-            
-            // 生成媒体文件的相对路径（确保以 ./ 开头）
-            function getMediaFullPath(relativePath) {
-                if (!relativePath) return null;
-                
-                // 如果已经是绝对路径或Windows路径，直接返回
-                if (relativePath.startsWith('/') || relativePath.match(/^[A-Za-z]:.*/)) {
-                    return relativePath;
-                }
-                
-                // 确保以 ./ 开头
-                if (!relativePath.startsWith('./')) {
-                    return './' + relativePath;
-                }
-                
-                return relativePath;
-            }
-            
-            // 通用下载函数
-            function downloadMediaFile(fullPath, mediaElement, statusElement, downloadBtn, displayType, manualContent = null) {
-                downloadBtn.disabled = true;
-                downloadBtn.textContent = '加载中...';
-                
-                // 传递 platformId, gameId 和 platformPath 到后端
-                const url = `/api/media/view?localPath=${encodeURIComponent(fullPath)}&platformId=${platformId}&gameId=${gameId}&platformPath=${encodeURIComponent(platformPath || '')}`;
-                
-                // 直接使用查看接口
-                if (displayType === 'image') {
-                    mediaElement.src = url;
-                    mediaElement.style.display = 'block';
-                    statusElement.textContent = getI18nText('loaded');
-                    statusElement.style.color = 'blue';
-                    downloadBtn.textContent = getI18nText('download');
-                    downloadBtn.style.backgroundColor = '#4CAF50';
-                    downloadBtn.style.color = 'white';
-                    downloadBtn.disabled = false;
-                    
-                    // 添加下载功能
-                    downloadBtn.onclick = function() {
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = fullPath.split('/').pop() || 'media_file';
-                        link.click();
-                    };
-                } else if (displayType === 'video') {
-                    const source = mediaElement.querySelector('source');
-                    source.src = url;
-                    mediaElement.load();
-                    mediaElement.style.display = 'block';
-                    statusElement.textContent = getI18nText('loaded');
-                    statusElement.style.color = 'blue';
-                    downloadBtn.textContent = getI18nText('download');
-                    downloadBtn.style.backgroundColor = '#4CAF50';
-                    downloadBtn.style.color = 'white';
-                    downloadBtn.disabled = false;
-                    
-                    // 添加下载功能
-                    downloadBtn.onclick = function() {
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = fullPath.split('/').pop() || 'video_file';
-                        link.click();
-                    };
-                } else if (displayType === 'manual' && manualContent) {
-                    manualContent.innerHTML = `
-                        <a href="${url}" target="_blank" style="padding: 8px 16px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">${getI18nText('view-manual')}</a>
-                        <a href="${url}" download style="padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px;">${getI18nText('download-manual')}</a>
-                    `;
-                    statusElement.textContent = getI18nText('loaded');
-                    statusElement.style.color = 'blue';
-                    downloadBtn.textContent = getI18nText('download');
-                    downloadBtn.style.backgroundColor = '#4CAF50';
-                    downloadBtn.style.color = 'white';
-                    downloadBtn.disabled = false;
-                    
-                    // 添加下载功能
-                    downloadBtn.onclick = function() {
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = fullPath.split('/').pop() || 'manual_file';
-                        link.click();
-                    };
-                }
-            }
-            
-            // 处理媒体文件
-            const hasMediaFiles = mediaFiles.some(file => file.path);
-            
-            if (!hasMediaFiles) {
-                mediaContent.innerHTML = `<p style="text-align: center; color: #666;">${getI18nText('no-media-files')}</p>`;
-                document.getElementById('mediaViewModal').style.display = 'block';
-                return;
-            }
-            
-            // 显示每个媒体文件
-            mediaFiles.forEach(mediaFile => {
-                if (!mediaFile.path) return;
-                
-                const fullPath = getMediaFullPath(mediaFile.path);
-                const mediaDiv = document.createElement('div');
-                mediaDiv.style.border = '2px solid #00ffff';
-                mediaDiv.style.borderRadius = '8px';
-                mediaDiv.style.padding = '20px';
-                mediaDiv.style.backgroundColor = 'rgba(26, 26, 46, 0.8)';
-                mediaDiv.style.width = '100%';
-                mediaDiv.style.boxSizing = 'border-box';
-                
-                let mediaContentHTML = `
-                    <h3 style="margin-top: 0; color: #ff00ff;">${mediaFile.name}</h3>
-                `;
-                
-                if (mediaFile.displayType === 'image') {
-                    mediaContentHTML += `
-                        <div style="margin: 15px 0; text-align: center; width: 100%;">
-                            <img src="" alt="${mediaFile.name}" style="max-width: 100%; max-height: 300px; display: none; border: 2px solid #00ffff; border-radius: 4px;">
-                        </div>
-                    `;
-                } else if (mediaFile.displayType === 'video') {
-                    mediaContentHTML += `
-                        <div style="margin: 15px 0; text-align: center; width: 100%;">
-                            <video controls style="max-width: 100%; max-height: 300px; display: none; border: 2px solid #00ffff; border-radius: 4px; background: rgba(0, 0, 0, 0.5);">
-                                <source src="" type="video/mp4">
-                                ${getI18nText('browser-no-video')}
-                            </video>
-                        </div>
-                    `;
-                } else if (mediaFile.displayType === 'manual') {
-                    mediaContentHTML += `
-                        <div style="margin: 15px 0; text-align: center; width: 100%;">
-                            <div id="${mediaFile.type}Content">
-                                <p>${getI18nText('loading')}</p>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                mediaContentHTML += `
-                    <p id="${mediaFile.type}Status" style="margin: 10px 0; color: #ff9800; font-size: 14px; font-family: 'Consolas', 'Courier New', monospace;">${getI18nText('checking')}</p>
-                    <button id="download${mediaFile.type.charAt(0).toUpperCase() + mediaFile.type.slice(1)}Btn" style="margin-top: 10px; padding: 8px 16px; background: #1a1a2e; color: #4CAF50; border: 2px solid #4CAF50; border-radius: 4px; cursor: pointer; font-family: 'Consolas', 'Courier New', monospace; transition: all 0.3s ease;">${getI18nText('download')}${mediaFile.name}</button>
-                `;
-                
-                mediaDiv.innerHTML = mediaContentHTML;
-                mediaContent.appendChild(mediaDiv);
-                
-                // 获取元素
-                let mediaElement = null;
-                let statusElement = mediaDiv.querySelector(`#${mediaFile.type}Status`);
-                let downloadBtn = mediaDiv.querySelector(`#download${mediaFile.type.charAt(0).toUpperCase() + mediaFile.type.slice(1)}Btn`);
-                let manualContent = null;
-                
-                if (mediaFile.displayType === 'image') {
-                    mediaElement = mediaDiv.querySelector('img');
-                } else if (mediaFile.displayType === 'video') {
-                    mediaElement = mediaDiv.querySelector('video');
-                } else if (mediaFile.displayType === 'manual') {
-                    manualContent = mediaDiv.querySelector(`#${mediaFile.type}Content`);
-                }
-                
-                // 自动加载
-                downloadMediaFile(fullPath, mediaElement, statusElement, downloadBtn, mediaFile.displayType, manualContent);
-                
-                // 手动下载按钮事件
-                downloadBtn.addEventListener('click', () => {
-                    downloadMediaFile(fullPath, mediaElement, statusElement, downloadBtn, mediaFile.displayType, manualContent);
-                });
+            })
+            .catch(error => {
+                console.error('Error swapping translations:', error);
+                showNotification('切换失败: ' + error.message, 'error');
             });
-            
-            document.getElementById('mediaViewModal').style.display = 'block';
-            // 禁止背景页面滚动
-            document.body.style.overflow = 'hidden';
         }
         
-        // 关闭媒体文件查看模态框
-        function closeMediaViewModal() {
-            document.getElementById('mediaViewModal').style.display = 'none';
-            // 恢复背景页面的滚动
-            document.body.style.overflow = 'auto';
-        }
         
-        // 阻止模态框内的滚动事件冒泡
-        document.getElementById('mediaViewModal').addEventListener('wheel', function(e) {
-            e.stopPropagation();
-        });
-        
-        // 当模态框打开时，禁止背景页面滚动
-        document.getElementById('mediaViewModal').addEventListener('show', function() {
-            document.body.style.overflow = 'hidden';
-        });
 
-        // 显示通知
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                color: white;
-                font-size: 14px;
-                z-index: 2000;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-            `;
-            
-            if (type === 'success') {
-                notification.style.backgroundColor = '#4CAF50';
-            } else if (type === 'error') {
-                notification.style.backgroundColor = '#f44336';
-            } else {
-                notification.style.backgroundColor = '#2196F3';
-            }
-            
-            document.body.appendChild(notification);
-            
-            // 显示通知
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-            
-            // 3秒后隐藏通知
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
         
-        // 保存游戏修改
-        function saveGame() {
-            const gameId = document.getElementById('gameId').value;
-            let gameData = {};
-            
-            if (platformId && platformId !== 0) {
-                // 平台游戏数据
-                gameData = {
-                    id: parseInt(gameId),
-                    name: document.getElementById('gameName').value,
-                    path: document.getElementById('gamePath').value,
-                    platformPath: document.getElementById('platformPath').value,
-                    desc: document.getElementById('gameDescription').value,
-                    translatedName: document.getElementById('translatedName').value,
-                    translatedDesc: document.getElementById('translatedDescription').value,
-                    developer: document.getElementById('gameDeveloper').value,
-                    publisher: document.getElementById('gamePublisher').value,
-                    genre: document.getElementById('gameType').value,
-                    players: document.getElementById('playerCount').value,
-                    releasedate: document.getElementById('releaseDate').value,
-                    rating: document.getElementById('rating').value,
-                    lang: document.getElementById('language').value,
-                    gameId: document.getElementById('gameIdInput').value,
-                    source: document.getElementById('source').value,
-                    image: document.getElementById('image').value,
-                    video: document.getElementById('video').value,
-                    marquee: document.getElementById('marquee').value,
-                    thumbnail: document.getElementById('thumbnail').value,
-                    manual: document.getElementById('manual').value,
-                    boxFront: currentGameCache ? (currentGameCache.boxFront || '') : '',
-                    box2d: document.getElementById('box-2D').value,
-                    boxBack: currentGameCache ? (currentGameCache.boxBack || '') : '',
-                    box2dBack: document.getElementById('box-2D-back').value,
-                    boxSpine: currentGameCache ? (currentGameCache.boxSpine || '') : '',
-                    box2dSide: document.getElementById('box-2D-side').value,
-                    boxFull: currentGameCache ? (currentGameCache.boxFull || '') : '',
-                    box3d: document.getElementById('box-3D').value,
-                    cartridge: currentGameCache ? (currentGameCache.cartridge || '') : '',
-                    support2d: document.getElementById('support-2D').value,
-                    // 废弃字段保留（从缓存读取，UI 已移除这些表单）
-                    logo: currentGameCache ? (currentGameCache.logo || '') : '',
-                    bezel: currentGameCache ? (currentGameCache.bezel || '') : '',
-                    panel: currentGameCache ? (currentGameCache.panel || '') : '',
-                    cabinetLeft: currentGameCache ? (currentGameCache.cabinetLeft || '') : '',
-                    cabinetRight: currentGameCache ? (currentGameCache.cabinetRight || '') : '',
-                    tile: currentGameCache ? (currentGameCache.tile || '') : '',
-                    banner: currentGameCache ? (currentGameCache.banner || '') : '',
-                    steam: currentGameCache ? (currentGameCache.steam || '') : '',
-                    poster: currentGameCache ? (currentGameCache.poster || '') : '',
-                    background: currentGameCache ? (currentGameCache.background || '') : '',
-                    music: currentGameCache ? (currentGameCache.music || '') : '',
-                    screenshot: currentGameCache ? (currentGameCache.screenshot || '') : '',
-                    ss: document.getElementById('ss').value,
-                    titlescreen: currentGameCache ? (currentGameCache.titlescreen || '') : '',
-                    sstitle: document.getElementById('sstitle').value,
-                    boxtexture: currentGameCache ? (currentGameCache.boxtexture || '') : '',
-                    boxTexture: document.getElementById('box-texture').value,
-                    supporttexture: currentGameCache ? (currentGameCache.supporttexture || '') : '',
-                    supportTexture: document.getElementById('support-texture').value,
-                    videonormalized: currentGameCache ? (currentGameCache.videonormalized || '') : '',
-                    videoNormalized: document.getElementById('video-normalized').value,
-                    wheelcarbon: currentGameCache ? (currentGameCache.wheelcarbon || '') : '',
-                    wheelCarbon: document.getElementById('wheel-carbon').value,
-                    wheelsteel: currentGameCache ? (currentGameCache.wheelsteel || '') : '',
-                    wheelSteel: document.getElementById('wheel-steel').value,
-                    // SS 标准媒体字段
-                    wheel: document.getElementById('wheel').value,
-                    screenmarqueesmall: document.getElementById('screenmarqueesmall').value,
-                    steamgrid: document.getElementById('steamgrid').value,
-                    fanart: document.getElementById('fanart').value,
-                    figurine: document.getElementById('figurine').value,
-                    // 新增 SS 标准字段
-                    supportScan: document.getElementById('support-scan').value,
-                    wheelHd: document.getElementById('wheel-hd').value,
-                    wheelTarcisios: document.getElementById('wheel-tarcisios').value,
-                    bezel43: document.getElementById('bezel-4-3').value,
-                    bezel43V: document.getElementById('bezel-4-3-v').value,
-                    bezel43Cocktail: document.getElementById('bezel-4-3-cocktail').value,
-                    bezel169: document.getElementById('bezel-16-9').value,
-                    bezel169V: document.getElementById('bezel-16-9-v').value,
-                    bezel169Cocktail: document.getElementById('bezel-16-9-cocktail').value,
-                    overlay: document.getElementById('overlay').value,
-                    flyer: document.getElementById('flyer').value,
-                    manuel: document.getElementById('manuel').value,
-                    maps: document.getElementById('maps').value,
-                    screenmarquee: document.getElementById('screenmarquee').value,
-                    boxScan: document.getElementById('box-scan').value,
-                    mixrbv1: document.getElementById('mixrbv1').value,
-                    mixrbv2: document.getElementById('mixrbv2').value,
-                    themehb: document.getElementById('themehb').value,
-                    themehs: document.getElementById('themehs').value,
-                    ssdmd: document.getElementById('ssdmd').value,
-                    ssfronton169: document.getElementById('ssfronton169').value,
-                    ssfronton11: document.getElementById('ssfronton11').value,
-                    ssfronton43: document.getElementById('ssfronton43').value,
-                    sstable: document.getElementById('sstable').value,
-                    sstopper: document.getElementById('sstopper').value,
-                    videodmd: document.getElementById('videodmd').value,
-                    videofronton43: document.getElementById('videofronton43').value,
-                    videofronton169: document.getElementById('videofronton169').value,
-                    videotable: document.getElementById('videotable').value,
-                    videotable4k: document.getElementById('videotable4k').value,
-                    videotopper: document.getElementById('videotopper').value,
-                    crc32: document.getElementById('crc32').value,
-                    genreid: document.getElementById('genreid').value,
-                    platformId: document.getElementById('platformIdInput').value,
-                    sortBy: document.getElementById('sortBy').value,
-                    edited: true
-                };
-            } else if (subsetId && subsetId !== 0) {
-                // 子集游戏数据
-                gameData = {
-                    id: parseInt(gameId),
-                    name: document.getElementById('gameName').value,
-                    path: document.getElementById('gamePath').value,
-                    platformPath: document.getElementById('platformPath').value,
-                    desc: document.getElementById('gameDescription').value,
-                    translatedName: document.getElementById('translatedName').value,
-                    translatedDesc: document.getElementById('translatedDescription').value,
-                    developer: document.getElementById('gameDeveloper').value,
-                    publisher: document.getElementById('gamePublisher').value,
-                    genre: document.getElementById('gameType').value,
-                    players: document.getElementById('playerCount').value,
-                    releasedate: document.getElementById('releaseDate').value,
-                    rating: document.getElementById('rating').value,
-                    lang: document.getElementById('language').value,
-                    gameId: document.getElementById('gameIdInput').value,
-                    source: document.getElementById('source').value,
-                    image: document.getElementById('image').value,
-                    video: document.getElementById('video').value,
-                    marquee: document.getElementById('marquee').value,
-                    thumbnail: document.getElementById('thumbnail').value,
-                    manual: document.getElementById('manual').value,
-                    boxFront: currentGameCache ? (currentGameCache.boxFront || '') : '',
-                    box2d: document.getElementById('box-2D').value,
-                    boxBack: currentGameCache ? (currentGameCache.boxBack || '') : '',
-                    box2dBack: document.getElementById('box-2D-back').value,
-                    boxSpine: currentGameCache ? (currentGameCache.boxSpine || '') : '',
-                    box2dSide: document.getElementById('box-2D-side').value,
-                    boxFull: currentGameCache ? (currentGameCache.boxFull || '') : '',
-                    box3d: document.getElementById('box-3D').value,
-                    cartridge: currentGameCache ? (currentGameCache.cartridge || '') : '',
-                    support2d: document.getElementById('support-2D').value,
-                    // 废弃字段保留（从缓存读取，UI 已移除这些表单）
-                    logo: currentGameCache ? (currentGameCache.logo || '') : '',
-                    bezel: currentGameCache ? (currentGameCache.bezel || '') : '',
-                    panel: currentGameCache ? (currentGameCache.panel || '') : '',
-                    cabinetLeft: currentGameCache ? (currentGameCache.cabinetLeft || '') : '',
-                    cabinetRight: currentGameCache ? (currentGameCache.cabinetRight || '') : '',
-                    tile: currentGameCache ? (currentGameCache.tile || '') : '',
-                    banner: currentGameCache ? (currentGameCache.banner || '') : '',
-                    steam: currentGameCache ? (currentGameCache.steam || '') : '',
-                    poster: currentGameCache ? (currentGameCache.poster || '') : '',
-                    background: currentGameCache ? (currentGameCache.background || '') : '',
-                    music: currentGameCache ? (currentGameCache.music || '') : '',
-                    screenshot: currentGameCache ? (currentGameCache.screenshot || '') : '',
-                    ss: document.getElementById('ss').value,
-                    titlescreen: currentGameCache ? (currentGameCache.titlescreen || '') : '',
-                    sstitle: document.getElementById('sstitle').value,
-                    boxtexture: currentGameCache ? (currentGameCache.boxtexture || '') : '',
-                    boxTexture: document.getElementById('box-texture').value,
-                    supporttexture: currentGameCache ? (currentGameCache.supporttexture || '') : '',
-                    supportTexture: document.getElementById('support-texture').value,
-                    videonormalized: currentGameCache ? (currentGameCache.videonormalized || '') : '',
-                    videoNormalized: document.getElementById('video-normalized').value,
-                    wheelcarbon: currentGameCache ? (currentGameCache.wheelcarbon || '') : '',
-                    wheelCarbon: document.getElementById('wheel-carbon').value,
-                    wheelsteel: currentGameCache ? (currentGameCache.wheelsteel || '') : '',
-                    wheelSteel: document.getElementById('wheel-steel').value,
-                    // SS 标准媒体字段
-                    wheel: document.getElementById('wheel').value,
-                    screenmarqueesmall: document.getElementById('screenmarqueesmall').value,
-                    steamgrid: document.getElementById('steamgrid').value,
-                    fanart: document.getElementById('fanart').value,
-                    figurine: document.getElementById('figurine').value,
-                    // 新增 SS 标准字段
-                    supportScan: document.getElementById('support-scan').value,
-                    wheelHd: document.getElementById('wheel-hd').value,
-                    wheelTarcisios: document.getElementById('wheel-tarcisios').value,
-                    bezel43: document.getElementById('bezel-4-3').value,
-                    bezel43V: document.getElementById('bezel-4-3-v').value,
-                    bezel43Cocktail: document.getElementById('bezel-4-3-cocktail').value,
-                    bezel169: document.getElementById('bezel-16-9').value,
-                    bezel169V: document.getElementById('bezel-16-9-v').value,
-                    bezel169Cocktail: document.getElementById('bezel-16-9-cocktail').value,
-                    overlay: document.getElementById('overlay').value,
-                    flyer: document.getElementById('flyer').value,
-                    manuel: document.getElementById('manuel').value,
-                    maps: document.getElementById('maps').value,
-                    screenmarquee: document.getElementById('screenmarquee').value,
-                    boxScan: document.getElementById('box-scan').value,
-                    mixrbv1: document.getElementById('mixrbv1').value,
-                    mixrbv2: document.getElementById('mixrbv2').value,
-                    themehb: document.getElementById('themehb').value,
-                    themehs: document.getElementById('themehs').value,
-                    ssdmd: document.getElementById('ssdmd').value,
-                    ssfronton169: document.getElementById('ssfronton169').value,
-                    ssfronton11: document.getElementById('ssfronton11').value,
-                    ssfronton43: document.getElementById('ssfronton43').value,
-                    sstable: document.getElementById('sstable').value,
-                    sstopper: document.getElementById('sstopper').value,
-                    videodmd: document.getElementById('videodmd').value,
-                    videofronton43: document.getElementById('videofronton43').value,
-                    videofronton169: document.getElementById('videofronton169').value,
-                    videotable: document.getElementById('videotable').value,
-                    videotable4k: document.getElementById('videotable4k').value,
-                    videotopper: document.getElementById('videotopper').value,
-                    crc32: document.getElementById('crc32').value,
-                    genreid: document.getElementById('genreid').value,
-                    platformId: document.getElementById('platformIdInput').value,
-                    sortBy: document.getElementById('sortBy').value,
-                    edited: true
-                };
-            }
-            
-            let url = '';
-            let method = 'PUT';
-            if (platformId && platformId !== 0) {
-                url = '/api/gamelist/games';
-                method = 'PUT';
-            } else if (subsetId && subsetId !== 0) {
-                url = '/api/temp-subsets/games/update';
-                method = 'POST';
-            }
-            
-            if (url) {
-                fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(gameData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(message => {
-                    document.getElementById('editGameModal').style.display = 'none';
-                    loadGames();
-                    showNotification('游戏修改成功', 'success');
-                })
-                .catch(error => {
-                    console.error('Error updating game:', error);
-                    showNotification('保存失败: ' + error.message, 'error');
-                });
-            } else {
-                showNotification('无法保存游戏，缺少平台或子集信息', 'error');
-            }
-        }
-        
-        // 绑定保存按钮点击事件
-        document.getElementById('editGameForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveGame();
-        });
         
         // 搜索游戏
         function searchGames() {
@@ -3955,12 +2685,14 @@
             const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
             const translateBtn = document.getElementById('translateBtn');
             const batchScrapeBtn = document.getElementById('batchScrapeBtn');
+            const swapTranslationBtn = document.getElementById('swapTranslationBtn');
             mergeDiscsBtn.disabled = selectedGameIds.length < 2;
             batchEditBtn.disabled = selectedGameIds.length === 0;
             migrateBtn.disabled = selectedGameIds.length === 0;
             deleteSelectedBtn.disabled = selectedGameIds.length === 0;
             translateBtn.disabled = selectedGameIds.length === 0;
             batchScrapeBtn.disabled = selectedGameIds.length === 0;
+            swapTranslationBtn.disabled = selectedGameIds.length === 0;
         }
         
         // 监听复选框点击事件，记录选择顺序
@@ -4064,7 +2796,7 @@
                         row.onclick = function(e) {
                             // 避免点击复选框时打开编辑模态框
                             if (!e.target.closest('input[type="checkbox"]')) {
-                                openEditGameModal(game.id);
+                                openGameEditPage(game.id);
                             }
                         };
                         row.style.cursor = 'pointer';
@@ -4074,23 +2806,26 @@
                         const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
                                            game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
                         
-                        const validIconFields = ['image', 'wheel', 'wheelcarbon', 'wheelsteel', 'logo', 'thumbnail', 'boxFront', 'boxBack', 'box3d', 'boxside', 'banner', 'titlescreen', 'screenshot', 'fanart', 'poster', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
-                        const savedIconField = localStorage.getItem('gameListIconField') || 'image';
-                        const iconField = validIconFields.includes(savedIconField) ? savedIconField : 'image';
+                        const validIconFields = ['image', 'wheelCarbon', 'wheelcarbon', 'wheelSteel', 'wheelsteel', 'box2d', 'boxFront', 'ss', 'sstitle', 'fanart', 'poster', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
+                        const defaultIconChain = ['wheelCarbon', 'box2d', 'ss', 'image', 'fanart'];
+                        const savedIconField = localStorage.getItem('gameListIconField') || '';
+                        const iconField = savedIconField && validIconFields.includes(savedIconField) ? savedIconField : (defaultIconChain.find(f => game[f]) || '');
                         const iconPath = game[iconField] || '';
+                        const resolvedIconUrl = resolveMediaUrl(iconPath);
                         const isWheel = iconField.startsWith('wheel');
                         const iconWidth = isWheel ? '60px' : '40px';
-                        const screenshotPath = game.screenshot || game.image || game.fanart || '';
-                        const titleScreenPath = game.titlescreen || '';
+                        const screenshotPath = resolveMediaUrl(game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '');
+                        const titleScreenPath = resolveMediaUrl(game.sstitle || '');
+                        const videoPath = resolveMediaUrl(game.video || game.videoNormalized || '');
                         const gameName = game.name || game.translatedName || '';
-                        const iconContent = iconPath && (iconPath.startsWith('/') || iconPath.startsWith('http')) ? 
-                            `<img src="${iconPath}" 
+                        const iconContent = resolvedIconUrl ? 
+                            `<img src="${resolvedIconUrl}" 
                                    style="width: ${iconWidth}; height: 40px; object-fit: contain; border-radius: 4px; background: #222; cursor: pointer;" 
                                    alt="图标" 
                                    onerror="this.style.display='none';"
-                                   onmouseenter="showGamePreview(event, '${screenshotPath}', '${gameName.replace(/'/g, "\\'")}', '${titleScreenPath.replace(/'/g, "\\'")}')"
+                                   onmouseenter="showGamePreview(event, '${screenshotPath}', '${gameName.replace(/'/g, "\\'")}', '${titleScreenPath.replace(/'/g, "\\'")}', '${videoPath.replace(/'/g, "\\'")}')" 
                                    onmouseleave="hideGamePreview()"/>` : '';
-                        
+                                                
                         row.innerHTML = `
                             <td style="cursor: default;"><input type="checkbox" class="game-checkbox" value="${game.id}" onchange="updateSelectedGames()"></td>
                             <td>${getStatusIndicator(game)}</td>
@@ -4642,19 +3377,15 @@
         // 查看游戏详情
         function viewGameDetails(gameId) {
             // 这里可以实现查看游戏详情的功能
-            openEditGameModal(gameId);
+            openGameEditPage(gameId);
         }
         
         // 点击模态框外部关闭
         window.onclick = function(event) {
-            const editModal = document.getElementById('editGameModal');
             const addModal = document.getElementById('addGameModal');
             const batchEditModal = document.getElementById('batchEditModal');
             const migrateModal = document.getElementById('migrateModal');
             const translateModal = document.getElementById('translateModal');
-            if (event.target == editModal) {
-                editModal.style.display = 'none';
-            }
             if (event.target == addModal) {
                 addModal.style.display = 'none';
             }
@@ -4669,17 +3400,17 @@
             }
         };
     </script>
-    <!-- 刮削模态框 -->
     <div id="scrapeModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">
-                <h2 id="scrapeModalTitle" style="color: #00ffff; font-size: 20px; margin: 0;">刮削选项</h2>
+                <h2 id="scrapeModalTitle" style="color: #00ffff; font-size: 20px; margin: 0;" data-i18n="scrape_options">刮削选项</h2>
                 <span class="close" onclick="closeScrapeModal()" style="font-size: 28px; font-weight: bold; cursor: pointer; color: #00ffff; transition: all 0.3s ease;">&times;</span>
             </div>
             <div class="modal-body" style="padding: 25px;">
+                <form id="scrapeForm">
                 <!-- 刮削范围（多选） -->
                 <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">刮削范围</label>
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="scrape_scope">刮削范围</label>
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
                             <input type="checkbox" name="scrapeScope" value="gameInfo" checked style="margin-right: 8px; accent-color: #00ffff;">
@@ -4694,7 +3425,7 @@
                 
                 <!-- 选择语种（单选） -->
                 <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">选择语种</label>
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_language">选择语种</label>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
                             <input type="radio" name="scrapeLanguage" value="cn" style="margin-right: 6px; accent-color: #00ffff;">
@@ -4753,32 +3484,32 @@
                             <span style="color: #ccc; font-size: 12px;">Svenska (SE)</span>
                         </label>
                     </div>
-                    <p style="color: #888; font-size: 12px; margin-top: 10px; text-align: right;">游戏介绍优先使用所选语种，其他字段默认使用WOR区域</p>
+                    <p style="color: #888; font-size: 12px; margin-top: 10px; text-align: right;" data-i18n="language_tip">游戏介绍优先使用所选语种，其他字段默认使用WOR区域</p>
                 </div>
                 
                 <!-- 刮削全部媒体选项 -->
                 <div class="form-group" style="margin-bottom: 25px;">
                     <label style="display: flex; align-items: center; cursor: pointer; padding: 12px 15px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); transition: all 0.3s ease;">
                         <input type="checkbox" id="scrapeAllMedia" onchange="toggleAllMediaSelection()" style="margin-right: 10px; accent-color: #ffd700;">
-                        <span style="color: #ffd700; font-weight: bold;">刮削全部媒体</span>
+                        <span style="color: #ffd700; font-weight: bold;" data-i18n="scrape_all_media">刮削全部媒体</span>
                     </label>
-                    <p style="color: #888; font-size: 12px; margin-top: 8px;">选中后将自动刮削API返回的所有媒体类型，按区域优先级下载</p>
+                    <p style="color: #888; font-size: 12px; margin-top: 8px;" data-i18n="scrape_all_media_tip">选中后将自动刮削API返回的所有媒体类型，按区域优先级下载</p>
                 </div>
                 
                 <!-- 选择媒体类型（多选） -->
                 <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">选择媒体类型</label>
+                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_media_types">选择媒体类型</label>
                     <div class="media-type-grid" id="mediaTypeGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
                         <!-- 截图类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">截图</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_screenshot">截图</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="sstitle" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标题截图</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ss" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">截图</span></label>
                             <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ssmap" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
                         </div>
                         <!-- 封面类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">封面</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_cover">封面</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-side" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面侧面</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-back" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面背面</span></label>
@@ -4788,7 +3519,7 @@
                         </div>
                         <!-- 轮盘类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">轮盘</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_wheel">轮盘</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">轮盘</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-carbon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">碳纤维轮盘</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-steel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">钢铁轮盘</span></label>
@@ -4796,81 +3527,78 @@
                         </div>
                         <!-- 海报类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">海报</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_poster">海报</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="fanart" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">粉丝艺术</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="poster" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">海报</span></label>
                             <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="banner" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">条幅</span></label>
                         </div>
                         <!-- 霓虹灯类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">霓虹灯</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_marquee">霓虹灯</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">屏幕霓虹灯</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarqueesmall" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小霓虹灯</span></label>
                             <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="marquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">霓虹灯</span></label>
                         </div>
                         <!-- 街机类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">街机</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_arcade">街机</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel43" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框4:3</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel169" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框16:9</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-4-3" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框4:3</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-16-9" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框16:9</span></label>
                             <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="panel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">面板</span></label>
                         </div>
                         <!-- 视频类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">视频</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_video">视频</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">视频</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video-normalized" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标准化视频</span></label>
                             <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="intro" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">介绍视频</span></label>
                         </div>
                         <!-- 其他类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">其他</div>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_other">其他</div>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="background" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">背景</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="logo" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">LOGO</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="steamgrid" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Steam网格</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="manuel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手册</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="manuel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手册</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="flyer" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">传单</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="overlay" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">覆盖层</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="maps" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="figurine" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手办</span></label>
+                        </div>
+                        <!-- 纹理与混合类 -->
+                        <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">纹理/混合/主题</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面纹理</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-hd" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">HD轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="mixrbv1" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">MixRB v1</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="mixrbv2" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">MixRB v2</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehb" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HB</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehs" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HS</span></label>
                         </div>
                     </div>
                     <p style="color: #888; font-size: 12px; margin-top: 12px;">至少选择一种媒体类型</p>
-                </div>
-                
-                <!-- 搜索方式（单选） -->
-                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">搜索方式</label>
-                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeSearchMode" value="crc" checked style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">优先使用CRC32</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeSearchMode" value="filename" style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">优先使用文件名</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeSearchMode" value="name" style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">优先使用游戏名</span>
-                        </label>
-                    </div>
                 </div>
                 
                 <!-- 其他选项（多选） -->
                 <div class="form-group" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
                     <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 10px;">
                         <input type="checkbox" id="scrapeOverwrite" style="margin-right: 10px; accent-color: #00ffff;">
-                        <span style="color: #ccc;">覆盖已存在的媒体文件</span>
+                        <span style="color: #ccc;" data-i18n="scrape_overwrite">覆盖已存在的媒体文件</span>
                     </label>
                     <label style="display: flex; align-items: center; cursor: pointer;">
                         <input type="checkbox" id="scrapeOnlyMissing" style="margin-right: 10px; accent-color: #00ffff;">
                         <span style="color: #ccc;">仅刮削信息不全的游戏</span>
                     </label>
                 </div>
+                </form>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 15px; padding: 20px 25px; border-top: 1px solid rgba(0, 255, 255, 0.2);">
-                <button type="button" onclick="closeScrapeModal()" class="btn" style="background: linear-gradient(45deg, #666, #444); color: #fff; padding: 10px 20px;">取消</button>
-                <button type="button" onclick="startScraping()" id="startScrapeBtn" class="btn" style="background: linear-gradient(45deg, #00ff88, #00cc66); color: #000; padding: 10px 25px; font-weight: bold;">开始刮削</button>
+                <button type="button" onclick="closeScrapeModal()" class="btn" style="background: linear-gradient(45deg, #666, #444); color: #fff; padding: 10px 20px;" data-i18n="cancel">取消</button>
+                <button type="button" onclick="startScraping()" id="startScrapeBtn" class="btn" style="background: linear-gradient(45deg, #00ff88, #00cc66); color: #000; padding: 10px 25px; font-weight: bold;" data-i18n="start_scrape">开始刮削</button>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
@@ -4903,45 +3631,14 @@
             scrapeGameIds = gameIds || [];
             
             const title = type === 'platform' ? '平台刮削' : (type === 'batch' ? '批量刮削' : '刮削游戏');
+            document.getElementById('scrapeModalTitle').textContent = title;
             
-            const modalTitle = document.getElementById('scrapeModalTitle');
-            if (modalTitle) {
-                modalTitle.textContent = title;
-            }
-            
-            const modal = document.getElementById('scrapeModal');
-            
-            if (modal) {
-                // 确保弹窗直接在 body 中（关键修复）
-                const parent = modal.parentElement;
-                if (parent && parent.tagName !== 'BODY') {
-                    document.body.appendChild(modal);
-                }
-                
-                // 添加 show 类
-                modal.classList.add('show');
-                
-                // 强制设置内联样式
-                modal.style.display = 'block';
-                modal.style.visibility = 'visible';
-                modal.style.opacity = '1';
-                modal.style.zIndex = '9999';
-                modal.style.position = 'fixed';
-                modal.style.top = '0';
-                modal.style.left = '0';
-                modal.style.width = '100%';
-                modal.style.height = '100%';
-                modal.style.overflow = 'auto';
-                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-            }
+            document.getElementById('scrapeModal').style.display = 'block';
         }
         
-        // 关闭刮削弹窗
+        // 关闭刮削模态框
         function closeScrapeModal() {
-            const modal = document.getElementById('scrapeModal');
-            if (modal) {
-                modal.setAttribute('style', 'display: none !important;');
-            }
+            document.getElementById('scrapeModal').style.display = 'none';
         }
         
         // 打开批量刮削弹窗
