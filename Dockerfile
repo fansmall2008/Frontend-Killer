@@ -27,19 +27,26 @@ COPY --from=builder /build/target/webGamelistOper-1.1-RC1.jar app.jar
 COPY src/main/resources/export-rules/ /app/default-rules/export/
 COPY src/main/resources/import-templates/ /app/default-rules/import/
 
-# Copy data folder (initial data for first run)
-COPY data/ /app/data/
+# Copy seed data (released to /data on first run by entrypoint)
+# NOTE: placed in /app/seed-data (not /app/data) because /app/data is a symlink to /data (see below)
+COPY data/ /app/seed-data/
 
-# Copy rules directory (custom templates, overrides data/ rules)
-COPY rules/ /app/data/rules/
+# Copy rules directory (custom templates, overrides seed rules)
+COPY rules/ /app/seed-data/rules/
 
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Create necessary directories
-RUN mkdir -p /data/logs /data/database /data/backup /data/scraper/system /data/scraper/games
+# Create persistent directories, then link the app's relative paths (./data, ./logs)
+# to the persistent /data volume so data survives container recreation (unRAID/Docker updates)
+RUN mkdir -p /data/logs /data/database /data/backup /data/input /data/output /data/rules/export /data/rules/import /data/scraper/system /data/scraper/games \
+    && ln -sfn /data /app/data \
+    && ln -sfn /data/logs /app/logs
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD bash -c "exec 3<>/dev/tcp/localhost/8080 && printf 'GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && grep -q 'HTTP' <&3" || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

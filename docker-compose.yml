@@ -5,17 +5,19 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./logs:/data/logs
+      # 统一挂载整个 /data（database/rules/scraper/input/output/logs/backup 全部持久化）
+      - ./data:/data
+      # ROM 库（可改为指向你自己的游戏目录）
       - ./roms:/data/roms
-      - ./output:/data/output
-      - ./rules:/data/rules
-      - ./backup:/data/backup
-      - ./database:/data/database
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
       - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+      # NAS/unRAID 落盘文件归属（默认 0=root，保持既有行为；unRAID 建议 99/100）
+      - PUID=0
+      - PGID=0
+      - TZ=Asia/Shanghai
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q 'HTTP'"]

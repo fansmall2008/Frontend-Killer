@@ -3,6 +3,15 @@ data/database/
 *.db
 *.db.*
 
+# 排除刮削缓存（可达数 GB）
+data/scraper/
+
+# 排除运行时目录
+output/
+roms/
+backup/
+data/work/
+
 # 排除日志目录
 logs/
 *.log
@@ -16,3 +25,19 @@ logs/
 .idea/
 *.iml
 .vscode/
+
+# 排除构建产物和发行包
+target/
+distribution/
+wiki-temp/
+
+# 排除截图和临时脚本
+screenshot_*.png
+maven_*.txt
+mvn_*.txt
+cp.txt
+task_response.json
+fix_*.py
+merge_*.ps1
+build.log
+META-INF/
