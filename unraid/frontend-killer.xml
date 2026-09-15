@@ -2,17 +2,16 @@
 <!--
   unRAID Community Applications (CA) template for Frontend-Killer.
 
-  HOW TO USE
-  1) Quick test on unRAID without CA listing:
-     Docker tab -> Add Container ->
-       Repository: fansmall/frontendkiller:latest
-       Add the same Port / Path / Variable entries defined below.
-  2) Official CA listing:
-     - Add a 256x256 PNG icon at unraid/icon.png in this repo and push it
-       (the <Icon> URL below must resolve, CA rejects templates without a valid icon).
-     - Fork https://github.com/Squidly271/CommunityApplications , drop this file into
-       the templates folder, and open a Pull Request. Moderators will validate it.
-     - Keep <TemplateURL> pointing at the raw URL of this file so CA can auto-update it.
+  SUBMISSION (current process: web based, no more fork + Pull Request)
+  1) Push this repo to GitHub so the raw <TemplateURL>/<Icon> URLs below resolve.
+  2) Open https://ca.unraid.net/submit/new , enter this repository URL, then run
+     Validate followed by Scan. The scanner accepts any XML whose root element is
+     <Container version="2"> and that carries a valid <Repository>.
+  3) Author profile: ca_profile.xml (root <CommunityApplications>) MUST live at the
+     repository root (CA requirement) so the scan picks up the maintainer profile.
+  4) Quick local test without a CA listing:
+     Docker tab -> Add Container -> Repository: fansmall/frontendkiller:latest,
+     then add the same Port / Path / Variable entries defined at the bottom.
 
   IMPORTANT (data persistence)
   - Map a host appdata folder to /data. The image symlinks the app's relative ./data and
@@ -21,12 +20,14 @@
   - PUID/PGID default to 99/100 (unRAID nobody:users) so files written to the mapped
     paths are owned correctly and manageable over SMB.
 -->
-<Containers version="2">
+<Container version="2">
   <Name>Frontend-Killer</Name>
   <Repository>fansmall/frontendkiller:latest</Repository>
   <Registry>https://hub.docker.com/r/fansmall/frontendkiller/</Registry>
   <Network>bridge</Network>
+  <MyIP/>
   <Shell>bash</Shell>
+  <Privileged>false</Privileged>
   <Branch>
     <Tag>latest</Tag>
     <TagDescription>Stable release (currently 1.1-RC1).</TagDescription>
@@ -38,8 +39,11 @@
   <TemplateURL>https://raw.githubusercontent.com/fansmall2008/Frontend-Killer/main/unraid/frontend-killer.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/fansmall2008/Frontend-Killer/main/unraid/icon.png</Icon>
   <Support>https://github.com/fansmall2008/Frontend-Killer/issues</Support>
+  <ReadMe>https://raw.githubusercontent.com/fansmall2008/Frontend-Killer/main/README.md</ReadMe>
   <Description>Frontend-Killer manages emulator frontend game lists from a single web UI: multi-format import/export (Pegasus, ES-DE, RetroBat, EmuELEC, Lakka, Skraper), ScreenScraper scraping of metadata and media, media file management, platform merge/migration, background task queue with resume, and Chinese/English/Japanese localization. Runs on an embedded H2 database; all state is kept under /data.</Description>
   <Requires>A ScreenScraper account (free) for scraping, and the path to your ROM library mapped in for import and CRC/file-existence checks.</Requires>
+  <ExtraSearchTerms>game list emulator frontend pegasus es-de retrobat emuelec lakka screenscraper metadata scraper gamelist</ExtraSearchTerms>
+  <License>MIT</License>
 
   <Config Name="Web UI Port" Target="8080" Default="8080" Mode="tcp" Description="Web interface port. Container listens on 8080." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
 
@@ -60,4 +64,4 @@
   <Config Name="Tomcat Base Dir" Target="SERVER_TOMCAT_BASEDIR" Default="/data" Mode="" Description="Tomcat working directory, kept on the persistent volume." Type="Variable" Display="hidden" Required="false" Mask="false">/data</Config>
 
   <Config Name="Static Resource Locations" Target="SPRING_RESOURCES_STATIC_LOCATIONS" Default="classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input" Mode="" Description="Extra static resource locations so media under /data can be served over HTTP." Type="Variable" Display="hidden" Required="false" Mask="false">classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input</Config>
-</Containers>
+</Container>

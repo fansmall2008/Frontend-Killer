@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<CommunityApplications>
+  <Profile>
+**Frontend-Killer** is a web-based game list manager for emulator frontends.
+
+This repository ships the Community Applications template for Frontend-Killer: a self-hosted tool to import, manage, export and scrape game metadata and media across Pegasus, ES-DE, RetroBat, EmuELEC, Lakka and more, with full ScreenScraper integration (auto metadata/media download, CRC32 matching, quota monitoring). Runs on an embedded H2 database; all state is kept under `/data`.
+
+- **Image:** `fansmall/frontendkiller:latest` (Docker Hub)
+- **Source:** https://github.com/fansmall2008/Frontend-Killer
+- **Support / issues:** https://github.com/fansmall2008/Frontend-Killer/issues
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/fansmall2008/Frontend-Killer/main/unraid/icon.png</Icon>
+  <WebPage>https://github.com/fansmall2008/Frontend-Killer</WebPage>
+</CommunityApplications>
