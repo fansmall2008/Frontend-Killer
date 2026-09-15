@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!--
+  unRAID Community Applications (CA) template for Frontend-Killer.
+
+  HOW TO USE
+  1) Quick test on unRAID without CA listing:
+     Docker tab -> Add Container ->
+       Repository: fansmall/frontendkiller:latest
+       Add the same Port / Path / Variable entries defined below.
+  2) Official CA listing:
+     - Add a 256x256 PNG icon at unraid/icon.png in this repo and push it
+       (the <Icon> URL below must resolve, CA rejects templates without a valid icon).
+     - Fork https://github.com/Squidly271/CommunityApplications , drop this file into
+       the templates folder, and open a Pull Request. Moderators will validate it.
+     - Keep <TemplateURL> pointing at the raw URL of this file so CA can auto-update it.
+
+  IMPORTANT (data persistence)
+  - Map a host appdata folder to /data. The image symlinks the app's relative ./data and
+    ./logs into /data, so the H2 database, scraped media, rules, output, backups and logs
+    all survive container updates/recreation.
+  - PUID/PGID default to 99/100 (unRAID nobody:users) so files written to the mapped
+    paths are owned correctly and manageable over SMB.
+-->
+<Containers version="2">
+  <Name>Frontend-Killer</Name>
+  <Repository>fansmall/frontendkiller:latest</Repository>
+  <Registry>https://hub.docker.com/r/fansmall/frontendkiller/</Registry>
+  <Network>bridge</Network>
+  <Shell>bash</Shell>
+  <Branch>
+    <Tag>latest</Tag>
+    <TagDescription>Stable release (currently 1.1-RC1).</TagDescription>
+  </Branch>
+  <Project>https://github.com/fansmall2008/Frontend-Killer</Project>
+  <Overview>Frontend-Killer is a web-based game list manager for emulator frontends. Import, manage, export and scrape game metadata and media across Pegasus, ES-DE, RetroBat, EmuELEC, Lakka and more, with full ScreenScraper integration (auto metadata/media download, CRC32 matching, quota monitoring).</Overview>
+  <Category>Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:8080]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/fansmall2008/Frontend-Killer/main/unraid/frontend-killer.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/fansmall2008/Frontend-Killer/main/unraid/icon.png</Icon>
+  <Support>https://github.com/fansmall2008/Frontend-Killer/issues</Support>
+  <Description>Frontend-Killer manages emulator frontend game lists from a single web UI: multi-format import/export (Pegasus, ES-DE, RetroBat, EmuELEC, Lakka, Skraper), ScreenScraper scraping of metadata and media, media file management, platform merge/migration, background task queue with resume, and Chinese/English/Japanese localization. Runs on an embedded H2 database; all state is kept under /data.</Description>
+  <Requires>A ScreenScraper account (free) for scraping, and the path to your ROM library mapped in for import and CRC/file-existence checks.</Requires>
+
+  <Config Name="Web UI Port" Target="8080" Default="8080" Mode="tcp" Description="Web interface port. Container listens on 8080." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+
+  <Config Name="App Data (db / rules / media / logs)" Target="/data" Default="/mnt/user/appdata/frontend-killer/" Mode="rw" Description="Persistent storage: H2 database, import/export rules, scraped media, input, output, backups and logs. Map to an appdata share so data survives container updates." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/frontend-killer/</Config>
+
+  <Config Name="ROM Library" Target="/data/roms" Default="/mnt/user/data/roms/" Mode="rw" Description="Your ROM library, used as the import source and for CRC/file-existence checks. Point this at the share holding your game files. Optional but recommended." Type="Path" Display="always" Required="false" Mask="false">/mnt/user/data/roms/</Config>
+
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="Process User ID. Files written to the mapped paths will be owned by this UID (unRAID nobody = 99). Set to 0 to run as root." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Process Group ID. Files written to the mapped paths will be owned by this GID (unRAID users = 100)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+
+  <Config Name="Timezone" Target="TZ" Default="Asia/Shanghai" Mode="" Description="Container timezone, e.g. Asia/Shanghai, Europe/London, America/New_York." Type="Variable" Display="advanced" Required="false" Mask="false">Asia/Shanghai</Config>
+
+  <Config Name="JVM Options" Target="JAVA_OPTS" Default="-Xmx2g -Xms512m -XX:+UseG1GC" Mode="" Description="JVM options. Increase -Xmx for very large libraries." Type="Variable" Display="advanced" Required="false" Mask="false">-Xmx2g -Xms512m -XX:+UseG1GC</Config>
+
+  <Config Name="Spring Profile" Target="SPRING_PROFILES_ACTIVE" Default="default" Mode="" Description="Active Spring profile." Type="Variable" Display="hidden" Required="false" Mask="false">default</Config>
+
+  <Config Name="Tomcat Base Dir" Target="SERVER_TOMCAT_BASEDIR" Default="/data" Mode="" Description="Tomcat working directory, kept on the persistent volume." Type="Variable" Display="hidden" Required="false" Mask="false">/data</Config>
+
+  <Config Name="Static Resource Locations" Target="SPRING_RESOURCES_STATIC_LOCATIONS" Default="classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input" Mode="" Description="Extra static resource locations so media under /data can be served over HTTP." Type="Variable" Display="hidden" Required="false" Mask="false">classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input</Config>
+</Containers>
