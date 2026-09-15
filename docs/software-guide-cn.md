@@ -622,7 +622,7 @@ A: 检查H2控制台的JDBC URL配置是否正确，默认应为 `jdbc:h2:file:/
 
 ```bash
 # 创建数据目录
-mkdir -p logs roms output rules input backup database
+mkdir -p data roms
 
 # 启动服务
 docker-compose up -d
@@ -638,52 +638,50 @@ docker-compose down
 
 ```bash
 # 创建数据目录
-mkdir -p logs roms output rules input backup database
+mkdir -p data roms
 
 # 运行容器
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8080:8080 \
-  -v $(pwd)/logs:/data/logs \
+  -v $(pwd)/data:/data \
   -v /path/to/roms:/data/roms \
-  -v $(pwd)/output:/data/output \
-  -v $(pwd)/rules:/data/rules \
-  -v $(pwd)/backup:/data/backup \
-  -v $(pwd)/database:/data/database \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.2-beta
+  fansmall/frontendkiller:latest
 ```
 
 ### 11.3 常用 Docker 命令
 
 ```bash
 # 查看容器状态
-docker ps -a | grep webgamelistoper
+docker ps -a | grep frontend-killer
 
 # 查看日志
-docker logs -f webgamelistoper
+docker logs -f frontend-killer
 
 # 进入容器
-docker exec -it webgamelistoper bash
+docker exec -it frontend-killer bash
 
 # 停止容器
-docker stop webgamelistoper
+docker stop frontend-killer
 
 # 删除容器
-docker rm webgamelistoper
+docker rm frontend-killer
 
 # 重新启动
-docker restart webgamelistoper
+docker restart frontend-killer
 ```
 
 ### 11.4 Docker Hub 镜像地址
 
-- **镜像仓库**：https://hub.docker.com/r/fansmall/webgamelistoper
-- **版本标签**：`fansmall/webgamelistoper:1.0.2-beta`
+- **镜像仓库**：https://hub.docker.com/r/fansmall/frontendkiller
+- **版本标签**：`fansmall/frontendkiller:latest`
+- **兼容镜像**：`fansmall/webgamelistoper`（同内容旧仓库名，保留兼容）
 
 ---
 

@@ -1,6 +1,10 @@
-# Frontend-Killer
+<p align="center">
+  <img src="unraid/icon.png" alt="Frontend-Killer" width="160">
+</p>
 
-A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.
+<h1 align="center">Frontend-Killer</h1>
+
+<p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
 ## What's New in 1.1-RC1
 
@@ -37,45 +41,43 @@ A web-based game list management tool for emulator frontend metadata. Import, ma
 
 #### Option 1: Docker (Recommended)
 ```bash
-docker pull fansmall/webgamelistoper:1.1-RC1
+docker pull fansmall/frontendkiller:latest
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup ./roms
+mkdir -p ./data ./roms
 
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8080:8080 \
-  -v ./output:/data/output \
-  -v ./roms:/data/roms \
-  -v ./logs:/data/logs \
   -v ./data:/data \
-  -v ./backup:/data/backup \
+  -v ./roms:/data/roms \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
-  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.1-RC1
+  fansmall/frontendkiller:latest
 ```
 
 #### Option 2: Docker Compose
 ```yaml
 services:
-  webgamelistoper:
-    image: fansmall/webgamelistoper:1.1-RC1
-    container_name: webgamelistoper
+  frontend-killer:
+    image: fansmall/frontendkiller:latest
+    container_name: frontend-killer
     ports:
       - "8080:8080"
     volumes:
-      - ./output:/data/output
-      - ./roms:/data/roms
-      - ./logs:/data/logs
       - ./data:/data
-      - ./backup:/data/backup
+      - ./roms:/data/roms
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+      - PUID=0
+      - PGID=0
+      - TZ=Asia/Shanghai
     restart: unless-stopped
 ```
 Run: `docker compose up -d`
@@ -88,6 +90,9 @@ java -jar webGamelistOper-1.1-RC1.jar
 
 #### Option 4: Windows EXE (No Java Required)
 Download the EXE package from GitHub Releases, extract and run `Frontend-Killer.exe`.
+
+#### unRAID / NAS (Community Applications)
+Frontend-Killer ships an unRAID template at `unraid/frontend-killer.xml`. Install it from Community Applications, or manually via Docker → Add Container with image `fansmall/frontendkiller:latest`, port `8080`, volumes `<appdata>:/data` and `<roms>:/data/roms`, and set `PUID=99` / `PGID=100` so files land with correct ownership on unRAID shares.
 
 ### Access
 http://localhost:8080
@@ -117,45 +122,43 @@ http://localhost:8080
 
 #### 方式一：Docker 部署（推荐）
 ```bash
-docker pull fansmall/webgamelistoper:1.1-RC1
+docker pull fansmall/frontendkiller:latest
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup ./roms
+mkdir -p ./data ./roms
 
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8080:8080 \
-  -v ./output:/data/output \
-  -v ./roms:/data/roms \
-  -v ./logs:/data/logs \
   -v ./data:/data \
-  -v ./backup:/data/backup \
+  -v ./roms:/data/roms \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
-  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.1-RC1
+  fansmall/frontendkiller:latest
 ```
 
 #### 方式二：Docker Compose 部署
 ```yaml
 services:
-  webgamelistoper:
-    image: fansmall/webgamelistoper:1.1-RC1
-    container_name: webgamelistoper
+  frontend-killer:
+    image: fansmall/frontendkiller:latest
+    container_name: frontend-killer
     ports:
       - "8080:8080"
     volumes:
-      - ./output:/data/output
-      - ./roms:/data/roms
-      - ./logs:/data/logs
       - ./data:/data
-      - ./backup:/data/backup
+      - ./roms:/data/roms
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+      - PUID=0
+      - PGID=0
+      - TZ=Asia/Shanghai
     restart: unless-stopped
 ```
 运行：`docker compose up -d`
@@ -168,6 +171,9 @@ java -jar webGamelistOper-1.1-RC1.jar
 
 #### 方式四：Windows EXE（无需 Java）
 从 GitHub Releases 下载 EXE 安装包，解压后运行 `Frontend-Killer.exe`。
+
+#### unRAID / NAS（Community Applications）
+项目自带 unRAID 模板 `unraid/frontend-killer.xml`。可通过 Community Applications 安装，或手动：Docker → Add Container，镜像 `fansmall/frontendkiller:latest`，端口 `8080`，卷 `<appdata>:/data` 与 `<roms>:/data/roms`，并设置 `PUID=99` / `PGID=100` 以保证 unRAID 共享目录的文件归属正确。
 
 ### 访问地址
 http://localhost:8080
@@ -197,45 +203,43 @@ http://localhost:8080
 
 #### オプション1：Docker（推奨）
 ```bash
-docker pull fansmall/webgamelistoper:1.1-RC1
+docker pull fansmall/frontendkiller:latest
 
-mkdir -p ./data/rules/export ./data/rules/import ./output ./logs ./backup ./roms
+mkdir -p ./data ./roms
 
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8080:8080 \
-  -v ./output:/data/output \
-  -v ./roms:/data/roms \
-  -v ./logs:/data/logs \
   -v ./data:/data \
-  -v ./backup:/data/backup \
+  -v ./roms:/data/roms \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
-  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output \
+  -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.1-RC1
+  fansmall/frontendkiller:latest
 ```
 
 #### オプション2：Docker Compose
 ```yaml
 services:
-  webgamelistoper:
-    image: fansmall/webgamelistoper:1.1-RC1
-    container_name: webgamelistoper
+  frontend-killer:
+    image: fansmall/frontendkiller:latest
+    container_name: frontend-killer
     ports:
       - "8080:8080"
     volumes:
-      - ./output:/data/output
-      - ./roms:/data/roms
-      - ./logs:/data/logs
       - ./data:/data
-      - ./backup:/data/backup
+      - ./roms:/data/roms
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+      - PUID=0
+      - PGID=0
+      - TZ=Asia/Shanghai
     restart: unless-stopped
 ```
 実行：`docker compose up -d`
@@ -248,6 +252,9 @@ java -jar webGamelistOper-1.1-RC1.jar
 
 #### オプション4：Windows EXE（Java不要）
 GitHub Releases から EXE パッケージをダウンロードし、解凍して `Frontend-Killer.exe` を実行してください。
+
+#### unRAID / NAS（Community Applications）
+unRAID 用テンプレート `unraid/frontend-killer.xml` を同梱しています。Community Applications から導入するか、手動で Docker → Add Container にイメージ `fansmall/frontendkiller:latest`、ポート `8080`、ボリューム `<appdata>:/data` と `<roms>:/data/roms` を設定し、`PUID=99` / `PGID=100` で unRAID 共有のファイル所有権を合わせてください。
 
 ### アクセスアドレス
 http://localhost:8080

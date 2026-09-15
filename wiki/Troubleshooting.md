@@ -25,7 +25,7 @@ This guide helps you solve common issues with Frontend-Killer.
 
 3. **Check Docker logs**
    ```bash
-   docker logs webgamelistoper
+   docker logs frontend-killer
    ```
 
 ### Issue: Import templates not loading
@@ -182,7 +182,7 @@ This guide helps you solve common issues with Frontend-Killer.
 ## Log Analysis
 
 ### Locating Logs
-- **Docker**: `/app/logs/`
+- **Docker**: `/data/logs/`
 - **Local**: `./logs/`
 
 ### Common Log Patterns

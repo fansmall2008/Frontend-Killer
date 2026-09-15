@@ -13,26 +13,24 @@ This guide covers multiple ways to install and run Frontend-Killer.
 
 ```bash
 # Pull the latest image
-docker pull fansmall/webgamelistoper:1.1-RC1
+docker pull fansmall/frontendkiller:latest
 
 # Create necessary directories
-mkdir -p ./data ./output ./logs ./backup
+mkdir -p ./data ./roms
 
 # Run the container
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8081:8080 \
-  -v /path/to/output:/data/output \
-  -v /path/to/roms:/data/roms \
-  -v ./logs:/app/logs \
   -v ./data:/data \
-  -v ./backup:/data/backup \
+  -v /path/to/roms:/data/roms \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.1-RC1
+  fansmall/frontendkiller:latest
 ```
 
 ### Docker Compose
@@ -40,24 +38,23 @@ docker run -d \
 Create a `docker-compose.yml` file:
 
 ```yaml
-version: '3.8'
 services:
-  webgamelistoper:
-    image: fansmall/webgamelistoper:1.1-RC1
-    container_name: webgamelistoper
+  frontend-killer:
+    image: fansmall/frontendkiller:latest
+    container_name: frontend-killer
     ports:
       - "8081:8080"
     volumes:
-      - /path/to/output:/data/output
-      - /path/to/roms:/data/roms
-      - ./logs:/app/logs
       - ./data:/data
-      - ./backup:/data/backup
+      - /path/to/roms:/data/roms
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
       - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+      - PUID=0
+      - PGID=0
+      - TZ=Asia/Shanghai
     restart: unless-stopped
 ```
 
@@ -65,6 +62,10 @@ Run with:
 ```bash
 docker-compose up -d
 ```
+
+### unRAID (Community Applications)
+
+Frontend-Killer ships an unRAID template at `unraid/frontend-killer.xml`. Install it from Community Applications, or add it manually via Docker → Add Container with image `fansmall/frontendkiller:latest`, port `8080`, volumes `<appdata>:/data` and `<roms>:/data/roms`, and set `PUID=99` / `PGID=100` for correct ownership on unRAID shares.
 
 ## Option 2: JAR File
 
@@ -101,21 +102,24 @@ Once running, access the application at:
 
 ```
 ./
-├── data/           # Application data
+├── data/           # Application data (persisted volume, mounted at /data)
+│   ├── database/   # H2 database
 │   ├── rules/      # Export/import rules
-│   ├── roms/       # Game ROMs
-│   └── database/   # SQLite database
-├── output/         # Export output
-├── logs/           # Application logs
-└── backup/         # Backup files
+│   ├── scraper/    # Scraper media cache
+│   ├── input/      # Import staging
+│   ├── output/     # Export output
+│   ├── logs/       # Application logs
+│   └── backup/     # Backup files
+└── roms/           # Game ROMs (mounted at /data/roms)
 ```
 
 ## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `APP_PORT` | Service port | 8080 |
-| `DATA_PATH` | Data directory | /data |
-| `OUTPUT_PATH` | Export output directory | /output |
-| `ROMS_PATH` | Game ROMs directory | /data/roms |
-| `JAVA_OPTS` | Java options | -Xmx2g -Xms512m |
+| `PUID` / `PGID` | UID/GID the app runs as (use 99/100 on unRAID) | 0 / 0 |
+| `TZ` | Container timezone | Asia/Shanghai |
+| `JAVA_OPTS` | JVM options | -Xmx2g -Xms512m |
+| `SPRING_PROFILES_ACTIVE` | Spring profile | default |
+| `SERVER_TOMCAT_BASEDIR` | Tomcat base directory | /data |
+| `SPRING_RESOURCES_STATIC_LOCATIONS` | Static & media resource locations | classpath:/static/,file:/data,... |

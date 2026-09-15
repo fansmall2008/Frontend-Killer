@@ -622,7 +622,7 @@ A: H2コンソールのJDBC URL設定が正しいか確認してください。�
 
 ```bash
 # データディレクトリの作成
-mkdir -p logs roms output rules input backup database
+mkdir -p data roms
 
 # サービスの開始
 docker-compose up -d
@@ -638,52 +638,50 @@ docker-compose down
 
 ```bash
 # データディレクトリの作成
-mkdir -p logs roms output rules input backup database
+mkdir -p data roms
 
 # コンテナの実行
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8080:8080 \
-  -v $(pwd)/logs:/data/logs \
+  -v $(pwd)/data:/data \
   -v /path/to/roms:/data/roms \
-  -v $(pwd)/output:/data/output \
-  -v $(pwd)/rules:/data/rules \
-  -v $(pwd)/backup:/data/backup \
-  -v $(pwd)/database:/data/database \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.0.2-beta
+  fansmall/frontendkiller:latest
 ```
 
 ### 11.3 一般的なDockerコマンド
 
 ```bash
 # コンテナ状态的確認
-docker ps -a | grep webgamelistoper
+docker ps -a | grep frontend-killer
 
 # ログの表示
-docker logs -f webgamelistoper
+docker logs -f frontend-killer
 
 # コンテナに入る
-docker exec -it webgamelistoper bash
+docker exec -it frontend-killer bash
 
 # コンテナの停止
-docker stop webgamelistoper
+docker stop frontend-killer
 
 # コンテナの削除
-docker rm webgamelistoper
+docker rm frontend-killer
 
 # コンテナの再起動
-docker restart webgamelistoper
+docker restart frontend-killer
 ```
 
 ### 11.4 Docker Hub イメージ
 
-- **リポジトリ**：https://hub.docker.com/r/fansmall/webgamelistoper
-- **バージョンチップ**：`fansmall/webgamelistoper:1.0.2-beta`
+- **リポジトリ**：https://hub.docker.com/r/fansmall/frontendkiller
+- **バージョンチップ**：`fansmall/frontendkiller:latest`
+- **互換ミラー**：`fansmall/webgamelistoper`（同一内容の旧リポジトリ名、互換性のため維持）
 
 ---
 

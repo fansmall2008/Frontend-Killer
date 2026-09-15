@@ -102,30 +102,29 @@ The `translation-config.json` file contains language translations:
 ## Docker Specific Configuration
 
 ### Volume Mounts
-- `/data` - Application data (rules, database, etc.)
-- `/data/output` - Export output directory
+- `/data` - Application data (database, rules, scraper, input, output, logs, backup)
 - `/data/roms` - Game ROMs directory
-- `/app/logs` - Application logs
-- `/data/backup` - Backup files
 
 ### Docker Compose Example
 
 ```yaml
-version: '3.8'
 services:
-  webgamelistoper:
-    image: fansmall/webgamelistoper:1.1-RC1
-    container_name: webgamelistoper
+  frontend-killer:
+    image: fansmall/frontendkiller:latest
+    container_name: frontend-killer
     ports:
       - "8081:8080"
     volumes:
       - ./data:/data
-      - ./output:/data/output
-      - ./logs:/app/logs
-      - ./backup:/data/backup
+      - /path/to/roms:/data/roms
     environment:
       - SPRING_PROFILES_ACTIVE=default
+      - SERVER_TOMCAT_BASEDIR=/data
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
+      - PUID=0
+      - PGID=0
+      - TZ=Asia/Shanghai
     restart: unless-stopped
 ```
 
@@ -158,7 +157,7 @@ java -Dserver.port=8081 \
 
 ### Log File Location
 Logs are stored in:
-- Docker: `/app/logs/`
+- Docker: `/data/logs/`
 - Local: `./logs/`
 
 ### Log Format

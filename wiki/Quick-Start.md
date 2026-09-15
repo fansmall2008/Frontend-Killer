@@ -8,25 +8,23 @@ Get started with Frontend-Killer in just a few minutes!
 
 First, create necessary directories:
 ```bash
-mkdir -p ./data ./output ./logs ./backup
+mkdir -p ./data ./roms
 ```
 
 Then run the container:
 ```bash
 docker run -d \
-  --name webgamelistoper \
+  --name frontend-killer \
   -p 8081:8080 \
-  -v /path/to/output:/data/output \
-  -v /path/to/roms:/data/roms \
-  -v ./logs:/app/logs \
   -v ./data:/data \
-  -v ./backup:/data/backup \
+  -v /path/to/roms:/data/roms \
   -e SPRING_PROFILES_ACTIVE=default \
   -e SERVER_TOMCAT_BASEDIR=/data \
   -e SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input \
   -e JAVA_OPTS="-Xmx2g -Xms512m -XX:+UseG1GC" \
+  -e PUID=0 -e PGID=0 -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  fansmall/webgamelistoper:1.1-RC1
+  fansmall/frontendkiller:latest
 ```
 
 **Note:** Replace `/path/to/output` and `/path/to/roms` with your actual paths.
