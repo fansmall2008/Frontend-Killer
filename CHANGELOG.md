@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Removed
+- Removed legacy v2 template documentation
+  - Deleted `import-templates`, `export-functionality`, and `media-mapping` docs (CN/EN/JA, 9 files)
+  - The v2 template system has been fully abandoned; only the unified v3 template system remains
+- Removed references to the deleted docs from the software guide
+
+### Changed
+- Software guide (CN/EN/JA) template configuration sections updated to reflect the v3 template system
+  - Import templates now under `/data/rules/import/` (`esde-v3.json`, `pegasus-v3.json`, `retrobat-v3.json`, `emuelec-v3.json`, `skraper-es-v3.json`)
+  - Export rules now under `/data/rules/export/` (v3 rules)
+
 ## [1.1-RC1] - 2026-09-14
 
 ### Added

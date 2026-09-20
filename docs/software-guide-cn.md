@@ -504,20 +504,22 @@
 
 ### 5.1 导入模板配置
 
-导入模板存储在 `/data/rules/import-templates/` 目录，主要包括：
+导入模板存储在 `/data/rules/import/` 目录，采用 v3 统一模板格式，主要包括：
 
-- **ES-DE模板** (`esde.json`)：适用于EmulationStation DE格式
-- **Pegasus模板** (`pegasus.json`)：适用于Pegasus前端格式
-- **通用模板** (`generic.json`)：适用于通用格式
+- **ES-DE模板** (`esde-v3.json`)：适用于EmulationStation DE格式
+- **Pegasus模板** (`pegasus-v3.json`)：适用于Pegasus前端格式
+- **RetroBat模板** (`retrobat-v3.json`)：适用于RetroBat格式
+- **EmuELEC模板** (`emuelec-v3.json`)：适用于EmuELEC格式
+- **Skraper-ES模板** (`skraper-es-v3.json`)：适用于Skraper-ES格式
 
 ### 5.2 导出规则配置
 
-导出规则存储在 `/data/rules/export-rules/` 目录，主要包括：
+导出规则存储在 `/data/rules/export/` 目录，采用 v3 统一模板格式，主要包括：
 
-- **esde.json**：ES-DE导出规则
-- **pegasus.json**：Pegasus导出规则
-- **retrobat.json**：RetroBat导出规则
-- **template.json**：通用导出模板
+- **esde-v3.json**：ES-DE导出规则
+- **pegasus-v3.json**：Pegasus导出规则
+- **retrobat-v3.json**：RetroBat导出规则
+- **emuelec-v3.json**：EmuELEC导出规则
 
 ### 5.3 翻译配置
 
@@ -531,8 +533,8 @@
 /app/
 ├── app.jar                 # 应用程序JAR包
 ├── default-rules/         # 默认规则文件
-│   ├── export-rules/      # 导出规则
-│   ├── import-templates/  # 导入模板
+│   ├── export/            # 导出模板（v3）
+│   ├── import/            # 导入模板（v3）
 │   └── translation-config.json  # 翻译配置
 └── logs/                  # 日志目录
 
@@ -544,8 +546,8 @@
 ├── output/              # 导出输出目录
 ├── roms/                # 游戏ROM目录
 └── rules/               # 规则文件目录（挂载点）
-    ├── export-rules/
-    ├── import-templates/
+    ├── export/
+    ├── import/
     └── translation-config.json
 ```
 
@@ -600,10 +602,9 @@ A: 检查H2控制台的JDBC URL配置是否正确，默认应为 `jdbc:h2:file:/
 ### 9.1 文档资源
 
 - 📘 **v3 模板系统文档**：`v3-templates-cn.md`（中文）/ `v3-templates-en.md`（English）/ `v3-templates-ja.md`（日本語）
-- 📗 **导入模板配置文档**：`import-templates-cn.md`（中文）
-- 📙 **导出功能配置文档**：`export-functionality-cn.md`（中文）
+- 📗 **v3 导入模板编写指南**：`v3-import-template-guide-cn.md`（中文）
 - 📕 **安装部署文档**：`INSTALL.md` / `INSTALL_zh.md`
-- 📔 **媒体映射文档**：`media-mapping-cn.md`（中文）
+- 📔 **ScreenScraper 媒体映射文档**：`screenscraper-media-mapping.md`
 
 ### 9.2 技术支持
 

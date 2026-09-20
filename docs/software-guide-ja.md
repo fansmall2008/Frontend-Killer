@@ -504,20 +504,22 @@
 
 ### 5.1 インポートテンプレート設定
 
-インポートテンプレートは `/data/rules/import-templates/` ディレクトリに格納され、主に以下を含みます：
+インポートテンプレートは `/data/rules/import/` ディレクトリに格納され、統一された v3 テンプレート形式を採用しています。主に以下を含みます：
 
-- **ES-DEテンプレート** (`esde.json`)：EmulationStation DE形式に適しています
-- **Pegasusテンプレート** (`pegasus.json`)：Pegasusフロントエンド形式に適しています
-- **汎用テンプレート** (`generic.json`)：汎用形式に適しています
+- **ES-DEテンプレート** (`esde-v3.json`)：EmulationStation DE形式に適しています
+- **Pegasusテンプレート** (`pegasus-v3.json`)：Pegasusフロントエンド形式に適しています
+- **RetroBatテンプレート** (`retrobat-v3.json`)：RetroBat形式に適しています
+- **EmuELECテンプレート** (`emuelec-v3.json`)：EmuELEC形式に適しています
+- **Skraper-ESテンプレート** (`skraper-es-v3.json`)：Skraper-ES形式に適しています
 
 ### 5.2 エクスポートルール設定
 
-エクスポートルールは `/data/rules/export-rules/` ディレクトリに格納され、主に以下を含みます：
+エクスポートルールは `/data/rules/export/` ディレクトリに格納され、統一された v3 テンプレート形式を採用しています。主に以下を含みます：
 
-- **esde.json**：ES-DEエクスポートルール
-- **pegasus.json**：Pegasusエクスポートルール
-- **retrobat.json**：RetroBatエクスポートルール
-- **template.json**：汎用エクスポートテンプレート
+- **esde-v3.json**：ES-DEエクスポートルール
+- **pegasus-v3.json**：Pegasusエクスポートルール
+- **retrobat-v3.json**：RetroBatエクスポートルール
+- **emuelec-v3.json**：EmuELECエクスポートルール
 
 ### 5.3 翻訳設定
 
@@ -531,8 +533,8 @@
 /app/
 ├── app.jar                 # アプリケーションJARパッケージ
 ├── default-rules/         # デフォルトルールファイル
-│   ├── export-rules/      # エクスポートルール
-│   ├── import-templates/  # インポートテンプレート
+│   ├── export/            # エクスポートテンプレート（v3）
+│   ├── import/            # インポートテンプレート（v3）
 │   └── translation-config.json  # 翻訳設定
 └── logs/                  # ログディレクトリ
 
@@ -544,8 +546,8 @@
 ├── output/              # エクスポート出力ディレクトリ
 ├── roms/                # ゲームROMディレクトリ
 └── rules/               # ルールファイルディレクトリ（マウントポイント）
-    ├── export-rules/
-    ├── import-templates/
+    ├── export/
+    ├── import/
     └── translation-config.json
 ```
 
@@ -600,10 +602,9 @@ A: H2コンソールのJDBC URL設定が正しいか確認してください。�
 ### 9.1 ドキュメントリソース
 
 - 📘 **v3 テンプレートシステムドキュメント**：`v3-templates-ja.md`（日本語）/ `v3-templates-cn.md`（中文）/ `v3-templates-en.md`（English）
-- 📗 **インポートテンプレート設定ドキュメント**：`import-templates-ja.md`（日本語）
-- 📙 **エクスポート機能設定ドキュメント**：`export-functionality-ja.md`（日本語）
+- 📗 **v3 インポートテンプレート作成ガイド**：`v3-import-template-guide-cn.md`（中文）
 - 📕 **インストールとデプロイドキュメント**：`INSTALL.md` / `INSTALL_zh.md`
-- 📔 **メディアマッピングドキュメント**：`media-mapping-ja.md`（日本語）
+- 📔 **ScreenScraper メディアマッピングドキュメント**：`screenscraper-media-mapping.md`
 
 ### 9.2 技術サポート
 

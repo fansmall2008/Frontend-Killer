@@ -504,20 +504,22 @@ For detailed media type name mapping, refer to the [v3 Template System Documenta
 
 ### 5.1 Import Template Configuration
 
-Import templates are stored in the `/data/rules/import-templates/` directory, mainly including:
+Import templates are stored in the `/data/rules/import/` directory, using the unified v3 template format, mainly including:
 
-- **ES-DE Template** (`esde.json`): Suitable for EmulationStation DE format
-- **Pegasus Template** (`pegasus.json`): Suitable for Pegasus frontend format
-- **Generic Template** (`generic.json`): Suitable for generic format
+- **ES-DE Template** (`esde-v3.json`): Suitable for EmulationStation DE format
+- **Pegasus Template** (`pegasus-v3.json`): Suitable for Pegasus frontend format
+- **RetroBat Template** (`retrobat-v3.json`): Suitable for RetroBat format
+- **EmuELEC Template** (`emuelec-v3.json`): Suitable for EmuELEC format
+- **Skraper-ES Template** (`skraper-es-v3.json`): Suitable for Skraper-ES format
 
 ### 5.2 Export Rule Configuration
 
-Export rules are stored in the `/data/rules/export-rules/` directory, mainly including:
+Export rules are stored in the `/data/rules/export/` directory, using the unified v3 template format, mainly including:
 
-- **esde.json**: ES-DE export rules
-- **pegasus.json**: Pegasus export rules
-- **retrobat.json**: RetroBat export rules
-- **template.json**: Generic export template
+- **esde-v3.json**: ES-DE export rules
+- **pegasus-v3.json**: Pegasus export rules
+- **retrobat-v3.json**: RetroBat export rules
+- **emuelec-v3.json**: EmuELEC export rules
 
 ### 5.3 Translation Configuration
 
@@ -531,8 +533,8 @@ Translation API configuration is stored in `/data/rules/translation-config.json`
 /app/
 ├── app.jar                 # Application JAR package
 ├── default-rules/         # Default rule files
-│   ├── export-rules/      # Export rules
-│   ├── import-templates/  # Import templates
+│   ├── export/            # Export templates (v3)
+│   ├── import/            # Import templates (v3)
 │   └── translation-config.json  # Translation configuration
 └── logs/                  # Log directory
 
@@ -544,8 +546,8 @@ Translation API configuration is stored in `/data/rules/translation-config.json`
 ├── output/              # Export output directory
 ├── roms/                # Game ROM directory
 └── rules/               # Rule files directory (mount point)
-    ├── export-rules/
-    ├── import-templates/
+    ├── export/
+    ├── import/
     └── translation-config.json
 ```
 
@@ -600,10 +602,9 @@ A: Check if the H2 console JDBC URL configuration is correct, the default should
 ### 9.1 Documentation Resources
 
 - 📘 **v3 Template System Documentation**: `v3-templates-en.md` (English) / `v3-templates-cn.md` (中文) / `v3-templates-ja.md` (日本語)
-- 📗 **Import Template Configuration Documentation**: `import-templates-en.md` (English)
-- 📙 **Export Functionality Configuration Documentation**: `export-functionality-en.md` (English)
-- 📕 **Installation and Deployment Documentation**: `INSTALL.md`
-- 📔 **Media Mapping Documentation**: `media-mapping-en.md` (English)
+- 📗 **v3 Import Template Writing Guide**: `v3-import-template-guide-cn.md` (中文)
+- 📕 **Installation and Deployment Documentation**: `INSTALL.md` / `INSTALL_zh.md`
+- 📔 **ScreenScraper Media Mapping Documentation**: `screenscraper-media-mapping.md`
 
 ### 9.2 Technical Support
 
