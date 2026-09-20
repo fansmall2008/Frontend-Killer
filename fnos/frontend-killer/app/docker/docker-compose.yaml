@@ -15,5 +15,5 @@ services:
       SPRING_RESOURCES_STATIC_LOCATIONS: "classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input"
       JAVA_OPTS: "-Xmx2g -Xms512m -XX:+UseG1GC"
       TZ: "Asia/Shanghai"
-      PUID: "1000"
-      PGID: "1000"
+      PUID: "${fk_puid:-1000}"
+      PGID: "${fk_pgid:-1000}"
