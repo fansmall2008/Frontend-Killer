@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="merge_reports_title">合并报告管理</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/merge-reports.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('merge')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('MERGE_REPORTS')}"></div>
+            <main class="content">
+
+    <div class="pg-container">
+
+        <div class="toolbar">
+            <h2 data-i18n="report_list">报告列表</h2>
+        </div>
+
+        <div id="stats" class="stats"></div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="loading" class="loading" data-i18n="loading">加载中...</div>
+
+        <div id="empty" class="empty-state" style="display: none;">
+            <i>📋</i>
+            <p data-i18n="no_reports">暂无合并报告</p>
+        </div>
+
+        <div id="tableContainer" class="table-container" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th data-i18n="report_name">报告名称</th>
+                        <th data-i18n="source_platforms">源平台</th>
+                        <th data-i18n="total_games">总游戏数</th>
+                        <th data-i18n="added_games">已添加</th>
+                        <th data-i18n="conflicts">冲突</th>
+                        <th data-i18n="status">状态</th>
+                        <th data-i18n="created_time">创建时间</th>
+                        <th data-i18n="actions">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 当前语言（默认中文）
+        let currentLanguage = 'zh-CN';
+
+
+        window.getI18nText = function(key) {
+            return I18n.t(key);
+        }
+
+        async function changeLanguage(lang) {
+            await I18n.setLanguage(lang);
+        }
+
+        function initLanguage() {
+            changeLanguage(currentLanguage);
+        }
+
+        async function loadReports() {
+            try {
+                const response = await fetch('/api/merge-reports');
+                const reports = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (reports.length === 0) {
+                    document.getElementById('empty').style.display = 'block';
+                    document.getElementById('tableContainer').style.display = 'none';
+                    document.getElementById('stats').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('empty').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'block';
+                document.getElementById('stats').style.display = 'grid';
+
+                displayStats(reports);
+                displayReports(reports);
+
+            } catch (error) {
+                console.error('加载报告失败:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function displayStats(reports) {
+            const totalReports = reports.length;
+            const processingReports = reports.filter(r => r.status === 'processing').length;
+            const completedReports = reports.filter(r => r.status === 'completed').length;
+            const totalConflicts = reports.reduce((sum, r) => sum + r.conflictGames, 0);
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <h3>${totalReports}</h3>
+                    <p data-i18n="total_reports">${getI18nText('total_reports')}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${processingReports}</h3>
+                    <p data-i18n="processing">${getI18nText('processing')}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${completedReports}</h3>
+                    <p data-i18n="completed">${getI18nText('completed')}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${totalConflicts}</h3>
+                    <p data-i18n="total_conflicts">${getI18nText('total_conflicts')}</p>
+                </div>
+            `;
+        }
+
+        function displayReports(reports) {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+
+            reports.forEach(report => {
+                const row = document.createElement('tr');
+                const statusClass = report.status === 'processing' ? 'status-processing' : 'status-completed';
+                const statusText = report.status === 'processing' ? getI18nText('processing_status') : getI18nText('completed_status');
+                const createdAt = new Date(report.createdAt).toLocaleString(currentLanguage === 'en-US' ? 'en-US' : (currentLanguage === 'ja-JP' ? 'ja-JP' : 'zh-CN'));
+
+                row.innerHTML = `
+                    <td>${report.id}</td>
+                    <td>${report.reportName}</td>
+                    <td>${report.sourcePlatforms}</td>
+                    <td>${report.totalGames}</td>
+                    <td>${report.addedGames}</td>
+                    <td>${report.conflictGames}</td>
+                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                    <td>${createdAt}</td>
+                    <td class="actions">
+                        <button class="btn btn-primary" onclick="viewDetails(${report.id})" data-i18n="view_details">${getI18nText('view_details')}</button>
+                        ${report.status === 'processing' && report.conflictGames > 0 ?
+                            `<button class="btn btn-success" onclick="viewConflicts(${report.id})" data-i18n="handle_conflicts">${getI18nText('handle_conflicts')}</button>` : ''}
+                        ${report.status === 'completed' ?
+                            `<button class="btn btn-danger" onclick="deleteReport(${report.id})" data-i18n="delete">${getI18nText('delete')}</button>` : ''}
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function viewDetails(reportId) {
+            window.location.href = `/merge-report-details?id=${reportId}`;
+        }
+
+        function viewConflicts(reportId) {
+            window.location.href = `/merge-conflicts?id=${reportId}`;
+        }
+
+        async function deleteReport(reportId) {
+            if (!confirm(getI18nText('confirm_delete'))) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(getI18nText('delete_success'));
+                    loadReports();
+                } else {
+                    alert(getI18nText('delete_failed') + ': ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除报告失败:', error);
+                alert(getI18nText('delete_failed') + ': ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadReports();
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <script>
+        function openNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'block';
+        }
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+    </script>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

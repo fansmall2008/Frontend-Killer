@@ -155,12 +155,10 @@ public class Game {
     private Boolean exists;
     private String absolutePath;
     private String platformPath;
+    // ========== 多文件游戏（多盘/合盘） ==========
+    private Boolean multiFile;         // 是否多文件（多盘游戏）
+    private String multiFileContent;   // 多文件文本（m3u 格式：一行一个文件路径，相对平台目录，不带 ./）
     
-    // Lakka .lpl 特定字段
-    private String corePath;
-    private String coreName;
-    private String databaseLink;
-
     // Getters and Setters
     public Long getId() {
         return id;
@@ -706,30 +704,22 @@ public class Game {
         this.platformPath = platformPath;
     }
 
-    // Lakka .lpl 特定字段的 getter/setter
-    public String getCorePath() {
-        return corePath;
+    public Boolean getMultiFile() {
+        return multiFile;
     }
 
-    public void setCorePath(String corePath) {
-        this.corePath = corePath;
+    public void setMultiFile(Boolean multiFile) {
+        this.multiFile = multiFile;
     }
 
-    public String getCoreName() {
-        return coreName;
+    public String getMultiFileContent() {
+        return multiFileContent;
     }
 
-    public void setCoreName(String coreName) {
-        this.coreName = coreName;
+    public void setMultiFileContent(String multiFileContent) {
+        this.multiFileContent = multiFileContent;
     }
 
-    public String getDatabaseLink() {
-        return databaseLink;
-    }
-
-    public void setDatabaseLink(String databaseLink) {
-        this.databaseLink = databaseLink;
-    }
 
     // ========== ScreenScraper 标准媒体字段 Getter/Setter ==========
 

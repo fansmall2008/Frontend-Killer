@@ -24,14 +24,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gamelist.model.ExportRule;
 import com.gamelist.model.TemplateV3;
 import com.gamelist.service.ExportRuleService;
 
 @Service
 public class ExportRuleServiceImpl implements ExportRuleService {
     private static final Logger logger = LoggerFactory.getLogger(ExportRuleServiceImpl.class);
-    private final Map<String, ExportRule> rules = new HashMap<>();
     private final Map<String, TemplateV3> v3Rules = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -58,15 +56,15 @@ public class ExportRuleServiceImpl implements ExportRuleService {
         if (externalRulesDir.exists() && externalRulesDir.isDirectory()) {
             logger.info("Loading export rules from external path: {}", rulesPath);
             boolean loaded = loadRulesFromDirectory(externalRulesDir.toPath());
-            logger.info("loadRulesFromDirectory returned: {}, rules size: {}", loaded, rules.size());
+            logger.info("loadRulesFromDirectory returned: {}, v3 rules size: {}", loaded, v3Rules.size());
         } else {
             logger.warn("External rules directory does not exist or is not a directory: {}", externalRulesDir.getAbsolutePath());
         }
 
-        if (rules.isEmpty()) {
-            logger.warn("No export rules loaded. Final rules size: {}", rules.size());
+        if (v3Rules.isEmpty()) {
+            logger.warn("No export rules loaded. Final v3 rules size: {}", v3Rules.size());
         } else {
-            logger.info("Export rules loaded successfully. Total rules: {}", rules.size());
+            logger.info("Export rules loaded successfully. Total v3 rules: {}", v3Rules.size());
         }
     }
     
@@ -80,35 +78,21 @@ public class ExportRuleServiceImpl implements ExportRuleService {
                     String fileName = path.getFileName().toString();
                     logger.info("Processing rule file: {}", fileName);
 
-                    // 优先尝试加载 v3 模板
+                    // 尝试加载 v3 模板
                     TemplateV3 v3Template = TemplateV3.loadFromFile(path.toFile());
                     if (v3Template != null && v3Template.getTemplateInfo() != null
                             && v3Template.getTemplateInfo().isExport()) {
-                        // v3 导出模板：从文件名提取 frontend key（去掉 -v3 后缀）
                         String frontend = extractFrontendFromFilename(fileName);
                         v3Rules.put(frontend, v3Template);
                         logger.info("Loaded v3 export template: {} -> {}", fileName, frontend);
                         loadedCount++;
-                        continue;
-                    }
-
-                    // 回退到 v2 模板加载
-                    try (InputStream is = Files.newInputStream(path)) {
-                        ExportRule rule = objectMapper.readValue(is, ExportRule.class);
-                        if (rule != null && rule.getFrontend() != null) {
-                            rules.put(rule.getFrontend(), rule);
-                            logger.info("Loaded v2 export rule: {} -> {}", fileName, rule.getFrontend());
-                            loadedCount++;
-                        } else {
-                            logger.warn("Rule file {} has null frontend, skipping", fileName);
-                        }
-                    } catch (Exception e) {
-                        logger.error("Failed to parse rule file: {} - {}", fileName, e.getMessage());
+                    } else {
+                        logger.debug("Skipping non-v3 or non-export template: {}", fileName);
                     }
                 }
-                logger.info("Total rules loaded: v2={}, v3={}", rules.size(), v3Rules.size());
+                logger.info("Total v3 rules loaded: {}", v3Rules.size());
             }
-            return !rules.isEmpty() || !v3Rules.isEmpty();
+            return !v3Rules.isEmpty();
         } catch (IOException e) {
             logger.error("Error loading rules from directory: {}", rulesDirPath, e);
             return false;
@@ -128,65 +112,6 @@ public class ExportRuleServiceImpl implements ExportRuleService {
             name = name.substring(0, name.length() - 3);
         }
         return name;
-    }
-    
-    private boolean loadRulesFromClasspath() {
-        try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            URL rulesUrl = classLoader.getResource("export-rules");
-            
-            if (rulesUrl != null) {
-                logger.info("Rules directory found in classpath at: {}", rulesUrl);
-                logger.info("Protocol: {}", rulesUrl.getProtocol());
-                
-                if (rulesUrl.getProtocol().equals("file")) {
-                    try {
-                        Path rulesPath = Paths.get(rulesUrl.toURI());
-                        return loadRulesFromDirectory(rulesPath);
-                    } catch (URISyntaxException e) {
-                        logger.error("Error converting rules URL to path", e);
-                    }
-                } else if (rulesUrl.getProtocol().equals("jar")) {
-                    String[] ruleFiles = {"esde.json", "pegasus.json", "retrobat.json", "lakka.json", "emuelec.json", "template.json"};
-                    for (String fileName : ruleFiles) {
-                        String resourcePath = "export-rules/" + fileName;
-                        URL resourceUrl = classLoader.getResource(resourcePath);
-                        if (resourceUrl != null) {
-                            try (InputStream is = resourceUrl.openStream()) {
-                                ExportRule rule = objectMapper.readValue(is, ExportRule.class);
-                                if (rule != null && rule.getFrontend() != null) {
-                                    rules.put(rule.getFrontend(), rule);
-                                    logger.info("Loaded export rule from classpath: {}", fileName);
-                                }
-                            } catch (IOException e) {
-                                logger.error("Failed to load rule file from classpath: {}", fileName, e);
-                            }
-                        }
-                    }
-                    return !rules.isEmpty();
-                }
-            } else {
-                logger.warn("Rules directory not found in classpath: export-rules");
-            }
-        } catch (Exception e) {
-            logger.error("Error loading export rules from classpath", e);
-        }
-        return false;
-    }
-
-    @Override
-    public Map<String, ExportRule> getRules() {
-        return Collections.unmodifiableMap(rules);
-    }
-
-    @Override
-    public ExportRule getRuleByFrontend(String frontend) {
-        return rules.get(frontend);
-    }
-
-    @Override
-    public List<ExportRule> getRuleList() {
-        return new ArrayList<>(rules.values());
     }
 
     // ==================== v3 模板支持 ====================

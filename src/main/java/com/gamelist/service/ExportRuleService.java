@@ -1,32 +1,15 @@
 package com.gamelist.service;
 
-import com.gamelist.model.ExportRule;
 import com.gamelist.model.TemplateV3;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface ExportRuleService {
     /**
-     * 加载所有导出规则（v2 + v3）
+     * 加载所有导出规则（v3）
      */
     void loadRules();
-
-    /**
-     * 获取所有可用的 v2 导出规则
-     */
-    Map<String, ExportRule> getRules();
-
-    /**
-     * 根据前端名称获取 v2 导出规则
-     */
-    ExportRule getRuleByFrontend(String frontend);
-
-    /**
-     * 获取 v2 规则列表
-     */
-    List<ExportRule> getRuleList();
 
     // ==================== v3 模板支持 ====================
 

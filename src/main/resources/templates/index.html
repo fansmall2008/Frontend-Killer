@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Killer · Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/layout :: sidebar('home')}"></div>
+
+        <!-- Main Area -->
+        <div class="main-area">
+            <!-- Header -->
+            <div th:replace="~{fragments/layout :: header('DASHBOARD')}"></div>
+
+            <!-- Content -->
+            <main class="content">
+                <!-- Hero Banner -->
+                <div class="hero-banner">
+                    <div class="hero-rainbow"></div>
+                    <h1 class="hero-title"><span data-i18n="hero_welcome">欢迎回来</span>, <span class="accent">COMMANDER</span></h1>
+                    <p class="hero-desc" data-i18n="hero_desc">系统已就绪，等待指令。</p>
+                    <div class="hero-stats">
+                        <div>
+                            <div class="hero-stat-value purple" id="heroPlatforms">-</div>
+                            <div class="hero-stat-label" data-i18n="dash_platforms">平台</div>
+                        </div>
+                        <div>
+                            <div class="hero-stat-value cyan" id="heroGames">-</div>
+                            <div class="hero-stat-label" data-i18n="dash_games">游戏</div>
+                        </div>
+                        <div>
+                            <div class="hero-stat-value green" id="heroScrapeRate">-</div>
+                            <div class="hero-stat-label" data-i18n="dash_scraped">已刮削</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">🎮</div>
+                        <div class="stat-label" data-i18n="dash_platforms">平台</div>
+                        <div class="stat-value" id="statPlatforms">-</div>
+                        <div class="stat-sub" id="statPlatformsSub"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon cyan">🕹️</div>
+                        <div class="stat-label" data-i18n="dash_games">游戏</div>
+                        <div class="stat-value" id="statGames">-</div>
+                        <div class="stat-sub" id="statGamesSub"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-label" data-i18n="dash_scraped">已刮削</div>
+                        <div class="stat-value" id="statScraped">-</div>
+                        <div class="stat-sub" id="statScrapedSub"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">⏳</div>
+                        <div class="stat-label" data-i18n="dash_tasks">任务</div>
+                        <div class="stat-value" id="statTasks">-</div>
+                        <div class="stat-sub" id="statTasksSub"></div>
+                    </div>
+                </div>
+
+                <!-- Scrape Breakdown -->
+                <div class="section-title" data-i18n="dash_scrape_breakdown">▸ 刮削分级</div>
+                <div class="stat-card" style="margin-bottom: var(--space-6);">
+                    <div style="display:flex;align-items:center;gap:var(--space-4);flex-wrap:wrap">
+                        <!-- Stacked bar -->
+                        <div style="flex:1;min-width:300px">
+                            <div id="scrapeBar" style="display:flex;height:24px;border-radius:4px;overflow:hidden;border:1px solid var(--border-default)">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+                        <!-- Legend -->
+                        <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;font-size:12px">
+                            <span style="display:flex;align-items:center;gap:4px">
+                                <span style="width:10px;height:10px;border-radius:2px;background:var(--accent-success)"></span>
+                                <span style="color:var(--text-secondary)" data-i18n="dash_scraped">已刮削</span>
+                                <strong id="legendScraped">-</strong>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:4px">
+                                <span style="width:10px;height:10px;border-radius:2px;background:var(--accent-info)"></span>
+                                <span style="color:var(--text-secondary)" data-i18n="dash_original">原始数据</span>
+                                <strong id="legendOriginal">-</strong>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:4px">
+                                <span style="width:10px;height:10px;border-radius:2px;background:var(--accent-warning)"></span>
+                                <span style="color:var(--text-secondary)" data-i18n="dash_poor">低质量</span>
+                                <strong id="legendPoor">-</strong>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:4px">
+                                <span style="width:10px;height:10px;border-radius:2px;background:var(--accent-danger)"></span>
+                                <span style="color:var(--text-secondary)" data-i18n="dash_raw">原始ROM</span>
+                                <strong id="legendRaw">-</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="section-title" data-i18n="dash_system_status">▸ 系统状态</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-6)">
+                    <!-- Scraper Status -->
+                    <div class="stat-card">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
+                            <span style="font-size:13px;font-weight:600" data-i18n="dash_scraper">刮削器</span>
+                            <span class="badge-count" id="scraperStatusBadge" style="font-family:var(--font-pixel);font-size:7px;padding:3px 8px;border-radius:var(--radius-sm)">...</span>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:var(--space-2)">
+                            <span data-i18n="dash_thread_quota">线程配额</span>: <strong id="scraperQuota" style="color:var(--text-secondary)">-</strong>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-tertiary)">
+                            <span data-i18n="dash_credentials">账号状态</span>: <strong id="scraperCred" style="color:var(--text-secondary)">-</strong>
+                        </div>
+                    </div>
+                    <!-- Media Download Status -->
+                    <div class="stat-card">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
+                            <span style="font-size:13px;font-weight:600" data-i18n="dash_media_downloads">媒体下载</span>
+                            <span class="badge-count" id="mediaStatusBadge" style="font-family:var(--font-pixel);font-size:7px;padding:3px 8px;border-radius:var(--radius-sm)">...</span>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:var(--space-2)">
+                            <span data-i18n="dash_pending">等待中</span>: <strong id="mediaPending" style="color:var(--text-secondary)">-</strong>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-tertiary)">
+                            <span data-i18n="dash_active">进行中</span>: <strong id="mediaActive" style="color:var(--text-secondary)">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Running Tasks -->
+                <div class="section-title" data-i18n="dash_running_tasks">▸ 运行中任务</div>
+                <div class="stat-card" id="taskListCard">
+                    <div id="taskList" style="font-size:13px;color:var(--text-tertiary)">
+                        <span data-i18n="dash_loading">加载中...</span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="page-footer">
+                    <p data-i18n="copyright">© 2024 Frontend-Killer | 模拟游戏元数据管理平台</p>
+                    <p class="version">v1.1-RC1</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scraper Warning Modal -->
+    <div class="modal-overlay" id="startupWarning">
+        <div class="modal" style="max-width:520px">
+            <div class="modal-header">
+                <span class="modal-title" style="color:var(--accent-warning)">⚠️ SCRAPER NOT READY</span>
+                <button class="modal-close" onclick="document.getElementById('startupWarning').classList.remove('active')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);margin-bottom:var(--space-4);font-size:13px" data-i18n="warn_scraper_desc">
+                    ScreenScraper 未配置或刮削系统数据缺失，刮削功能将不可用。
+                </p>
+                <div id="warnItems" style="margin-bottom:var(--space-4)"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="/system-settings" class="btn btn-primary" data-i18n="warn_go_settings">前往配置</a>
+                <button class="btn btn-secondary" onclick="document.getElementById('startupWarning').classList.remove('active')" data-i18n="warn_i_know">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="modal-overlay" id="notificationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="task_messages_title">任务消息</span>
+                <button class="modal-close" onclick="document.getElementById('notificationModal').classList.remove('active')">×</button>
+            </div>
+            <div class="modal-body" id="notificationContent" style="max-height:400px;overflow-y:auto">
+            </div>
+        </div>
+    </div>
+
+    <!-- Include common scripts -->
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+
+    <script>
+    // ========== Dashboard Data Loading ==========
+    (function loadDashboard() {
+        // 1. Load overall statistics
+        fetch('/api/gamelist/statistics/overall')
+            .then(r => r.json())
+            .then(stats => {
+                const total = stats.totalGames || 0;
+                const scraped = stats.scraped || 0;
+                const platforms = stats.totalPlatforms || 0;
+                const rate = total > 0 ? ((scraped / total) * 100).toFixed(1) + '%' : '0%';
+
+                // Hero stats
+                document.getElementById('heroPlatforms').textContent = platforms;
+                document.getElementById('heroGames').textContent = total.toLocaleString();
+                document.getElementById('heroScrapeRate').textContent = rate;
+
+                // Stat cards
+                document.getElementById('statPlatforms').textContent = platforms;
+                document.getElementById('statGames').textContent = total.toLocaleString();
+                document.getElementById('statScraped').textContent = scraped.toLocaleString();
+                document.getElementById('statScrapedSub').textContent = rate + ' ' + I18n.t('dash_coverage', '覆盖率');
+
+                // Scrape breakdown bar
+                renderScrapeBar(stats);
+            })
+            .catch(err => console.warn('Stats load failed:', err));
+
+        // 2. Load tasks
+        fetch('/api/tasks')
+            .then(r => r.json())
+            .then(tasks => {
+                const list = Array.isArray(tasks) ? tasks : (tasks.data || []);
+                const running = list.filter(t => t.status === 'RUNNING' || t.status === 'IN_PROGRESS');
+                const pending = list.filter(t => t.status === 'PENDING');
+
+                document.getElementById('statTasks').textContent = running.length + pending.length;
+                document.getElementById('statTasksSub').textContent = running.length + ' ' + I18n.t('dash_running', '运行中');
+
+                renderTaskList(running);
+            })
+            .catch(err => {
+                document.getElementById('statTasks').textContent = '0';
+                renderTaskList([]);
+            });
+
+        // 3. Load scraper status
+        fetch('/api/screenscraper/status')
+            .then(r => r.json())
+            .then(data => {
+                const hasCred = data.hasUserCredentials;
+                document.getElementById('scraperCred').textContent = hasCred ? I18n.t('dash_configured', '已配置') : I18n.t('dash_not_set', '未配置');
+                document.getElementById('scraperCred').style.color = hasCred ? 'var(--accent-success)' : 'var(--accent-danger)';
+
+                const badge = document.getElementById('scraperStatusBadge');
+                if (hasCred) {
+                    badge.textContent = I18n.t('dash_online', '在线');
+                    badge.style.background = 'var(--accent-success)';
+                    badge.style.color = '#fff';
+                } else {
+                    badge.textContent = I18n.t('dash_offline', '离线');
+                    badge.style.background = 'var(--accent-danger-subtle)';
+                    badge.style.color = 'var(--accent-danger)';
+                }
+
+                // Thread quota
+                if (data.maxThreads !== undefined) {
+                    document.getElementById('scraperQuota').textContent = data.maxThreads + ' threads';
+                } else {
+                    document.getElementById('scraperQuota').textContent = '-';
+                }
+            })
+            .catch(() => {
+                document.getElementById('scraperCred').textContent = I18n.t('dash_error', '错误');
+                document.getElementById('scraperCred').style.color = 'var(--accent-danger)';
+            });
+
+        // 4. Load media download status
+        fetch('/api/media-download/status')
+            .then(r => r.json())
+            .then(data => {
+                const pending = data.pendingCount || data.totalPending || 0;
+                const active = data.activeCount || data.totalActive || 0;
+                document.getElementById('mediaPending').textContent = pending;
+                document.getElementById('mediaActive').textContent = active;
+
+                const badge = document.getElementById('mediaStatusBadge');
+                if (active > 0) {
+                    badge.textContent = I18n.t('dash_active_status', '进行中');
+                    badge.style.background = 'var(--accent-success)';
+                    badge.style.color = '#fff';
+                } else if (pending > 0) {
+                    badge.textContent = I18n.t('dash_queued', '排队中');
+                    badge.style.background = 'var(--accent-warning-subtle)';
+                    badge.style.color = 'var(--accent-warning)';
+                } else {
+                    badge.textContent = I18n.t('dash_idle', '空闲');
+                    badge.style.background = 'var(--bg-overlay)';
+                    badge.style.color = 'var(--text-tertiary)';
+                }
+            })
+            .catch(() => {
+                document.getElementById('mediaPending').textContent = '-';
+                document.getElementById('mediaActive').textContent = '-';
+            });
+
+        // 5. Scraper environment check (existing logic)
+        checkScraperEnvironment();
+    })();
+
+    // ========== Render Functions ==========
+    function renderScrapeBar(stats) {
+        const total = (stats.totalGames || 0);
+        if (total === 0) {
+            document.getElementById('scrapeBar').innerHTML = '<div style="flex:1;background:var(--bg-overlay);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);font-family:var(--font-pixel)">' + I18n.t('dash_no_data', '暂无数据') + '</div>';
+            return;
+        }
+
+        const items = [
+            { count: stats.scraped || 0, color: 'var(--accent-success)', label: 'Scraped' },
+            { count: stats.originalData || 0, color: 'var(--accent-info)', label: 'Original' },
+            { count: stats.poorQuality || 0, color: 'var(--accent-warning)', label: 'Poor' },
+            { count: stats.rawRom || 0, color: 'var(--accent-danger)', label: 'Raw' }
+        ];
+
+        let barHtml = '';
+        items.forEach(item => {
+            if (item.count > 0) {
+                const pct = ((item.count / total) * 100).toFixed(1);
+                barHtml += `<div style="width:${pct}%;background:${item.color};transition:width 0.5s" title="${item.label}: ${item.count} (${pct}%)"></div>`;
+            }
+        });
+        document.getElementById('scrapeBar').innerHTML = barHtml;
+
+        // Legend
+        document.getElementById('legendScraped').textContent = (stats.scraped || 0).toLocaleString();
+        document.getElementById('legendOriginal').textContent = (stats.originalData || 0).toLocaleString();
+        document.getElementById('legendPoor').textContent = (stats.poorQuality || 0).toLocaleString();
+        document.getElementById('legendRaw').textContent = (stats.rawRom || 0).toLocaleString();
+    }
+
+    function renderTaskList(tasks) {
+        const el = document.getElementById('taskList');
+        if (!tasks || tasks.length === 0) {
+            el.innerHTML = '<div style="text-align:center;padding:var(--space-4);color:var(--text-tertiary);font-family:var(--font-pixel);font-size:9px">' + I18n.t('dash_no_tasks', '暂无运行中的任务') + '</div>';
+            return;
+        }
+
+        let html = '';
+        tasks.forEach(task => {
+            const progress = task.progress || 0;
+            const pct = Math.round(progress * 100);
+            html += `
+                <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) 0;border-bottom:1px solid var(--border-default)">
+                    <div style="flex:1;min-width:0">
+                        <div style="font-size:13px;color:var(--text-primary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${task.description || task.type || 'Task'}</div>
+                        <div style="display:flex;align-items:center;gap:var(--space-2);margin-top:4px">
+                            <div style="flex:1;height:6px;background:var(--bg-overlay);border-radius:3px;overflow:hidden">
+                                <div style="width:${pct}%;height:100%;background:var(--accent-primary);border-radius:3px;transition:width 0.3s"></div>
+                            </div>
+                            <span style="font-family:var(--font-pixel);font-size:8px;color:var(--text-tertiary);min-width:36px">${pct}%</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="stopTask(${task.id})" title="Stop">✕</button>
+                </div>
+            `;
+        });
+        el.innerHTML = html;
+    }
+
+    function stopTask(taskId) {
+        if (!confirm(I18n.t('dash_confirm_stop', '确定要停止此任务吗？'))) return;
+        fetch('/api/tasks/' + taskId, { method: 'DELETE' })
+            .then(() => location.reload())
+            .catch(err => alert(I18n.t('dash_stop_failed', '停止任务失败')));
+    }
+
+    // ========== Scraper Environment Check ==========
+    function checkScraperEnvironment() {
+        let hasCredentials = false;
+        let hasSystems = false;
+        let checksDone = 0;
+
+        function renderWarning() {
+            if (hasCredentials && hasSystems) return;
+            const items = document.getElementById('warnItems');
+            items.innerHTML = '';
+
+            const credItem = document.createElement('div');
+            credItem.style.cssText = `padding:8px 12px;margin-bottom:8px;border-radius:6px;font-size:13px;
+                background:${hasCredentials ? 'var(--accent-success-subtle)' : 'var(--accent-danger-subtle)'};
+                border-left:3px solid ${hasCredentials ? 'var(--accent-success)' : 'var(--accent-danger)'};
+                color:${hasCredentials ? 'var(--accent-success)' : 'var(--accent-danger)'}`;
+            credItem.textContent = hasCredentials ? I18n.t('warn_cred_ok', '✔ ScreenScraper 账号已配置') : I18n.t('warn_cred_bad', '✘ ScreenScraper 账号未登录');
+            items.appendChild(credItem);
+
+            const sysItem = document.createElement('div');
+            sysItem.style.cssText = `padding:8px 12px;margin-bottom:8px;border-radius:6px;font-size:13px;
+                background:${hasSystems ? 'var(--accent-success-subtle)' : 'var(--accent-danger-subtle)'};
+                border-left:3px solid ${hasSystems ? 'var(--accent-success)' : 'var(--accent-danger)'};
+                color:${hasSystems ? 'var(--accent-success)' : 'var(--accent-danger)'}`;
+            sysItem.textContent = hasSystems ? I18n.t('warn_sys_ok', '✔ 刮削系统数据已就绪') : I18n.t('warn_sys_bad', '✘ 数据库中没有刮削系统信息');
+            items.appendChild(sysItem);
+
+            document.getElementById('startupWarning').classList.add('active');
+        }
+
+        function checkDone() {
+            checksDone++;
+            if (checksDone >= 2) renderWarning();
+        }
+
+        fetch('/api/screenscraper/status')
+            .then(r => r.json())
+            .then(d => { hasCredentials = !!d.hasUserCredentials; checkDone(); })
+            .catch(() => checkDone());
+
+        fetch('/api/scraper-systems')
+            .then(r => r.json())
+            .then(d => { hasSystems = d.success && d.data && d.data.length > 0; checkDone(); })
+            .catch(() => checkDone());
+    }
+
+    // ========== Notification ==========
+    function openNotificationPanel() {
+        document.getElementById('notificationModal').classList.add('active');
+    }
+
+    // ========== Voice Greeting ==========
+    (function speakGreeting() {
+        if (!('speechSynthesis' in window)) return;
+        setTimeout(function() {
+            var msg = new SpeechSynthesisUtterance('Welcome back, Commander.');
+            msg.rate = 0.85;
+            msg.pitch = 0.9;
+            msg.volume = 0.8;
+            var voices = speechSynthesis.getVoices();
+            var preferred = voices.find(function(v) { return v.lang.startsWith('en') && v.name.toLowerCase().includes('male'); })
+                || voices.find(function(v) { return v.lang.startsWith('en'); });
+            if (preferred) msg.voice = preferred;
+            speechSynthesis.speak(msg);
+        }, 800);
+    })();
+    </script>
+</body>
+</html>

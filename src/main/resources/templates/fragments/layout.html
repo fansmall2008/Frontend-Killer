@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- ====== Sidebar Fragment ====== -->
+<div th:fragment="sidebar(activePage)" class="sidebar">
+    <div class="sidebar-brand">
+        <div class="logo">FK</div>
+        <div>
+            <h1>FRONTEND<br>-KILLER</h1>
+            <span class="brand-sub">v1.2 · METADATA MGR</span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">▸ OVERVIEW</div>
+        <a class="nav-item" th:classappend="${activePage == 'home'} ? 'active'" href="/">
+            <span class="icon">🏠</span> <span data-i18n="nav_home">首页</span>
+        </a>
+
+        <div class="nav-section-label">▸ DATA</div>
+        <a class="nav-item" th:classappend="${activePage == 'import'} ? 'active'" th:href="@{/data-import}">
+            <span class="icon">📥</span> <span data-i18n="nav_import">数据导入</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'export'} ? 'active'" th:href="@{/export}">
+            <span class="icon">📤</span> <span data-i18n="nav_export">数据导出</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'platform'} ? 'active'" th:href="@{/platform-management}">
+            <span class="icon">🎮</span> <span data-i18n="nav_platform">平台管理</span>
+            <span class="badge-count" id="sidebarPlatformCount" style="display:none">-</span>
+        </a>
+
+        <div class="nav-section-label">▸ TOOLS</div>
+        <a class="nav-item" th:classappend="${activePage == 'scraper'} ? 'active'" th:href="@{/scraper-system-list}">
+            <span class="icon">🔍</span> <span data-i18n="nav_scraper">刮削系统</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'media'} ? 'active'" th:href="@{/media-download}">
+            <span class="icon">🖼️</span> <span data-i18n="nav_media">媒体下载</span>
+            <span class="badge-count" id="sidebarMediaCount" style="display:none">-</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'merge'} ? 'active'" th:href="@{/platform-merge}">
+            <span class="icon">🔀</span> <span data-i18n="nav_merge">数据合并</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'tasks'} ? 'active'" th:href="@{/task-management}">
+            <span class="icon">📋</span> <span data-i18n="nav_tasks">任务管理</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'logs'} ? 'active'" th:href="@{/log-viewer}">
+            <span class="icon">📊</span> <span data-i18n="nav_logs">日志查看</span>
+        </a>
+
+        <div class="nav-section-label">▸ SYSTEM</div>
+        <a class="nav-item" th:classappend="${activePage == 'settings'} ? 'active'" th:href="@{/system-settings}">
+            <span class="icon">⚙️</span> <span data-i18n="nav_settings">系统设置</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="status-dot"></div>
+        <span id="sidebarStatus">INITIALIZING...</span>
+    </div>
+</div>
+
+<!-- ====== Header Fragment ====== -->
+<header th:fragment="header(pageTitle)" class="top-header">
+    <div class="breadcrumb">
+        <a href="/">🏠</a>
+        <span class="sep">›</span>
+        <span class="current" th:text="${pageTitle}">首页</span>
+    </div>
+    <div class="header-actions">
+        <button class="header-icon-btn" onclick="toggleTheme()" title="Toggle Theme">
+            <span id="themeIcon">☀️</span>
+        </button>
+        <button class="header-icon-btn" id="headerNotifBtn" onclick="openNotificationPanel()">
+            🔔
+            <span class="notif-dot" id="headerNotifDot" style="display:none"></span>
+        </button>
+    </div>
+</header>
+
+<!-- ====== Notification Modal Fragment ====== -->
+<div th:fragment="notification-modal" id="notificationModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <span class="close" onclick="closeNotificationPanel()">&times;</span>
+        <h2 class="modal-title" data-i18n="task_messages">任务消息</h2>
+        <div id="notificationContent" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+</div>
+
+<!-- ====== Common Scripts Fragment ====== -->
+<th:block th:fragment="common-scripts">
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('themeIcon').textContent = next === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Restore saved theme
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.textContent = saved === 'dark' ? '☀️' : '🌙';
+            }
+        })();
+
+        // Update sidebar counts
+        (function() {
+            // Platform count
+            fetch('/api/gamelist/statistics/overall')
+                .then(r => r.json())
+                .then(stats => {
+                    const el = document.getElementById('sidebarPlatformCount');
+                    if (el && stats.totalPlatforms) {
+                        el.textContent = stats.totalPlatforms;
+                        el.style.display = '';
+                    }
+                    // Update sidebar status
+                    const statusEl = document.getElementById('sidebarStatus');
+                    if (statusEl) {
+                        statusEl.textContent = 'GAMES: ' + (stats.totalGames || 0).toLocaleString();
+                    }
+                })
+                .catch(() => {});
+
+            // Media download count
+            fetch('/api/media-download/status')
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.getElementById('sidebarMediaCount');
+                    const pending = data.pendingCount || data.totalPending || 0;
+                    if (el && pending > 0) {
+                        el.textContent = pending;
+                        el.style.display = '';
+                    }
+                })
+                .catch(() => {});
+        })();
+
+        // Notification modal: click overlay to close
+        (function() {
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        })();
+    </script>
+</th:block>
+
+</html>

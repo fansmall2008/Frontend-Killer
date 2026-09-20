@@ -19,6 +19,10 @@ ALTER TABLE platform ADD COLUMN IF NOT EXISTS system_region VARCHAR(10) DEFAULT 
 ALTER TABLE platform ADD COLUMN IF NOT EXISTS logo_region VARCHAR(10) DEFAULT NULL;
 ALTER TABLE platform ADD COLUMN IF NOT EXISTS logo_type VARCHAR(50) DEFAULT NULL;
 
+-- 为平台表添加 Pegasus 表头字段（扩展名 / 忽略文件，兼容旧数据库）
+ALTER TABLE platform ADD COLUMN IF NOT EXISTS extensions VARCHAR(200) DEFAULT NULL;
+ALTER TABLE platform ADD COLUMN IF NOT EXISTS ignore_files TEXT DEFAULT NULL;
+
 -- 创建游戏表
 CREATE TABLE IF NOT EXISTS game (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -51,6 +55,8 @@ CREATE TABLE IF NOT EXISTS game (
     `exists` BOOLEAN DEFAULT false,
     absolute_path VARCHAR(2048),
     platform_path VARCHAR(2048),
+    multi_file BOOLEAN DEFAULT false,
+    multi_file_content CLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (platform_id) REFERENCES platform(id),
@@ -522,3 +528,33 @@ ALTER TABLE media_download_task ADD COLUMN IF NOT EXISTS platform_name VARCHAR(2
 
 -- V1.0.9 media_download_task 新增字段
 ALTER TABLE media_download_task ADD COLUMN IF NOT EXISTS game_field_name VARCHAR(50) DEFAULT NULL;
+
+-- V1.0.14 game 多文件游戏字段（多盘/合盘）
+ALTER TABLE game ADD COLUMN IF NOT EXISTS multi_file BOOLEAN DEFAULT false;
+ALTER TABLE game ADD COLUMN IF NOT EXISTS multi_file_content CLOB;
+
+-- ============================================================
+-- V1.0.13 平台体量统计缓存表
+-- 用于导出前预估数据量（ROM/媒体文件数量与占用空间）
+-- 由 PlatformStatsScanner 服务按需扫描后写入，纯查询快照，不参与业务逻辑
+-- ============================================================
+CREATE TABLE IF NOT EXISTS platform_stats_cache (
+    platform_id           BIGINT PRIMARY KEY,
+    total_games           INT           DEFAULT 0,
+    total_rom_count       INT           DEFAULT 0,
+    rom_missing_count     INT           DEFAULT 0,
+    total_rom_size        BIGINT        DEFAULT 0,
+    total_media_count     INT           DEFAULT 0,
+    media_missing_count   INT           DEFAULT 0,
+    total_media_size      BIGINT        DEFAULT 0,
+    media_count_by_type   VARCHAR(4000),
+    media_size_by_type    VARCHAR(4000),
+    last_scanned_at       TIMESTAMP,
+    scan_duration_ms      BIGINT        DEFAULT 0,
+    last_task_id          BIGINT,
+    created_at            TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (platform_id) REFERENCES platform(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_psc_last_scanned ON platform_stats_cache(last_scanned_at);

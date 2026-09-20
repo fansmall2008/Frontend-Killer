@@ -1,0 +1,13 @@
+{
+    ".url": {
+        "frontend-killer.main": {
+            "title": "Frontend-Killer",
+            "icon": "images/icon-{0}.png",
+            "type": "url",
+            "protocol": "http",
+            "port": "4448",
+            "url": "/",
+            "allUsers": true
+        }
+    }
+}

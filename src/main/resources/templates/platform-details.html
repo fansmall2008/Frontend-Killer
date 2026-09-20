@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="platform_details_title">平台详情 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/platform-details.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('platform')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('PLATFORM_DETAILS')}"></div>
+            <main class="content">
+    
+    <div class="pg-container">
+        
+        <div class="platform-info">
+            <h2 data-i18n="platform_stats_title">平台统计</h2>
+            <div id="platformStatsContent" class="loading">
+                <p data-i18n="loading_text">加载中...</p>
+            </div>
+        </div>
+        
+        <div class="game-list">
+            <h2 data-i18n="game_list_title">游戏列表</h2>
+            <div class="list-toolbar">
+                <div class="status-filter">
+                    <button class="btn status-btn active" data-status="scraped" data-i18n="status_scraped">已刮削</button>
+                    <button class="btn status-btn" data-status="original" data-i18n="status_original">有原始数据</button>
+                    <button class="btn status-btn" data-status="poor_quality" data-i18n="status_poor_quality">质量差</button>
+                    <button class="btn status-btn" data-status="raw" data-i18n="status_raw_rom">纯ROM</button>
+                </div>
+                <div class="page-size-group">
+                    <label data-i18n="items_per_page">每页显示：</label>
+                    <select id="pageSizeSelector">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            <div id="gameListContent" class="loading">
+                <p data-i18n="loading_text">加载中...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-i18n="close_modal">&times;</span>
+            <h2 data-i18n="edit_game_title">编辑游戏信息</h2>
+            <form id="editForm">
+                <input type="hidden" id="gameId">
+                <div class="form-group">
+                    <label for="name" data-i18n="game_name">游戏名称</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="translatedName" data-i18n="translated_name">翻译后的名称</label>
+                    <input type="text" id="translatedName" name="translatedName">
+                </div>
+                <div class="form-group">
+                    <label for="desc" data-i18n="game_desc">游戏描述</label>
+                    <textarea id="desc" name="desc"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="translatedDesc" data-i18n="translated_desc">翻译后的描述</label>
+                    <textarea id="translatedDesc" name="translatedDesc"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn" data-i18n="save_changes">保存更改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    
+    <script>
+        // 语言翻译映射
+        ;
+        
+        // 全局变量
+        let currentPlatformId = null;
+        let currentPlatformName = null;
+        let currentStatus = 'scraped';
+        let currentPage = 1;
+        let pageSize = 10;
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            // 旧翻译映射已移除，页面统一使用 i18n.js 机制
+            if (typeof translation === 'undefined') return;
+            
+            
+            // 更新标题
+            document.title = translation['platform_details_title'] + ' - GameList Management Platform';
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+        
+        // 获取翻译文本
+        function getI18nText(key) {
+            const lang = getCurrentLanguage();
+            return I18n.t(key) || key;
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            setLanguage(lang);
+        }
+        
+        // 从URL参数获取平台ID和名称
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                platformId: params.get('platformId'),
+                platformName: decodeURIComponent(params.get('platformName') || '')
+            };
+        }
+        
+        // 加载平台统计数据
+        function loadPlatformStatistics() {
+            if (!currentPlatformId) return;
+            
+            fetch(`/api/gamelist/statistics/platforms`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const platform = data.find(p => p.platformId == currentPlatformId);
+                    if (!platform) {
+                        throw new Error('Platform not found');
+                    }
+                    
+                    const statsContent = document.getElementById('platformStatsContent');
+                    statsContent.innerHTML = `
+                        <div class="platform-stats-grid">
+                            <div class="platform-stat-item">
+                                <h4 data-i18n="status_scraped">已刮削</h4>
+                                <div class="value scraped">${platform.scraped}</div>
+                            </div>
+                            <div class="platform-stat-item">
+                                <h4 data-i18n="status_original">有原始数据</h4>
+                                <div class="value original-data">${platform.originalData}</div>
+                            </div>
+                            <div class="platform-stat-item">
+                                <h4 data-i18n="status_poor_quality">质量差</h4>
+                                <div class="value poor-quality">${platform.poorQuality}</div>
+                            </div>
+                            <div class="platform-stat-item">
+                                <h4 data-i18n="status_raw_rom">纯ROM</h4>
+                                <div class="value raw-rom">${platform.rawRom}</div>
+                            </div>
+                            <div class="platform-stat-item">
+                                <h4 data-i18n="total_games">总游戏数</h4>
+                                <div class="value">${platform.totalGames}</div>
+                            </div>
+                        </div>
+                    `;
+                    updateTranslations(getCurrentLanguage());
+                })
+                .catch(error => {
+                    console.error('Error loading platform statistics:', error);
+                    const statsContent = document.getElementById('platformStatsContent');
+                    statsContent.innerHTML = `
+                        <div class="error">
+                            <p data-i18n="error_text">加载失败，请刷新页面重试</p>
+                        </div>
+                    `;
+                    updateTranslations(getCurrentLanguage());
+                });
+        }
+        
+        // 加载游戏列表
+        function loadGameList(status, page = 1) {
+            if (!currentPlatformId) return;
+            
+            currentStatus = status;
+            currentPage = page;
+            
+            // 更新状态按钮样式
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status === status) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            fetch(`/api/gamelist/games/by-status?platformId=${currentPlatformId}&status=${status}&page=${page}&size=${pageSize}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const gameListContent = document.getElementById('gameListContent');
+                    
+                    if (data.length === 0) {
+                        gameListContent.innerHTML = `
+                            <div class="error">
+                                <p data-i18n="no_games_found">未找到游戏</p>
+                            </div>
+                        `;
+                        updateTranslations(getCurrentLanguage());
+                        return;
+                    }
+                    
+                    let tableHtml = `
+                        <table class="game-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="game_name">游戏名称</th>
+                                    <th data-i18n="translated_name">翻译后的名称</th>
+                                    <th data-i18n="game_desc">游戏描述</th>
+                                    <th data-i18n="translated_desc">翻译后的描述</th>
+                                    <th data-i18n="actions">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.forEach(game => {
+                        tableHtml += `
+                            <tr>
+                                <td>${game.name || '-'}</td>
+                                <td>${game.translatedName || '-'}</td>
+                                <td>${(game.desc || game.translatedDesc || '-').substring(0, 50)}${(game.desc || game.translatedDesc || '').length > 50 ? '...' : ''}</td>
+                                <td>${(game.translatedDesc || game.desc || '-').substring(0, 50)}${(game.translatedDesc || game.desc || '').length > 50 ? '...' : ''}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn edit-btn" onclick="openEditModal(${game.id})" data-i18n="edit_btn">编辑</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                        <div class="pagination">
+                            <button class="btn page-btn" onclick="loadGameList('${status}', ${page - 1})" ${page === 1 ? 'disabled' : ''} data-i18n="page_previous">上一页</button>
+                            <button class="btn page-btn active">${page}</button>
+                            <button class="btn page-btn" onclick="loadGameList('${status}', ${page + 1})" data-i18n="page_next">下一页</button>
+                        </div>
+                    `;
+                    
+                    gameListContent.innerHTML = tableHtml;
+                    updateTranslations(getCurrentLanguage());
+                })
+                .catch(error => {
+                    console.error('Error loading game list:', error);
+                    const gameListContent = document.getElementById('gameListContent');
+                    gameListContent.innerHTML = `
+                        <div class="error">
+                            <p data-i18n="error_text">加载失败，请刷新页面重试</p>
+                        </div>
+                    `;
+                    updateTranslations(getCurrentLanguage());
+                });
+        }
+        
+        // 打开编辑模态框
+        function openEditModal(gameId) {
+            fetch(`/api/gamelist/games/${gameId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(game => {
+                    document.getElementById('gameId').value = game.id;
+                    document.getElementById('name').value = game.name || '';
+                    document.getElementById('translatedName').value = game.translatedName || '';
+                    document.getElementById('desc').value = game.desc || '';
+                    document.getElementById('translatedDesc').value = game.translatedDesc || '';
+                    
+                    document.getElementById('editModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error loading game details:', error);
+                    alert(getI18nText('error_text'));
+                });
+        }
+        
+        // 关闭编辑模态框
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        // 提交编辑表单
+        function submitEditForm(e) {
+            e.preventDefault();
+            
+            const game = {
+                id: document.getElementById('gameId').value,
+                name: document.getElementById('name').value,
+                translatedName: document.getElementById('translatedName').value,
+                desc: document.getElementById('desc').value,
+                translatedDesc: document.getElementById('translatedDesc').value
+            };
+            
+            fetch('/api/gamelist/games', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(game)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(message => {
+                alert(message);
+                closeEditModal();
+                loadGameList(currentStatus, currentPage);
+            })
+            .catch(error => {
+                console.error('Error updating game:', error);
+                alert(getI18nText('error_text'));
+            });
+        }
+        
+        // 初始化页面
+        function initPage() {
+            const params = getUrlParams();
+            currentPlatformId = params.platformId;
+            currentPlatformName = params.platformName;
+            
+            if (!currentPlatformId) {
+                alert(getI18nText('missing_platform_id'));
+                window.location.href = '/platform-management';
+                return;
+            }
+            
+            // 更新平台名称显示（banner 已移除，此处仅为兼容）
+            const platformNameDisplay = document.getElementById('platformNameDisplay');
+            if (platformNameDisplay) {
+                platformNameDisplay.textContent = `${currentPlatformName} - ${getI18nText('platform_details_desc')}`;
+            }
+            
+            // 加载平台统计数据
+            loadPlatformStatistics();
+            
+            // 加载游戏列表
+            loadGameList(currentStatus, currentPage);
+        }
+        
+        // 状态按钮点击事件
+        document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const status = btn.dataset.status;
+                loadGameList(status, 1);
+            });
+        });
+        
+        // 关闭模态框事件
+        document.querySelector('.close').addEventListener('click', closeEditModal);
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('editModal');
+            if (e.target === modal) {
+                closeEditModal();
+            }
+        });
+        
+        // 提交编辑表单事件
+        document.getElementById('editForm').addEventListener('submit', submitEditForm);
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+        
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p class="notification-empty">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                    notificationItem.innerHTML = `
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${notification.time}</div>
+                    `;
+                    content.appendChild(notificationItem);
+                    
+                    if (!notification.read) {
+                        notification.read = true;
+                        unreadCount--;
+                    }
+                });
+            }
+            
+            updateNotificationBell();
+            modal.style.display = 'block';
+        }
+        
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            initPage();
+            
+            // 添加分页大小选择器事件监听器
+            document.getElementById('pageSizeSelector').addEventListener('change', (e) => {
+                pageSize = parseInt(e.target.value);
+                currentPage = 1; // 重置为第一页
+                loadGameList(currentStatus, currentPage);
+            });
+            
+            // 通知模态框关闭按钮
+            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            
+            // 点击通知模态框外部关闭
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('notificationModal');
+                if (e.target === modal) {
+                    closeNotificationPanel();
+                }
+            });
+            
+            // 初始化通知系统
+            updateNotificationBell();
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

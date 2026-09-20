@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="scraper_system_edit_title">编辑刮削系统 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/scraper-system-edit.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('scraper')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('SCRAPER_SYSTEM_EDIT')}"></div>
+            <main class="content">
+
+    <div class="pg-container">
+
+        <div id="status-message" class="status-message"></div>
+
+        <div class="form-container">
+            <form id="system-form">
+                <input type="hidden" id="id" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="systemId" data-i18n="label_system_id">系统ID <span class="required">*</span></label>
+                        <input type="number" id="systemId" name="systemId" required placeholder="ScreenScraper系统ID" data-i18n-placeholder="system_id_placeholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="type" data-i18n="label_type">类型</label>
+                        <input type="text" id="type" name="type" placeholder="如: console, arcade, handheld" data-i18n-placeholder="type_placeholder">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" data-i18n="label_name">名称（法语）<span class="required">*</span></label>
+                    <input type="text" id="name" name="name" required placeholder="系统名称（法语）" data-i18n-placeholder="name_placeholder">
+                </div>
+
+                <div class="language-section">
+                    <h3 data-i18n="label_translations">多语言名称</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nameEn" data-i18n="label_name_en">英文名称</label>
+                            <input type="text" id="nameEn" name="nameEn" placeholder="English name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nameFr" data-i18n="label_name_fr">法语名称</label>
+                            <input type="text" id="nameFr" name="nameFr" placeholder="Nom français">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nameJp" data-i18n="label_name_jp">日语名称</label>
+                            <input type="text" id="nameJp" name="nameJp" placeholder="日本語名" data-i18n-placeholder="name_jp_placeholder">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nameCn" data-i18n="label_name_cn">中文名称</label>
+                            <input type="text" id="nameCn" name="nameCn" placeholder="中文名称" data-i18n-placeholder="name_cn_placeholder">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company" data-i18n="label_company">制造商</label>
+                        <input type="text" id="company" name="company" placeholder="如: Nintendo, Sony, Sega" data-i18n-placeholder="company_placeholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="releaseYear" data-i18n="label_release_year">发行年份</label>
+                        <input type="number" id="releaseYear" name="releaseYear" placeholder="如: 1990" data-i18n-placeholder="release_year_placeholder">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="iconUrl" data-i18n="label_icon_url">图标URL</label>
+                    <input type="text" id="iconUrl" name="iconUrl" placeholder="系统图标链接" data-i18n-placeholder="icon_url_placeholder">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="goBack()" data-i18n="btn_cancel">取消</button>
+                    <button type="submit" class="btn btn-success" data-i18n="btn_save">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isEdit = false;
+
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function loadSystem(id) {
+            fetch(`/api/scraper-systems/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const system = data.data;
+                        document.getElementById('id').value = system.id;
+                        document.getElementById('systemId').value = system.systemId;
+                        document.getElementById('name').value = system.name;
+                        document.getElementById('nameEn').value = system.nameEn || '';
+                        document.getElementById('nameFr').value = system.nameFr || '';
+                        document.getElementById('nameJp').value = system.nameJp || '';
+                        document.getElementById('nameCn').value = system.nameCn || '';
+                        document.getElementById('company').value = system.company || '';
+                        document.getElementById('type').value = system.type || '';
+                        document.getElementById('releaseYear').value = system.releaseYear || '';
+                        document.getElementById('iconUrl').value = system.iconUrl || '';
+
+                        document.getElementById('page-title').textContent = I18n.t('edit_scraper_system_title', '编辑刮削系统');
+                        document.getElementById('page-desc').textContent = I18n.t('edit_scraper_system_desc', '修改刮削系统信息');
+                        isEdit = true;
+                    } else {
+                        showStatus(data.message || I18n.t('load_system_failed', '加载系统数据失败'), 'error');
+                    }
+                })
+                .catch(error => {
+                    showStatus(I18n.t('load_system_failed', '加载系统数据失败') + ': ' + error.message, 'error');
+                });
+        }
+
+        function saveSystem() {
+            const system = {
+                id: document.getElementById('id').value ? parseInt(document.getElementById('id').value) : null,
+                systemId: parseInt(document.getElementById('systemId').value),
+                name: document.getElementById('name').value,
+                nameEn: document.getElementById('nameEn').value || null,
+                nameFr: document.getElementById('nameFr').value || null,
+                nameJp: document.getElementById('nameJp').value || null,
+                nameCn: document.getElementById('nameCn').value || null,
+                company: document.getElementById('company').value || null,
+                type: document.getElementById('type').value || null,
+                releaseYear: document.getElementById('releaseYear').value ? parseInt(document.getElementById('releaseYear').value) : null,
+                iconUrl: document.getElementById('iconUrl').value || null
+            };
+
+            const url = isEdit ? `/api/scraper-systems/${system.id}` : '/api/scraper-systems';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(system)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showStatus(isEdit ? I18n.t('update_success', '更新成功') : I18n.t('create_success', '创建成功'), 'success');
+                    setTimeout(() => {
+                        window.location.href = '/scraper-system-list';
+                    }, 1500);
+                } else {
+                    showStatus(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus(I18n.t('save_failed_prefix', '保存失败: ') + error.message, 'error');
+            });
+        }
+
+        function goBack() {
+            window.location.href = '/scraper-system-list';
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message status-' + type;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const id = getUrlParam('id');
+            if (id) {
+                loadSystem(id);
+            }
+
+            document.getElementById('system-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveSystem();
+            });
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <script>
+        function openNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'block';
+        }
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+    </script>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

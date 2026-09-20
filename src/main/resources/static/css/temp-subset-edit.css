@@ -1,0 +1,451 @@
+/* ============================================
+   Temp Subset Edit Page Styles
+   Aligned with Frontend-Killer Design System
+   ============================================ */
+
+/* ---- Page Container ---- */
+.pg-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ---- Default Button (secondary look) ---- */
+.pg-container .btn {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+}
+
+.pg-container .btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ---- Form Container ---- */
+.form-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+}
+
+.form-container h2 {
+    color: var(--accent-primary);
+    margin-bottom: var(--space-4);
+    font-size: 16px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+}
+
+/* ---- Subset List ---- */
+.subset-list {
+    margin: var(--space-4) 0;
+}
+
+.subset-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.subset-item:hover {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 15px var(--accent-primary-glow);
+}
+
+.subset-item.selected {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 20px var(--accent-primary-glow);
+}
+
+.subset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.subset-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+.subset-info {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.subset-date {
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-family: var(--font-sans);
+}
+
+/* ---- Game List ---- */
+.game-list {
+    margin: var(--space-4) 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.game-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.game-item:hover {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 10px var(--accent-primary-glow);
+}
+
+.game-item.selected {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 15px var(--accent-primary-glow);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.game-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+.game-meta {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: var(--font-sans);
+}
+
+.game-id {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-family: var(--font-sans);
+}
+
+.list-hint {
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    padding: var(--space-4);
+    text-align: center;
+}
+
+.loading-text {
+    color: var(--accent-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.error-text {
+    color: var(--accent-danger);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+/* ---- Game Edit Form ---- */
+.game-edit-form {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.form-group {
+    margin-bottom: var(--space-3);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    transition: border-color var(--transition);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--border-accent);
+}
+
+/* ---- Action Buttons ---- */
+.action-buttons {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    flex-wrap: wrap;
+}
+
+/* ---- Result Container ---- */
+.result-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+    display: none;
+}
+
+.result-success {
+    border-left: 4px solid var(--accent-success);
+}
+
+.result-error {
+    border-left: 4px solid var(--accent-danger);
+}
+
+.result-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    font-family: var(--font-sans);
+}
+
+.result-success .result-title {
+    color: var(--accent-success);
+}
+
+.result-error .result-title {
+    color: var(--accent-danger);
+}
+
+.result-content {
+    margin-bottom: var(--space-4);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+/* ---- Toast Notification ---- */
+.notification {
+    position: fixed;
+    top: 80px;
+    right: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    color: #fff;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.notification.success {
+    background: var(--accent-success);
+}
+
+.notification.error {
+    background: var(--accent-danger);
+}
+
+.notification.info {
+    background: var(--accent-info);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* ---- Notification Modal (layout fragment, keep floating overlay) ---- */
+#notificationModal.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+#notificationModal.modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+}
+
+#notificationModal.modal .close {
+    float: right;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color var(--transition);
+}
+
+#notificationModal.modal .close:hover {
+    color: var(--accent-danger);
+}
+
+#notificationModal.modal .modal-title {
+    margin-bottom: var(--space-4);
+}
+
+/* ---- Notification Items ---- */
+.notification-item {
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition);
+    font-family: var(--font-sans);
+}
+
+.notification-item.read {
+    background: var(--bg-elevated);
+    border-left: 3px solid var(--border-default);
+}
+
+.notification-item.unread {
+    background: var(--accent-primary-subtle);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.notification-message {
+    font-weight: 600;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.notification-message.success {
+    color: var(--accent-success);
+}
+
+.notification-message.error {
+    color: var(--accent-danger);
+}
+
+.notification-message.info {
+    color: var(--accent-secondary);
+}
+
+.notification-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.notification-empty {
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: var(--space-5);
+    font-family: var(--font-sans);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .pg-container {
+        padding: var(--space-4);
+    }
+
+    .form-container,
+    .result-container {
+        padding: var(--space-4);
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .subset-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

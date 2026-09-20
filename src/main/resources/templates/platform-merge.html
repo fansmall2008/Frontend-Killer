@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="platform_merge_title">平台合并 - 前端杀手</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/platform-merge.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('merge')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('PLATFORM_MERGE')}"></div>
+            <main class="content">
+    
+    <script>
+        // 跨页面通知广播监听
+        const notificationChannel = new BroadcastChannel('taskNotifications');
+        
+        notificationChannel.onmessage = function(event) {
+            const data = event.data;
+            if (data && data.message) {
+                showNotification(data.message, data.type || 'info');
+            }
+        };
+        
+        // 监听任务完成通知
+        let previousTasks = {};
+        
+        function checkTaskCompletion() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    tasks.forEach(task => {
+                        const prevStatus = previousTasks[task.id];
+                        if (prevStatus && prevStatus !== task.status && 
+                            (task.status === 'COMPLETED' || task.status === 'FAILED')) {
+                            if (task.status === 'COMPLETED') {
+                                showNotification(I18n.t('task_completed_prefix', '任务已完成: ') + (task.description || task.type), 'success');
+                                notificationChannel.postMessage({
+                                    message: I18n.t('task_completed_prefix', '任务已完成: ') + (task.description || task.type),
+                                    type: 'success'
+                                });
+                            } else {
+                                showNotification(I18n.t('task_failed_prefix', '任务失败: ') + (task.description || task.type), 'error');
+                                notificationChannel.postMessage({
+                                    message: I18n.t('task_failed_prefix', '任务失败: ') + (task.description || task.type),
+                                    type: 'error'
+                                });
+                            }
+                        }
+                        previousTasks[task.id] = task.status;
+                    });
+                })
+                .catch(err => console.log('Task check error:', err));
+        }
+        
+        // 每5秒检查一次任务状态
+        setInterval(checkTaskCompletion, 5000);
+    </script>
+    
+    <div class="pg-container">
+        
+        <div class="form-container">
+
+            
+            <div class="form-group">
+                <label data-i18n="source_platforms">源平台（可多选）：</label>
+                <select id="sourcePlatforms" name="sourcePlatforms" multiple class="multi-select">
+                    <option value="" data-i18n="select_platform">请选择平台（按住Ctrl键可多选）</option>
+                </select>
+                <small class="form-tip" data-i18n="platform_selection_tip">提示：按住Ctrl键可选择多个平台，按住Shift键可选择连续范围的平台</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="newPlatformName" data-i18n="new_platform_name">新平台名称：</label>
+                <input type="text" id="newPlatformName" name="newPlatformName" placeholder="请输入新平台名称" data-i18n-placeholder="new_platform_name_placeholder">
+            </div>
+            
+            <div class="form-group">
+                <label for="newPlatformFolderPath" data-i18n="new_platform_folder_path">新平台文件夹路径：</label>
+                <p class="form-hint" data-i18n="platform_folder_path_tip">导出功能的前置条件，非必填</p>
+                <input type="text" id="newPlatformFolderPath" name="newPlatformFolderPath" placeholder="请输入新平台文件夹的绝对路径" data-i18n-placeholder="new_platform_folder_path_placeholder">
+            </div>
+            
+            <button id="startMerge" class="submit-btn" data-i18n="start_merge">开始合并</button>
+            
+            <div id="result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // 国际化翻译
+        ;
+        
+        // 获取当前语言
+        function getCurrentLanguage() {
+            const lang = localStorage.getItem('language') || 'zh-CN';
+            return lang;
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            applyI18n();
+        }
+        
+        // 获取国际化文本
+        function getI18nText(key) {
+            return I18n.t(key) || key;
+        }
+        
+        // 应用国际化
+        function applyI18n() {
+            $('[data-i18n]').each(function() {
+                const key = $(this).data('i18n');
+                $(this).text(getI18nText(key));
+            });
+        }
+        
+        // 加载平台列表
+        function loadPlatforms() {
+            console.log(getI18nText('loading_platforms'));
+            $.ajax({
+                url: '/api/platforms',
+                type: 'GET',
+                success: function(platforms) {
+                    console.log(getI18nText('platforms_loaded'));
+                    const sourceSelect = $('#sourcePlatforms');
+                    
+                    // 清空现有选项
+                    sourceSelect.empty();
+                    
+                    // 添加平台选项
+                    platforms.forEach(function(platform) {
+                        sourceSelect.append('<option value="' + platform.id + '">' + platform.name + '</option>');
+                    });
+                },
+                error: function() {
+                    console.error('Failed to load platforms');
+                }
+            });
+        }
+        
+        // 开始合并
+        function startMerge() {
+            const sourcePlatforms = $('#sourcePlatforms').val();
+            const newPlatformName = $('#newPlatformName').val();
+            const newPlatformFolderPath = $('#newPlatformFolderPath').val();
+            
+            if (!sourcePlatforms || sourcePlatforms.length < 2) {
+                showResult(I18n.t('select_two_platforms', '请至少选择两个源平台'), 'error');
+                return;
+            }
+            
+            if (!newPlatformName) {
+                showResult(I18n.t('no_new_platform_name', '请输入新平台名称'), 'error');
+                return;
+            }
+            
+            // 显示覆盖确认弹窗
+            if (confirm(I18n.t('merge_overwrite_confirm', '合并过程中可能会遇到文件已存在的情况，是否覆盖已存在的文件？'))) {
+                console.log(getI18nText('merge_started'));
+                
+                $.ajax({
+                    url: '/api/platforms/merge',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        sourcePlatformIds: sourcePlatforms,
+                        newPlatformName: newPlatformName,
+                        newPlatformFolderPath: newPlatformFolderPath || '',
+                        overwrite: true
+                    }),
+                    success: function(response) {
+                        console.log(getI18nText('log_task_started'), response.taskId);
+                        console.log(getI18nText('log_check_task_status'));
+                        console.log(getI18nText('log_conflict_resolution'));
+                        
+                        showResult(
+                            getI18nText('merge_started') + '<br>' +
+                            getI18nText('log_task_started') + ' ' + response.taskId + '<br>' +
+                            getI18nText('log_check_task_status'),
+                            'success'
+                        );
+                    },
+                    error: function() {
+                        console.error(getI18nText('merge_failed'));
+                        showResult(getI18nText('merge_failed'), 'error');
+                    }
+                });
+            } else {
+                showResult(I18n.t('merge_cancelled', '合并操作已取消'), 'error');
+            }
+        }
+        
+        // 显示结果
+        function showResult(message, type) {
+            const resultDiv = $('#result');
+            resultDiv.html(message);
+            resultDiv.removeClass('success error');
+            resultDiv.addClass(type);
+            resultDiv.show();
+        }
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+        
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p class="notification-empty">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                    notificationItem.innerHTML = `
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${notification.time}</div>
+                    `;
+                    content.appendChild(notificationItem);
+                    
+                    if (!notification.read) {
+                        notification.read = true;
+                        unreadCount--;
+                    }
+                });
+            }
+            
+            updateNotificationBell();
+            modal.style.display = 'block';
+        }
+        
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+        
+        // 页面加载完成后执行
+        $(document).ready(function() {
+            applyI18n();
+            loadPlatforms();
+            
+            // 绑定事件
+            $('#startMerge').click(startMerge);
+            
+            // 通知模态框关闭按钮
+            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                const modal = document.getElementById('notificationModal');
+                if (event.target == modal) {
+                    closeNotificationPanel();
+                }
+            };
+            
+            // 初始化通知系统
+            updateNotificationBell();
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

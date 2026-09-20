@@ -11,16 +11,21 @@
   },
   "system": {
     "header": [
-      "collection: {platform.system}",
-      "sort-by: 064",
-      "{platform.launch}",
+      "collection: {platform.name}",
+      "sort-by: {platform.sortBy}",
+      "extensions: {platform.extensions}",
+      "ignore-files: {platform.ignoreFiles}",
+      "launch: {platform.launch}",
       ""
     ],
     "footer": [
       "# End of file"
     ],
     "fields": {
-      "collection": "platform.system",
+      "collection": "platform.name",
+      "sort-by": "platform.sortBy",
+      "extensions": "platform.extensions",
+      "ignore-files": "platform.ignoreFiles",
       "launch": "platform.launch"
     }
   },
@@ -28,14 +33,15 @@
     "gameStartMarker": "game:",
     "entrySeparator": "\n\n",
     "gameInfo": {
-      "game": "name",
-      "files": "path",
+      "game": "coalesce(name, translatedName)",
+      "file": "if(multiFile, '', path)",
+      "files": "multiFileContent",
       "sort-by": "sort-by",
       "developer": "developer",
       "publisher": "publisher",
       "genre": "genre",
       "players": "players",
-      "description": "desc",
+      "description": "coalesce(desc, translatedDesc)",
       "rating": "rating",
       "release": "releasedate",
       "region": "region"
@@ -44,18 +50,18 @@
       "assets.boxFront": "box-2D",
       "assets.boxBack": "box-2D-back",
       "assets.boxSpine": "box-2D-side",
-      "assets.boxFull": "box-3D",
       "assets.box3d": "box-3D",
+      "assets.cartridge": "support-2D",
+      "assets.logo": "wheel-carbon",
+      "assets.poster": "flyer",
+      "assets.marquee": "marquee",
+      "assets.bezel": "bezel-16-9",
+      "assets.fanart": "fanart",
+      "assets.steam": "steamgrid",
+      "assets.background": "background",
       "assets.screenshot": "ss",
       "assets.titlescreen": "sstitle",
-      "assets.video": "video",
-      "assets.logo": "wheel-carbon",
-      "assets.wheel": "wheel",
-      "assets.marquee": "marquee",
-      "assets.fanart": "fanart",
-      "assets.bezel": "bezel-16-9",
-      "assets.background": "background",
-      "assets.cartridge": "support-2D"
+      "assets.video": "video"
     }
   },
   "output": {
@@ -70,7 +76,7 @@
       "directory": "{outputPath}/{platform.system}",
       "filename": "{filename}{ext}",
       "m3u": {
-        "enabled": true,
+        "enabled": false,
         "target": "{outputPath}/{platform.system}"
       }
     },
@@ -102,11 +108,6 @@
           "target": "{gameName}/screenshot.png",
           "dataFileTag": "assets.screenshot"
         },
-        "wheel": {
-          "source": "wheel",
-          "target": "{gameName}/wheel.png",
-          "dataFileTag": "assets.wheel"
-        },
         "marquee": {
           "source": "marquee",
           "target": "{gameName}/marquee.png",
@@ -126,6 +127,36 @@
           "source": "background",
           "target": "{gameName}/background.png",
           "dataFileTag": "assets.background"
+        },
+        "box-2D-side": {
+          "source": "box-2D-side",
+          "target": "{gameName}/boxSpine.png",
+          "dataFileTag": "assets.boxSpine"
+        },
+        "sstitle": {
+          "source": "sstitle",
+          "target": "{gameName}/titlescreen.png",
+          "dataFileTag": "assets.titlescreen"
+        },
+        "wheel-carbon": {
+          "source": "wheel-carbon",
+          "target": "{gameName}/logo.png",
+          "dataFileTag": "assets.logo"
+        },
+        "support-2D": {
+          "source": "support-2D",
+          "target": "{gameName}/cartridge.png",
+          "dataFileTag": "assets.cartridge"
+        },
+        "flyer": {
+          "source": "flyer",
+          "target": "{gameName}/poster.png",
+          "dataFileTag": "assets.poster"
+        },
+        "steamgrid": {
+          "source": "steamgrid",
+          "target": "{gameName}/steam.png",
+          "dataFileTag": "assets.steam"
         }
       }
     },

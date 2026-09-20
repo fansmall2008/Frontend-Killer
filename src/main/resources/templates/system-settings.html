@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="system_settings_title">系统设置 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/system-settings.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('settings')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('SYSTEM_SETTINGS')}"></div>
+            <main class="content">
+
+        
+    <div class="pg-container">
+        
+        <div id="message" class="message" style="display: none;"></div>
+        
+
+        
+        <!-- 语言设置 -->
+        <div class="settings-section">
+            <h2 data-i18n="language_settings">语言设置</h2>
+            <div class="language-settings">
+                <label for="languageSelect" data-i18n="select_language">选择语言：</label>
+                <select id="languageSelect" onchange="setLanguage(this.value)">
+                    <option value="zh-CN" data-i18n="lang_chinese">中文</option>
+                    <option value="en-US" data-i18n="lang_english">English</option>
+                    <option value="ja-JP" data-i18n="lang_japanese">日本語</option>
+                </select>
+                <p class="section-tip" data-i18n="language_tip">语言设置将在页面刷新后生效。</p>
+            </div>
+        </div>
+        
+        <!-- ScreenScraper 设置 -->
+        <div class="settings-section">
+            <h2 data-i18n="scraper_settings_title">ScreenScraper 设置</h2>
+            <div class="setting-item">
+                <label for="scraperUsername" data-i18n="scraper_username">用户名</label>
+                <input type="text" id="scraperUsername" placeholder="ScreenScraper用户名" data-i18n-placeholder="scraper_username_placeholder">
+            </div>
+            <div class="setting-item">
+                <label for="scraperPassword" data-i18n="scraper_password">密码</label>
+                <input type="password" id="scraperPassword" placeholder="ScreenScraper密码" data-i18n-placeholder="scraper_password_placeholder">
+            </div>
+            <div class="button-group">
+                <button class="btn" id="saveScraperSettingsBtn" data-i18n="save_scraper_settings">保存设置</button>
+                <button class="btn" id="testScraperConnectionBtn" data-i18n="test_scraper_connection">测试连接</button>
+                <button class="btn" id="fetchScraperSystemsBtn" data-i18n="fetch_scraper_systems">获取系统列表</button>
+            </div>
+            <p class="section-tip" data-i18n="scraper_settings_tip">ScreenScraper账号用于获取游戏元数据。如不填写用户名密码，将使用游客模式（每日约20000次请求限制）。如需更高限额，请提前在 <a href="https://www.screenscraper.fr/" target="_blank">ScreenScraper.fr</a> 注册账号。</p>
+        </div>
+        
+        <!-- 游戏列表展示设置 -->
+        <div class="settings-section">
+            <h2 data-i18n="game_list_display">游戏列表展示设置</h2>
+            <div class="setting-item">
+                <label for="gameListIconField" data-i18n="game_list_icon_field">游戏列表图标字段</label>
+                <select id="gameListIconField">
+                    <option value="image" data-i18n="icon_image">封面图 (image)</option>
+                    <option value="wheel" data-i18n="icon_wheel">轮盘图标 (wheel)</option>
+                    <option value="wheelCarbon" data-i18n="icon_wheel_carbon">轮盘图标-碳 (wheel-carbon)</option>
+                    <option value="wheelSteel" data-i18n="icon_wheel_steel">轮盘图标-钢 (wheel-steel)</option>
+                    <option value="logo" data-i18n="icon_logo">Logo (logo)</option>
+                    <option value="thumbnail" data-i18n="icon_thumbnail">缩略图 (thumbnail)</option>
+                    <option value="box2d" data-i18n="icon_box_2d">包装盒正面 (box-2D)</option>
+                    <option value="box2dBack" data-i18n="icon_box_2d_back">包装盒背面 (box-2D-back)</option>
+                    <option value="box3d" data-i18n="icon_box_3d">3D包装盒 (box-3D)</option>
+                    <option value="box2dSide" data-i18n="icon_box_2d_side">包装盒侧面 (box-2D-side)</option>
+                    <option value="banner" data-i18n="icon_banner">横幅图 (banner)</option>
+                    <option value="sstitle" data-i18n="icon_ss_title">标题画面 (sstitle)</option>
+                    <option value="ss" data-i18n="icon_ss">截图 (ss)</option>
+                    <option value="fanart" data-i18n="icon_fanart">粉丝艺术图 (fanart)</option>
+                    <option value="poster" data-i18n="icon_poster">海报 (poster)</option>
+                    <option value="support2d" data-i18n="icon_support_2d">卡带图 (support-2D)</option>
+                    <option value="bezel" data-i18n="icon_bezel">边框图 (bezel)</option>
+                    <option value="panel" data-i18n="icon_panel">面板图 (panel)</option>
+                    <option value="background" data-i18n="icon_background">背景图 (background)</option>
+                    <option value="steam" data-i18n="icon_steam">Steam图 (steam)</option>
+                    <option value="steamgrid" data-i18n="icon_steam_grid">Steam网格图 (steamgrid)</option>
+                </select>
+                <p class="section-tip" data-i18n="game_list_icon_desc">选择在游戏列表中显示的图标类型。设置后需要刷新页面生效。<br/>注意：如果某个游戏没有该类型的媒体文件，图标位置将显示空白。</p>
+            </div>
+            <div class="button-group">
+                <button class="btn" id="saveGameListSettingsBtn" data-i18n="save_settings">保存设置</button>
+            </div>
+        </div>
+        
+        <!-- 数据库备份 -->
+        <div class="settings-section">
+            <h2 data-i18n="database_backup">数据库备份</h2>
+            <div class="button-group">
+                <button class="btn" id="backupDatabaseBtn" data-i18n="backup_database">备份数据库</button>
+                <button class="btn" id="restoreDatabaseBtn" data-i18n="restore_database">恢复数据库</button>
+                <button class="btn btn-danger" id="initDatabaseBtn" data-i18n="execute_init">执行初始化</button>
+            </div>
+            <p class="section-tip" data-i18n="database_init_desc">执行数据库初始化操作将重建表结构并清空所有数据。此操作不可逆，请谨慎执行！</p>
+            <div id="initStatus" class="status" style="margin-top: 15px;"></div>
+            <div class="backup-section" id="databaseBackups">
+                <!-- 备份文件列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 获取翻译文本
+        function getI18nText(key) {
+            return I18n.t(key) || key;
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            if (I18n.setLanguage) {
+                I18n.setLanguage(lang);
+            }
+            
+            // 更新标题
+            const titleKey = document.querySelector('title')?.getAttribute('data-i18n');
+            if (titleKey) {
+                document.title = I18n.t(titleKey) + ' - ' + I18n.t('app_name', '前端杀手');
+            }
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                const translatedText = I18n.t(key);
+                if (translatedText && translatedText !== key) {
+                    element.textContent = translatedText;
+                }
+            });
+            
+            // 更新动态生成的备份按钮
+            document.querySelectorAll('.btn-sm').forEach(btn => {
+                if (btn.textContent === 'Restore Database') {
+                    btn.textContent = I18n.t('restore_database');
+                }
+            });
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            document.getElementById('languageSelect').value = lang;
+            updateTranslations(lang);
+        }
+        
+        // 显示消息
+        function showMessage(message, isSuccess = true) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${isSuccess ? 'message-success' : 'message-error'}`;
+            messageDiv.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+
+        
+
+        
+        // 数据库备份
+        async function backupDatabase() {
+            const backupPath = '/data/backup';
+            
+            try {
+                const response = await fetch('/api/settings/backup/database', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ backupPath: backupPath }),
+                });
+                
+                const result = await response.text();
+                if (response.ok) {
+                    showMessage(getI18nText('backup_success'));
+                    loadDatabaseBackups();
+                } else {
+                    showMessage(result, false);
+                }
+            } catch (error) {
+                console.error(getI18nText('log_backup_error'), error);
+                showMessage(getI18nText('error'), false);
+            }
+        }
+        
+        // 数据库恢复
+        async function restoreDatabase() {
+            const backupPath = '/data/backup';
+            
+            try {
+                // 加载备份文件列表
+                const response = await fetch(`/api/settings/backups/list?backupPath=${encodeURIComponent(backupPath)}`);
+                if (response.ok) {
+                    const backups = await response.json();
+                    
+                    // 过滤出数据库备份文件
+                    const dbBackups = backups.filter(backup => backup.name.endsWith('.sql'));
+                    
+                    if (dbBackups.length === 0) {
+                        showMessage(getI18nText('no_backups'), false);
+                        return;
+                    }
+                    
+                    // 创建选择对话框
+                    let selectHtml = '<select id="backupFileSelect">';
+                    dbBackups.forEach(backup => {
+                        selectHtml += `<option value="${backup.name}">${backup.name} (${backup.size} bytes)</option>`;
+                    });
+                    selectHtml += '</select>';
+                    
+                    // 显示对话框
+                    const dialogHtml = `
+                        <div style="padding: 20px;">
+                            <h3>${getI18nText('select_backup_file')}</h3>
+                            ${selectHtml}
+                        </div>
+                    `;
+                    
+                    // 使用alert替代，因为没有内置的confirm对话框支持HTML
+                    const selectedFileName = prompt(getI18nText('select_backup_file') + '\n' + dbBackups.map(b => b.name).join('\n'), dbBackups[0].name);
+                    
+                    if (!selectedFileName) return;
+                    
+                    const fullBackupPath = backupPath + '/' + selectedFileName;
+                    
+                    if (confirm(getI18nText('confirm_restore'))) {
+                        try {
+                            const restoreResponse = await fetch('/api/settings/restore/database', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({ backupFile: fullBackupPath }),
+                            });
+                            
+                            const result = await restoreResponse.text();
+                            if (restoreResponse.ok) {
+                                showMessage(getI18nText('restore_success'));
+                            } else {
+                                showMessage(result, false);
+                            }
+                        } catch (error) {
+                            console.error(getI18nText('log_restore_error'), error);
+                            showMessage(getI18nText('error'), false);
+                        }
+                    }
+                } else {
+                    showMessage(getI18nText('error'), false);
+                }
+            } catch (error) {
+                console.error(getI18nText('log_load_backups_error'), error);
+                showMessage(getI18nText('error'), false);
+            }
+        }
+        
+
+        
+        // 加载数据库备份列表
+        async function loadDatabaseBackups() {
+            const container = document.getElementById('databaseBackups');
+            container.innerHTML = '';
+            
+            const backupPath = '/data/backup';
+            
+            try {
+                const response = await fetch(`/api/settings/backups/list?backupPath=${encodeURIComponent(backupPath)}`);
+                if (response.ok) {
+                    const backups = await response.json();
+                    
+                    // 过滤出数据库备份文件
+                    const dbBackups = backups.filter(backup => backup.name.endsWith('.sql'));
+                    
+                    if (dbBackups.length === 0) {
+                        container.innerHTML = `<p>${getI18nText('no_backups')}</p>`;
+                        return;
+                    }
+                    
+                    dbBackups.forEach(backup => {
+                        const date = new Date(backup.lastModified);
+                        const formattedDate = date.toLocaleString();
+                        
+                        const backupItem = document.createElement('div');
+                        backupItem.className = 'backup-item';
+                        backupItem.innerHTML = `
+                            <div class="backup-info">
+                                <div>
+                                    <span class="backup-name">${backup.name}</span>
+                                    <span class="backup-date">${formattedDate}</span>
+                                </div>
+                                <button class="btn btn-sm" onclick="restoreFromBackup('${backup.path}')">${getI18nText('restore_database')}</button>
+                            </div>
+                        `;
+                        container.appendChild(backupItem);
+                    });
+                } else {
+                    container.innerHTML = `<p>${getI18nText('error')}</p>`;
+                }
+            } catch (error) {
+                console.error(getI18nText('log_load_backups_error'), error);
+                container.innerHTML = `<p>${getI18nText('error')}</p>`;
+            }
+        }
+        
+
+        
+        // 从指定备份恢复
+        async function restoreFromBackup(backupPath) {
+            if (confirm(getI18nText('confirm_restore'))) {
+                try {
+                    const response = await fetch('/api/settings/restore/database', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ backupFile: backupPath }),
+                    });
+                    
+                    const result = await response.text();
+                    if (response.ok) {
+                        showMessage(getI18nText('restore_success'));
+                    } else {
+                        showMessage(result, false);
+                    }
+                } catch (error) {
+                    console.error(getI18nText('log_restore_error'), error);
+                    showMessage(getI18nText('error'), false);
+                }
+            }
+        }
+        
+
+
+        
+        // 加载ScreenScraper设置
+        async function loadScraperSettings() {
+            try {
+                const response = await fetch('/api/settings/scraper');
+                if (response.ok) {
+                    const settings = await response.json();
+                    if (settings.data) {
+                        document.getElementById('scraperUsername').value = settings.data.username || '';
+                        document.getElementById('scraperPassword').value = settings.data.password || '';
+                    }
+                }
+            } catch (error) {
+                console.error('加载ScreenScraper设置失败:', error);
+            }
+        }
+
+        // 保存ScreenScraper设置
+        async function saveScraperSettings() {
+            const username = document.getElementById('scraperUsername').value;
+            const password = document.getElementById('scraperPassword').value;
+            
+            try {
+                const response = await fetch('/api/settings/scraper', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(getI18nText('scraper_settings_saved'));
+                } else {
+                    showMessage(result.message || getI18nText('error'), false);
+                }
+            } catch (error) {
+                console.error('保存ScreenScraper设置失败:', error);
+                showMessage(getI18nText('error'), false);
+            }
+        }
+
+        // 测试ScreenScraper连接
+        async function testScraperConnection() {
+            const username = document.getElementById('scraperUsername').value;
+            const password = document.getElementById('scraperPassword').value;
+            
+            const useGuestMode = !username || !password;
+            
+            try {
+                const requestBody = useGuestMode ? {} : { username, password };
+                const response = await fetch('/api/screenscraper/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(result.message || getI18nText('connection_success'), true);
+                } else {
+                    showMessage(result.message || getI18nText('connection_failed'), false);
+                }
+            } catch (error) {
+                console.error('测试ScreenScraper连接失败:', error);
+                showMessage(getI18nText('connection_failed'), false);
+            }
+        }
+
+        // 获取ScreenScraper系统列表
+        async function fetchScraperSystems() {
+            if (!confirm(getI18nText('fetch_systems_confirm'))) {
+                return;
+            }
+            
+            const username = document.getElementById('scraperUsername').value;
+            const password = document.getElementById('scraperPassword').value;
+            
+            const useGuestMode = !username || !password;
+            if (useGuestMode) {
+                if (!confirm(getI18nText('guest_mode_warning'))) {
+                    return;
+                }
+            }
+            
+            showMessage(getI18nText('fetching_systems'), true);
+            
+            try {
+                const response = await fetch('/api/screenscraper/init', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(getI18nText('systems_fetched_success') + result.count + ' ' + getI18nText('systems'), true);
+                } else {
+                    showMessage(result.message || getI18nText('fetch_systems_failed'), false);
+                }
+            } catch (error) {
+                console.error('获取ScreenScraper系统列表失败:', error);
+                showMessage(getI18nText('fetch_systems_failed'), false);
+            }
+        }
+
+        // 数据库初始化
+        function initDatabase() {
+            if (!confirm(getI18nText('init_confirm'))) {
+                return;
+            }
+            
+            const statusDiv = document.getElementById('initStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.innerHTML = getI18nText('init_processing');
+            
+            fetch('/api/settings/database/init', {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(data => {
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = data;
+                showNotification(data, 'success');
+            })
+            .catch(error => {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = getI18nText('init_failed') + error.message;
+                showNotification(getI18nText('init_failed') + error.message, 'error');
+            });
+        }
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+        
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = `<p class="notification-empty">${getI18nText('no_notifications')}</p>`;
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                    notificationItem.innerHTML = `
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${notification.time}</div>
+                    `;
+                    content.appendChild(notificationItem);
+                    
+                    if (!notification.read) {
+                        notification.read = true;
+                        unreadCount--;
+                    }
+                });
+            }
+            
+            updateNotificationBell();
+            modal.style.display = 'block';
+        }
+        
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+        
+        // 加载游戏列表展示设置
+        function loadGameListSettings() {
+            const iconField = localStorage.getItem('gameListIconField') || 'image';
+            document.getElementById('gameListIconField').value = iconField;
+        }
+        
+        // 保存游戏列表展示设置
+        function saveGameListSettings() {
+            const iconField = document.getElementById('gameListIconField').value;
+            localStorage.setItem('gameListIconField', iconField);
+            showMessage(I18n.t('game_list_settings_saved', '游戏列表展示设置已保存，刷新页面生效！'), true);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadDatabaseBackups();
+            loadScraperSettings();
+            loadGameListSettings();
+            
+            // 语言选择器事件监听
+            document.getElementById('languageSelect').addEventListener('change', async (e) => {
+                setLanguage(e.target.value);
+                loadDatabaseBackups();
+            });
+            
+            // 数据库备份按钮
+            document.getElementById('backupDatabaseBtn').addEventListener('click', backupDatabase);
+            document.getElementById('restoreDatabaseBtn').addEventListener('click', restoreDatabase);
+            
+            // 数据库初始化按钮
+            document.getElementById('initDatabaseBtn').addEventListener('click', initDatabase);
+            
+            // ScreenScraper设置按钮
+            document.getElementById('saveScraperSettingsBtn').addEventListener('click', saveScraperSettings);
+            document.getElementById('testScraperConnectionBtn').addEventListener('click', testScraperConnection);
+            document.getElementById('fetchScraperSystemsBtn').addEventListener('click', fetchScraperSystems);
+            
+            // 游戏列表展示设置按钮
+            document.getElementById('saveGameListSettingsBtn').addEventListener('click', saveGameListSettings);
+
+            // 通知模态框关闭按钮
+            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                const modal = document.getElementById('notificationModal');
+                if (event.target == modal) {
+                    closeNotificationPanel();
+                }
+            };
+            
+            // 初始化通知系统
+            updateNotificationBell();
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

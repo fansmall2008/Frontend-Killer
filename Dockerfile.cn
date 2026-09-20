@@ -27,9 +27,9 @@ WORKDIR /app
 # Copy the built JAR file
 COPY --from=builder /build/target/webGamelistOper-1.1-RC1.jar app.jar
 
-# Copy default rules
-COPY src/main/resources/export-rules/ /app/default-rules/export/
-COPY src/main/resources/import-templates/ /app/default-rules/import/
+# Copy default rules (from rules/ directory, which contains all v2+v3 templates)
+COPY rules/export/ /app/default-rules/export/
+COPY rules/import/ /app/default-rules/import/
 
 # Copy seed data (released to /data on first run by entrypoint)
 # NOTE: placed in /app/seed-data (not /app/data) because /app/data is a symlink to /data (see below)

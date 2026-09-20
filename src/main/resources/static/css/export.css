@@ -1,0 +1,330 @@
+/* ============================================
+   Export Page Styles
+   Aligned with Frontend-Killer Design System
+   ============================================ */
+
+/* ---- Page Container ---- */
+.pg-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ---- Default Button (secondary look) ---- */
+.pg-container .btn {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+}
+
+.pg-container .btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+/* ---- Form Card ---- */
+.form-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    margin-bottom: var(--space-6);
+}
+
+.form-group {
+    margin-bottom: var(--space-6);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.form-group small {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+.form-group select,
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group select:hover,
+.form-group input[type="text"]:hover {
+    border-color: var(--border-hover);
+}
+
+.form-group select:focus,
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-primary-subtle);
+}
+
+/* ---- Checkbox Group ---- */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    margin-top: var(--space-2);
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-weight: 400;
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.checkbox-group label:hover {
+    color: var(--accent-primary);
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-primary);
+}
+
+/* ---- Description / Warning / Hint Boxes ---- */
+.pg-desc-box {
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--accent-secondary);
+    font-size: 13px;
+}
+
+.pg-warn-box {
+    background: var(--accent-warning-subtle);
+    border: 1px solid var(--accent-warning);
+    color: var(--accent-warning);
+}
+
+.pg-hint-box {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-base);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+/* ---- Button Group ---- */
+.button-group {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+}
+
+/* ---- Loading Spinner ---- */
+.loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: pg-spin 1s linear infinite;
+    margin-left: var(--space-2);
+    vertical-align: middle;
+}
+
+@keyframes pg-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ---- Multi-select Combobox ---- */
+.ms-combo-wrapper {
+    position: relative;
+}
+
+.ms-combo-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    min-height: 48px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    cursor: pointer;
+    align-items: center;
+    transition: border-color 0.2s;
+}
+
+.ms-combo-selected:hover { border-color: var(--border-hover); }
+
+.ms-combo-placeholder { color: var(--text-tertiary); font-size: 14px; }
+
+.ms-combo-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--accent-primary-subtle);
+    color: var(--accent-primary);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ms-combo-tag-x {
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+.ms-combo-tag-x:hover { opacity: 1; }
+
+.ms-combo-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-md);
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.ms-combo-dropdown.open { display: block; }
+
+.ms-combo-search {
+    width: calc(100% - 16px) !important;
+    margin: 8px;
+    padding: 8px 12px !important;
+    border: 1px solid var(--border-default) !important;
+    font-size: 14px !important;
+}
+
+.ms-combo-select-all {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-default);
+    cursor: pointer;
+    color: var(--accent-primary);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.ms-combo-select-all:hover { background: var(--accent-primary-subtle); }
+
+.ms-combo-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.ms-combo-option:hover { background: var(--bg-overlay); }
+
+.ms-combo-option.checked { color: var(--accent-primary); }
+
+.ms-combo-option input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: var(--accent-primary);
+    flex-shrink: 0;
+}
+
+.ms-combo-count {
+    margin-left: auto;
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+/* ---- Notification Modal (layout fragment, keep floating overlay) ---- */
+#notificationModal.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+#notificationModal.modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+}
+
+#notificationModal.modal .close {
+    float: right;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color var(--transition);
+}
+
+#notificationModal.modal .close:hover {
+    color: var(--accent-danger);
+}
+
+#notificationModal.modal .modal-title {
+    margin-bottom: var(--space-4);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .pg-container {
+        padding: var(--space-4);
+    }
+
+    .form-card {
+        padding: var(--space-5);
+    }
+}

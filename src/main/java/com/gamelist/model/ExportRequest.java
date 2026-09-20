@@ -4,6 +4,7 @@ import java.util.List;
 
 public class ExportRequest {
     private Long platformId;
+    private List<Long> platformIds;
     private String frontend;
     private String outputPath;
     private boolean copyRoms;
@@ -17,6 +18,14 @@ public class ExportRequest {
 
     public void setPlatformId(Long platformId) {
         this.platformId = platformId;
+    }
+
+    public List<Long> getPlatformIds() {
+        return platformIds;
+    }
+
+    public void setPlatformIds(List<Long> platformIds) {
+        this.platformIds = platformIds;
     }
 
     public String getFrontend() {

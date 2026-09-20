@@ -22,7 +22,7 @@
   "game": {
     "gameStartMarker": "game",
     "gameInfo": {
-      "path": "path",
+      "path": "if(multiFile, m3uPath, path)",
       "name": "name",
       "desc": "desc",
       "rating": "rating",
@@ -56,7 +56,10 @@
     "roms": {
       "enabled": false,
       "directory": "{outputPath}/roms/{platform.system}",
-      "filename": "{filename}{ext}"
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": true
+      }
     },
     "media": {
       "directory": "{outputPath}/downloaded_images/{platform.system}",

@@ -16,13 +16,15 @@
         <result column="system_region" property="systemRegion"/>
         <result column="logo_region" property="logoRegion"/>
         <result column="logo_type" property="logoType"/>
+        <result column="extensions" property="extensions"/>
+        <result column="ignore_files" property="ignoreFiles"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
     
     <insert id="insertPlatform" parameterType="com.gamelist.model.Platform" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO platform (system, software, `database`, web, name, sort_by, launch, folder_path, system_id, system_region, logo_region, logo_type)
-        VALUES (#{system}, #{software}, #{database}, #{web}, #{name}, #{sortBy}, #{launch}, #{folderPath}, #{systemId}, #{systemRegion}, #{logoRegion}, #{logoType})
+        INSERT INTO platform (system, software, `database`, web, name, sort_by, launch, folder_path, system_id, system_region, logo_region, logo_type, extensions, ignore_files)
+        VALUES (#{system}, #{software}, #{database}, #{web}, #{name}, #{sortBy}, #{launch}, #{folderPath}, #{systemId}, #{systemRegion}, #{logoRegion}, #{logoType}, #{extensions}, #{ignoreFiles})
     </insert>
     
     <select id="selectPlatformBySystem" resultMap="PlatformResultMap">
@@ -52,6 +54,8 @@
             <if test="systemRegion != null">system_region = #{systemRegion},</if>
             <if test="logoRegion != null">logo_region = #{logoRegion},</if>
             <if test="logoType != null">logo_type = #{logoType},</if>
+            <if test="extensions != null">extensions = #{extensions},</if>
+            <if test="ignoreFiles != null">ignore_files = #{ignoreFiles},</if>
         </set>
         WHERE id = #{id}
     </update>

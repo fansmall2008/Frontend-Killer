@@ -14,6 +14,8 @@ public class Platform {
     private String systemRegion;
     private String logoRegion;
     private String logoType;
+    private String extensions;
+    private String ignoreFiles;
     private String createdAt;
     private String updatedAt;
 
@@ -120,6 +122,22 @@ public class Platform {
 
     public void setLogoType(String logoType) {
         this.logoType = logoType;
+    }
+
+    public String getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(String extensions) {
+        this.extensions = extensions;
+    }
+
+    public String getIgnoreFiles() {
+        return ignoreFiles;
+    }
+
+    public void setIgnoreFiles(String ignoreFiles) {
+        this.ignoreFiles = ignoreFiles;
     }
 
     public String getCreatedAt() {

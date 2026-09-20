@@ -1,0 +1,354 @@
+/* ============================================
+   Scraper System List Page Styles
+   Aligned with Frontend-Killer Design System
+   ============================================ */
+
+/* ---- Page Container ---- */
+.pg-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ---- Default Button (secondary look) ---- */
+.pg-container .btn {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+}
+
+.pg-container .btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+/* ---- Toolbar ---- */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.toolbar h2 {
+    font-size: 16px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+.toolbar-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: var(--space-1) var(--space-3);
+    font-size: 12px;
+    margin-right: var(--space-1);
+}
+
+/* ---- Table ---- */
+.table-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+}
+
+.data-table th,
+.data-table td {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--border-default);
+    font-size: 14px;
+}
+
+.data-table th {
+    background: var(--bg-elevated);
+    font-weight: 600;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.data-table td {
+    color: var(--text-primary);
+}
+
+.data-table tbody tr {
+    transition: background var(--transition);
+}
+
+.data-table tbody tr:hover {
+    background: var(--accent-primary-subtle);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ---- System Name Cell ---- */
+.system-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.system-name-en {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* ---- Media Badge ---- */
+.media-badge {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.media-badge.scraped {
+    color: var(--accent-success);
+}
+
+.media-badge.not-scraped {
+    color: var(--text-tertiary);
+}
+
+/* ---- Empty State ---- */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px dashed var(--border-hover);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-sans);
+}
+
+.empty-state h3 {
+    font-size: 16px;
+    margin-bottom: var(--space-2);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+/* ---- Status Message ---- */
+.status-message {
+    margin: var(--space-4) 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    display: none;
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.status-success {
+    background: var(--accent-success-subtle);
+    border: 1px solid var(--accent-success);
+    color: var(--accent-success);
+    display: block;
+}
+
+.status-error {
+    background: var(--accent-danger-subtle);
+    border: 1px solid var(--accent-danger);
+    color: var(--accent-danger);
+    display: block;
+}
+
+.status-link {
+    color: var(--accent-secondary);
+    text-decoration: underline;
+}
+
+/* ---- Custom Modal Overlays (delete/clear/scrape) ---- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-overlay .modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    min-width: 400px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.modal-header h2 {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-family: var(--font-sans);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 24px;
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--accent-danger);
+}
+
+.modal-body {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.modal-text {
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.modal-hint {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: var(--space-2);
+}
+
+.delete-warning {
+    color: var(--accent-danger);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+}
+
+/* ---- Pagination ---- */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: var(--space-4);
+    gap: var(--space-2);
+    font-family: var(--font-sans);
+}
+
+.pagination button {
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color var(--transition);
+}
+
+.pagination button:hover:not(:disabled) {
+    border-color: var(--border-accent);
+    color: var(--accent-primary);
+}
+
+.pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* ---- Notification Modal (layout fragment, keep floating overlay) ---- */
+#notificationModal.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+#notificationModal.modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+}
+
+#notificationModal.modal .close {
+    float: right;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color var(--transition);
+}
+
+#notificationModal.modal .close:hover {
+    color: var(--accent-danger);
+}
+
+#notificationModal.modal .modal-title {
+    margin-bottom: var(--space-4);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .pg-container {
+        padding: var(--space-4);
+    }
+
+    .modal-overlay .modal {
+        min-width: 0;
+        width: 95%;
+    }
+}

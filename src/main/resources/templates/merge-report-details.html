@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="report_details_title">合并报告详情</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/merge-report-details.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('merge')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('MERGE_REPORT_DETAILS')}"></div>
+            <main class="content">
+
+    <div class="pg-container">
+
+        <div class="toolbar">
+            <h2 id="reportTitle" data-i18n="report_details">报告详情</h2>
+            <div class="toolbar-buttons">
+                <a href="/merge-reports" class="btn btn-primary" data-i18n="back_to_list">返回列表</a>
+                <button id="completeBtn" class="btn btn-success" onclick="completeReport()" style="display: none;" data-i18n="complete_report">完成报告</button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="loading" class="loading" data-i18n="loading">加载中...</div>
+
+        <div id="reportInfo" style="display: none;">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3 data-i18n="report_name">报告名称</h3>
+                    <p id="reportName"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="status">状态</h3>
+                    <p><span id="reportStatus" class="status"></span></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="total_games">总游戏数</h3>
+                    <p id="totalGames"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="added_games">已添加</h3>
+                    <p id="addedGames"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="conflict_games">冲突游戏</h3>
+                    <p id="conflictGames"></p>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="created_time">创建时间</h3>
+                    <p id="createdAt"></p>
+                </div>
+            </div>
+
+            <h3 data-i18n="source_platforms">源平台</h3>
+            <p id="sourcePlatforms" class="source-platforms"></p>
+
+            <h3 data-i18n="conflict_list">冲突列表</h3>
+            <div id="emptyConflicts" class="empty-state" style="display: none;">
+                <p data-i18n="no_conflicts">暂无冲突</p>
+            </div>
+
+            <div id="conflictsTableContainer" class="table-container" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th data-i18n="source_game_name">源游戏名称</th>
+                            <th data-i18n="source_file_name">源文件名</th>
+                            <th data-i18n="conflict_type">冲突类型</th>
+                            <th data-i18n="conflict_status">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="conflictsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 当前语言（默认中文）
+        let currentLanguage = 'zh-CN';
+
+
+        window.getI18nText = function(key) {
+            return I18n.t(key);
+        }
+
+        async function changeLanguage(lang) {
+            await I18n.setLanguage(lang);
+        }
+
+        function initLanguage() {
+            changeLanguage(currentLanguage);
+        }
+
+        const reportId = new URLSearchParams(window.location.search).get('id');
+
+        async function loadReportDetails() {
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}`);
+                const report = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (!report) {
+                    document.getElementById('error').textContent = getI18nText('report_not_exist');
+                    document.getElementById('error').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('reportInfo').style.display = 'block';
+
+                document.getElementById('reportTitle').textContent = report.reportName;
+                document.getElementById('reportName').textContent = report.reportName;
+                document.getElementById('totalGames').textContent = report.totalGames;
+                document.getElementById('addedGames').textContent = report.addedGames;
+                document.getElementById('conflictGames').textContent = report.conflictGames;
+                document.getElementById('sourcePlatforms').textContent = report.sourcePlatforms;
+                document.getElementById('createdAt').textContent = new Date(report.createdAt).toLocaleString(currentLanguage === 'en-US' ? 'en-US' : (currentLanguage === 'ja-JP' ? 'ja-JP' : 'zh-CN'));
+
+                const statusClass = report.status === 'processing' ? 'status-processing' : 'status-completed';
+                const statusText = report.status === 'processing' ? getI18nText('processing') : getI18nText('completed');
+                document.getElementById('reportStatus').className = `status ${statusClass}`;
+                document.getElementById('reportStatus').textContent = statusText;
+
+                if (report.status === 'processing') {
+                    document.getElementById('completeBtn').style.display = 'inline-block';
+                }
+
+                await loadConflicts();
+
+            } catch (error) {
+                console.error('加载报告详情失败:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        async function loadConflicts() {
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}/conflicts`);
+                const conflicts = await response.json();
+
+                if (conflicts.length === 0) {
+                    document.getElementById('emptyConflicts').style.display = 'block';
+                    document.getElementById('conflictsTableContainer').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('emptyConflicts').style.display = 'none';
+                document.getElementById('conflictsTableContainer').style.display = 'block';
+
+                const tbody = document.getElementById('conflictsTableBody');
+                tbody.innerHTML = '';
+
+                conflicts.forEach(conflict => {
+                    const row = document.createElement('tr');
+
+                    let conflictTypeClass, conflictTypeText;
+                    switch (conflict.conflictType) {
+                        case 'name_conflict':
+                            conflictTypeClass = 'conflict-type-name';
+                            conflictTypeText = getI18nText('name_conflict');
+                            break;
+                        case 'file_conflict':
+                            conflictTypeClass = 'conflict-type-file';
+                            conflictTypeText = getI18nText('file_conflict');
+                            break;
+                        case 'both_conflict':
+                            conflictTypeClass = 'conflict-type-both';
+                            conflictTypeText = getI18nText('both_conflict');
+                            break;
+                        default:
+                            conflictTypeClass = 'conflict-type-name';
+                            conflictTypeText = conflict.conflictType;
+                    }
+
+                    let conflictStatusClass, conflictStatusText;
+                    switch (conflict.status) {
+                        case 'pending':
+                            conflictStatusClass = 'conflict-status-pending';
+                            conflictStatusText = getI18nText('pending');
+                            break;
+                        case 'resolved':
+                            conflictStatusClass = 'conflict-status-resolved';
+                            conflictStatusText = getI18nText('resolved');
+                            break;
+                        case 'skipped':
+                            conflictStatusClass = 'conflict-status-skipped';
+                            conflictStatusText = getI18nText('skipped');
+                            break;
+                        default:
+                            conflictStatusClass = 'conflict-status-pending';
+                            conflictStatusText = conflict.status;
+                    }
+
+                    row.innerHTML = `
+                        <td>${conflict.id}</td>
+                        <td>${conflict.sourceGameName}</td>
+                        <td>${conflict.sourceFileName || '-'}</td>
+                        <td><span class="conflict-type ${conflictTypeClass}">${conflictTypeText}</span></td>
+                        <td><span class="conflict-status ${conflictStatusClass}">${conflictStatusText}</span></td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('加载冲突列表失败:', error);
+                document.getElementById('error').textContent = getI18nText('load_failed') + ': ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        async function completeReport() {
+            if (!confirm(getI18nText('confirm_complete'))) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/merge-reports/${reportId}/complete`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(getI18nText('report_completed'));
+                    location.reload();
+                } else {
+                    alert(getI18nText('complete_failed') + ': ' + result.message);
+                }
+            } catch (error) {
+                console.error('完成报告失败:', error);
+                alert(getI18nText('complete_failed') + ': ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            loadReportDetails();
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <script>
+        function openNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'block';
+        }
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+    </script>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

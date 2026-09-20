@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="temp_subset_edit_title">临时子集修改 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/temp-subset-edit.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('platform')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('TEMP_SUBSET_EDIT')}"></div>
+            <main class="content">
+    
+    <div class="pg-container">
+        
+        <div class="form-container">
+            <h2 data-i18n="select_temp_subset">选择临时子集</h2>
+            <div id="subsetList" class="subset-list">
+                <p data-i18n="loading_subsets">加载临时子集列表中...</p>
+            </div>
+        </div>
+        
+        <div class="form-container" id="gameListContainer" style="display: none;">
+            <h2 data-i18n="subset_games">子集中的游戏</h2>
+            <div id="gameList" class="game-list">
+                <p data-i18n="loading_games">加载游戏列表中...</p>
+            </div>
+        </div>
+        
+        <div class="form-container" id="gameEditContainer" style="display: none;">
+            <h2 data-i18n="edit_game">编辑游戏</h2>
+            <div class="game-edit-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gameName" data-i18n="game_name">游戏名称</label>
+                        <input type="text" id="gameName" placeholder="请输入游戏名称" data-i18n-placeholder="game_name_placeholder">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePath" data-i18n="game_path">游戏路径</label>
+                        <input type="text" id="gamePath" placeholder="请输入游戏路径" data-i18n-placeholder="game_path_placeholder">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameDesc" data-i18n="game_description">游戏描述</label>
+                        <textarea id="gameDesc" placeholder="请输入游戏描述" data-i18n-placeholder="game_desc_placeholder"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameTranslatedName" data-i18n="translated_name">翻译名称</label>
+                        <input type="text" id="gameTranslatedName" placeholder="请输入翻译名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameTranslatedDesc" data-i18n="translated_description">翻译描述</label>
+                        <textarea id="gameTranslatedDesc" placeholder="请输入翻译描述"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameDeveloper" data-i18n="developer">开发商</label>
+                        <input type="text" id="gameDeveloper" placeholder="请输入开发商">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePublisher" data-i18n="publisher">发行商</label>
+                        <input type="text" id="gamePublisher" placeholder="请输入发行商">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameGenre" data-i18n="genre">游戏类型</label>
+                        <input type="text" id="gameGenre" placeholder="请输入游戏类型">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamePlayers" data-i18n="players">玩家数</label>
+                        <input type="text" id="gamePlayers" placeholder="请输入玩家数">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameReleasedate" data-i18n="release_date">发布日期</label>
+                        <input type="text" id="gameReleasedate" placeholder="请输入发布日期">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameRating" data-i18n="rating">评分</label>
+                        <input type="text" id="gameRating" placeholder="请输入评分">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameLanguage" data-i18n="language">语言</label>
+                        <input type="text" id="gameLanguage" placeholder="请输入语言">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="saveGameBtn" data-i18n="save_game">保存修改</button>
+            </div>
+        </div>
+        
+        <div class="form-container" id="actionContainer" style="display: none;">
+            <h2 data-i18n="subset_actions">子集操作</h2>
+            <div class="form-group">
+                <label for="newPlatformName" data-i18n="new_platform_name">新平台名称</label>
+                <input type="text" id="newPlatformName" placeholder="请输入新平台名称" data-i18n-placeholder="new_platform_name_placeholder">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="syncToMainBtn" data-i18n="sync_to_main">同步到主集</button>
+                <button class="btn btn-success" id="createPlatformBtn" data-i18n="create_new_platform">创建新平台</button>
+                <button class="btn btn-danger" id="deleteSubsetBtn" data-i18n="delete_subset">删除子集</button>
+            </div>
+        </div>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // 语言翻译映射
+        ;
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            // 旧翻译映射已移除，页面统一使用 i18n.js 机制
+            if (typeof translation === 'undefined') return;
+            
+            
+            // 更新标题
+            document.title = translation['temp_subset_edit_title'] + ' - 前端杀手';
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+        
+        // 获取翻译文本
+        function getI18nText(key) {
+            const lang = getCurrentLanguage();
+            return I18n.t(key) || key;
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            setLanguage(lang);
+        }
+        
+        // 加载临时子集列表
+        function loadSubsets() {
+            const subsetList = document.getElementById('subsetList');
+            showLoading('subsetList', getI18nText('loading_subsets'));
+            
+            fetchWithErrorHandling('/api/temp-subsets')
+                .then(data => {
+                    subsetList.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        subsetList.innerHTML = '<p class="list-hint">' + getI18nText('no_subsets') + '</p>';
+                        return;
+                    }
+                    
+                    data.forEach(subset => {
+                        const subsetItem = document.createElement('div');
+                        subsetItem.className = 'subset-item';
+                        subsetItem.dataset.id = subset.id;
+                        subsetItem.innerHTML = `
+                            <div class="subset-header">
+                                <div class="subset-name">${subset.name}</div>
+                                <div class="subset-info">加载中... 个游戏</div>
+                            </div>
+                            <div class="subset-info">${subset.description || ''}</div>
+                            <div class="subset-date">${new Date(subset.createdAt).toLocaleString()}</div>
+                        `;
+                        subsetList.appendChild(subsetItem);
+                        
+                        // 获取游戏数量
+                        fetchWithErrorHandling(`/api/temp-subsets/${subset.id}/games`)
+                            .then(games => {
+                                const gameCountElement = subsetItem.querySelector('.subset-header .subset-info');
+                                if (gameCountElement) {
+                                    gameCountElement.textContent = `${games.length} 个游戏`;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('获取游戏数量失败:', error);
+                                const gameCountElement = subsetItem.querySelector('.subset-header .subset-info');
+                                if (gameCountElement) {
+                                    gameCountElement.textContent = '获取游戏数量失败，请刷新页面重试';
+                                }
+                            });
+                        
+                        // 添加点击事件
+                        subsetItem.addEventListener('click', () => {
+                            selectSubset(subset.id);
+                        });
+                    });
+                })
+                .catch(error => {
+                    showError('subsetList', '加载失败');
+                });
+        }
+        
+        // 选择临时子集
+        function selectSubset(subsetId) {
+            // 移除其他子集的选中状态
+            document.querySelectorAll('.subset-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 添加当前子集的选中状态
+            const selectedItem = document.querySelector(`.subset-item[data-id="${subsetId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+            
+            // 加载子集中的游戏
+            loadSubsetGames(subsetId);
+        }
+        
+        // 加载子集中的游戏
+        function loadSubsetGames(subsetId) {
+            const gameListContainer = document.getElementById('gameListContainer');
+            const gameList = document.getElementById('gameList');
+            
+            gameListContainer.style.display = 'block';
+            showLoading('gameList', getI18nText('loading_games'));
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}/games`)
+                .then(data => {
+                    gameList.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        gameList.innerHTML = '<p class="list-hint">' + getI18nText('games_not_found') + '</p>';
+                        return;
+                    }
+                    
+                    data.forEach(game => {
+                        const gameItem = document.createElement('div');
+                        gameItem.className = 'game-item';
+                        gameItem.dataset.id = game.id;
+                        gameItem.innerHTML = `
+                            <div class="game-header">
+                                <div class="game-name">${game.name || '未知游戏'}</div>
+                                <div class="game-meta">${game.path ? game.path.split('/').pop() : ''}</div>
+                            </div>
+                            <div class="game-meta">${game.desc ? (game.desc.length > 100 ? game.desc.substring(0, 100) + '...' : game.desc) : ''}</div>
+                            <div class="game-id">ID: ${game.id}, Original ID: ${game.originalGameId}</div>
+                        `;
+                        gameList.appendChild(gameItem);
+                        
+                        // 添加点击事件
+                        gameItem.addEventListener('click', () => {
+                            console.log('点击游戏，ID:', game.id, 'Original ID:', game.originalGameId);
+                            // 使用game.id来编辑游戏
+                            editGame(game.id);
+                        });
+                    });
+                })
+                .catch(error => {
+                    showError('gameList', '加载失败');
+                });
+            
+            // 显示操作容器
+            document.getElementById('actionContainer').style.display = 'block';
+        }
+        
+        // 编辑游戏
+        function editGame(gameId) {
+            const gameEditContainer = document.getElementById('gameEditContainer');
+            
+            gameEditContainer.style.display = 'block';
+            
+            // 加载游戏详情
+            fetchWithErrorHandling(`/api/temp-subsets/games/${gameId}`)
+                .then(game => {
+                    document.getElementById('gameName').value = game.name || '';
+                    document.getElementById('gamePath').value = game.path || '';
+                    document.getElementById('gameDesc').value = game.desc || '';
+                    document.getElementById('gameTranslatedName').value = game.translatedName || '';
+                    document.getElementById('gameTranslatedDesc').value = game.translatedDesc || '';
+                    document.getElementById('gameDeveloper').value = game.developer || '';
+                    document.getElementById('gamePublisher').value = game.publisher || '';
+                    document.getElementById('gameGenre').value = game.genre || '';
+                    document.getElementById('gamePlayers').value = game.players || '';
+                    document.getElementById('gameReleasedate').value = game.releasedate || '';
+                    document.getElementById('gameRating').value = game.rating || '';
+                    document.getElementById('gameLanguage').value = game.lang || '';
+                    
+                    // 保存当前编辑的游戏ID
+                    sessionStorage.setItem('currentEditingGameId', game.id);
+                })
+                .catch(error => {
+                    console.error('加载游戏失败:', error);
+                    showResult(false, getI18nText('save_error'), '加载游戏失败');
+                });
+        }
+        
+        // 保存游戏修改
+        function saveGame() {
+            const gameId = sessionStorage.getItem('currentEditingGameId');
+            if (!gameId) {
+                showResult(false, getI18nText('save_error'), '请先选择要编辑的游戏');
+                return;
+            }
+            
+            const gameData = {
+                id: gameId,
+                name: document.getElementById('gameName').value,
+                path: document.getElementById('gamePath').value,
+                desc: document.getElementById('gameDesc').value,
+                translatedName: document.getElementById('gameTranslatedName').value,
+                translatedDesc: document.getElementById('gameTranslatedDesc').value,
+                developer: document.getElementById('gameDeveloper').value,
+                publisher: document.getElementById('gamePublisher').value,
+                genre: document.getElementById('gameGenre').value,
+                players: document.getElementById('gamePlayers').value,
+                releasedate: document.getElementById('gameReleasedate').value,
+                rating: document.getElementById('gameRating').value,
+                lang: document.getElementById('gameLanguage').value
+            };
+            
+            fetchWithErrorHandling('/api/temp-subsets/games/update', {
+                method: 'POST',
+                body: JSON.stringify(gameData)
+            })
+            .then(result => {
+                showResult(result.success, result.success ? getI18nText('save_success') : getI18nText('save_error'), result.message || '');
+            })
+            .catch(error => {
+                showResult(false, getI18nText('save_error'), '保存失败');
+            });
+        }
+        
+        // 同步到主集
+        function syncToMain() {
+            const selectedSubset = document.querySelector('.subset-item.selected');
+            if (!selectedSubset) {
+                showResult(false, getI18nText('sync_error'), '请先选择一个临时子集');
+                return;
+            }
+            
+            const subsetId = selectedSubset.dataset.id;
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}/sync-to-main`, {
+                method: 'POST'
+            })
+            .then(result => {
+                showResult(result.success, result.success ? getI18nText('sync_success') : getI18nText('sync_error'), result.message || '');
+            })
+            .catch(error => {
+                showResult(false, getI18nText('sync_error'), '同步失败');
+            });
+        }
+        
+        // 创建新平台
+        function createNewPlatform() {
+            const selectedSubset = document.querySelector('.subset-item.selected');
+            if (!selectedSubset) {
+                showResult(false, getI18nText('create_platform_error'), '请先选择一个临时子集');
+                return;
+            }
+            
+            const subsetId = selectedSubset.dataset.id;
+            const platformName = document.getElementById('newPlatformName').value;
+            
+            if (!platformName) {
+                showResult(false, getI18nText('create_platform_error'), getI18nText('enter_platform_name'));
+                return;
+            }
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}/create-platform`, {
+                method: 'POST',
+                body: JSON.stringify({ platformName })
+            })
+            .then(result => {
+                showResult(result.success, result.success ? getI18nText('create_platform_success') : getI18nText('create_platform_error'), result.message || '');
+            })
+            .catch(error => {
+                showResult(false, getI18nText('create_platform_error'), '创建失败');
+            });
+        }
+        
+        // 删除临时子集
+        function deleteSubset() {
+            const selectedSubset = document.querySelector('.subset-item.selected');
+            if (!selectedSubset) {
+                showResult(false, getI18nText('delete_error'), '请先选择一个临时子集');
+                return;
+            }
+            
+            if (!confirm(getI18nText('confirm_delete'))) {
+                return;
+            }
+            
+            const subsetId = selectedSubset.dataset.id;
+            
+            fetchWithErrorHandling(`/api/temp-subsets/${subsetId}`, {
+                method: 'DELETE'
+            })
+            .then(result => {
+                if (result.success) {
+                    showResult(true, getI18nText('delete_success'), '删除成功');
+                    // 重新加载子集列表
+                    setTimeout(() => {
+                        loadSubsets();
+                        document.getElementById('gameListContainer').style.display = 'none';
+                        document.getElementById('gameEditContainer').style.display = 'none';
+                        document.getElementById('actionContainer').style.display = 'none';
+                    }, 1500);
+                } else {
+                    showResult(false, getI18nText('delete_error'), '删除失败');
+                }
+            })
+            .catch(error => {
+                showResult(false, getI18nText('delete_error'), '删除失败');
+            });
+        }
+        
+        // 显示结果
+        function showResult(success, title, content) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContainer.style.display = 'block';
+            resultContainer.className = 'result-container ' + (success ? 'result-success' : 'result-error');
+            resultTitle.textContent = title;
+            resultContent.textContent = content;
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                resultContainer.style.display = 'none';
+            }, 3000);
+        }
+        
+        // API调用工具函数
+        function fetchWithErrorHandling(url, options = {}) {
+            return fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error(`API调用失败 (${url}):`, error);
+                throw error;
+            });
+        }
+        
+        // 显示加载状态
+        function showLoading(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<p class="loading-text">${message || '加载中...'}</p>`;
+            }
+        }
+        
+        // 显示错误信息
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<p class="error-text">${message}</p>`;
+            }
+        }
+        
+        // 通知系统
+        let notifications = [];
+        let unreadCount = 0;
+
+        function showNotification(message, type = 'info') {
+            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
+            unreadCount++;
+            updateNotificationBell();
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => notificationElement.remove(), 300);
+            }, 3000);
+        }
+
+        function updateNotificationBell() {
+            const badge = document.querySelector('.notification-bell .badge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p class="notification-empty">暂无通知消息</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                    
+                    notificationItem.innerHTML = `
+                        <div class="notification-message ${notification.type}">${notification.message}</div>
+                        <div class="notification-time">${notification.time}</div>
+                    `;
+                    
+                    notificationItem.addEventListener('click', () => {
+                        if (!notification.read) {
+                            notification.read = true;
+                            unreadCount--;
+                            updateNotificationBell();
+                        }
+                        notificationItem.classList.remove('unread');
+                        notificationItem.classList.add('read');
+                    });
+                    
+                    content.appendChild(notificationItem);
+                });
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭通知面板
+        function closeNotificationPanel() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('notificationModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化语言
+            initLanguage();
+            
+            // 加载临时子集列表
+            loadSubsets();
+            
+            // 保存游戏按钮事件
+            document.getElementById('saveGameBtn').addEventListener('click', saveGame);
+            
+            // 同步到主集按钮事件
+            document.getElementById('syncToMainBtn').addEventListener('click', syncToMain);
+            
+            // 创建新平台按钮事件
+            document.getElementById('createPlatformBtn').addEventListener('click', createNewPlatform);
+            
+            // 删除子集按钮事件
+            document.getElementById('deleteSubsetBtn').addEventListener('click', deleteSubset);
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

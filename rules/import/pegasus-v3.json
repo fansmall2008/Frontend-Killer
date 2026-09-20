@@ -25,17 +25,22 @@
   "system": {
     "gameStartMarker": "game:",
     "fields": {
-      "platform.system": ["collection"],
-      "platform.launch": ["launch", "command"]
+      "platform.name": ["collection"],
+      "platform.launch": ["launch", "command"],
+      "platform.sortBy": ["sort-by"],
+      "platform.extensions": ["extensions"],
+      "platform.ignoreFiles": ["ignore-files"]
     }
   },
   "game": {
     "gameStartMarker": "game:",
     "multiLine": true,
-    "multiFile": {
+    "multiFileDetection": {
       "enabled": true,
-      "field": "path",
-      "separator": "\n"
+      "source": "files",
+      "trigger": "fieldExists",
+      "content": "fieldValue",
+      "pathFrom": "firstLine"
     },
     "computedVariables": {
       "filename": "stem(path)",
@@ -63,15 +68,15 @@
       "sstitle": ["assets.titlescreen"],
       "video": ["assets.video"],
       "wheel-carbon": ["assets.logo"],
-      "wheel": ["assets.wheel"],
       "marquee": ["assets.marquee"],
       "fanart": ["assets.fanart"],
       "bezel-16-9": ["assets.bezel"],
       "panel": ["assets.panel"],
       "background": ["assets.background", "assets.bg"],
-      "poster": ["assets.poster"],
+      "flyer": ["assets.poster"],
       "music": ["assets.music"],
-      "support-2D": ["assets.cartridge"]
+      "support-2D": ["assets.cartridge"],
+      "steamgrid": ["assets.steam"]
     },
     "mediaDiscovery": {
       "enabled": true,
@@ -128,10 +133,6 @@
           "wheelsteel/{filename}.{ext}",
           "logos/{filename}.{ext}"
         ],
-        "wheel": [
-          "{filename}/wheel.{ext}",
-          "wheel/{filename}.{ext}"
-        ],
         "marquee": [
           "{filename}/marquee.{ext}",
           "{filename}/logo.{ext}",
@@ -157,7 +158,7 @@
           "background/{filename}.{ext}",
           "bg/{filename}.{ext}"
         ],
-        "poster": [
+        "flyer": [
           "{filename}/poster.{ext}",
           "poster/{filename}.{ext}",
           "posters/{filename}.{ext}"
@@ -170,6 +171,10 @@
         "support-2D": [
           "{filename}/cartridge.{ext}",
           "cartridge/{filename}.{ext}"
+        ],
+        "steamgrid": [
+          "{filename}/steam.{ext}",
+          "steamgrid/{filename}.{ext}"
         ]
       }
     }

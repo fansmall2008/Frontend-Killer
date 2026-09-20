@@ -3,8 +3,11 @@ package com.gamelist.controller;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
@@ -22,6 +25,7 @@ import com.gamelist.model.ImportStatistics;
 import com.gamelist.model.ScanResult;
 import com.gamelist.service.GameService;
 import com.gamelist.service.TaskService;
+import com.gamelist.service.impl.AsyncImportService;
 
 @RestController
 @RequestMapping("/api/scan")
@@ -33,13 +37,16 @@ public class ScanController {
     
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private AsyncImportService asyncImportService;
     
     /**
      * 扫描参数
      */
     public static class ScanRequest {
         private String path;
-        private int depth; // -1: 递归所有子目录, 0: 当前目录, 1-3: 指定深度
+        private List<Integer> levels; // 勾选的扫描层级集合，第1层为根目录本身
         private String importMethod; // template 或 noDataFile
         private String importTemplate; // 导入模板文件名
         private boolean noDataFile; // 无数据文件导入模式
@@ -53,11 +60,11 @@ public class ScanController {
         public void setPath(String path) {
             this.path = path;
         }
-        public int getDepth() {
-            return depth;
+        public List<Integer> getLevels() {
+            return levels;
         }
-        public void setDepth(int depth) {
-            this.depth = depth;
+        public void setLevels(List<Integer> levels) {
+            this.levels = levels;
         }
         public String getImportMethod() {
             return importMethod;
@@ -111,6 +118,14 @@ public class ScanController {
         private String fileExtensions; // 文件扩展名（逗号分隔）
         private String scraperSystemId; // 选中的 scraper 系统 ID
         private boolean enableMediaDiscovery = true; // 是否执行 mediaDiscovery 规则扫描
+        private List<Integer> levels; // 勾选的扫描层级集合（noDataFile 模式使用）
+
+        public List<Integer> getLevels() {
+            return levels;
+        }
+        public void setLevels(List<Integer> levels) {
+            this.levels = levels;
+        }
 
         public List<String> getFiles() {
             return files;
@@ -179,8 +194,8 @@ public class ScanController {
      */
     @PostMapping("/scan")
     public ScanResult scan(@RequestBody ScanRequest request) {
-        logger.info("开始扫描，路径: {}, 深度: {}, 导入方式: {}, 模板: {}", 
-                    request.getPath(), request.getDepth(), request.getImportMethod(), request.getImportTemplate());
+        logger.info("开始扫描，路径: {}, 层级: {}, 导入方式: {}, 模板: {}", 
+                    request.getPath(), request.getLevels(), request.getImportMethod(), request.getImportTemplate());
         
         ScanResult result = new ScanResult();
         List<ScanResult.Detail> details = new ArrayList<>();
@@ -212,31 +227,26 @@ public class ScanController {
                     }
                 }
             } catch (Exception e) {
-                logger.debug("v3 模板检测失败，尝试旧版模板: {}", e.getMessage());
-            }
-            
-            // 回退到旧版 v2 模板
-            if (targetDataFile == null) {
-                try {
-                    com.gamelist.service.impl.GameServiceImpl.ImportTemplate template = 
-                        com.gamelist.service.impl.GameServiceImpl.ImportTemplate.loadTemplate(request.getImportTemplate());
-                    if (template != null && template.getDataFile() != null && !template.getDataFile().isEmpty()) {
-                        targetDataFile = template.getDataFile();
-                        logger.info("使用模板 {}，指定的数据文件类型: {}", request.getImportTemplate(), targetDataFile);
-                    }
-                } catch (Exception e) {
-                    logger.warn("加载模板失败，将使用默认扫描方式: {}", e.getMessage());
-                }
+                logger.debug("v3 模板检测失败: {}", e.getMessage());
             }
         }
         
+        // 解析勾选的层级集合（第1层为根目录本身），默认至少扫第1层
+        Set<Integer> levelSet = new HashSet<>();
+        if (request.getLevels() != null && !request.getLevels().isEmpty()) {
+            levelSet.addAll(request.getLevels());
+        } else {
+            levelSet.add(1);
+        }
+        int maxLevel = Collections.max(levelSet);
+
         Map<String, List<File>> foundFiles;
         if (targetDataFile != null) {
             // 根据模板指定的数据文件类型进行扫描
-            foundFiles = scanSpecificFileType(rootDir, request.getDepth(), targetDataFile);
+            foundFiles = scanSpecificFileType(rootDir, levelSet, maxLevel, targetDataFile);
         } else {
             // 同时扫描两种文件类型（默认行为）
-            foundFiles = scanBothFileTypes(rootDir, request.getDepth());
+            foundFiles = scanBothFileTypes(rootDir, levelSet, maxLevel);
         }
         
         int totalFiles = 0;
@@ -290,11 +300,11 @@ public class ScanController {
             }
         }
 
-        // 异步执行导入
-        importFilesAsync(task.getId(), request.getFiles(), request.getType(), threadCount,
+        // 异步执行导入（委托给独立 Bean 以使 @Async 生效）
+        asyncImportService.executeImport(task.getId(), request.getFiles(), request.getType(), threadCount,
                          request.getImportMethod(), request.getImportTemplate(), request.getScanPath(),
                          request.isNoDataFile(), request.getFileExtensions(), scraperSystemIdLong,
-                         request.isEnableMediaDiscovery());
+                         request.isEnableMediaDiscovery(), request.getLevels());
 
         return task;
     }
@@ -306,7 +316,7 @@ public class ScanController {
     public Future<Void> importFilesAsync(Long taskId, List<String> files, String type, int threadCount,
                                          String importMethod, String importTemplate, String scanPath,
                                          boolean noDataFile, String fileExtensions, Long scraperSystemId,
-                                         boolean enableMediaDiscovery) {
+                                         boolean enableMediaDiscovery, List<Integer> levels) {
         try {
             if (noDataFile) {
                 taskService.updateTaskLog(taskId, "使用无数据文件导入模式");
@@ -316,7 +326,7 @@ public class ScanController {
                     taskService.updateTaskLog(taskId, "选中的 scraper 系统 ID：" + scraperSystemId);
                 }
 
-                ImportStatistics stats = gameService.importGamesFromFileScan(scanPath, fileExtensions, importTemplate, threadCount, taskId, scraperSystemId);
+                ImportStatistics stats = gameService.importGamesFromFileScan(scanPath, fileExtensions, importTemplate, threadCount, taskId, scraperSystemId, levels, enableMediaDiscovery);
                 taskService.updateTaskLog(taskId, "无数据文件导入完成，共导入 " + stats.getImportedGames() + " 个游戏");
 
                 String resultMsg = "成功导入 " + stats.getImportedGames() + " 个游戏\n";
@@ -361,11 +371,6 @@ public class ScanController {
                     } else if (filePath.endsWith("metadata.pegasus.txt")) {
                         // 导入metadata.pegasus.txt
                         ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery);
-                        importedPlatforms += stats.getImportedPlatforms();
-                        importedGames += stats.getImportedGames();
-                    } else if (filePath.endsWith(".lpl")) {
-                        // 导入Lakka .lpl播放列表文件
-                        ImportStatistics stats = gameService.importGamesFromLplFile(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else {
@@ -439,91 +444,91 @@ public class ScanController {
      * @param maxDepth 最大扫描深度
      * @param dataFile 指定的数据文件名（如 "gamelist.xml" 或 "metadata.pegasus.txt"）
      */
-    private Map<String, List<File>> scanSpecificFileType(File directory, int maxDepth, String dataFile) {
+    private Map<String, List<File>> scanSpecificFileType(File directory, Set<Integer> levels, int maxLevel, String dataFile) {
         Map<String, List<File>> resultMap = new java.util.HashMap<>();
         resultMap.put(dataFile, new ArrayList<>());
         
-        scanSpecificFileTypeRecursive(directory, resultMap, 0, maxDepth, dataFile);
+        scanSpecificFileTypeRecursive(directory, resultMap, 1, levels, maxLevel, dataFile);
         return resultMap;
     }
     
     /**
      * 递归扫描目录，只检查指定类型的文件
      */
-    private void scanSpecificFileTypeRecursive(File directory, Map<String, List<File>> resultMap, int currentDepth, int maxDepth, String dataFile) {
-        if (maxDepth != -1 && currentDepth > maxDepth) {
-            return;
-        }
-        
-        if (dataFile.contains("*")) {
-            // 支持通配符模式匹配（如 "*.lpl"）
-            String extension = dataFile.replace("*.", "");
-            File[] matchingFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith("." + extension));
-            if (matchingFiles != null) {
-                for (File file : matchingFiles) {
-                    if (file.isFile()) {
-                        resultMap.get(dataFile).add(file);
-                        logger.info("找到{}: {}", dataFile, file.getAbsolutePath());
+    private void scanSpecificFileTypeRecursive(File directory, Map<String, List<File>> resultMap, int currentLevel, Set<Integer> levels, int maxLevel, String dataFile) {
+        // 仅在当前层被勾选时收集目标文件
+        if (levels.contains(currentLevel)) {
+            if (dataFile.contains("*")) {
+                // 支持通配符模式匹配（如 "*.xml"）
+                String extension = dataFile.replace("*.", "");
+                File[] matchingFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith("." + extension));
+                if (matchingFiles != null) {
+                    for (File file : matchingFiles) {
+                        if (file.isFile()) {
+                            resultMap.get(dataFile).add(file);
+                            logger.info("找到{}: {}", dataFile, file.getAbsolutePath());
+                        }
                     }
                 }
-            }
-        } else {
-            // 精确文件名匹配（如 "gamelist.xml"）
-            File targetFile = new File(directory, dataFile);
-            if (targetFile.exists() && targetFile.isFile()) {
-                resultMap.get(dataFile).add(targetFile);
-                logger.info("找到{}: {}", dataFile, targetFile.getAbsolutePath());
+            } else {
+                // 精确文件名匹配（如 "gamelist.xml"）
+                File targetFile = new File(directory, dataFile);
+                if (targetFile.exists() && targetFile.isFile()) {
+                    resultMap.get(dataFile).add(targetFile);
+                    logger.info("找到{}: {}", dataFile, targetFile.getAbsolutePath());
+                }
             }
         }
         
-        File[] subDirectories = directory.listFiles(File::isDirectory);
-        if (subDirectories != null && subDirectories.length > 0) {
-            Arrays.stream(subDirectories).forEach(subDir -> {
-                scanSpecificFileTypeRecursive(subDir, resultMap, currentDepth + 1, maxDepth, dataFile);
-            });
+        // 未达最深勾选层时继续下钻（穿过未勾选的中间层）
+        if (currentLevel < maxLevel) {
+            File[] subDirectories = directory.listFiles(File::isDirectory);
+            if (subDirectories != null && subDirectories.length > 0) {
+                Arrays.stream(subDirectories).forEach(subDir -> {
+                    scanSpecificFileTypeRecursive(subDir, resultMap, currentLevel + 1, levels, maxLevel, dataFile);
+                });
+            }
         }
     }
     
     /**
      * 同时扫描gamelist.xml和metadata.pegasus.txt文件
      */
-    private Map<String, List<File>> scanBothFileTypes(File directory, int maxDepth) {
+    private Map<String, List<File>> scanBothFileTypes(File directory, Set<Integer> levels, int maxLevel) {
         Map<String, List<File>> resultMap = new java.util.HashMap<>();
         resultMap.put("gamelist.xml", new ArrayList<>());
         resultMap.put("metadata.pegasus.txt", new ArrayList<>());
         
-        scanBothFileTypesRecursive(directory, resultMap, 0, maxDepth);
+        scanBothFileTypesRecursive(directory, resultMap, 1, levels, maxLevel);
         return resultMap;
     }
     
     /**
      * 递归扫描目录，同时检查两种文件类型
      */
-    private void scanBothFileTypesRecursive(File directory, Map<String, List<File>> resultMap, int currentDepth, int maxDepth) {
-        // 检查深度限制
-        if (maxDepth != -1 && currentDepth > maxDepth) {
-            return;
+    private void scanBothFileTypesRecursive(File directory, Map<String, List<File>> resultMap, int currentLevel, Set<Integer> levels, int maxLevel) {
+        // 仅在当前层被勾选时收集数据文件
+        if (levels.contains(currentLevel)) {
+            // 同时检查两种文件类型
+            File gamelistFile = new File(directory, "gamelist.xml");
+            if (gamelistFile.exists() && gamelistFile.isFile()) {
+                resultMap.get("gamelist.xml").add(gamelistFile);
+                logger.info("找到gamelist.xml: {}", gamelistFile.getAbsolutePath());
+            }
+            
+            File metadataFile = new File(directory, "metadata.pegasus.txt");
+            if (metadataFile.exists() && metadataFile.isFile()) {
+                resultMap.get("metadata.pegasus.txt").add(metadataFile);
+                logger.info("找到metadata.pegasus.txt: {}", metadataFile.getAbsolutePath());
+            }
         }
         
-        // 同时检查两种文件类型
-        File gamelistFile = new File(directory, "gamelist.xml");
-        if (gamelistFile.exists() && gamelistFile.isFile()) {
-            resultMap.get("gamelist.xml").add(gamelistFile);
-            logger.info("找到gamelist.xml: {}", gamelistFile.getAbsolutePath());
-        }
-        
-        File metadataFile = new File(directory, "metadata.pegasus.txt");
-        if (metadataFile.exists() && metadataFile.isFile()) {
-            resultMap.get("metadata.pegasus.txt").add(metadataFile);
-            logger.info("找到metadata.pegasus.txt: {}", metadataFile.getAbsolutePath());
-        }
-        
-        // 遍历子目录
-        if (maxDepth == -1 || currentDepth < maxDepth) {
+        // 未达最深勾选层时继续下钻（穿过未勾选的中间层）
+        if (currentLevel < maxLevel) {
             File[] subDirectories = directory.listFiles(File::isDirectory);
             if (subDirectories != null && subDirectories.length > 0) {
                 for (File subDir : subDirectories) {
-                    scanBothFileTypesRecursive(subDir, resultMap, currentDepth + 1, maxDepth);
+                    scanBothFileTypesRecursive(subDir, resultMap, currentLevel + 1, levels, maxLevel);
                 }
             }
         }

@@ -34,7 +34,7 @@
   "game": {
     "gameStartMarker": "game",
     "gameInfo": {
-      "path": "path",
+      "path": "if(multiFile, m3uPath, path)",
       "name": "name",
       "desc": "desc",
       "rating": "rating",
@@ -68,7 +68,7 @@
       "directory": "{outputPath}/{platform.system}",
       "filename": "{filename}{ext}",
       "m3u": {
-        "enabled": false
+        "enabled": true
       }
     },
     "media": {

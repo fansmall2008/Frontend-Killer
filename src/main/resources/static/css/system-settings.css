@@ -1,0 +1,394 @@
+/* ============================================
+   System Settings Page Styles
+   Aligned with Frontend-Killer Design System
+   ============================================ */
+
+/* ---- Page Container ---- */
+.pg-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ---- Default Button (secondary look) ---- */
+.pg-container .btn {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+}
+
+.pg-container .btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+/* ---- Settings Section ---- */
+.settings-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.settings-section:hover {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 15px var(--accent-primary-glow);
+}
+
+.settings-section h2 {
+    color: var(--accent-primary);
+    margin-bottom: var(--space-4);
+    font-size: 16px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-default);
+    padding-bottom: var(--space-3);
+}
+
+/* ---- Setting Item ---- */
+.setting-item {
+    margin-bottom: var(--space-5);
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.setting-item input,
+.setting-item select {
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    transition: border-color var(--transition);
+}
+
+.setting-item input:focus,
+.setting-item select:focus {
+    outline: none;
+    border-color: var(--border-accent);
+}
+
+.section-tip {
+    margin-top: var(--space-3);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+}
+
+.section-tip a {
+    color: var(--accent-secondary);
+}
+
+/* ---- Button Group ---- */
+.button-group {
+    margin-top: var(--space-5);
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+/* ---- Message ---- */
+.message {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-5);
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.message-success {
+    background: var(--accent-success-subtle);
+    color: var(--accent-success);
+    border-color: var(--accent-success);
+}
+
+.message-error {
+    background: var(--accent-danger-subtle);
+    color: var(--accent-danger);
+    border-color: var(--accent-danger);
+}
+
+/* ---- Init Status ---- */
+.status {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    display: none;
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.status.success {
+    display: block;
+    background: var(--accent-success-subtle);
+    border: 1px solid var(--accent-success);
+    color: var(--accent-success);
+}
+
+.status.error {
+    display: block;
+    background: var(--accent-danger-subtle);
+    border: 1px solid var(--accent-danger);
+    color: var(--accent-danger);
+}
+
+/* ---- Backup Section ---- */
+.backup-section {
+    margin-top: var(--space-5);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.backup-section p {
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.backup-item {
+    padding: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-3);
+    background: var(--bg-surface);
+    transition: border-color var(--transition);
+}
+
+.backup-item:hover {
+    border-color: var(--border-accent);
+}
+
+.backup-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.backup-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.backup-date {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    margin-left: var(--space-3);
+}
+
+.btn-sm {
+    padding: var(--space-1) var(--space-3);
+    font-size: 12px;
+}
+
+/* ---- Language Settings ---- */
+.language-settings {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+}
+
+.language-settings label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+}
+
+.language-settings select {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    font-family: var(--font-sans);
+    min-width: 180px;
+    transition: border-color var(--transition);
+}
+
+.language-settings select:hover,
+.language-settings select:focus {
+    border-color: var(--border-accent);
+}
+
+/* ---- Toast Notification ---- */
+.notification {
+    position: fixed;
+    top: 80px;
+    right: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    color: #fff;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: var(--font-sans);
+    font-size: 14px;
+}
+
+.notification.success {
+    background: var(--accent-success);
+}
+
+.notification.error {
+    background: var(--accent-danger);
+}
+
+.notification.info {
+    background: var(--accent-info);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* ---- Notification Modal (layout fragment, keep floating overlay) ---- */
+#notificationModal.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+#notificationModal.modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+}
+
+#notificationModal.modal .close {
+    float: right;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color var(--transition);
+}
+
+#notificationModal.modal .close:hover {
+    color: var(--accent-danger);
+}
+
+#notificationModal.modal .modal-title {
+    margin-bottom: var(--space-4);
+}
+
+/* ---- Notification Items ---- */
+.notification-item {
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+}
+
+.notification-item.read {
+    background: var(--bg-elevated);
+    border-left: 3px solid var(--border-default);
+}
+
+.notification-item.unread {
+    background: var(--accent-primary-subtle);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.notification-message {
+    font-weight: 600;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.notification-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.notification-empty {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: var(--space-5);
+    font-family: var(--font-sans);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .pg-container {
+        padding: var(--space-4);
+    }
+
+    .settings-section {
+        padding: var(--space-4);
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .backup-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

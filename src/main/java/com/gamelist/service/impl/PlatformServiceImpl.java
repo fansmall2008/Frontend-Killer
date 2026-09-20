@@ -22,6 +22,7 @@ import com.gamelist.model.TempSubset;
 import com.gamelist.model.TempSubsetGame;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.ScraperSettingsService;
+import com.gamelist.service.ScraperSystemService;
 import com.gamelist.service.ScreenScraperApiService;
 import com.gamelist.service.TaskService;
 import com.gamelist.xml.GameListXml;
@@ -51,6 +52,9 @@ public class PlatformServiceImpl implements PlatformService {
     
     @Autowired
     private ScraperSettingsService scraperSettingsService;
+
+    @Autowired
+    private ScraperSystemService scraperSystemService;
 
     @Override
     public Platform savePlatform(GameListXml.Provider providerXml) {
@@ -485,6 +489,13 @@ public class PlatformServiceImpl implements PlatformService {
     public Platform updatePlatform(Platform platform) {
         logger.info("更新平台: ID={}, System={}, Name={}", platform.getId(), platform.getSystem(), platform.getName());
         
+        // 检查 systemId 是否变更（用于决定是否自动下载 icon）
+        Integer oldSystemId = null;
+        Platform existing = platformMapper.selectPlatformById(platform.getId());
+        if (existing != null) {
+            oldSystemId = existing.getSystemId();
+        }
+        
         // 确保 system 和 name 字段同步（保持一致）
         String system = platform.getSystem();
         String name = platform.getName();
@@ -498,6 +509,18 @@ public class PlatformServiceImpl implements PlatformService {
         }
         
         platformMapper.updatePlatform(platform);
+        
+        // 如果 systemId 变更了，自动下载系统 icon
+        Integer newSystemId = platform.getSystemId();
+        if (newSystemId != null && !newSystemId.equals(oldSystemId)) {
+            try {
+                scraperSystemService.scrapeSystemIcon(newSystemId);
+                logger.info("systemId 变更 {} → {}，已自动下载系统 icon", oldSystemId, newSystemId);
+            } catch (Exception e) {
+                logger.warn("自动下载系统 icon 失败，不影响保存: systemId={}, error={}", newSystemId, e.getMessage());
+            }
+        }
+        
         return platformMapper.selectPlatformById(platform.getId());
     }
 
@@ -954,6 +977,8 @@ public class PlatformServiceImpl implements PlatformService {
         newGame.setExists(originalGame.getExists());
         newGame.setAbsolutePath(originalGame.getAbsolutePath());
         newGame.setPlatformPath(originalGame.getPlatformPath());
+        newGame.setMultiFile(originalGame.getMultiFile());
+        newGame.setMultiFileContent(originalGame.getMultiFileContent());
         newGame.setBoxFront(originalGame.getBoxFront());
         newGame.setBoxBack(originalGame.getBoxBack());
         newGame.setBoxSpine(originalGame.getBoxSpine());

@@ -192,8 +192,8 @@ public class TemplateV3ExportService {
 
                 if (value == null || value.isEmpty()) continue;
 
-                // 处理 path 字段（根据 pathFormat 处理路径）
-                if ("path".equals(sourceExpr)) {
+                // 路径类字段（path/m3uPath）：按 dataFile.pathFormat 格式化路径
+                if (containsPathField(sourceExpr)) {
                     String pathFormat = getPathFormat(template);
                     value = PathResolver.formatExportPath(value, pathFormat);
                 }
@@ -266,8 +266,8 @@ public class TemplateV3ExportService {
 
                 if (value == null || value.isEmpty()) continue;
 
-                // 处理 path 字段
-                if ("path".equals(sourceExpr)) {
+                // 路径类字段（path/m3uPath）：按 dataFile.pathFormat 格式化路径
+                if (containsPathField(sourceExpr)) {
                     String pathFormat = getPathFormat(template);
                     value = PathResolver.formatExportPath(value, pathFormat);
                 }
@@ -350,7 +350,10 @@ public class TemplateV3ExportService {
                 .replace("{platform.software}", nvl(platform.getSoftware()))
                 .replace("{platform.database}", nvl(platform.getDatabase()))
                 .replace("{platform.web}", nvl(platform.getWeb()))
-                .replace("{platform.folderPath}", nvl(platform.getFolderPath()));
+                .replace("{platform.folderPath}", nvl(platform.getFolderPath()))
+                .replace("{platform.sortBy}", nvl(platform.getSortBy()))
+                .replace("{platform.extensions}", nvl(platform.getExtensions()))
+                .replace("{platform.ignoreFiles}", nvl(platform.getIgnoreFiles()));
     }
 
     private String replaceVars(String template, Map<String, String> vars) {
@@ -516,6 +519,15 @@ public class TemplateV3ExportService {
             return template.getOutput().getDataFile().getPathFormat();
         }
         return null;
+    }
+
+    /**
+     * 判断源表达式是否引用路径类字段（path / m3uPath），这些值需按 dataFile.pathFormat 格式化。
+     * 匹配独立 token（词边界），避免误伤 filepath、platformPath 等字段。
+     */
+    private boolean containsPathField(String sourceExpr) {
+        if (sourceExpr == null) return false;
+        return java.util.regex.Pattern.compile("\\b(path|m3uPath)\\b").matcher(sourceExpr).find();
     }
 
     private String escapeXml(String value) {

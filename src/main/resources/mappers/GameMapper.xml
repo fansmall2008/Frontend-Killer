@@ -112,6 +112,8 @@
         <result column="exists" property="exists"/>
         <result column="absolute_path" property="absolutePath"/>
         <result column="platform_path" property="platformPath"/>
+        <result column="multi_file" property="multiFile"/>
+        <result column="multi_file_content" property="multiFileContent"/>
     </resultMap>
     
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
@@ -119,12 +121,12 @@
             game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
-            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content
         ) VALUES (
             #{gameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
             #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel}, #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper}, #{platformType}, #{hash},
             #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan}, #{support2d}, #{supportTexture}, #{supportScan}, #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee}, #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps}, #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail}, #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs}, #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper}, #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios},
-            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}
+            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}
         )
     </insert>
     
@@ -133,14 +135,14 @@
             game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
-            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, scraped, edited, `exists`, absolute_path, platform_path
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content
         ) VALUES
         <foreach collection="list" item="game" separator=",">
             (
                 #{game.gameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
                 #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight}, #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen}, #{game.box3D}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.videonormalized}, #{game.wheelcarbon}, #{game.wheelsteel}, #{game.screenmarqueesmall}, #{game.boxside}, #{game.figurine}, #{game.pictoliste}, #{game.pictomonochrome}, #{game.pictomonochromesvg}, #{game.pictocouleur}, #{game.wallpaper}, #{game.platformType}, #{game.hash},
                 #{game.box2d}, #{game.box2dBack}, #{game.box2dSide}, #{game.boxTexture}, #{game.boxScan}, #{game.support2d}, #{game.supportTexture}, #{game.supportScan}, #{game.wheel}, #{game.wheelHd}, #{game.wheelCarbon}, #{game.wheelSteel}, #{game.screenmarquee}, #{game.ss}, #{game.sstitle}, #{game.overlay}, #{game.videoNormalized}, #{game.flyer}, #{game.manuel}, #{game.maps}, #{game.bezel43}, #{game.bezel43V}, #{game.bezel43Cocktail}, #{game.bezel169}, #{game.bezel169V}, #{game.bezel169Cocktail}, #{game.mixrbv1}, #{game.mixrbv2}, #{game.themehb}, #{game.themehs}, #{game.ssdmd}, #{game.ssfronton169}, #{game.ssfronton11}, #{game.ssfronton43}, #{game.sstable}, #{game.sstopper}, #{game.videodmd}, #{game.videofronton43}, #{game.videofronton169}, #{game.videotable}, #{game.videotable4k}, #{game.videotopper}, #{game.wheelTarcisios},
-                #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.platformId}, #{game.scraped, jdbcType=BOOLEAN}, #{game.edited, jdbcType=BOOLEAN}, #{game.exists, jdbcType=BOOLEAN}, #{game.absolutePath}, #{game.platformPath}
+                #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.platformId}, #{game.scraped, jdbcType=BOOLEAN}, #{game.edited, jdbcType=BOOLEAN}, #{game.exists, jdbcType=BOOLEAN}, #{game.absolutePath}, #{game.platformPath}, #{game.multiFile, jdbcType=BOOLEAN}, #{game.multiFileContent}
             )
         </foreach>
     </insert>
@@ -808,7 +810,9 @@
             edited = #{edited, jdbcType=BOOLEAN},
             `exists` = #{exists, jdbcType=BOOLEAN},
             absolute_path = #{absolutePath},
-            platform_path = #{platformPath}
+            platform_path = #{platformPath},
+            multi_file = #{multiFile, jdbcType=BOOLEAN},
+            multi_file_content = #{multiFileContent}
         WHERE id = #{id}
     </update>
     

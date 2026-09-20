@@ -1,0 +1,19 @@
+services:
+  frontend-killer:
+    image: fansmall/frontendkiller:latest
+    container_name: frontend-killer
+    restart: unless-stopped
+    ports:
+      - "4448:8080"
+    volumes:
+      - ${fk_data_path:-/vol1/frontend-killer/data}:/data
+      - ${fk_roms_path:-/vol1/frontend-killer/roms}:/data/roms
+      - ${fk_output_path:-/vol1/frontend-killer/output}:/data/output
+    environment:
+      SPRING_PROFILES_ACTIVE: "default"
+      SERVER_TOMCAT_BASEDIR: "/data"
+      SPRING_RESOURCES_STATIC_LOCATIONS: "classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input"
+      JAVA_OPTS: "-Xmx2g -Xms512m -XX:+UseG1GC"
+      TZ: "Asia/Shanghai"
+      PUID: "1000"
+      PGID: "1000"

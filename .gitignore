@@ -65,6 +65,8 @@ distribution/
 
 # Screenshots and temp files
 screenshot_*.png
+regression_*.png
+ui-prototype*.html
 maven_*.txt
 mvn_*.txt
 cp.txt
@@ -86,3 +88,6 @@ backup/
 
 # EXE build output
 distribution/exe/
+
+# fnOS build artifact
+*.fpk

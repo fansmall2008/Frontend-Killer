@@ -18,6 +18,13 @@
   },
   "game": {
     "gameStartMarker": "game",
+    "multiFileDetection": {
+      "enabled": true,
+      "source": "path",
+      "trigger": "endsWith",
+      "pattern": ".m3u",
+      "content": "fileContent"
+    },
     "computedVariables": {
       "filename": "stem(path)",
       "filepath": "replace(path or '', './', '')"

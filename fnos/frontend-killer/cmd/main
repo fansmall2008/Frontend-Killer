@@ -1,0 +1,26 @@
+#!/bin/bash
+# Frontend-Killer (fnOS) lifecycle script.
+# Docker start/stop is managed by the App Center via compose; we only report status.
+# Status is a TCP probe on the service port so it needs neither root nor docker perms.
+
+PORT=4448
+
+case $1 in
+start)
+    exit 0
+    ;;
+stop)
+    exit 0
+    ;;
+status)
+    if (exec 3<>"/dev/tcp/127.0.0.1/${PORT}") 2>/dev/null; then
+        exec 3>&- 3<&-
+        exit 0
+    else
+        exit 3
+    fi
+    ;;
+*)
+    exit 1
+    ;;
+esac

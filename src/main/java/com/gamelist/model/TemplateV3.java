@@ -130,7 +130,8 @@ public class TemplateV3 {
         private Map<String, Object> mediaInfo = new LinkedHashMap<>();
         private MediaDiscovery mediaDiscovery;
         private Map<String, String> computedVariables;  // 计算变量：key=变量名, value=表达式
-        private MultiFileConfig multiFile;              // 多文件游戏展开配置
+        private MultiFileConfig multiFile;              // 多文件游戏展开配置（旧语义）
+        private MultiFileDetectionConfig multiFileDetection;  // 多文件检测配置：将多盘信息写入 multiFile/multiFileContent 字段
 
         public String getGameStartMarker() { return gameStartMarker; }
         public void setGameStartMarker(String gameStartMarker) { this.gameStartMarker = gameStartMarker; }
@@ -155,6 +156,9 @@ public class TemplateV3 {
 
         public MultiFileConfig getMultiFile() { return multiFile; }
         public void setMultiFile(MultiFileConfig multiFile) { this.multiFile = multiFile; }
+
+        public MultiFileDetectionConfig getMultiFileDetection() { return multiFileDetection; }
+        public void setMultiFileDetection(MultiFileDetectionConfig multiFileDetection) { this.multiFileDetection = multiFileDetection; }
     }
 
     /**
@@ -237,6 +241,45 @@ public class TemplateV3 {
 
         public String getSeparator() { return separator; }
         public void setSeparator(String separator) { this.separator = separator; }
+    }
+
+    /**
+     * 多文件检测配置（把多盘信息写入 multiFile / multiFileContent 字段）。
+     * <p>
+     * 触发条件与内容来源均由模板声明：
+     * <ul>
+     *   <li>trigger=fieldExists — source 字段存在且值为多行（如 Pegasus files: 多行续行）</li>
+     *   <li>trigger=endsWith — source 字段值（首行）以 pattern 结尾（如 path 指向 .m3u）</li>
+     * </ul>
+     * 内容：content=fieldValue（取字段值清洗）或 content=fileContent（读文件内容，如 m3u）。
+     * pathFrom=firstLine 时，path 取清洗后的第一行（files 多行场景）。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class MultiFileDetectionConfig {
+        private boolean enabled = false;
+        private String source = "path";          // 检测源字段
+        private String trigger = "fieldExists";  // fieldExists | endsWith
+        private String pattern = ".m3u";         // endsWith 模式（大小写不敏感）
+        private String content = "fieldValue";   // fieldValue | fileContent
+        private String pathFrom;                  // firstLine：path 取清洗后第一行
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public String getSource() { return source; }
+        public void setSource(String source) { this.source = source; }
+
+        public String getTrigger() { return trigger; }
+        public void setTrigger(String trigger) { this.trigger = trigger; }
+
+        public String getPattern() { return pattern; }
+        public void setPattern(String pattern) { this.pattern = pattern; }
+
+        public String getContent() { return content; }
+        public void setContent(String content) { this.content = content; }
+
+        public String getPathFrom() { return pathFrom; }
+        public void setPathFrom(String pathFrom) { this.pathFrom = pathFrom; }
     }
 
     /**

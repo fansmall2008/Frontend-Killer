@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="log_viewer_title">日志查看器 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/log-viewer.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('logs')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('LOG_VIEWER')}"></div>
+            <main class="content">
+    
+    <div class="pg-container">
+        <!-- 日志查看区域 -->
+        <div class="log-section">
+            <div class="log-upload">
+                <h2 data-i18n="realtime_log_title">实时系统日志</h2>
+                <div class="log-toolbar">
+                    <label data-i18n="log_lines_label">显示行数:</label>
+                    <input type="number" id="logLines" value="100" min="10" max="1000" class="log-lines-input">
+                    <button id="refreshLog" class="btn btn-sm" data-i18n="refresh_log_btn">刷新</button>
+                    <label class="log-check-label">
+                        <input type="checkbox" id="autoRefresh" checked>
+                        <span data-i18n="auto_refresh_label">自动刷新</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 实时日志内容区域 -->
+            <div class="log-content">
+                <h2 data-i18n="realtime_log_content_title">日志内容</h2>
+                <div id="realtimeLogContent" class="empty-log" data-i18n="realtime_log_empty">正在加载实时日志...</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // 语言翻译映射
+        ;
+        
+        // 获取当前语言设置
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh-CN';
+        }
+        
+        // 设置语言
+        function setLanguage(lang) {
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            updateTranslations(lang);
+        }
+        
+        // 更新页面翻译
+        function updateTranslations(lang) {
+            // 确保语言已设置
+            if (I18n.setLanguage) {
+                I18n.setLanguage(lang);
+            }
+            
+            // 更新标题
+            document.title = `${I18n.t('log_viewer_title')} - 前端杀手`;
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                const translatedText = I18n.t(key);
+                if (translatedText && translatedText !== key) {
+                    element.textContent = translatedText;
+                }
+            });
+        }
+        
+        // 初始化语言设置
+        function initLanguage() {
+            const lang = getCurrentLanguage();
+            setLanguage(lang);
+        }
+        
+        // 显示日志内容
+        function displayLogContent(content) {
+            const logContentElement = document.getElementById('realtimeLogContent');
+            
+            // 处理日志内容，添加样式
+            let formattedContent = content
+                .replace(/(ERROR|error)/g, '<span class="log-level-error">$1</span>')
+                .replace(/(WARN|warn|WARNING|warning)/g, '<span class="log-level-warn">$1</span>')
+                .replace(/(INFO|info)/g, '<span class="log-level-info">$1</span>')
+                .replace(/(DEBUG|debug)/g, '<span class="log-level-debug">$1</span>');
+            
+            logContentElement.innerHTML = `<pre>${formattedContent}</pre>`;
+        }
+        
+        // 加载实时日志
+        function loadRealtimeLogs() {
+            const lines = document.getElementById('logLines').value;
+            const logContentElement = document.getElementById('realtimeLogContent');
+            
+            logContentElement.innerHTML = '<div class="log-loading">正在加载实时日志...</div>';
+            
+            fetch(`/api/logs/realtime?lines=${lines}`)
+                .then(response => response.json())
+                .then(logs => {
+                    if (logs && logs.length > 0) {
+                const logContent = logs.join('\n');
+                displayLogContent(logContent);
+            } else {
+                logContentElement.innerHTML = '<div class="empty-log" data-i18n="realtime_log_empty">暂无实时日志</div>';
+                updateTranslations(getCurrentLanguage());
+            }
+                })
+                .catch(error => {
+                    console.error('获取实时日志失败:', error);
+                    logContentElement.innerHTML = `<div class="empty-log" style="color: #ff0000;">获取日志失败: ${error.message}</div>`;
+                });
+        }
+        
+        // 刷新日志按钮点击事件
+        document.getElementById('refreshLog').addEventListener('click', loadRealtimeLogs);
+        
+        // 自动刷新功能
+        let autoRefreshInterval;
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                if (document.getElementById('autoRefresh').checked) {
+                    loadRealtimeLogs();
+                }
+            }, 5000); // 每5秒刷新一次
+        }
+        
+        // 自动刷新复选框点击事件
+        document.getElementById('autoRefresh').addEventListener('change', startAutoRefresh);
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            startAutoRefresh();
+            loadRealtimeLogs();
+        });
+        
+        // 消息通知功能
+        let notifications = [];
+        let unreadCount = 0;
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 添加到通知列表
+            notifications.unshift({
+                id: Date.now(),
+                message: message,
+                type: type,
+                time: new Date().toLocaleString(),
+                read: false
+            });
+            
+            unreadCount++;
+            updateNotificationBell();
+            
+            // 显示弹窗通知
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification notification-${type}`;
+            notificationElement.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: #fff;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            `;
+            
+            if (type === 'success') {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ff00, #008800)';
+            } else if (type === 'error') {
+                notificationElement.style.background = 'linear-gradient(45deg, #ff0000, #880000)';
+            } else {
+                notificationElement.style.background = 'linear-gradient(45deg, #00ffff, #0088ff)';
+            }
+            
+            notificationElement.textContent = message;
+            document.body.appendChild(notificationElement);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                notificationElement.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notificationElement);
+                }, 300);
+            }, 3000);
+        }
+
+        // 更新通知铃铛
+        function updateNotificationBell() {
+            const bellIcon = document.getElementById('notificationBell');
+            if (bellIcon) {
+                const badge = bellIcon.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
+                }
+            }
+        }
+
+        // 打开通知面板
+        function openNotificationPanel() {
+            const modal = document.getElementById('notificationModal');
+            const content = document.getElementById('notificationContent');
+            
+            // 生成通知列表
+            content.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                content.innerHTML = '<p class="notif-empty">暂无通知</p>';
+            } else {
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`;
+                    notificationItem.style.cssText = `
+                        border-left: 4px solid ${notification.type === 'success' ? 'var(--accent-success)' : notification.type === 'error' ? 'var(--accent-danger)' : 'var(--accent-secondary)'};
+                    `;
+                    
+                    notificationItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
+                        <div class="notif-time">${notification.time}</div>
+                    `;
+                    
+                    content.appendChild(notificationItem);
+                    
+                    // 标记为已读
+                    notification.read = true;
+                });
+                
+                unreadCount = 0;
+                updateNotificationBell();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭通知模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                const closeBtn = modal.querySelector('.close');
+                if (closeBtn) {
+                    closeBtn.onclick = function() {
+                        modal.style.display = 'none';
+                    };
+                }
+                
+                // 点击模态框外部关闭
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            }
+        });
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initLanguage);
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

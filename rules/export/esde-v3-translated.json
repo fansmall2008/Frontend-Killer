@@ -1,0 +1,155 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "dataFileType": "data",
+    "format": "xml",
+    "dataFile": "gamelist.xml",
+    "author": "Frontend-Killer",
+    "description": "EmulationStation DE (Translated)",
+    "notes": "翻译版本：使用 translatedName 和 translatedDesc 替代原始名称和描述"
+  },
+  "system": {
+    "systemTag": "provider",
+    "header": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<gameList>",
+      "  <provider>",
+      "    <system>{platform.system}</system>",
+      "    <software>Frontend-Killer</software>",
+      "  </provider>"
+    ],
+    "footer": [
+      "</gameList>"
+    ],
+    "fields": {
+      "system": "platform.system"
+    }
+  },
+  "game": {
+    "gameStartMarker": "game",
+    "gameInfo": {
+      "path": "if(multiFile, m3uPath, path)",
+      "name": "coalesce(translatedName, name)",
+      "sortname": "sort-by",
+      "desc": "coalesce(translatedDesc, desc)",
+      "rating": "rating",
+      "releasedate": "releasedate",
+      "developer": "developer",
+      "publisher": "publisher",
+      "genre": "genre",
+      "players": "players",
+      "lang": "lang",
+      "region": "region",
+      "hash": "hash",
+      "genreid": "genreid"
+    },
+    "mediaInfo": {
+      "image": "box-2D",
+      "video": "video",
+      "marquee": "marquee",
+      "fanart": "fanart",
+      "screenshot": "ss",
+      "titlescreen": "sstitle",
+      "wheel": "wheel",
+      "boxback": "box-2D-back",
+      "box3d": "box-3D",
+      "bezel": "bezel-16-9",
+      "cartridge": "support-2D",
+      "steamgrid": "steamgrid",
+      "manual": "manuel"
+    }
+  },
+  "output": {
+    "exportOptions": {
+      "gameFiles": false,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": true
+    },
+    "roms": {
+      "enabled": false,
+      "directory": "{outputPath}/roms/{platform.system}",
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": true
+      }
+    },
+    "media": {
+      "directory": "{outputPath}/downloaded_media/{platform.system}",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "boxfront/{filename}.png",
+          "dataFileTag": "image"
+        },
+        "box-2D-back": {
+          "source": "box-2D-back",
+          "target": "boxback/{filename}.png",
+          "dataFileTag": "boxback"
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "box3d/{filename}.png",
+          "dataFileTag": "box3d"
+        },
+        "sstitle": {
+          "source": "sstitle",
+          "target": "titlescreen/{filename}.png",
+          "dataFileTag": "titlescreen"
+        },
+        "marquee": {
+          "source": "marquee",
+          "target": "marquee/{filename}.png",
+          "dataFileTag": "marquee"
+        },
+        "fanart": {
+          "source": "fanart",
+          "target": "fanart/{filename}.jpg",
+          "dataFileTag": "fanart"
+        },
+        "video": {
+          "source": "video",
+          "target": "video/{filename}.mp4",
+          "dataFileTag": "video"
+        },
+        "manuel": {
+          "source": "manuel",
+          "target": "manual/{filename}.pdf",
+          "dataFileTag": "manual"
+        },
+        "wheel": {
+          "source": "wheel",
+          "target": "wheel/{filename}.png",
+          "dataFileTag": "wheel"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "screenshot/{filename}.png",
+          "dataFileTag": "screenshot"
+        },
+        "support-2D": {
+          "source": "support-2D",
+          "target": "support-2d/{filename}.png",
+          "dataFileTag": "cartridge"
+        },
+        "bezel-16-9": {
+          "source": "bezel-16-9",
+          "target": "bezel/{filename}.png",
+          "dataFileTag": "bezel"
+        },
+        "steamgrid": {
+          "source": "steamgrid",
+          "target": "steamgrid/{filename}.png",
+          "dataFileTag": "steamgrid"
+        }
+      }
+    },
+    "dataFile": {
+      "directory": "{outputPath}/gamelists/{platform.system}",
+      "filename": "gamelist.xml",
+      "pathFormat": "relative",
+      "pathPrefix": "./"
+    }
+  }
+}

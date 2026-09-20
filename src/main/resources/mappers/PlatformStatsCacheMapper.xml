@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.PlatformStatsCacheMapper">
+
+    <resultMap id="PlatformStatsCacheMap" type="com.gamelist.model.PlatformStatsCache">
+        <id     column="platform_id"          property="platformId"/>
+        <result column="total_games"          property="totalGames"/>
+        <result column="total_rom_count"      property="totalRomCount"/>
+        <result column="rom_missing_count"    property="romMissingCount"/>
+        <result column="total_rom_size"       property="totalRomSize"/>
+        <result column="total_media_count"    property="totalMediaCount"/>
+        <result column="media_missing_count"  property="mediaMissingCount"/>
+        <result column="total_media_size"     property="totalMediaSize"/>
+        <result column="media_count_by_type"  property="mediaCountByType"/>
+        <result column="media_size_by_type"   property="mediaSizeByType"/>
+        <result column="last_scanned_at"      property="lastScannedAt"/>
+        <result column="scan_duration_ms"     property="scanDurationMs"/>
+        <result column="last_task_id"         property="lastTaskId"/>
+        <result column="created_at"           property="createdAt"/>
+        <result column="updated_at"           property="updatedAt"/>
+    </resultMap>
+
+    <sql id="allColumns">
+        platform_id, total_games, total_rom_count, rom_missing_count, total_rom_size,
+        total_media_count, media_missing_count, total_media_size,
+        media_count_by_type, media_size_by_type,
+        last_scanned_at, scan_duration_ms, last_task_id,
+        created_at, updated_at
+    </sql>
+
+    <select id="selectByPlatformId" resultMap="PlatformStatsCacheMap">
+        SELECT <include refid="allColumns"/>
+        FROM platform_stats_cache
+        WHERE platform_id = #{platformId}
+    </select>
+
+    <select id="selectAll" resultMap="PlatformStatsCacheMap">
+        SELECT <include refid="allColumns"/>
+        FROM platform_stats_cache
+        ORDER BY platform_id
+    </select>
+
+    <!-- H2 兼容的 UPSERT：使用 MERGE INTO 语法 -->
+    <insert id="upsert" parameterType="com.gamelist.model.PlatformStatsCache">
+        MERGE INTO platform_stats_cache (
+            platform_id, total_games, total_rom_count, rom_missing_count, total_rom_size,
+            total_media_count, media_missing_count, total_media_size,
+            media_count_by_type, media_size_by_type,
+            last_scanned_at, scan_duration_ms, last_task_id, updated_at
+        ) KEY (platform_id) VALUES (
+            #{platformId}, #{totalGames}, #{totalRomCount}, #{romMissingCount}, #{totalRomSize},
+            #{totalMediaCount}, #{mediaMissingCount}, #{totalMediaSize},
+            #{mediaCountByType}, #{mediaSizeByType},
+            #{lastScannedAt}, #{scanDurationMs}, #{lastTaskId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <delete id="deleteByPlatformId">
+        DELETE FROM platform_stats_cache WHERE platform_id = #{platformId}
+    </delete>
+
+</mapper>

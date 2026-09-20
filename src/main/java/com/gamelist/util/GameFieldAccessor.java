@@ -63,6 +63,10 @@ public final class GameFieldAccessor {
         registerSimpleField("path", Game::getPath, Game::setPath);
         registerAlias("file", "path");
         registerSimpleField("hash", Game::getHash, Game::setHash);
+        // 多文件游戏字段：multiFile 映射为 "true"/空串（便于 if 表达式判断），multiFileContent 为多文件文本
+        registerSimpleField("multiFile", g -> Boolean.TRUE.equals(g.getMultiFile()) ? "true" : "",
+                (g, v) -> g.setMultiFile(v != null && !v.isEmpty() && !"false".equalsIgnoreCase(v)));
+        registerSimpleField("multiFileContent", Game::getMultiFileContent, Game::setMultiFileContent);
         registerSimpleField("crc32", Game::getCrc32, Game::setCrc32);
         registerSimpleField("md5", Game::getMd5, Game::setMd5);
         registerSimpleField("gameId", Game::getGameId, Game::setGameId);
@@ -79,6 +83,19 @@ public final class GameFieldAccessor {
             String fn = sep >= 0 ? p.substring(sep + 1) : p;
             int dot = fn.lastIndexOf('.');
             return dot >= 0 ? fn.substring(0, dot) : fn;
+        }, null); // 只读
+
+        // m3uPath：多文件游戏导出时的 m3u 文件路径（filename + ".m3u"），非多文件游戏为空
+        registerSimpleField("m3uPath", g -> {
+            if (!Boolean.TRUE.equals(g.getMultiFile())) return null;
+            String p = g.getPath();
+            if (p == null) return null;
+            String first = p.split("\\r?\\n")[0].trim();
+            int sep = Math.max(first.lastIndexOf('/'), first.lastIndexOf('\\'));
+            String fn = sep >= 0 ? first.substring(sep + 1) : first;
+            int dot = fn.lastIndexOf('.');
+            String stem = dot > 0 ? fn.substring(0, dot) : fn;
+            return stem.replaceAll("[<>\"/\\\\|?*]", "_") + ".m3u";
         }, null); // 只读
 
         // 旧版遗留字段（@Deprecated，但导入导出仍可能用到）

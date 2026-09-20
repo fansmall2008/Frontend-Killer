@@ -1,0 +1,609 @@
+/* ============================================
+   Game List Page Styles
+   Aligned with Frontend-Killer Design System
+   ============================================ */
+
+/* ---- Page Container ---- */
+.gm-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ---- Page Header (inline) ---- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.back-btn,
+.search-toggle-btn {
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.back-btn:hover,
+.search-toggle-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.stats {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.stats strong {
+    color: var(--text-primary);
+}
+
+/* ---- Search Area ---- */
+.search-area {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+}
+
+.search-area h3 {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    margin-bottom: var(--space-4);
+}
+
+.search-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+}
+
+.search-input-group input {
+    width: 100%;
+}
+
+.field-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+}
+
+.field-group input[type="number"],
+.field-group input[type="date"],
+.field-group input[type="text"],
+.field-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-group input:focus,
+.field-group select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-primary-subtle);
+}
+
+.field-group button {
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-right: var(--space-2);
+}
+
+.field-group button:nth-child(2) {
+    border-color: var(--border-accent);
+    color: var(--accent-primary);
+}
+
+.field-group button:nth-child(2):hover {
+    background: var(--accent-primary-subtle);
+}
+
+.field-group button:nth-child(3) {
+    border-color: var(--border-default);
+    color: var(--text-secondary);
+}
+
+.field-group button:nth-child(3):hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.date-range span {
+    color: var(--text-tertiary);
+    font-size: 13px;
+}
+
+/* ---- Pagination / Toolbar ---- */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.page-size-selector label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.page-size-selector select {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+.page-navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.page-info {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+}
+
+/* ---- Toolbar Buttons ---- */
+.toolbar-btn {
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.toolbar-btn:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 2px 8px var(--accent-primary-glow);
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.required {
+    color: var(--accent-danger);
+}
+
+/* ---- Game Table ---- */
+.game-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    margin-bottom: var(--space-4);
+}
+
+.game-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+}
+
+.game-table th,
+.game-table td {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--border-default);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.game-table th {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.game-table td {
+    color: var(--text-primary);
+}
+
+.game-table tbody tr {
+    transition: background var(--transition);
+}
+
+.game-table tbody tr:hover {
+    background: var(--bg-elevated);
+}
+
+.game-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Game row status colors */
+.game-table tbody tr.game-row-red {
+    background: var(--accent-danger-subtle);
+}
+
+.game-table tbody tr.game-row-red td {
+    color: var(--accent-danger);
+}
+
+.game-table tbody tr.game-row-yellow {
+    background: var(--accent-warning-subtle);
+}
+
+.game-table tbody tr.game-row-yellow td {
+    color: var(--accent-warning);
+}
+
+.game-table tbody tr.game-row-green {
+    background: var(--accent-success-subtle);
+}
+
+.game-table tbody tr.game-row-green td {
+    color: var(--accent-success);
+}
+
+/* ---- Modal Styles (gm- prefixed to avoid theme.css conflict) ---- */
+.gm-modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+}
+
+.gm-modal-content {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    margin: 5vh auto;
+    padding: var(--space-6);
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.gm-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.gm-modal-header h2 {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    margin: 0;
+}
+
+.gm-modal-body {
+    padding: 0;
+}
+
+.gm-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-default);
+}
+
+.gm-modal .close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-4);
+    color: var(--text-tertiary);
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color var(--transition);
+    line-height: 1;
+}
+
+.gm-modal .close:hover {
+    color: var(--accent-danger);
+}
+
+/* ---- Notification Modal (layout fragment, keep floating overlay) ---- */
+#notificationModal.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+#notificationModal.modal .modal-content {
+    margin: 5vh auto;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+/* ---- Form Elements ---- */
+.form-group textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-primary-subtle);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+.action-btn {
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.action-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+/* ---- Row Action Buttons ---- */
+.edit-btn,
+.delete-btn {
+    background: transparent;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.edit-btn {
+    color: var(--accent-info);
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+.edit-btn:hover {
+    background: var(--accent-info-subtle);
+    border-color: var(--accent-info);
+}
+
+.delete-btn {
+    color: var(--accent-danger);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.delete-btn:hover {
+    background: var(--accent-danger-subtle);
+    border-color: var(--accent-danger);
+}
+
+/* ---- Toast Notifications ---- */
+.notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 2000;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all var(--transition);
+    pointer-events: none;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: var(--accent-success);
+    color: #fff;
+}
+
+.notification.error {
+    background: var(--accent-danger);
+    color: #fff;
+}
+
+.notification.info {
+    background: var(--accent-info);
+    color: #fff;
+}
+
+/* ---- Media Type Grid (scrape modal) ---- */
+.media-type-grid {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.media-category {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    transition: border-color var(--transition);
+}
+
+.media-category:hover {
+    border-color: var(--border-hover);
+}
+
+.media-category-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.media-category label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: 4px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: var(--font-sans);
+}
+
+.media-category label:hover {
+    color: var(--text-primary);
+}
+
+.media-category label input[type="checkbox"] {
+    accent-color: var(--accent-primary);
+}
+
+/* ---- Status Indicator (game info completeness) ---- */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-red {
+    background-color: var(--accent-danger);
+    box-shadow: 0 0 8px var(--accent-danger);
+}
+
+.status-yellow {
+    background-color: var(--accent-warning);
+    box-shadow: 0 0 8px var(--accent-warning);
+}
+
+.status-green {
+    background-color: var(--accent-success);
+    box-shadow: 0 0 8px var(--accent-success);
+}
+
+/* ---- Loading Spinner ---- */
+.loading-spinner {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border-default);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: gm-spin 0.8s linear infinite;
+}
+
+@keyframes gm-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

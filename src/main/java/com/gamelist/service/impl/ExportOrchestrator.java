@@ -221,6 +221,14 @@ public class ExportOrchestrator {
 
         // 计算目标文件名
         Map<String, String> gameVars = buildGameVariables(game, vars);
+
+        // 多文件游戏：拷贝多文件文本中的所有盘文件，并按模板 m3u 配置生成 m3u 文件
+        if (Boolean.TRUE.equals(game.getMultiFile())
+                && game.getMultiFileContent() != null && !game.getMultiFileContent().isEmpty()) {
+            copyMultiFileGameFiles(game, romsDir, gameVars, enableM3U, taskId);
+            return;
+        }
+
         String targetFileName = evaluateFilenameTemplate(filenameTemplate, game, platform, gameVars, sourcePath);
 
         Path targetPath = Paths.get(romsDir, targetFileName);
@@ -230,9 +238,66 @@ public class ExportOrchestrator {
             taskService.updateTaskLog(taskId, "复制 ROM: " + sourcePath.getFileName() + " → " + targetFileName);
         }
 
-        // 处理 M3U 文件
+        // 处理 M3U 文件（path 指向 m3u 文件的旧数据：复制 m3u 引用的所有文件）
         if (enableM3U && targetFileName.toLowerCase().endsWith(".m3u")) {
             processM3UFile(sourcePath, targetPath, romsDir, romsConfig, game, platform, gameVars);
+        }
+    }
+
+    /**
+     * 拷贝多文件游戏（多盘/合盘）：将多文件文本中的每个文件复制到 romsDir（保持相对目录结构）。
+     * 模板 roms.m3u.enabled=true 时额外生成 {filename}.m3u 文件（内容为各盘相对路径）。
+     */
+    private void copyMultiFileGameFiles(Game game, String romsDir, Map<String, String> gameVars,
+                                        boolean enableM3U, Long taskId) throws Exception {
+        // 平台 ROM 根目录：多文件文本中的路径相对此目录解析
+        Path romRoot = null;
+        String platformPath = game.getPlatformPath();
+        if (platformPath != null && !platformPath.isEmpty()) {
+            romRoot = Paths.get(platformPath);
+        } else {
+            String absPath = game.getAbsolutePath();
+            if (absPath != null && !absPath.isEmpty()) {
+                romRoot = Paths.get(absPath.split("\\r?\\n")[0].trim()).getParent();
+            }
+        }
+
+        List<String> lines = new ArrayList<>();
+        for (String line : game.getMultiFileContent().split("\\r?\\n")) {
+            String t = line.trim();
+            if (t.isEmpty() || t.startsWith("#")) continue;
+            if (t.startsWith("./") || t.startsWith(".\\")) t = t.substring(2);
+            t = t.replace('\\', '/');
+            lines.add(t);
+
+            Path src;
+            Path p = Paths.get(t);
+            if (p.isAbsolute()) {
+                src = p;
+            } else if (romRoot != null) {
+                src = romRoot.resolve(t);
+            } else {
+                src = p; // 相对工作目录，尽力而为
+            }
+            if (!Files.exists(src)) {
+                logger.warn("多文件条目文件不存在: {}", src);
+                continue;
+            }
+            Path target = Paths.get(romsDir, t);
+            copyFile(src, target);
+            if (taskId != null) {
+                taskService.updateTaskLog(taskId, "复制多盘文件: " + t);
+            }
+        }
+
+        // 生成 m3u 文件（模板 roms.m3u.enabled=true，即前端支持 m3u）
+        if (enableM3U) {
+            String filename = gameVars.get("filename");
+            if (filename == null || filename.isEmpty()) filename = game.getName();
+            String m3uFileName = filename + ".m3u";
+            Path m3uPath = Paths.get(romsDir, m3uFileName);
+            Files.write(m3uPath, lines);
+            logger.info("生成 m3u 文件: {}", m3uPath);
         }
     }
 

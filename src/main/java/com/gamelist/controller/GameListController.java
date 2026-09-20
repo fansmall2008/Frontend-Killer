@@ -2,6 +2,9 @@ package com.gamelist.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.gamelist.mapper.GameMapper;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
 import com.gamelist.model.PlatformStatistics;
@@ -47,6 +51,9 @@ public class GameListController {
     
     @Autowired
     private PlatformService platformService;
+
+    @Autowired
+    private GameMapper gameMapper;
 
     /**
      * 导入游戏列表XML文件
@@ -531,12 +538,14 @@ public class GameListController {
     }
     
     /**
-     * 合盘操作
+     * 合盘操作（mergeName 为用户填写的合盘名称，可为空回退第一个游戏名）
      */
     @PostMapping("/merge-discs")
-    public ResponseEntity<java.util.Map<String, Object>> mergeDiscs(@RequestBody java.util.Map<String, java.util.List<Long>> request) {
-        java.util.List<Long> gameIds = request.get("gameIds");
-        java.util.Map<String, Object> result = gameService.mergeDiscs(gameIds);
+    public ResponseEntity<java.util.Map<String, Object>> mergeDiscs(@RequestBody java.util.Map<String, Object> request) {
+        @SuppressWarnings("unchecked")
+        java.util.List<Long> gameIds = (java.util.List<Long>) request.get("gameIds");
+        String mergeName = request.get("name") != null ? String.valueOf(request.get("name")) : null;
+        java.util.Map<String, Object> result = gameService.mergeDiscs(gameIds, mergeName);
         if (result.containsKey("success") && (boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {
@@ -610,7 +619,7 @@ public class GameListController {
                             com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
                             java.util.Map<String, Object> templateData = objectMapper.readValue(file, java.util.Map.class);
                             
-                            // 创建模板信息对象（兼容 v2 和 v3 格式）
+                            // 创建模板信息对象（v3 格式）
                             java.util.Map<String, Object> templateInfo = new java.util.HashMap<>();
                             templateInfo.put("fileName", file.getName());
                             
@@ -619,19 +628,12 @@ public class GameListController {
                             java.util.Map<String, Object> v3Info = (java.util.Map<String, Object>) templateData.get("templateInfo");
                             if (v3Info != null && v3Info.containsKey("version") && 
                                     Integer.parseInt(v3Info.get("version").toString()) == 3) {
-                                // v3 模板
                                 templateInfo.put("version", 3);
                                 templateInfo.put("name", v3Info.getOrDefault("description", file.getName()));
                                 templateInfo.put("frontend", v3Info.get("dataFile"));
                                 templateInfo.put("description", v3Info.getOrDefault("description", ""));
                                 templateInfo.put("direction", v3Info.get("direction"));
                                 templateInfo.put("dataFileType", v3Info.get("dataFileType"));
-                            } else {
-                                // v2 模板
-                                templateInfo.put("name", templateData.getOrDefault("name", file.getName()));
-                                templateInfo.put("frontend", templateData.get("frontend"));
-                                templateInfo.put("version", templateData.get("version"));
-                                templateInfo.put("description", templateData.get("description"));
                             }
                             
                             templates.add(templateInfo);
@@ -646,6 +648,121 @@ public class GameListController {
         } catch (Exception e) {
             logger.error("获取导入模板列表失败", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    /**
+     * 重新检测指定平台下所有游戏的文件存在性，更新 exists 字段。
+     * 直接使用导入时存储的 absolutePath 进行 Files.exists() 检测。
+     * 多文件游戏（multiFile=true）则逐行检查多文件文本中的每个文件，全部存在才算存在。
+     */
+    @PostMapping("/platforms/{platformId}/recheck-exists")
+    public ResponseEntity<Map<String, Object>> recheckExists(@PathVariable Long platformId) {
+        try {
+            List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
+            int total = games.size();
+            int existCount = 0;
+            int missingCount = 0;
+            int changedCount = 0;
+            int skippedCount = 0;
+
+            // 多文件游戏的相对路径基于平台目录解析
+            String platformFolder = null;
+            try {
+                Platform platform = platformService.getPlatformById(platformId);
+                if (platform != null) {
+                    platformFolder = platform.getFolderPath();
+                }
+            } catch (Exception e) {
+                logger.warn("获取平台 {} 目录失败: {}", platformId, e.getMessage());
+            }
+
+            logger.info("平台 {} 重新检测开始: 游戏数={}, 平台目录={}", platformId, total, platformFolder);
+
+            int gameIndex = 0;
+            for (Game game : games) {
+                Boolean oldExists = game.getExists();
+                gameIndex++;
+                boolean exists = false;
+                boolean checked = false;
+
+                if (Boolean.TRUE.equals(game.getMultiFile())
+                        && game.getMultiFileContent() != null && !game.getMultiFileContent().isEmpty()) {
+                    // 多文件游戏：逐行检查多文件文本，全部存在才算存在
+                    try {
+                        exists = true;
+                        for (String line : game.getMultiFileContent().split("\\r?\\n")) {
+                            String t = line.trim();
+                            if (t.isEmpty() || t.startsWith("#")) continue;
+                            if (t.startsWith("./") || t.startsWith(".\\")) {
+                                t = t.substring(2);
+                            }
+                            java.io.File f = new java.io.File(t);
+                            if (!f.isAbsolute() && platformFolder != null && !platformFolder.isEmpty()) {
+                                f = new java.io.File(platformFolder, t);
+                            }
+                            if (!Files.exists(f.toPath())) {
+                                exists = false;
+                                logger.info("[检测] 游戏#{} '{}': 多文件缺失 -> {}", gameIndex, game.getName(), t);
+                                break;
+                            }
+                        }
+                        checked = true;
+                        logger.info("[检测] 游戏#{} '{}': 多文件检测 exists={}", gameIndex, game.getName(), exists);
+                    } catch (Exception e) {
+                        logger.info("[检测] 游戏#{} '{}': 多文件检测异常: {}", gameIndex, game.getName(), e.getMessage());
+                        checked = true;
+                    }
+                } else {
+                    String absPath = game.getAbsolutePath();
+                    if (absPath != null && !absPath.isEmpty()) {
+                        String checkPath = absPath.split("\\r?\\n")[0].trim();
+                        try {
+                            exists = Files.exists(Paths.get(checkPath));
+                            checked = true;
+                            logger.info("[检测] 游戏#{} '{}': absolutePath='{}' → Files.exists={}",
+                                    gameIndex, game.getName(), checkPath, exists);
+                        } catch (Exception e) {
+                            logger.info("[检测] 游戏#{} '{}': absolutePath='{}' → 异常: {}",
+                                    gameIndex, game.getName(), checkPath, e.getMessage());
+                            checked = true;
+                        }
+                    } else {
+                        logger.info("[检测] 游戏#{} '{}': absolutePath 为空，跳过", gameIndex, game.getName());
+                        skippedCount++;
+                    }
+                }
+
+                if (checked) {
+                    game.setExists(exists);
+                    gameMapper.updateGame(game);
+                }
+
+                if (exists) {
+                    existCount++;
+                } else {
+                    missingCount++;
+                }
+                if (checked && (oldExists == null || !oldExists.equals(exists))) {
+                    changedCount++;
+                }
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("total", total);
+            result.put("existCount", existCount);
+            result.put("missingCount", missingCount);
+            result.put("changedCount", changedCount);
+            result.put("skippedCount", skippedCount);
+            logger.info("平台 {} 文件存在性重新检测完成: 总计={}, 存在={}, 缺失={}, 状态变更={}, 跳过={}",
+                    platformId, total, existCount, missingCount, changedCount, skippedCount);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("重新检测文件存在性失败: platformId={}", platformId, e);
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "检测失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 }

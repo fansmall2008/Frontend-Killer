@@ -29,10 +29,10 @@
   "game": {
     "gameStartMarker": "game",
     "gameInfo": {
-      "path": "path",
-      "name": "name",
+      "path": "if(multiFile, m3uPath, path)",
+      "name": "coalesce(name, translatedName)",
       "sortname": "sort-by",
-      "desc": "desc",
+      "desc": "coalesce(desc, translatedDesc)",
       "rating": "rating",
       "releasedate": "releasedate",
       "developer": "developer",
@@ -48,7 +48,6 @@
       "image": "box-2D",
       "video": "video",
       "marquee": "marquee",
-      "thumbnail": "thumbnail",
       "fanart": "fanart",
       "screenshot": "ss",
       "titlescreen": "sstitle",
@@ -58,8 +57,7 @@
       "bezel": "bezel-16-9",
       "cartridge": "support-2D",
       "steamgrid": "steamgrid",
-      "manual": "manuel",
-      "miximage": "miximage"
+      "manual": "manuel"
     }
   },
   "output": {
@@ -72,7 +70,10 @@
     "roms": {
       "enabled": false,
       "directory": "{outputPath}/roms/{platform.system}",
-      "filename": "{filename}{ext}"
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": true
+      }
     },
     "media": {
       "directory": "{outputPath}/downloaded_media/{platform.system}",
@@ -96,11 +97,6 @@
           "source": "sstitle",
           "target": "titlescreen/{filename}.png",
           "dataFileTag": "titlescreen"
-        },
-        "miximage": {
-          "source": "miximage",
-          "target": "miximage/{filename}.png",
-          "dataFileTag": "miximage"
         },
         "marquee": {
           "source": "marquee",

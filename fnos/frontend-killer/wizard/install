@@ -1,0 +1,41 @@
+[
+    {
+        "stepTitle": "配置数据目录",
+        "items": [
+            {
+                "type": "tips",
+                "helpText": "请输入 NAS 上的<b>绝对路径</b>（以 / 开头），目录不存在会自动创建。<b>请放在你自己的存储空间/共享文件夹</b>（而非系统内置区），以便随时查看下载/刮削/导出的文件，也避免占用系统盘空间。<br/>· <b>数据目录</b>：数据库、规则、刮削缓存、日志、导入(input)。<br/>· <b>ROMs 目录</b>：指向你已有的游戏 ROM / 媒体库，用于刮削与媒体下载。<br/>· <b>输出目录</b>：导出的 gamelist / 配置文件落盘位置，方便直接取用。<br/>若你的存储卷不是 /vol1（如 /vol2），请把默认值里的 /vol1 改成实际盘符；也可直接填你现成的共享文件夹路径。"
+            },
+            {
+                "type": "text",
+                "field": "fk_data_path",
+                "label": "数据目录",
+                "initValue": "/vol1/frontend-killer/data",
+                "rules": [
+                    { "required": true, "message": "请输入数据目录的绝对路径" },
+                    { "pattern": "^/", "message": "必须是以 / 开头的绝对路径" }
+                ]
+            },
+            {
+                "type": "text",
+                "field": "fk_roms_path",
+                "label": "ROMs / 游戏库目录",
+                "initValue": "/vol1/frontend-killer/roms",
+                "rules": [
+                    { "required": true, "message": "请输入 ROMs 目录的绝对路径" },
+                    { "pattern": "^/", "message": "必须是以 / 开头的绝对路径" }
+                ]
+            },
+            {
+                "type": "text",
+                "field": "fk_output_path",
+                "label": "输出目录（导出文件）",
+                "initValue": "/vol1/frontend-killer/output",
+                "rules": [
+                    { "required": true, "message": "请输入输出目录的绝对路径" },
+                    { "pattern": "^/", "message": "必须是以 / 开头的绝对路径" }
+                ]
+            }
+        ]
+    }
+]
