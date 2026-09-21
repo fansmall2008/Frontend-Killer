@@ -1,6 +1,7 @@
 package com.gamelist.mapper;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import com.gamelist.model.MediaDownloadTask;
@@ -64,6 +65,12 @@ public interface MediaDownloadTaskMapper {
     
     List<MediaDownloadTask> selectDownloadingByPlatformId(Long platformId);
     List<Long> selectDistinctPlatformIds();
+
+    /**
+     * 一次性汇总所有平台各状态的任务数量，返回列：platform_id, status, cnt
+     * 用于替代逐平台 6 次 COUNT 查询，显著降低刷新时的数据库压力。
+     */
+    List<Map<String, Object>> selectPlatformStatusSummary();
     
     /**
      * 按游戏ID查询媒体下载任务（删除游戏前需先调用）

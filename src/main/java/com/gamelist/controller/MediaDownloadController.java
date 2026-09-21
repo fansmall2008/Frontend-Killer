@@ -359,6 +359,59 @@ public class MediaDownloadController {
     }
 
     /**
+     * 一次性汇总所有平台的下载统计，前端刷新时仅需一次请求。
+     * 返回结构：{ success, data: [ {platformId, total, pending, downloading, completed, failed, stopped}, ... ] }
+     */
+    @GetMapping("/platforms/summary")
+    public ResponseEntity<Map<String, Object>> getPlatformsSummary() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Map<String, Object>> rows = mediaDownloadTaskMapper.selectPlatformStatusSummary();
+            Map<Long, Map<String, Object>> byPlatform = new java.util.LinkedHashMap<>();
+            if (rows != null) {
+                for (Map<String, Object> row : rows) {
+                    Object pidObj = row.get("platformId");
+                    Object statusObj = row.get("status");
+                    Object cntObj = row.get("cnt");
+                    if (pidObj == null) continue;
+                    long pid = ((Number) pidObj).longValue();
+                    long cnt = cntObj == null ? 0L : ((Number) cntObj).longValue();
+                    String status = statusObj == null ? "" : statusObj.toString();
+                    Map<String, Object> agg = byPlatform.computeIfAbsent(pid, k -> {
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("platformId", k);
+                        m.put("total", 0L);
+                        m.put("pending", 0L);
+                        m.put("downloading", 0L);
+                        m.put("completed", 0L);
+                        m.put("failed", 0L);
+                        m.put("stopped", 0L);
+                        return m;
+                    });
+                    agg.put("total", ((Number) agg.get("total")).longValue() + cnt);
+                    switch (status) {
+                        case "PENDING":     agg.put("pending",     ((Number) agg.get("pending")).longValue() + cnt); break;
+                        case "DOWNLOADING": agg.put("downloading", ((Number) agg.get("downloading")).longValue() + cnt); break;
+                        case "COMPLETED":   agg.put("completed",   ((Number) agg.get("completed")).longValue() + cnt); break;
+                        case "FAILED":      agg.put("failed",      ((Number) agg.get("failed")).longValue() + cnt); break;
+                        case "STOPPED":     agg.put("stopped",     ((Number) agg.get("stopped")).longValue() + cnt); break;
+                        default: break;
+                    }
+                }
+            }
+            response.put("success", true);
+            response.put("data", new java.util.ArrayList<>(byPlatform.values()));
+            response.put("count", byPlatform.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("获取平台下载汇总失败: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "获取平台下载汇总失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
      * 获取指定平台的下载统计信息
      */
     @GetMapping("/platforms/{platformId}/stats")

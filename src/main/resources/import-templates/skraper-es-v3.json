@@ -1,0 +1,68 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "import",
+    "dataFileType": "data",
+    "format": "xml",
+    "dataFile": "gamelist.xml",
+    "author": "Frontend-Killer",
+    "description": "Skraper-EmulationStation 导入模板（v3 统一格式，支持深层子目录媒体结构）",
+    "notes": "XML 格式，系统信息在 provider 标签内，游戏信息在 game 标签内"
+  },
+  "system": {
+    "systemTag": "provider",
+    "fields": {
+      "platform.system": ["system"],
+      "platform.software": ["software"]
+    }
+  },
+  "game": {
+    "gameStartMarker": "game",
+    "multiFileDetection": {
+      "enabled": true,
+      "source": "path",
+      "trigger": "endsWith",
+      "pattern": ".m3u",
+      "content": "fileContent"
+    },
+    "computedVariables": {
+      "filename": "stem(path)",
+      "filepath": "replace(path or '', './', '')"
+    },
+    "gameInfo": {
+      "name": ["name"],
+      "desc": ["desc", "description"],
+      "releasedate": ["releasedate", "release"],
+      "developer": ["developer", "dev"],
+      "publisher": ["publisher", "pub"],
+      "genre": ["genre", "category"],
+      "players": ["players", "player"],
+      "rating": ["rating"],
+      "path": ["path", "file"],
+      "hash": ["hash"],
+      "lang": ["lang"],
+      "gameId": ["id", "gameId"]
+    },
+    "mediaInfo": {
+      "video": ["video"],
+      "marquee": ["marquee"],
+      "wheel": ["wheel"],
+      "ss": ["screenshot"],
+      "sstitle": ["titlescreen"],
+      "fanart": ["fanart"],
+      "box-2D": ["boxFront", "box2dfront"],
+      "box-2D-back": ["boxBack", "box2dback"],
+      "box-2D-side": ["boxSpine", "box2dside"],
+      "box-3D": ["boxFull", "box3d"],
+      "box-texture": ["boxtexture"],
+      "support-2D": ["cartridge", "support"],
+      "support-texture": ["supporttexture"],
+      "bezel-16-9": ["bezel"],
+      "steamgrid": ["steamgrid"],
+      "manuel": ["manual"],
+      "background": ["background"],
+      "screenmarqueesmall": ["screenmarqueesmall"],
+      "figurine": ["figurine"]
+    }
+  }
+}

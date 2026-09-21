@@ -142,19 +142,18 @@
             };
         }
         
-        // 加载平台统计数据
+        // 加载平台统计数据（仅拉当前平台，避免全库 SUM CASE 扫描）
         function loadPlatformStatistics() {
             if (!currentPlatformId) return;
             
-            fetch(`/api/gamelist/statistics/platforms`)
+            fetch(`/api/gamelist/statistics/platforms/${currentPlatformId}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
                     return response.json();
                 })
-                .then(data => {
-                    const platform = data.find(p => p.platformId == currentPlatformId);
+                .then(platform => {
                     if (!platform) {
                         throw new Error('Platform not found');
                     }
@@ -164,23 +163,23 @@
                         <div class="platform-stats-grid">
                             <div class="platform-stat-item">
                                 <h4 data-i18n="status_scraped">已刮削</h4>
-                                <div class="value scraped">${platform.scraped}</div>
+                                <div class="value scraped">${platform.scraped || 0}</div>
                             </div>
                             <div class="platform-stat-item">
                                 <h4 data-i18n="status_original">有原始数据</h4>
-                                <div class="value original-data">${platform.originalData}</div>
+                                <div class="value original-data">${platform.originalData || 0}</div>
                             </div>
                             <div class="platform-stat-item">
                                 <h4 data-i18n="status_poor_quality">质量差</h4>
-                                <div class="value poor-quality">${platform.poorQuality}</div>
+                                <div class="value poor-quality">${platform.poorQuality || 0}</div>
                             </div>
                             <div class="platform-stat-item">
                                 <h4 data-i18n="status_raw_rom">纯ROM</h4>
-                                <div class="value raw-rom">${platform.rawRom}</div>
+                                <div class="value raw-rom">${platform.rawRom || 0}</div>
                             </div>
                             <div class="platform-stat-item">
                                 <h4 data-i18n="total_games">总游戏数</h4>
-                                <div class="value">${platform.totalGames}</div>
+                                <div class="value">${platform.totalGames || 0}</div>
                             </div>
                         </div>
                     `;
@@ -400,16 +399,8 @@
         // 提交编辑表单事件
         document.getElementById('editForm').addEventListener('submit', submitEditForm);
         
-        // 通知系统
-        let notifications = [];
-        let unreadCount = 0;
-        
-        // 显示通知
+        // 弹跳提示（通知中心由 layout 全局提供）
         function showNotification(message, type = 'info') {
-            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
-            unreadCount++;
-            updateNotificationBell();
-            
             const notificationElement = document.createElement('div');
             notificationElement.className = `notification ${type}`;
             notificationElement.textContent = message;
@@ -419,50 +410,6 @@
                 notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
                 setTimeout(() => notificationElement.remove(), 300);
             }, 3000);
-        }
-        
-        // 更新通知铃铛
-        function updateNotificationBell() {
-            const badge = document.querySelector('.notification-bell .badge');
-            if (badge) {
-                badge.textContent = unreadCount;
-                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
-            }
-        }
-        
-        // 打开通知面板
-        function openNotificationPanel() {
-            const modal = document.getElementById('notificationModal');
-            const content = document.getElementById('notificationContent');
-            
-            content.innerHTML = '';
-            
-            if (notifications.length === 0) {
-                content.innerHTML = '<p class="notification-empty">暂无通知</p>';
-            } else {
-                notifications.forEach(notification => {
-                    const notificationItem = document.createElement('div');
-                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
-                    notificationItem.innerHTML = `
-                        <div class="notification-message">${notification.message}</div>
-                        <div class="notification-time">${notification.time}</div>
-                    `;
-                    content.appendChild(notificationItem);
-                    
-                    if (!notification.read) {
-                        notification.read = true;
-                        unreadCount--;
-                    }
-                });
-            }
-            
-            updateNotificationBell();
-            modal.style.display = 'block';
-        }
-        
-        // 关闭通知面板
-        function closeNotificationPanel() {
-            document.getElementById('notificationModal').style.display = 'none';
         }
         
         // 页面加载完成后初始化

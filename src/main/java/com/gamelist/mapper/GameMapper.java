@@ -29,6 +29,10 @@ public interface GameMapper {
     long countPoorQualityGames();
     long countRawRomGames();
     List<PlatformStatistics> selectPlatformStatistics();
+    /**
+     * 仅统计单个平台的刷刮状态分布，避免全表扫描。适用于平台详情页。
+     */
+    PlatformStatistics selectPlatformStatisticsById(Long platformId);
     List<Game> selectGamesByScrapeStatus(Long platformId, String status, int offset, int limit);
     int updateGame(Game game);
     int deleteGamesByPlatformId(Long platformId);

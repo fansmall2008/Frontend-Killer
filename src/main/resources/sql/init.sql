@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS game (
     `exists` BOOLEAN DEFAULT false,
     absolute_path VARCHAR(2048),
     platform_path VARCHAR(2048),
+    ss_game_id BIGINT,
     multi_file BOOLEAN DEFAULT false,
     multi_file_content CLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -216,6 +217,7 @@ CREATE TABLE IF NOT EXISTS temp_subset_game (
     `exists` BOOLEAN DEFAULT false,
     absolute_path VARCHAR(2048),
     platform_path VARCHAR(2048),
+    ss_game_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (subset_id) REFERENCES temp_subset(id),
@@ -533,6 +535,10 @@ ALTER TABLE media_download_task ADD COLUMN IF NOT EXISTS game_field_name VARCHAR
 ALTER TABLE game ADD COLUMN IF NOT EXISTS multi_file BOOLEAN DEFAULT false;
 ALTER TABLE game ADD COLUMN IF NOT EXISTS multi_file_content CLOB;
 
+-- V1.0.15 ScreenScraper 游戏ID（媒体目录稳定键，跨平台复用）
+ALTER TABLE game ADD COLUMN IF NOT EXISTS ss_game_id BIGINT DEFAULT NULL;
+ALTER TABLE temp_subset_game ADD COLUMN IF NOT EXISTS ss_game_id BIGINT DEFAULT NULL;
+
 -- ============================================================
 -- V1.0.13 平台体量统计缓存表
 -- 用于导出前预估数据量（ROM/媒体文件数量与占用空间）
@@ -558,3 +564,39 @@ CREATE TABLE IF NOT EXISTS platform_stats_cache (
 );
 
 CREATE INDEX IF NOT EXISTS idx_psc_last_scanned ON platform_stats_cache(last_scanned_at);
+
+-- ============================================================
+-- V1.1 通知中心表
+-- 持久化所有后台事件（任务创建/完成/失败、刮削、媒体下载、配额警告等）
+-- 铃铛角标与通知面板读取本表，SSE 实时推送新事件
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notification (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title         VARCHAR(255)  NOT NULL,
+    message       VARCHAR(2000),
+    type          VARCHAR(20)   DEFAULT 'info',
+    source        VARCHAR(50)   DEFAULT NULL,
+    is_read       BOOLEAN       DEFAULT FALSE,
+    created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_created ON notification(created_at);
+CREATE INDEX IF NOT EXISTS idx_notification_read ON notification(is_read);
+
+-- ============================================================
+-- media_download_task 复合索引：优化按 (platform_id, status) 的 COUNT / 拉取
+-- 前端媒体下载页面需频繁按平台+状态统计，旧有单列索引 idx_media_download_task_platform_id
+-- 仍需对 status 二次过滤；此复合索引可直接命中，显著降低扫描行数。
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_mdt_platform_status ON media_download_task(platform_id, status);
+CREATE INDEX IF NOT EXISTS idx_mdt_status_order ON media_download_task(status, order_index);
+
+-- ============================================================
+-- game 表索引：平台详情页与列表页高频使用 platform_id + scraped 过滤，
+-- 及 ORDER BY name 排序；没索引时每页都会全表扫描 + filesort，在大库下会
+-- 直接导致平台详情页卡死。另外 path 列在导入去重时频繁命中。
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_game_platform_id      ON game(platform_id);
+CREATE INDEX IF NOT EXISTS idx_game_platform_scraped ON game(platform_id, scraped);
+CREATE INDEX IF NOT EXISTS idx_game_name             ON game(name);
+CREATE INDEX IF NOT EXISTS idx_game_path             ON game(path);

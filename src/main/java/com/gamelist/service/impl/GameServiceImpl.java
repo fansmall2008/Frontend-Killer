@@ -2235,6 +2235,12 @@ public class GameServiceImpl implements GameService {
     public List<PlatformStatistics> getPlatformStatistics() {
         return gameMapper.selectPlatformStatistics();
     }
+
+    @Override
+    public PlatformStatistics getPlatformStatisticsById(Long platformId) {
+        if (platformId == null) return null;
+        return gameMapper.selectPlatformStatisticsById(platformId);
+    }
     
     @Override
     public List<Game> getGamesByScrapeStatus(Long platformId, String status, int page, int size) {

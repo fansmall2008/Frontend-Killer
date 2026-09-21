@@ -5,6 +5,7 @@ import com.gamelist.mapper.GameMapper;
 import com.gamelist.model.MediaDownloadTask;
 import com.gamelist.model.Game;
 import com.gamelist.service.MediaDownloadService;
+import com.gamelist.service.NotificationService;
 import com.gamelist.service.ThreadResourceManager;
 import com.gamelist.util.RateLimitCounter;
 import com.gamelist.util.ScreenScraperStatusHandler;
@@ -46,6 +47,9 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     
     @Autowired
     private ThreadResourceManager threadResourceManager;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final AtomicBoolean isPaused = new AtomicBoolean(false);
@@ -208,7 +212,7 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                             if (shouldStopDueToNotFound()) {
                                                 logger.error("10秒内出现10次404错误，停止媒体下载");
                                                 isStopped.set(true);
-                                                sendNotification("媒体下载停止", "10秒内出现10次404错误，已停止媒体下载");
+                                                sendNotification("媒体下载停止", "10秒内出现10次404错误，已停止媒体下载", "error");
                                             }
                                         } else if (ScreenScraperStatusHandler.shouldStopImmediately(statusCode)) {
                                             if (ScreenScraperStatusHandler.isSoftwareLimitError(statusCode) 
@@ -217,12 +221,12 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                                 String limitWarning = ScreenScraperStatusHandler.getLimitWarningMessage(statusCode);
                                                 logger.error("限额触发，暂停媒体下载: 状态码={}, 消息={}", statusCode, limitWarning);
                                                 isPaused.set(true);
-                                                sendNotification("媒体下载已暂停", limitWarning);
+                                                sendNotification("媒体下载已暂停", limitWarning, "warning");
                                             } else {
                                                 // 非限额的严重错误：停止
                                                 logger.error("遇到严重状态码 {}，停止媒体下载: {}", statusCode, errorMessage);
                                                 isStopped.set(true);
-                                                sendNotification("媒体下载停止", ScreenScraperStatusHandler.getSuggestion(statusCode));
+                                                sendNotification("媒体下载停止", ScreenScraperStatusHandler.getSuggestion(statusCode), "error");
                                             }
                                         }
 
@@ -481,9 +485,8 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     /**
      * 发送通知（保留接口，与ScraperServiceImpl保持一致）
      */
-    private void sendNotification(String title, String message) {
-        logger.info("发送通知: {} - {}", title, message);
-        // TODO: 集成到现有的通知机制
+    private void sendNotification(String title, String message, String type) {
+        notificationService.send(title, message, type, "media-download");
     }
     
     /**

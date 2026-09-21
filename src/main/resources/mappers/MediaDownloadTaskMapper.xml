@@ -186,6 +186,14 @@
         SELECT DISTINCT platform_id FROM media_download_task
     </select>
 
+    <!-- 一次性汇总所有平台各状态的任务数量，替代逐平台 6 次 COUNT -->
+    <select id="selectPlatformStatusSummary" resultType="java.util.Map">
+        SELECT platform_id AS "platformId", status AS "status", COUNT(*) AS "cnt"
+        FROM media_download_task
+        WHERE platform_id IS NOT NULL
+        GROUP BY platform_id, status
+    </select>
+
     <select id="selectByGameId" parameterType="java.lang.Long" resultType="com.gamelist.model.MediaDownloadTask">
         SELECT * FROM media_download_task WHERE game_id = #{gameId}
     </select>

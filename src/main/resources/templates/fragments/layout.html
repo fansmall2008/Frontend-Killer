@@ -70,7 +70,7 @@
         </button>
         <button class="header-icon-btn" id="headerNotifBtn" onclick="openNotificationPanel()">
             🔔
-            <span class="notif-dot" id="headerNotifDot" style="display:none"></span>
+            <span class="notif-badge" id="headerNotifBadge" style="display:none">0</span>
         </button>
     </div>
 </header>
@@ -80,6 +80,9 @@
     <div class="modal-content">
         <span class="close" onclick="closeNotificationPanel()">&times;</span>
         <h2 class="modal-title" data-i18n="task_messages">任务消息</h2>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+            <button type="button" class="btn notif-clear-btn" onclick="clearNotifications()" data-i18n="notif_clear">清空</button>
+        </div>
         <div id="notificationContent" style="max-height:400px;overflow-y:auto"></div>
     </div>
 </div>
@@ -147,9 +150,133 @@
                 modal.addEventListener('click', function(event) {
                     if (event.target === modal) {
                         modal.style.display = 'none';
+                        window.notifPanelOpen = false;
                     }
                 });
             }
+        })();
+
+        // ====== 通知中心（全局）：SSE 订阅 + 铃铛角标 + 面板渲染 ======
+        (function() {
+            function i18n(key, fallback) {
+                return (typeof getI18nText === 'function') ? getI18nText(key, fallback) : fallback;
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text == null ? '' : String(text);
+                return div.innerHTML;
+            }
+
+            function formatTime(value) {
+                if (!value) return '';
+                const d = new Date(value);
+                if (isNaN(d.getTime())) return String(value);
+                const p = function(n) { return String(n).padStart(2, '0'); };
+                return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' '
+                    + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+            }
+
+            window.refreshNotificationBadge = function() {
+                fetch('/api/notifications/unread-count')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        const badge = document.getElementById('headerNotifBadge');
+                        if (!badge) return;
+                        const count = data.count || 0;
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.style.display = count > 0 ? 'flex' : 'none';
+                    })
+                    .catch(function() {});
+            };
+
+            window.renderNotificationList = function() {
+                const content = document.getElementById('notificationContent');
+                if (!content) return;
+                fetch('/api/notifications?limit=100')
+                    .then(function(r) { return r.json(); })
+                    .then(function(list) {
+                        content.innerHTML = '';
+                        if (!list || list.length === 0) {
+                            content.innerHTML = '<p class="notif-empty">' + escapeHtml(i18n('notif_empty', '暂无通知')) + '</p>';
+                            return;
+                        }
+                        list.forEach(function(n) {
+                            const item = document.createElement('div');
+                            item.className = 'notification-item notif-' + (n.type || 'info') + (n.read ? ' read' : ' unread');
+                            const msg = n.message ? '<div class="notif-message">' + escapeHtml(n.message) + '</div>' : '';
+                            item.innerHTML =
+                                '<div class="notif-title">' + escapeHtml(n.title) + '</div>' + msg +
+                                '<div class="notif-time">' + escapeHtml(formatTime(n.createdAt)) + '</div>';
+                            content.appendChild(item);
+                        });
+                    })
+                    .catch(function() {});
+            };
+
+            window.openNotificationPanel = function() {
+                const modal = document.getElementById('notificationModal');
+                if (!modal) return;
+                modal.style.display = 'block';
+                window.notifPanelOpen = true;
+                renderNotificationList();
+                // 打开即视为已读：清除角标
+                fetch('/api/notifications/read', { method: 'PUT' })
+                    .then(function() { refreshNotificationBadge(); })
+                    .catch(function() {});
+            };
+
+            window.closeNotificationPanel = function() {
+                const modal = document.getElementById('notificationModal');
+                if (modal) modal.style.display = 'none';
+                window.notifPanelOpen = false;
+            };
+
+            window.clearNotifications = function() {
+                if (!confirm(i18n('notif_clear_confirm', '确定清空所有通知吗？'))) return;
+                fetch('/api/notifications', { method: 'DELETE' })
+                    .then(function() {
+                        renderNotificationList();
+                        refreshNotificationBadge();
+                    })
+                    .catch(function() {});
+            };
+
+            // SSE 订阅：新通知到达时实时刷新角标与面板
+            // 同一个浏览器选项卡在 HTTP/1.1 下最多 6 个并发连接，SSE 会长期占用 1 个；
+            // 而 EventSource 默认断开后自动重连（3s），页面导航时如果没显式 close，
+            // 旧连接可能拖到下一个页面建立，新页面 fetch 会排在后面导致“转圈”。
+            // 因此将 source 挂到 window 上，并在 pagehide/beforeunload 时主动 close。
+            function connectSse() {
+                if (typeof EventSource === 'undefined') return;
+                try {
+                    const source = new EventSource('/api/notifications/stream');
+                    window.__notifEventSource = source;
+                    source.addEventListener('notification', function() {
+                        refreshNotificationBadge();
+                        if (window.notifPanelOpen) renderNotificationList();
+                    });
+                    source.addEventListener('error', function() {
+                        // 服务端主动关闭或网络异常时不再自动重连，避免卡片卡住时反复握手
+                        if (source.readyState === EventSource.CLOSED) {
+                            try { source.close(); } catch (e) {}
+                        }
+                    });
+                    const shutdown = function() {
+                        try { source.close(); } catch (e) {}
+                        window.__notifEventSource = null;
+                    };
+                    window.addEventListener('pagehide', shutdown);
+                    window.addEventListener('beforeunload', shutdown);
+                } catch (e) { /* 不支持 SSE 时由轮询兑底 */ }
+                // 兑底轮询：防止 SSE 断线期间错过角标更新
+                setInterval(refreshNotificationBadge, 30000);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                refreshNotificationBadge();
+                connectSse();
+            });
         })();
     </script>
 </th:block>

@@ -25,7 +25,7 @@ ENV TZ=Asia/Shanghai
 WORKDIR /app
 
 # Copy the built JAR file
-COPY --from=builder /build/target/webGamelistOper-1.1-RC1.jar app.jar
+COPY --from=builder /build/target/webGamelistOper-1.2-RC1.jar app.jar
 
 # Copy default rules (from rules/ directory, which contains all v2+v3 templates)
 COPY rules/export/ /app/default-rules/export/

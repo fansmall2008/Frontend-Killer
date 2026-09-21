@@ -133,17 +133,17 @@
                     
                     <div class="form-group">
                         <label for="developer" data-i18n="developer">开发商</label>
-                        <input type="text" id="developer" placeholder="如：Electronic Arts">
+                        <input type="text" id="developer" placeholder="如：Electronic Arts" data-i18n-placeholder="developer_placeholder">
                     </div>
                     
                     <div class="form-group">
                         <label for="publisher" data-i18n="publisher">发行商</label>
-                        <input type="text" id="publisher" placeholder="如：Nintendo">
+                        <input type="text" id="publisher" placeholder="如：Nintendo" data-i18n-placeholder="publisher_placeholder">
                     </div>
                     
                     <div class="form-group">
                         <label for="genre" data-i18n="genre">游戏类型</label>
-                        <input type="text" id="genre" placeholder="如：Action, Shooter">
+                        <input type="text" id="genre" placeholder="如：Action, Shooter" data-i18n-placeholder="genre_placeholder">
                     </div>
                     
                     <div class="form-group">
@@ -247,7 +247,7 @@
         <!-- 页脚 -->
         <div class="footer">
             <p data-i18n="copyright">© 2024 前端杀手 | 模拟游戏元数据管理平台</p>
-            <p class="version-info" data-i18n="version">版本：1.1-RC1</p>
+            <p class="version-info" data-i18n="version">版本：1.2-RC1</p>
         </div>
     </div>
 
@@ -265,7 +265,7 @@
                 <div class="form-group">
                     <label data-i18n="scraper_system">刮削系统</label>
                     <select id="editScraperSystem" style="display:none;">
-                        <option value="">请选择系统...</option>
+                        <option value="" data-i18n="select_system_option">请选择系统...</option>
                     </select>
                     <div class="ss-search-wrapper">
                         <input type="text" id="scraperSystemSearch" class="ss-search-input" placeholder="输入关键字搜索刮削系统..." data-i18n-placeholder="platform_scraper_system_search_placeholder" autocomplete="off">
@@ -341,7 +341,7 @@
                                 <option value="" data-i18n="not_set">未设置</option>
                                 <option value="icon">Icon</option>
                                 <option value="minicon">Mini Icon</option>
-                                <option value="logo-monochrome">Logo (单色)</option>
+                                <option value="logo-monochrome" data-i18n="logo_monochrome">Logo (单色)</option>
                                 <option value="logo-svg">Logo (SVG)</option>
                                 <option value="wheel">Wheel</option>
                                 <option value="wheel-carbon">Wheel (Carbon)</option>
@@ -445,35 +445,35 @@
                 <div class="form-group">
                     <label for="translationSourceLang" data-i18n="source_language">源语言</label>
                     <select id="translationSourceLang">
-                        <option value="auto">自动检测</option>
-                        <option value="zh">中文</option>
-                        <option value="en">英语</option>
-                        <option value="ja">日语</option>
+                        <option value="auto" data-i18n="auto_detect">自动检测</option>
+                        <option value="zh" data-i18n="lang_zh_full">中文</option>
+                        <option value="en" data-i18n="lang_en_full">英语</option>
+                        <option value="ja" data-i18n="lang_ja_full">日语</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="translationTargetLang" data-i18n="target_language">目标语言</label>
                     <select id="translationTargetLang">
-                        <option value="zh">中文</option>
-                        <option value="en">英语</option>
-                        <option value="ja">日语</option>
+                        <option value="zh" data-i18n="lang_zh_full">中文</option>
+                        <option value="en" data-i18n="lang_en_full">英语</option>
+                        <option value="ja" data-i18n="lang_ja_full">日语</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="translationApi" data-i18n="select_translation_api">翻译引擎</label>
                     <select id="translationApi">
-                        <option value="google">Google翻译</option>
-                        <option value="baidu">百度翻译</option>
-                        <option value="youdao">有道翻译</option>
+                        <option value="google" data-i18n="google_translate">Google翻译</option>
+                        <option value="baidu" data-i18n="baidu_translate">百度翻译</option>
+                        <option value="youdao" data-i18n="youdao_translate">有道翻译</option>
                         <option value="deepseek">DeepSeek</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="translationType" data-i18n="translate_content">翻译内容</label>
                     <select id="translationType">
-                        <option value="name">仅游戏名称</option>
-                        <option value="desc">仅游戏描述</option>
-                        <option value="both">游戏名称和描述</option>
+                        <option value="name" data-i18n="translate_name_only">仅游戏名称</option>
+                        <option value="desc" data-i18n="translate_desc_only">仅游戏描述</option>
+                        <option value="both" data-i18n="translate_both">游戏名称和描述</option>
                     </select>
                 </div>
                 <button type="submit" class="submit-btn" data-i18n="start_translation">开始翻译</button>
@@ -495,8 +495,8 @@
                     <div class="form-group">
                         <label for="modalSeparationType" data-i18n="separation_type">分离类型</label>
                         <select id="modalSeparationType">
-                            <option value="platform">新平台</option>
-                            <option value="temp_subset">游戏子集</option>
+                            <option value="platform" data-i18n="separation_type_platform">新平台</option>
+                            <option value="temp_subset" data-i18n="separation_type_temp_subset">游戏子集</option>
                         </select>
                     </div>
                     <div class="form-group" id="modalNewPlatformNameGroup">
@@ -526,15 +526,15 @@
                 
                 <!-- 文件状态 -->
                 <div style="margin-bottom: 30px; padding: 20px; background: rgba(0, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <h3 style="color: #00ffff; margin-bottom: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">文件状态</h3>
+                    <h3 style="color: #00ffff; margin-bottom: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="file_status_title">文件状态</h3>
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 30px;">
                             <input type="checkbox" id="fileExists" name="fileStatus" value="exists" style="margin-right: 10px; accent-color: #00ffff;">
-                            <span>文件存在</span>
+                            <span data-i18n="file_exists">文件存在</span>
                         </label>
                         <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
                             <input type="checkbox" id="fileNotExists" name="fileStatus" value="not_exists" style="margin-right: 10px; accent-color: #00ffff;">
-                            <span>文件不存在</span>
+                            <span data-i18n="file_not_exists">文件不存在</span>
                         </label>
                     </div>
                 </div>
@@ -630,11 +630,11 @@
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
                             <input type="checkbox" name="scrapeScope" value="gameInfo" checked style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">游戏信息</span>
+                            <span style="color: #ccc;" data-i18n="scrape_scope_game_info">游戏信息</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
                             <input type="checkbox" name="scrapeScope" value="media" checked style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">媒体文件</span>
+                            <span style="color: #ccc;" data-i18n="scrape_scope_media">媒体文件</span>
                         </label>
                     </div>
                 </div>
@@ -715,85 +715,94 @@
                 <!-- 选择媒体类型（多选） -->
                 <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
                     <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_media_types">选择媒体类型</label>
+                    <!-- 从模板预选 -->
+                    <div class="scrape-template-preset" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(255, 215, 0, 0.06); border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.25);">
+                        <label style="color: #ffd700; font-size: 13px; font-weight: bold; white-space: nowrap; margin: 0;" data-i18n="scrape_template_preset">从模板预选</label>
+                        <select id="scrapeTemplatePreset" style="flex: 1; min-width: 180px; padding: 7px 10px; background: #1a1a2e; color: #ccc; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 6px; font-size: 13px;">
+                            <option value="" data-i18n="scrape_template_default_option">选择导出模板...</option>
+                        </select>
+                        <button type="button" onclick="applyTemplatePreset()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #ffd700, #ffb300); color: #000; font-weight: bold; white-space: nowrap;" data-i18n="btn_apply_template">应用模板</button>
+                        <button type="button" onclick="clearMediaSelection()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #666, #444); color: #fff; white-space: nowrap;" data-i18n="btn_clear_selection">清空</button>
+                    </div>
                     <div class="media-type-grid" id="mediaTypeGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
                         <!-- 截图类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_screenshot">截图</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="sstitle" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标题截图</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ss" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">截图</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ssmap" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="sstitle" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_sstitle">标题截图</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ss" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_ss">截图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="ssmap" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_ssmap">地图</span></label>
                         </div>
                         <!-- 封面类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_cover">封面</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-side" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面侧面</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-back" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面背面</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-3D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">3D封面</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">支撑图</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">支撑纹理</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_box2d">封面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-side" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_box2d_side">封面侧面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-2D-back" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_box2d_back">封面背面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-3D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_box3d">3D封面</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-2D" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_support2d">支撑图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="support-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_support_texture">支撑纹理</span></label>
                         </div>
                         <!-- 轮盘类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_wheel">轮盘</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">轮盘</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-carbon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">碳纤维轮盘</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-steel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">钢铁轮盘</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="minicon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小图标</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_wheel">轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-carbon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_wheel_carbon">碳纤维轮盘</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-steel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_wheel_steel">钢铁轮盘</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="minicon" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_minicon">小图标</span></label>
                         </div>
                         <!-- 海报类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_poster">海报</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="fanart" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">粉丝艺术</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="poster" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">海报</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="banner" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">条幅</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="fanart" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_fanart">粉丝艺术</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="poster" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_poster">海报</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="banner" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_banner">条幅</span></label>
                         </div>
                         <!-- 霓虹灯类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_marquee">霓虹灯</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">屏幕霓虹灯</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarqueesmall" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">小霓虹灯</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="marquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">霓虹灯</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_screenmarquee">屏幕霓虹灯</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="screenmarqueesmall" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_screenmarquee_small">小霓虹灯</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="marquee" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_marquee">霓虹灯</span></label>
                         </div>
                         <!-- 街机类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_arcade">街机</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-4-3" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框4:3</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-16-9" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">边框16:9</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="panel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">面板</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_bezel">边框</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-4-3" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_bezel_4_3">边框4:3</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="bezel-16-9" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_bezel_16_9">边框16:9</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="panel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_panel">面板</span></label>
                         </div>
                         <!-- 视频类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_video">视频</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">视频</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video-normalized" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">标准化视频</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="intro" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">介绍视频</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_video">视频</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="video-normalized" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_video_normalized">标准化视频</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="intro" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_intro">介绍视频</span></label>
                         </div>
                         <!-- 其他类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
                             <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_other">其他</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="background" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">背景</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="background" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_background">背景</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="logo" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">LOGO</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="steamgrid" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Steam网格</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="manuel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手册</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="flyer" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">传单</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="overlay" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">覆盖层</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="maps" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">地图</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="figurine" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">手办</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="steamgrid" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_steamgrid">Steam网格</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="manuel" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_manuel">手册</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="flyer" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_flyer">传单</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="overlay" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_overlay">覆盖层</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="maps" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_maps">地图</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="figurine" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_figurine">手办</span></label>
                         </div>
                         <!-- 纹理与混合类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
-                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);">纹理/混合/主题</div>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">封面纹理</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-hd" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">HD轮盘</span></label>
+                            <div class="media-category-title" style="color: #00ffff; font-weight: bold; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2);" data-i18n="media_category_texture_mix">纹理/混合/主题</div>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="box-texture" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_box_texture">封面纹理</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="wheel-hd" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_wheel_hd">HD轮盘</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="mixrbv1" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">MixRB v1</span></label>
                             <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="mixrbv2" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">MixRB v2</span></label>
-                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehb" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HB</span></label>
-                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehs" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HS</span></label>
+                            <label style="display: block; margin-bottom: 6px; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehb" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_themehb">主题HB</span></label>
+                            <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehs" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="mt_themehs">主题HS</span></label>
                         </div>
                     </div>
-                    <p style="color: #888; font-size: 12px; margin-top: 12px;">至少选择一种媒体类型</p>
+                    <p style="color: #888; font-size: 12px; margin-top: 12px;" data-i18n="mt_at_least_one">至少选择一种媒体类型</p>
                 </div>
                 
                 <!-- 其他选项（多选） -->
@@ -804,7 +813,7 @@
                     </label>
                     <label style="display: flex; align-items: center; cursor: pointer;">
                         <input type="checkbox" id="scrapeOnlyMissing" style="margin-right: 10px; accent-color: #00ffff;">
-                        <span style="color: #ccc;">仅刮削信息不全的游戏</span>
+                        <span style="color: #ccc;" data-i18n="scrape_only_incomplete">仅刮削信息不全的游戏</span>
                     </label>
                 </div>
                 </form>
@@ -967,7 +976,7 @@
                                 row.innerHTML = `
                                     <td>${platform.id}</td>
                                     <td>
-                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">无</span>` : '<span style="color: #888;">无</span>'}
+                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
                                     </td>
                                     <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
                                     <td>${stat.totalGames}</td>
@@ -976,21 +985,12 @@
                                     <td style="color: #ffa500;">${stat.poorQuality}</td>
                                     <td style="color: #888;">${stat.rawRom}</td>
                                     <td style="color: #ff6666;">${stat.missingGames}</td>
-                                    <td>
-                                        <button class="action-btn scrape-btn" onclick="openScrapeModal('platform', ${platform.id})" data-i18n="scrape">刮削</button>
-                                        <button class="action-btn edit-btn" onclick="openEditModal(${platform.id})" data-i18n="edit">编辑</button>
-                                        <button class="action-btn delete-btn" onclick="deletePlatform(${platform.id})" data-i18n="delete">删除</button>
-                                        <button class="action-btn edit-btn" onclick="openTranslationModal(${platform.id})" data-i18n="translation">翻译</button>
-                                        <button class="action-btn edit-btn" onclick="swapPlatformTranslations(${platform.id}, '${platform.name || platform.system}')" data-i18n="swap_translations">切换译文</button>
-                                        <button class="action-btn edit-btn" onclick="openSeparationModal(${platform.id})" data-i18n="separation">分离</button>
-                                        <button class="action-btn edit-btn" onclick="viewGames(${platform.id})" data-i18n="view">查看</button>
-                                        <button class="action-btn edit-btn" onclick="openStatisticsModal(${platform.id})" data-i18n="statistics">统计</button>
-                                        <button class="action-btn edit-btn" onclick="openScanConfirmModal(${platform.id}, '${(platform.name || platform.system || '').replace(/'/g, "\\'")}', ${stat.totalGames})" data-i18n="scan_stats">扫描体量</button>
-                                    </td>
+                                    <td class="action-cell">${buildPlatformActionButtons(platform, stat.totalGames)}</td>
                                 `;
                                 tableBody.appendChild(row);
                             });
                             updateTranslations(getCurrentLanguage());
+                            refreshActionTitles();
                         })
                         .catch(error => {
                             console.error('Error fetching platform statistics:', error);
@@ -1007,31 +1007,48 @@
                                 row.innerHTML = `
                                     <td>${platform.id}</td>
                                     <td>
-                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">无</span>` : '<span style="color: #888;">无</span>'}
+                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
                                     </td>
                                     <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
                                     <td>0</td>
                                     <td>0</td>
                                     <td>0</td>
                                     <td>0</td>
-                                    <td>
-                                        <button class="action-btn scrape-btn" onclick="openScrapeModal('platform', ${platform.id})" data-i18n="scrape">刮削</button>
-                                        <button class="action-btn edit-btn" onclick="openEditModal(${platform.id})" data-i18n="edit">编辑</button>
-                                        <button class="action-btn delete-btn" onclick="deletePlatform(${platform.id})" data-i18n="delete">删除</button>
-                                        <button class="action-btn edit-btn" onclick="openTranslationModal(${platform.id})" data-i18n="translation">翻译</button>
-                                        <button class="action-btn edit-btn" onclick="swapPlatformTranslations(${platform.id}, '${platform.name || platform.system}')" data-i18n="swap_translations">切换译文</button>
-                                        <button class="action-btn edit-btn" onclick="openSeparationModal(${platform.id})" data-i18n="separation">分离</button>
-                                        <button class="action-btn edit-btn" onclick="viewGames(${platform.id})" data-i18n="view">查看</button>
-                                        <button class="action-btn edit-btn" onclick="openStatisticsModal(${platform.id})" data-i18n="statistics">统计</button>
-                                        <button class="action-btn edit-btn" onclick="openScanConfirmModal(${platform.id}, '${(platform.name || platform.system || '').replace(/'/g, "\\'")}', 0)" data-i18n="scan_stats">扫描体量</button>
-                                    </td>
+                                    <td class="action-cell">${buildPlatformActionButtons(platform, 0)}</td>
                                 `;
                                 tableBody.appendChild(row);
                             });
                             updateTranslations(getCurrentLanguage());
+                            refreshActionTitles();
                         });
                 })
                 .catch(error => console.error('Error fetching platforms:', error));
+        }
+
+        // 平台操作列：纯图标按钮 + 悬停提示（title 随语言切换刷新）
+        function buildPlatformActionButtons(platform, totalGames) {
+            const id = platform.id;
+            const pname = (platform.name || platform.system || '').replace(/'/g, "\\'");
+            const btn = (cls, icon, key, onclick) =>
+                `<button class="action-icon-btn ${cls}" onclick="${onclick}" data-i18n-title="${key}" title="${_pi18n(key, key)}">${icon}</button>`;
+            return [
+                btn('scrape', '✨', 'scrape', `openScrapeModal('platform', ${id})`),
+                btn('info', '✏️', 'edit', `openEditModal(${id})`),
+                btn('danger', '🗑️', 'delete', `deletePlatform(${id})`),
+                btn('info', '🌐', 'translation', `openTranslationModal(${id})`),
+                btn('info', '🔁', 'swap_translations', `swapPlatformTranslations(${id}, '${pname}')`),
+                btn('info', '✂️', 'separation', `openSeparationModal(${id})`),
+                btn('info', '👁️', 'view', `viewGames(${id})`),
+                btn('info', '📊', 'statistics', `openStatisticsModal(${id})`),
+                btn('info', '📦', 'scan_stats', `openScanConfirmModal(${id}, '${pname}', ${totalGames})`)
+            ].join('');
+        }
+
+        // 刷新图标按钮悬停提示（渲染后与语言切换时调用）
+        function refreshActionTitles() {
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                el.title = _pi18n(el.getAttribute('data-i18n-title'), el.title);
+            });
         }
 
         // 获取平台 logo URL
@@ -1153,7 +1170,7 @@
         // === 刮削系统可搜索下拉 ===
         function populateScraperSystemSearch(systems) {
             const select = document.getElementById('editScraperSystem');
-            select.innerHTML = '<option value="">请选择系统...</option>';
+            select.innerHTML = '<option value="">' + _pi18n('select_system_option', '请选择系统...') + '</option>';
             systems.forEach(system => {
                 const option = document.createElement('option');
                 option.value = system.systemId;
@@ -1418,6 +1435,10 @@
         // 为可编辑元素添加点击事件
         function initEditableElements() {
             document.querySelectorAll('.editable').forEach(element => {
+                // 平台表的名称单元格改由 initPlatformRowClicks 事件委托处理（动态渲染无竞态）
+                if (element.tagName === 'TD' && element.closest('#platformTable')) {
+                    return;
+                }
                 element.addEventListener('click', function() {
                     const originalValue = this.textContent.trim();
                     const field = this.dataset.field;
@@ -1507,13 +1528,107 @@
                 if (response.ok) {
                     // 保存成功，更新显示
                     element.textContent = value;
-                    showNotification('更新成功', 'success');
+                    showNotification(_pi18n('update_success', '更新成功'), 'success');
                 } else {
                     // 保存失败，恢复原始内容
                     element.innerHTML = originalHtml;
-                    showNotification('更新失败', 'error');
+                    showNotification(_pi18n('update_failed', '更新失败'), 'error');
                 }
             })
+            .catch(error => {
+                console.error('保存失败:', error);
+                element.innerHTML = originalHtml;
+                showNotification(_pi18n('update_failed', '更新失败'), 'error');
+            });
+        }
+
+        // 平台表格行点击委托：
+        // - 点击平台名单元格 → 内联编辑
+        // - 点击行内其他非按钮区域 → 等同于点击"查看"按钮（跳转游戏列表）
+        function initPlatformRowClicks() {
+            const table = document.getElementById('platformTable');
+            if (!table || table.dataset.rowClickBound === 'true') return;
+            table.dataset.rowClickBound = 'true';
+            table.addEventListener('click', function(e) {
+                const tr = e.target.closest('tr');
+                if (!tr || !tr.dataset.platformId) return;
+                // 按钮、链接、输入框上的点击不触发行行为
+                if (e.target.closest('button, a, input, select, textarea')) return;
+                const td = e.target.closest('td');
+                if (td && td.classList.contains('editable')) {
+                    startInlineEditPlatformName(td);
+                    return;
+                }
+                viewGames(parseInt(tr.dataset.platformId, 10));
+            });
+        }
+
+        // 平台名内联编辑：input 替换文本，Enter/blur 提交，Escape 取消
+        function startInlineEditPlatformName(td) {
+            if (td.querySelector('.inline-edit-input')) return;
+            const platformId = td.dataset.platformId;
+            const originalHtml = td.innerHTML;
+            const originalValue = td.textContent.trim();
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'inline-edit-input';
+            input.value = originalValue;
+            td.innerHTML = '';
+            td.appendChild(input);
+            input.focus();
+            input.select();
+
+            let finished = false;
+            function cancel() {
+                if (finished) return;
+                finished = true;
+                td.innerHTML = originalHtml;
+            }
+            function commit() {
+                if (finished) return;
+                finished = true;
+                const newValue = input.value.trim();
+                if (!newValue || newValue === originalValue) {
+                    td.innerHTML = originalHtml;
+                    return;
+                }
+                saveInlinePlatformName(td, platformId, newValue, originalHtml);
+            }
+
+            input.addEventListener('keydown', function(ev) {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    commit();
+                } else if (ev.key === 'Escape') {
+                    ev.preventDefault();
+                    cancel();
+                }
+            });
+            input.addEventListener('blur', commit);
+        }
+
+        // 提交平台名内联编辑（PUT 动态 SET，仅更新 name/system）
+        function saveInlinePlatformName(td, platformId, newValue, originalHtml) {
+            fetch(`/api/platforms/${platformId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newValue })
+            })
+            .then(response => {
+                if (response.ok) {
+                    showNotification(_pi18n('update_success', '更新成功'), 'success');
+                    getPlatforms();
+                } else {
+                    td.innerHTML = originalHtml;
+                    showNotification(_pi18n('update_failed', '更新失败'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('保存平台名失败:', error);
+                td.innerHTML = originalHtml;
+                showNotification(_pi18n('update_failed', '更新失败'), 'error');
+            });
         }
 
         // 打开平台统计模态框
@@ -1526,7 +1641,7 @@
             const originalContent = statisticsContent.innerHTML;
             
             // 显示加载状态
-            statisticsContent.innerHTML = '<p style="text-align: center; color: #00ffff;">加载中...</p>';
+            statisticsContent.innerHTML = '<p style="text-align: center; color: #00ffff;">' + _pi18n('loading_text', '加载中...') + '</p>';
             
             // 打开模态框
             document.getElementById('statisticsModal').style.display = 'block';
@@ -1559,11 +1674,11 @@
                                 const row = document.createElement('tr');
                                 row.innerHTML = `
                                     <td>${file.fileName}</td>
-                                    <td>${file.gameName || '未知'}</td>
+                                    <td>${file.gameName || _pi18n('unknown', '未知')}</td>
                                     <td>${file.path}</td>
                                     <td>${file.absolutePath || '-'}</td>
                                     <td>
-                                        <button class="action-btn delete-btn" onclick="deleteGame(${file.gameId})">删除</button>
+                                        <button class="action-btn delete-btn" onclick="deleteGame(${file.gameId})" data-i18n="delete">删除</button>
                                     </td>
                                 `;
                                 duplicateFilesTableBody.appendChild(row);
@@ -1579,7 +1694,7 @@
                 })
                 .catch(error => {
                     console.error('Error fetching platform statistics:', error);
-                    statisticsContent.innerHTML = '<p style="text-align: center; color: #ff0088;">获取统计信息失败</p>';
+                    statisticsContent.innerHTML = '<p style="text-align: center; color: #ff0088;">' + _pi18n('fetch_stats_failed', '获取统计信息失败') + '</p>';
                 });
         }
 
@@ -1611,27 +1726,27 @@
 
             // 粗估耗时：每个游戏 ~15ms（含 ROM + 17 个媒体字段）
             const estSec = Math.max(3, Math.ceil((gameCount || 0) * 15 / 1000));
-            const estText = estSec < 60 ? `${estSec}-${estSec * 2} 秒` : `${Math.ceil(estSec/60)}-${Math.ceil(estSec/30)} 分钟`;
+            const estText = estSec < 60 ? `${estSec}-${estSec * 2} ${_pi18n('unit_seconds', '秒')}` : `${Math.ceil(estSec/60)}-${Math.ceil(estSec/30)} ${_pi18n('unit_minutes', '分钟')}`;
             document.getElementById('scanEstimatedTime').textContent = estText;
 
             // 先拉一下上次扫描时间
             const lastTimeEl = document.getElementById('scanLastTime');
-            lastTimeEl.textContent = '加载中...';
+            lastTimeEl.textContent = _pi18n('loading_text', '加载中...');
             fetch(`/api/statistics/cache/${platformId}`)
                 .then(r => r.json())
                 .then(resp => {
                     if (resp && resp.scanned && resp.data && resp.data.lastScannedAt) {
                         lastTimeEl.textContent = formatTimestamp(resp.data.lastScannedAt);
                     } else {
-                        lastTimeEl.textContent = '从未扫描';
+                        lastTimeEl.textContent = _pi18n('never_scanned', '从未扫描');
                     }
                 })
-                .catch(() => { lastTimeEl.textContent = '未知'; });
+                .catch(() => { lastTimeEl.textContent = _pi18n('unknown', '未知'); });
 
             document.getElementById('scanConfirmModal').style.display = 'block';
             const btn = document.getElementById('scanStartBtn');
             btn.disabled = false;
-            btn.textContent = '开始扫描';
+            btn.textContent = _pi18n('scan_start', '开始扫描');
             if (typeof updateTranslations === 'function') updateTranslations(getCurrentLanguage());
         }
 
@@ -1654,7 +1769,7 @@
             if (!pid) return;
             const btn = document.getElementById('scanStartBtn');
             btn.disabled = true;
-            btn.textContent = '扫描中...';
+            btn.textContent = _pi18n('scanning', '扫描中...');
 
             triggerScan(pid, () => {
                 closeScanConfirmModal();
@@ -1671,20 +1786,20 @@
                 .then(r => r.json())
                 .then(resp => {
                     if (!resp || !resp.success) {
-                        showNotification((resp && resp.error) || '触发扫描失败', 'error');
+                        showNotification((resp && resp.error) || _pi18n('scan_trigger_failed', '触发扫描失败'), 'error');
                         const btn = document.getElementById('scanStartBtn');
-                        if (btn) { btn.disabled = false; btn.textContent = '开始扫描'; }
+                        if (btn) { btn.disabled = false; btn.textContent = _pi18n('scan_start', '开始扫描'); }
                         return;
                     }
                     const taskId = resp.taskId;
-                    showNotification('扫描任务已启动，正在后台运行...', 'success');
+                    showNotification(_pi18n('scan_task_started', '扫描任务已启动，正在后台运行...'), 'success');
                     pollScanTask(platformId, taskId, onComplete);
                 })
                 .catch(err => {
                     console.error('触发扫描失败:', err);
-                    showNotification('触发扫描失败: ' + err.message, 'error');
+                    showNotification(_pi18n('scan_trigger_failed', '触发扫描失败') + ': ' + err.message, 'error');
                     const btn = document.getElementById('scanStartBtn');
-                    if (btn) { btn.disabled = false; btn.textContent = '开始扫描'; }
+                    if (btn) { btn.disabled = false; btn.textContent = _pi18n('scan_start', '开始扫描'); }
                 });
         }
 
@@ -1703,23 +1818,23 @@
                         const btn = document.getElementById('scanStartBtn');
                         if (btn && !btn.disabled === false) {
                             const pct = task.progress || 0;
-                            btn.textContent = `扫描中... ${pct}%`;
+                            btn.textContent = `${_pi18n('scanning', '扫描中...')} ${pct}%`;
                         }
                         if (status === 'COMPLETED' || status === 'SUCCESS' || status === 'DONE') {
                             clearInterval(timer);
-                            showNotification('平台体量扫描完成', 'success');
-                            if (btn) { btn.disabled = false; btn.textContent = '开始扫描'; }
+                            showNotification(_pi18n('scan_complete', '平台体量扫描完成'), 'success');
+                            if (btn) { btn.disabled = false; btn.textContent = _pi18n('scan_start', '开始扫描'); }
                             if (typeof onComplete === 'function') onComplete();
                             // 刷新平台列表（让统计按钮上的数据同步）
                             if (typeof getPlatforms === 'function') getPlatforms();
                         } else if (status === 'FAILED' || status === 'ERROR') {
                             clearInterval(timer);
-                            showNotification('扫描失败: ' + (task.errorMessage || task.message || '未知错误'), 'error');
-                            if (btn) { btn.disabled = false; btn.textContent = '开始扫描'; }
+                            showNotification(_pi18n('scan_failed', '扫描失败') + ': ' + (task.errorMessage || task.message || _pi18n('unknown_error', '未知错误')), 'error');
+                            if (btn) { btn.disabled = false; btn.textContent = _pi18n('scan_start', '开始扫描'); }
                         } else if (attempts > maxAttempts) {
                             clearInterval(timer);
-                            showNotification('扫描轮询超时，请到任务管理页查看状态', 'info');
-                            if (btn) { btn.disabled = false; btn.textContent = '开始扫描'; }
+                            showNotification(_pi18n('scan_poll_timeout', '扫描轮询超时，请到任务管理页查看状态'), 'info');
+                            if (btn) { btn.disabled = false; btn.textContent = _pi18n('scan_start', '开始扫描'); }
                         }
                     })
                     .catch(err => {
@@ -1734,28 +1849,28 @@
             const content = document.getElementById('volumeStatsContent');
             const lastEl = document.getElementById('volumeLastScanned');
             if (!content) return;
-            content.innerHTML = '<p style="color: #888; text-align: center; margin: 0;">加载中...</p>';
+            content.innerHTML = '<p style="color: #888; text-align: center; margin: 0;">' + _pi18n('loading_text', '加载中...') + '</p>';
 
             fetch(`/api/statistics/cache/${platformId}`)
                 .then(r => r.json())
                 .then(resp => {
                     if (!resp || !resp.scanned || !resp.data) {
-                        content.innerHTML = '<p style="color: #888; text-align: center; margin: 0;">尚未扫描，点击右上角“扫描体量”开始</p>';
-                        if (lastEl) lastEl.textContent = '从未扫描';
+                        content.innerHTML = '<p style="color: #888; text-align: center; margin: 0;">' + _pi18n('volume_not_scanned', '尚未扫描，点击右上角“扫描体量”开始') + '</p>';
+                        if (lastEl) lastEl.textContent = _pi18n('never_scanned', '从未扫描');
                         return;
                     }
                     renderVolumeStats(resp.data, content, lastEl, resp.scanning);
                 })
                 .catch(err => {
                     console.error('加载数据体量失败:', err);
-                    content.innerHTML = '<p style="color: #ff0088; text-align: center; margin: 0;">加载失败</p>';
+                    content.innerHTML = '<p style="color: #ff0088; text-align: center; margin: 0;">' + _pi18n('load_failed', '加载失败') + '</p>';
                 });
         }
 
         // 渲染数据体量
         function renderVolumeStats(data, container, lastEl, scanning) {
             if (lastEl && data.lastScannedAt) {
-                lastEl.textContent = '上次扫描: ' + formatTimestamp(data.lastScannedAt);
+                lastEl.textContent = _pi18n('last_scan_prefix', '上次扫描: ') + formatTimestamp(data.lastScannedAt);
             }
 
             // 解析按类型明细
@@ -1780,48 +1895,48 @@
                 typeRows += `
                     <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: #ccc; border-bottom: 1px dashed rgba(0,255,255,0.1);">
                         <span style="color: #00ffff;">${t.type}</span>
-                        <span>${t.count} 个 / ${formatBytes(t.size)}</span>
+                        <span>${t.count} ${_pi18n('unit_items', '个')} / ${formatBytes(t.size)}</span>
                     </div>`;
             });
             if (rest.length > 0) {
                 typeRows += `
                     <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: #888;">
-                        <span>其他 ${rest.length} 种</span>
-                        <span>${restCount} 个 / ${formatBytes(restSize)}</span>
+                        <span>${_pi18n('other_types', '其他')} ${rest.length} ${_pi18n('unit_kinds', '种')}</span>
+                        <span>${restCount} ${_pi18n('unit_items', '个')} / ${formatBytes(restSize)}</span>
                     </div>`;
             }
             if (!typeRows) {
-                typeRows = '<p style="color: #888; text-align: center; margin: 8px 0; font-size: 13px;">无媒体文件</p>';
+                typeRows = '<p style="color: #888; text-align: center; margin: 8px 0; font-size: 13px;">' + _pi18n('no_media_files', '无媒体文件') + '</p>';
             }
 
             container.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
                     <div style="background: rgba(0,255,255,0.08); border: 1px solid #00ffff; border-radius: 6px; padding: 12px; text-align: center;">
-                        <div style="color: #00ffff; font-size: 12px; margin-bottom: 4px;">游戏数</div>
+                        <div style="color: #00ffff; font-size: 12px; margin-bottom: 4px;">${_pi18n('stat_game_count', '游戏数')}</div>
                         <div style="font-size: 20px; font-weight: bold;">${data.totalGames || 0}</div>
                     </div>
                     <div style="background: rgba(0,255,0,0.08); border: 1px solid #00ff00; border-radius: 6px; padding: 12px; text-align: center;">
-                        <div style="color: #00ff00; font-size: 12px; margin-bottom: 4px;">ROM 文件</div>
+                        <div style="color: #00ff00; font-size: 12px; margin-bottom: 4px;">${_pi18n('stat_rom_files', 'ROM 文件')}</div>
                         <div style="font-size: 20px; font-weight: bold;">${data.totalRomCount || 0}</div>
                         <div style="color: #ccc; font-size: 12px; margin-top: 2px;">${formatBytes(data.totalRomSize || 0)}</div>
                     </div>
                     <div style="background: rgba(255,0,255,0.08); border: 1px solid #ff00ff; border-radius: 6px; padding: 12px; text-align: center;">
-                        <div style="color: #ff00ff; font-size: 12px; margin-bottom: 4px;">媒体文件</div>
+                        <div style="color: #ff00ff; font-size: 12px; margin-bottom: 4px;">${_pi18n('stat_media_files', '媒体文件')}</div>
                         <div style="font-size: 20px; font-weight: bold;">${data.totalMediaCount || 0}</div>
                         <div style="color: #ccc; font-size: 12px; margin-top: 2px;">${formatBytes(data.totalMediaSize || 0)}</div>
                     </div>
                     <div style="background: rgba(255,165,0,0.08); border: 1px solid #ffa500; border-radius: 6px; padding: 12px; text-align: center;">
-                        <div style="color: #ffa500; font-size: 12px; margin-bottom: 4px;">总占用</div>
+                        <div style="color: #ffa500; font-size: 12px; margin-bottom: 4px;">${_pi18n('stat_total_size', '总占用')}</div>
                         <div style="font-size: 20px; font-weight: bold;">${formatBytes(totalSize)}</div>
-                        ${missingTotal > 0 ? `<div style="color: #ff6666; font-size: 12px; margin-top: 2px;">缺失 ${missingTotal} 个</div>` : ''}
+                        ${missingTotal > 0 ? `<div style="color: #ff6666; font-size: 12px; margin-top: 2px;">${_pi18n('stat_missing', '缺失')} ${missingTotal} ${_pi18n('unit_items', '个')}</div>` : ''}
                     </div>
                 </div>
-                ${scanning ? '<p style="color: #ffa500; text-align: center; font-size: 13px; margin-bottom: 12px;">⚡ 当前正在重新扫描，完成后自动刷新...</p>' : ''}
+                ${scanning ? '<p style="color: #ffa500; text-align: center; font-size: 13px; margin-bottom: 12px;">' + _pi18n('stat_rescanning', '⚡ 当前正在重新扫描，完成后自动刷新...') + '</p>' : ''}
                 <div style="border-top: 1px solid rgba(0,255,255,0.3); padding-top: 12px;">
-                    <div style="color: #00ffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">媒体类型明细（按占用降序）</div>
+                    <div style="color: #00ffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">${_pi18n('stat_media_detail', '媒体类型明细（按占用降序）')}</div>
                     ${typeRows}
                 </div>
-                ${data.scanDurationMs ? `<p style="color: #666; font-size: 11px; text-align: right; margin: 12px 0 0 0;">扫描耗时 ${(data.scanDurationMs/1000).toFixed(1)} 秒</p>` : ''}
+                ${data.scanDurationMs ? `<p style="color: #666; font-size: 11px; text-align: right; margin: 12px 0 0 0;">${_pi18n('stat_scan_duration', '扫描耗时')} ${(data.scanDurationMs/1000).toFixed(1)} ${_pi18n('unit_seconds', '秒')}</p>` : ''}
             `;
 
             // 若正在扫描，2 秒后自动刷新
@@ -1837,37 +1952,38 @@
         // 保留游戏
         function retainGame(gameId) {
             // 这里可以添加保留游戏的逻辑
-            showNotification('游戏已保留', 'success');
+            showNotification(_pi18n('game_retained', '游戏已保留'), 'success');
         }
 
         // 删除游戏
         function deleteGame(gameId) {
-            if (confirm('确定要删除这个游戏吗？')) {
+            if (confirm(_pi18n('confirm_delete_game', '确定要删除这个游戏吗？'))) {
                 fetch(`/api/games/${gameId}`, {
                     method: 'DELETE'
                 })
                 .then(response => {
                     if (response.ok) {
-                        showNotification('游戏已删除', 'success');
+                        showNotification(_pi18n('game_deleted', '游戏已删除'), 'success');
                         // 刷新统计信息
                         const platformId = document.querySelector('#statisticsModal').dataset.platformId;
                         if (platformId) {
                             openStatisticsModal(platformId);
                         }
                     } else {
-                        showNotification('删除失败', 'error');
+                        showNotification(_pi18n('delete_failed', '删除失败'), 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error deleting game:', error);
-                    showNotification('删除失败', 'error');
+                    showNotification(_pi18n('delete_failed', '删除失败'), 'error');
                 });
             }
         }
 
-        // 页面加载完成后初始化可编辑元素
+        // 页面加载完成后初始化可编辑元素与行点击委托
         window.addEventListener('DOMContentLoaded', function() {
             initEditableElements();
+            initPlatformRowClicks();
         });
 
         // 重新加载页面时重新初始化可编辑元素
@@ -1988,7 +2104,7 @@
 
         // 删除平台
         function deletePlatform(id) {
-            if (confirm('确定要删除这个平台吗？')) {
+            if (confirm(_pi18n('confirm_delete_platform', '确定要删除这个平台吗？'))) {
                 fetch(`/api/platforms/${id}`, {
                     method: 'DELETE'
                 })
@@ -2025,13 +2141,85 @@
             }
         }
         
+        // ==================== 刮削模板预选 ====================
+        let scrapeTemplatePresets = [];
+
+        // 加载导出模板列表（供"从模板预选"下拉使用）
+        async function loadScrapeTemplatePresets() {
+            try {
+                const response = await fetch('/api/export/rules');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                scrapeTemplatePresets = await response.json();
+                const select = document.getElementById('scrapeTemplatePreset');
+                if (!select) return;
+                select.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = I18n.t('scrape_template_default_option', '选择导出模板...');
+                select.appendChild(defaultOption);
+                scrapeTemplatePresets.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t.frontend;
+                    option.textContent = t.name || t.frontend;
+                    select.appendChild(option);
+                });
+            } catch (e) {
+                console.warn('加载导出模板列表失败:', e);
+            }
+        }
+
+        // 应用模板预选：按模板声明的媒体类型勾选对应 checkbox
+        function applyTemplatePreset() {
+            const select = document.getElementById('scrapeTemplatePreset');
+            if (!select || !select.value) {
+                alert(I18n.t('scrape_template_no_selection', '请先选择一个导出模板'));
+                return;
+            }
+            const template = scrapeTemplatePresets.find(t => t.frontend === select.value);
+            if (!template || !Array.isArray(template.mediaTypes)) return;
+
+            // 取消"刮削全部媒体"，恢复手动勾选可用
+            const scrapeAll = document.getElementById('scrapeAllMedia');
+            if (scrapeAll && scrapeAll.checked) {
+                scrapeAll.checked = false;
+                toggleAllMediaSelection();
+            }
+
+            // 清空现有勾选，再按模板勾选
+            clearMediaSelection();
+            const checkboxes = document.querySelectorAll('input[name="scrapeMediaType"]');
+            let applied = 0;
+            template.mediaTypes.forEach(mt => {
+                checkboxes.forEach(cb => {
+                    if (cb.value === mt) { cb.checked = true; applied++; }
+                });
+            });
+            const unmatched = template.mediaTypes.length - applied;
+
+            if (applied > 0) {
+                let msg = I18n.t('scrape_template_applied', '已按模板勾选 {0} 种媒体类型').replace('{0}', applied);
+                if (unmatched > 0) {
+                    msg += '\n' + I18n.t('scrape_template_unmatched', '{0} 种类型在刮削选项中不可用').replace('{0}', unmatched);
+                }
+                alert(msg);
+            } else {
+                alert(I18n.t('scrape_template_none_matched', '模板中的媒体类型与刮削选项无匹配项'));
+            }
+        }
+
+        // 清空媒体类型勾选
+        function clearMediaSelection() {
+            const checkboxes = document.querySelectorAll('input[name="scrapeMediaType"]');
+            checkboxes.forEach(cb => { cb.checked = false; });
+        }
+        
         // 打开刮削弹窗
         function openScrapeModal(type, platformId, gameIds) {
             scrapeModalType = type;
             scrapePlatformId = platformId;
             scrapeGameIds = gameIds || [];
             
-            const title = type === 'platform' ? '平台刮削' : (type === 'batch' ? '批量刮削' : '刮削游戏');
+            const title = type === 'platform' ? _pi18n('scrape_title_platform', '平台刮削') : (type === 'batch' ? _pi18n('scrape_title_batch', '批量刮削') : _pi18n('scrape_title_game', '刮削游戏'));
             document.getElementById('scrapeModalTitle').textContent = title;
             
             document.getElementById('scrapeModal').style.display = 'block';
@@ -2050,7 +2238,7 @@
             console.log('scrapeGameIds:', scrapeGameIds);
             
             if (!scrapeModalType || scrapePlatformId === 0) {
-                alert('请通过正确的方式打开刮削弹窗');
+                alert(_pi18n('scrape_open_error', '请通过正确的方式打开刮削弹窗'));
                 return;
             }
             
@@ -2073,12 +2261,12 @@
             console.log('onlyMissing:', onlyMissing);
             
             if (scrapeScope.length === 0) {
-                alert('请至少选择一个刮削范围');
+                alert(_pi18n('scrape_scope_at_least_one', '请至少选择一个刮削范围'));
                 return;
             }
             
             if (scrapeScope.includes('media') && !scrapeAllMedia && selectedMedia.length === 0) {
-                alert('请至少选择一种媒体类型，或者勾选"刮削全部媒体"');
+                alert(_pi18n('scrape_media_required', '请至少选择一种媒体类型，或者勾选“刮削全部媒体”'));
                 return;
             }
             
@@ -2107,14 +2295,14 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    showNotification('刮削任务已创建，正在后台运行...', 'success');
+                    showNotification(_pi18n('scrape_task_created', '刮削任务已创建，正在后台运行...'), 'success');
                 } else {
-                    showNotification('创建刮削任务失败: ' + result.message, 'error');
+                    showNotification(_pi18n('scrape_task_failed', '创建刮削任务失败') + ': ' + result.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('刮削请求失败:', error);
-                showNotification('创建刮削任务失败: ' + error.message, 'error');
+                showNotification(_pi18n('scrape_task_failed', '创建刮削任务失败') + ': ' + error.message, 'error');
             });
         }
         
@@ -2139,6 +2327,7 @@
             localStorage.setItem('language', lang);
             document.documentElement.lang = lang;
             updateTranslations(lang);
+            refreshActionTitles();
         }
         
         // 更新页面翻译
@@ -2169,8 +2358,8 @@
                 }
             });
             
-            // 更新动态生成的按钮文本
-            document.querySelectorAll('.edit-btn').forEach(btn => {
+            // 更新动态生成的按钮文本（限定带 data-i18n 的，避免波及操作列纯图标按钮）
+            document.querySelectorAll('.edit-btn[data-i18n]').forEach(btn => {
                 const i18nKey = btn.getAttribute('data-i18n');
                 const translatedText = I18n.t(i18nKey);
                 if (i18nKey && translatedText && translatedText !== i18nKey) {
@@ -2180,7 +2369,7 @@
                 }
             });
             
-            document.querySelectorAll('.delete-btn').forEach(btn => {
+            document.querySelectorAll('.delete-btn[data-i18n]').forEach(btn => {
                 const i18nKey = btn.getAttribute('data-i18n');
                 const translatedText = I18n.t(i18nKey);
                 if (i18nKey && translatedText && translatedText !== i18nKey) {
@@ -2331,17 +2520,17 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    showNotification('翻译任务已开始', 'success');
+                    showNotification(_pi18n('translation_task_started', '翻译任务已开始'), 'success');
                     document.getElementById('translationModal').style.display = 'none';
                     // 显示翻译进度
                     showTranslationProgress(result.taskId);
                 } else {
-                    showNotification('翻译任务失败: ' + (result.message || '未知错误'), 'error');
+                    showNotification(_pi18n('translation_task_failed', '翻译任务失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
                 }
             })
             .catch(error => {
                 console.error('Error starting translation:', error);
-                showNotification('翻译任务失败: 网络错误', 'error');
+                showNotification(_pi18n('translation_task_failed', '翻译任务失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
             });
         });
 
@@ -2378,23 +2567,23 @@
                         </div>
                     </div>
                     <div id="translationReport" style="margin-top: 30px; display: none;">
-                        <h4 style="color: #00ffff; margin-bottom: 15px;">翻译报告</h4>
+                        <h4 style="color: #00ffff; margin-bottom: 15px;" data-i18n="translation_report">翻译报告</h4>
                         <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                            <p style="margin-bottom: 10px;"><strong>任务状态:</strong> <span id="reportStatus">已完成</span></p>
-                            <p style="margin-bottom: 10px;"><strong>成功数量:</strong> <span id="reportSuccessCount">0</span></p>
-                            <p style="margin-bottom: 10px;"><strong>失败数量:</strong> <span id="reportFailedCount">0</span></p>
-                            <p style="margin-bottom: 10px;"><strong>成功率:</strong> <span id="reportSuccessRate">0%</span></p>
+                            <p style="margin-bottom: 10px;"><strong data-i18n="report_task_status">任务状态:</strong> <span id="reportStatus">已完成</span></p>
+                            <p style="margin-bottom: 10px;"><strong data-i18n="report_success_count">成功数量:</strong> <span id="reportSuccessCount">0</span></p>
+                            <p style="margin-bottom: 10px;"><strong data-i18n="report_failed_count">失败数量:</strong> <span id="reportFailedCount">0</span></p>
+                            <p style="margin-bottom: 10px;"><strong data-i18n="report_success_rate">成功率:</strong> <span id="reportSuccessRate">0%</span></p>
                         </div>
                         <div id="errorList" style="display: none;">
-                            <h5 style="color: #ff0088; margin-bottom: 15px;">翻译错误列表</h5>
+                            <h5 style="color: #ff0088; margin-bottom: 15px;" data-i18n="translation_error_list">翻译错误列表</h5>
                             <div style="background: rgba(255, 0, 136, 0.1); border: 1px solid #ff0088; border-radius: 8px; padding: 20px; max-height: 400px; overflow-y: auto;">
                                 <table style="width: 100%; border-collapse: collapse;">
                                     <thead>
                                         <tr style="border-bottom: 1px solid #444;">
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">游戏ID</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">游戏名称</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">错误类型</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">错误信息</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_game_id">游戏ID</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_game_name">游戏名称</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_error_type">错误类型</th>
+                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_error_msg">错误信息</th>
                                         </tr>
                                     </thead>
                                     <tbody id="errorTableBody">
@@ -2403,7 +2592,7 @@
                                 </table>
                             </div>
                             <div style="margin-top: 20px;">
-                                <button id="createErrorSubsetBtn" class="btn" style="background: linear-gradient(45deg, #ff0088, #ff00ff);">
+                                <button id="createErrorSubsetBtn" class="btn" style="background: linear-gradient(45deg, #ff0088, #ff00ff);" data-i18n="create_error_subset">
                                     创建错误条目子集
                                 </button>
                             </div>
@@ -2461,7 +2650,7 @@
                                 const reportSuccessRate = progressModal.querySelector('#reportSuccessRate');
                                 
                                 translationReport.style.display = 'block';
-                                reportStatus.textContent = '已完成';
+                                reportStatus.textContent = _pi18n('report_status_done', '已完成');
                                 reportSuccessCount.textContent = progress.success;
                                 reportFailedCount.textContent = progress.failed;
                                 
@@ -2496,27 +2685,27 @@
                                         .then(response => response.json())
                                         .then(result => {
                                             if (result.success) {
-                                                showNotification('错误条目子集创建成功', 'success');
+                                                showNotification(_pi18n('error_subset_created', '错误条目子集创建成功'), 'success');
                                             } else {
-                                                showNotification('错误条目子集创建失败: ' + (result.message || '未知错误'), 'error');
+                                                showNotification(_pi18n('error_subset_failed', '错误条目子集创建失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
                                             }
                                         })
                                         .catch(error => {
                                             console.error('Error creating error subset:', error);
-                                            showNotification('错误条目子集创建失败: 网络错误', 'error');
+                                            showNotification(_pi18n('error_subset_failed', '错误条目子集创建失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
                                         });
                                     });
                                 }
                             }
                         } else {
                             clearInterval(interval);
-                            showNotification('获取翻译进度失败: ' + (result.message || '未知错误'), 'error');
+                            showNotification(_pi18n('translation_progress_failed', '获取翻译进度失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching translation progress:', error);
                         clearInterval(interval);
-                        showNotification('获取翻译进度失败: 网络错误', 'error');
+                        showNotification(_pi18n('translation_progress_failed', '获取翻译进度失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
                     });
             }, 2000);
         }
@@ -2533,7 +2722,7 @@
                         // 添加默认选项
                         const defaultOption = document.createElement('option');
                         defaultOption.value = '';
-                        defaultOption.textContent = '-- 请选择翻译API --';
+                        defaultOption.textContent = _pi18n('select_translation_api_placeholder', '-- 请选择翻译API --');
                         apiSelect.appendChild(defaultOption);
                         
                         // 添加有效的翻译服务
@@ -2569,7 +2758,7 @@
             
             // 验证输入
             if (separationType === 'platform' && !newPlatformName) {
-                showNotification('请输入新平台名称', 'error');
+                showNotification(_pi18n('new_platform_name_required', '请输入新平台名称'), 'error');
                 return;
             }
             
@@ -2633,7 +2822,7 @@
             }
             
             // 立即显示任务开始通知
-            showNotification('分离任务已开始', 'success');
+            showNotification(_pi18n('separation_task_started', '分离任务已开始'), 'success');
             document.getElementById('separationModal').style.display = 'none';
             
             // 发送分离请求
@@ -2649,15 +2838,15 @@
                 if (result.success) {
                     // 模拟任务完成通知
                     setTimeout(() => {
-                        showNotification('分离任务已完成', 'success');
+                        showNotification(_pi18n('separation_task_completed', '分离任务已完成'), 'success');
                     }, 3000);
                 } else {
-                    showNotification('分离任务失败: ' + (result.errorMessage || '未知错误'), 'error');
+                    showNotification(_pi18n('separation_task_failed', '分离任务失败') + ': ' + (result.errorMessage || _pi18n('unknown_error', '未知错误')), 'error');
                 }
             })
             .catch(error => {
                 console.error('Error starting separation:', error);
-                showNotification('分离任务失败: 网络错误', 'error');
+                showNotification(_pi18n('separation_task_failed', '分离任务失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
             });
         });
 
@@ -2667,24 +2856,8 @@
             platformNameGroup.style.display = this.value === 'platform' ? 'block' : 'none';
         });
 
-        // 消息通知功能
-        let notifications = [];
-        let unreadCount = 0;
-
-        // 显示通知
+        // 弹跳提示（通知中心由 layout 全局提供）
         function showNotification(message, type = 'info') {
-            // 添加到通知列表
-            notifications.unshift({
-                id: Date.now(),
-                message: message,
-                type: type,
-                time: new Date().toLocaleString(),
-                read: false
-            });
-            
-            unreadCount++;
-            updateNotificationBell();
-            
             // 显示弹窗通知
             const notificationElement = document.createElement('div');
             notificationElement.className = `notification notification-${type}`;
@@ -2721,59 +2894,7 @@
             }, 3000);
         }
 
-        // 更新通知铃铛
-        function updateNotificationBell() {
-            const bellIcon = document.getElementById('notificationBell');
-            if (bellIcon) {
-                const badge = bellIcon.querySelector('.badge');
-                if (badge) {
-                    badge.textContent = unreadCount;
-                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
-                }
-            }
-        }
-
-        // 打开通知面板
-        function openNotificationPanel() {
-            const modal = document.getElementById('notificationModal');
-            const content = document.getElementById('notificationContent');
-            
-            // 生成通知列表
-            content.innerHTML = '';
-            
-            if (notifications.length === 0) {
-                content.innerHTML = '<p style="text-align: center; color: #aaa;">暂无通知</p>';
-            } else {
-                notifications.forEach(notification => {
-                    const notificationItem = document.createElement('div');
-                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`;
-                    notificationItem.style.cssText = `
-                        padding: 15px;
-                        margin-bottom: 10px;
-                        border-radius: 8px;
-                        background: ${notification.read ? 'rgba(26, 26, 46, 0.8)' : 'rgba(0, 255, 255, 0.1)'};
-                        border-left: 4px solid ${notification.type === 'success' ? '#00ff00' : notification.type === 'error' ? '#ff0000' : '#00ffff'};
-                    `;
-                    
-                    notificationItem.innerHTML = `
-                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
-                        <div style="font-size: 12px; color: #aaa;">${notification.time}</div>
-                    `;
-                    
-                    content.appendChild(notificationItem);
-                    
-                    // 标记为已读
-                    notification.read = true;
-                });
-                
-                unreadCount = 0;
-                updateNotificationBell();
-            }
-            
-            modal.style.display = 'block';
-        }
-
-        // 添加通知铃铛样式
+        // 添加弹跳提示动画与可编辑样式
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideIn {
@@ -2783,38 +2904,6 @@
             @keyframes slideOut {
                 from { transform: translateX(0); opacity: 1; }
                 to { transform: translateX(100%); opacity: 0; }
-            }
-            .notification-bell {
-                position: fixed;
-                top: 20px;
-                right: 120px;
-                z-index: 1000;
-                cursor: pointer;
-                font-size: 24px;
-                color: #00ffff;
-                text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-                transition: all 0.3s ease;
-            }
-            .notification-bell:hover {
-                color: #ff00ff;
-                text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
-                transform: scale(1.1);
-            }
-            .notification-bell .badge {
-                position: absolute;
-                top: -10px;
-                right: -10px;
-                background: #ff0000;
-                color: #fff;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                font-size: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
             }
 
             /* 可编辑元素样式 */
@@ -2830,7 +2919,6 @@
                 background: rgba(0, 255, 255, 0.1);
                 padding: 2px 5px;
                 border-radius: 4px;
-            }
             }
         `;
         document.head.appendChild(style);
@@ -2954,11 +3042,11 @@
             
             // 针对不同API类型的特定验证
             if (apiType === 'baidu' && !appId) {
-                showMessage('请输入百度翻译的AppId', 'error');
+                showMessage(_pi18n('baidu_appid_required', '请输入百度翻译的AppId'), 'error');
                 return;
             }
             if (apiType === 'youdao' && !appSecret) {
-                showMessage('请输入有道翻译的AppSecret', 'error');
+                showMessage(_pi18n('youdao_appsecret_required', '请输入有道翻译的AppSecret'), 'error');
                 return;
             }
             
@@ -3093,7 +3181,7 @@
             const successRate = total > 0 ? Math.round((success / total) * 100) : 0;
             
             // 更新报告信息
-            document.getElementById('reportStatus').textContent = '已完成';
+            document.getElementById('reportStatus').textContent = _pi18n('report_status_done', '已完成');
             document.getElementById('reportSuccessCount').textContent = success;
             document.getElementById('reportFailedCount').textContent = failed;
             document.getElementById('reportSuccessRate').textContent = successRate + '%';
@@ -3144,13 +3232,13 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    showMessage(`错误条目子集创建成功：${result.platformName}`, 'success');
+                    showMessage(_pi18n('error_subset_created_name', '错误条目子集创建成功：{0}').replace('{0}', result.platformName), 'success');
                 } else {
-                    showMessage(result.message || '创建错误条目子集失败', 'error');
+                    showMessage(result.message || _pi18n('create_error_subset_failed', '创建错误条目子集失败'), 'error');
                 }
             } catch (error) {
                 console.error('Error creating error subset:', error);
-                showMessage('创建错误条目子集失败', 'error');
+                showMessage(_pi18n('create_error_subset_failed', '创建错误条目子集失败'), 'error');
             }
         }
         
@@ -3178,7 +3266,7 @@
                     platformList.innerHTML = '';
                     
                     if (data.length === 0) {
-                        platformList.innerHTML = '<p style="color: #aaa;">暂无可用平台</p>';
+                        platformList.innerHTML = '<p style="color: #aaa;">' + _pi18n('no_platforms_available', '暂无可用平台') + '</p>';
                         return;
                     }
                     
@@ -3197,7 +3285,7 @@
                 .catch(error => {
                     console.error(getI18nText('log_load_platforms_error'), error);
                     const platformList = document.getElementById('platformList');
-                    platformList.innerHTML = '<p style="color: red;">加载平台失败</p>';
+                    platformList.innerHTML = '<p style="color: red;">' + _pi18n('load_platforms_failed', '加载平台失败') + '</p>';
                 });
         }
         
@@ -3423,25 +3511,25 @@
                 if (result.success) {
                     resultContainer.className = 'result-container result-success';
                     if (separationType === 'platform') {
-                        resultTitle.textContent = '新平台创建成功';
+                        resultTitle.textContent = _pi18n('platform_created_success', '新平台创建成功');
                         resultContent.innerHTML = `
-                            <p>成功创建新平台: ${result.platformName}</p>
-                            <p>平台ID: ${result.platformId}</p>
-                            <p>添加游戏数量: ${result.gameCount}</p>
+                            <p>${_pi18n('new_platform_created', '成功创建新平台')}: ${result.platformName}</p>
+                            <p>${_pi18n('platform_id_label', '平台ID')}: ${result.platformId}</p>
+                            <p>${_pi18n('games_added_count', '添加游戏数量')}: ${result.gameCount}</p>
                         `;
                     } else {
                         resultTitle.textContent = getI18nText('temp_subset_created');
                         resultContent.innerHTML = `
                             <p>${getI18nText('temp_subset_id')}${result.subsetId}</p>
                             <p>${getI18nText('temp_subset_name')}${result.subsetName}</p>
-                            <p>添加游戏数量: ${result.gameCount}</p>
-                            <p><a href="/temp-subset-edit" class="btn">进入临时子集修改</a></p>
+                            <p>${_pi18n('games_added_count', '添加游戏数量')}: ${result.gameCount}</p>
+                            <p><a href="/temp-subset-edit" class="btn">${_pi18n('go_to_temp_subset_edit', '进入临时子集修改')}</a></p>
                         `;
                     }
                 } else {
                     resultContainer.className = 'result-container result-error';
-                    resultTitle.textContent = separationType === 'platform' ? '新平台创建失败' : '临时子集创建失败';
-                    resultContent.textContent = result.errorMessage || '创建失败';
+                    resultTitle.textContent = separationType === 'platform' ? _pi18n('platform_created_failed', '新平台创建失败') : _pi18n('temp_subset_create_failed', '临时子集创建失败');
+                    resultContent.textContent = result.errorMessage || _pi18n('create_failed', '创建失败');
                 }
             })
             .catch(error => {
@@ -3460,11 +3548,11 @@
                 resultContainer.className = 'result-container result-error';
                 
                 if (error.name === 'AbortError') {
-                    resultTitle.textContent = separationType === 'platform' ? '新平台创建超时' : '临时子集创建超时';
-                    resultContent.textContent = '操作可能仍在后台执行，请稍后检查结果。';
+                    resultTitle.textContent = separationType === 'platform' ? _pi18n('platform_created_timeout', '新平台创建超时') : _pi18n('temp_subset_create_timeout', '临时子集创建超时');
+                    resultContent.textContent = _pi18n('operation_may_still_running', '操作可能仍在后台执行，请稍后检查结果。');
                 } else {
-                    resultTitle.textContent = separationType === 'platform' ? '新平台创建失败' : '临时子集创建失败';
-                    resultContent.textContent = '创建失败，请检查网络连接或服务器状态';
+                    resultTitle.textContent = separationType === 'platform' ? _pi18n('platform_created_failed', '新平台创建失败') : _pi18n('temp_subset_create_failed', '临时子集创建失败');
+                    resultContent.textContent = _pi18n('create_failed_check_network', '创建失败，请检查网络连接或服务器状态');
                 }
             });
         }
@@ -3538,7 +3626,7 @@
                     if (data.length === 0) {
                         platformContent.innerHTML = `
                             <div class="error">
-                                <p>暂无平台数据</p>
+                                <p>${_pi18n('no_platform_data', '暂无平台数据')}</p>
                             </div>
                         `;
                         return;
@@ -3550,7 +3638,7 @@
                             <div class="platform-item" onclick="viewPlatformDetails(${platform.platformId}, '${encodeURIComponent(platform.platformName)}')">
                                 <div class="platform-header">
                                     <div class="platform-name">${platform.platformName}</div>
-                                    <div class="platform-total">${platform.totalGames} 个游戏</div>
+                                    <div class="platform-total">${_pi18n('platform_total_games', '{0} 个游戏').replace('{0}', platform.totalGames)}</div>
                                 </div>
                                 <div class="platform-stats-grid">
                                     <div class="platform-stat-item">
@@ -3641,14 +3729,15 @@
                             <td>${subset.gameCount || 0}</td>
                             <td>${new Date(subset.createdAt).toLocaleString()}</td>
                             <td>
-                                <button class="action-btn edit-btn" onclick="translateTempSubset(${subset.id})">翻译</button>
-                                <button class="action-btn edit-btn" onclick="syncTempSubset(${subset.id})">同步</button>
-                                <button class="action-btn delete-btn" onclick="deleteTempSubset(${subset.id})">删除</button>
-                                <button class="action-btn edit-btn" onclick="viewTempSubset(${subset.id})">查看</button>
+                                <button class="action-btn edit-btn" onclick="translateTempSubset(${subset.id})" data-i18n="translation">翻译</button>
+                                <button class="action-btn edit-btn" onclick="syncTempSubset(${subset.id})" data-i18n="sync">同步</button>
+                                <button class="action-btn delete-btn" onclick="deleteTempSubset(${subset.id})" data-i18n="delete">删除</button>
+                                <button class="action-btn edit-btn" onclick="viewTempSubset(${subset.id})" data-i18n="view">查看</button>
                             </td>
                         `;
                         tableBody.appendChild(row);
                     });
+                    updateTranslations(getCurrentLanguage());
                 })
                 .catch(error => console.error('Error fetching temp subsets:', error));
         }
@@ -3661,44 +3750,44 @@
         
         // 删除游戏子集
         function deleteTempSubset(id) {
-            if (confirm('确定要删除这个游戏子集吗？')) {
+            if (confirm(_pi18n('confirm_delete_subset', '确定要删除这个游戏子集吗？'))) {
                 fetch(`/api/temp-subsets/${id}`, {
                     method: 'DELETE'
                 })
                 .then(() => {
                     getTempSubsets();
-                    showNotification('游戏子集已删除', 'success');
+                    showNotification(_pi18n('subset_deleted', '游戏子集已删除'), 'success');
                 })
                 .catch(error => {
                     console.error('Error deleting temp subset:', error);
-                    showNotification('删除游戏子集失败', 'error');
+                    showNotification(_pi18n('subset_delete_failed', '删除游戏子集失败'), 'error');
                 });
             }
         }
         
         // 翻译游戏子集（已移除，可在游戏列表页面进行翻译）
         function translateTempSubset(id) {
-            alert('翻译功能已移至游戏列表页面，请先查看游戏子集详情');
+            alert(_pi18n('subset_translate_moved', '翻译功能已移至游戏列表页面，请先查看游戏子集详情'));
             window.location.href = '/game-list?subsetId=' + id;
         }
         
         // 同步游戏子集到主集
         function syncTempSubset(id) {
-            if (confirm('确定要将这个游戏子集同步到主集吗？')) {
+            if (confirm(_pi18n('confirm_sync_subset', '确定要将这个游戏子集同步到主集吗？'))) {
                 fetch(`/api/temp-subsets/${id}/sync-to-main`, {
                     method: 'POST'
                 })
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        showNotification('游戏子集同步成功', 'success');
+                        showNotification(_pi18n('subset_sync_success', '游戏子集同步成功'), 'success');
                     } else {
-                        showNotification('游戏子集同步失败: ' + (result.message || '未知错误'), 'error');
+                        showNotification(_pi18n('subset_sync_failed', '游戏子集同步失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error syncing temp subset:', error);
-                    showNotification('游戏子集同步失败', 'error');
+                    showNotification(_pi18n('subset_sync_failed', '游戏子集同步失败'), 'error');
                 });
             }
         }
@@ -3712,6 +3801,9 @@
             
             // 加载平台列表（平台管理）
             getPlatforms();
+            
+            // 加载刮削模板预选列表
+            loadScrapeTemplatePresets();
             
             // API选择事件监听（翻译功能）
             const apiSelect = document.getElementById('apiSelect');

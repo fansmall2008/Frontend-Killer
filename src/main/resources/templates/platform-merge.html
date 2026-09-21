@@ -207,16 +207,8 @@
             resultDiv.show();
         }
         
-        // 通知系统
-        let notifications = [];
-        let unreadCount = 0;
-        
-        // 显示通知
+        // 弹跳提示（通知中心由 layout 全局提供）
         function showNotification(message, type = 'info') {
-            notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString(), read: false });
-            unreadCount++;
-            updateNotificationBell();
-            
             const notificationElement = document.createElement('div');
             notificationElement.className = `notification ${type}`;
             notificationElement.textContent = message;
@@ -226,50 +218,6 @@
                 notificationElement.style.animation = 'slideOut 0.3s ease-in forwards';
                 setTimeout(() => notificationElement.remove(), 300);
             }, 3000);
-        }
-        
-        // 更新通知铃铛
-        function updateNotificationBell() {
-            const badge = document.querySelector('.notification-bell .badge');
-            if (badge) {
-                badge.textContent = unreadCount;
-                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
-            }
-        }
-        
-        // 打开通知面板
-        function openNotificationPanel() {
-            const modal = document.getElementById('notificationModal');
-            const content = document.getElementById('notificationContent');
-            
-            content.innerHTML = '';
-            
-            if (notifications.length === 0) {
-                content.innerHTML = '<p class="notification-empty">暂无通知</p>';
-            } else {
-                notifications.forEach(notification => {
-                    const notificationItem = document.createElement('div');
-                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
-                    notificationItem.innerHTML = `
-                        <div class="notification-message">${notification.message}</div>
-                        <div class="notification-time">${notification.time}</div>
-                    `;
-                    content.appendChild(notificationItem);
-                    
-                    if (!notification.read) {
-                        notification.read = true;
-                        unreadCount--;
-                    }
-                });
-            }
-            
-            updateNotificationBell();
-            modal.style.display = 'block';
-        }
-        
-        // 关闭通知面板
-        function closeNotificationPanel() {
-            document.getElementById('notificationModal').style.display = 'none';
         }
         
         // 页面加载完成后执行

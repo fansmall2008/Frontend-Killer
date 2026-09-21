@@ -1,11 +1,16 @@
 package com.gamelist.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.gamelist.model.Game;
 
 /**
  * 统一路径解析工具 — 替代 GameServiceImpl / XmlDataFileGenerator / TextDataFileGenerator
@@ -103,6 +108,81 @@ public final class PathResolver {
             }
         }
         return path;
+    }
+
+    // ==================== 刮削媒体目录规则（稳定键：SS 系统/游戏 ID） ====================
+
+    /** 刮削媒体根目录 */
+    public static final String MEDIA_BASE = "./data/scraper/games";
+
+    /**
+     * 计算游戏的刮削媒体目录（新路径规则）：
+     * <ul>
+     *   <li>已匹配 ScreenScraper 的游戏: {MEDIA_BASE}/{ssSystemId}/{ssGameId}/</li>
+     *   <li>未匹配的游戏:              {MEDIA_BASE}/{ssSystemId}/local/{stem}/</li>
+     * </ul>
+     * ssSystemId 为 null（平台未绑定系统）时使用 "unknown" 兜底。
+     *
+     * @param game       游戏记录（取 ssGameId / path）
+     * @param ssSystemId 平台绑定的 ScreenScraper 系统 ID
+     * @return 媒体目录路径（不会自动创建）
+     */
+    public static Path resolveGameMediaDir(Game game, Integer ssSystemId) {
+        String sys = ssSystemId != null ? String.valueOf(ssSystemId) : "unknown";
+        if (game.getSsGameId() != null) {
+            return Paths.get(MEDIA_BASE, sys, String.valueOf(game.getSsGameId()));
+        }
+        return Paths.get(MEDIA_BASE, sys, "local", extractGameStem(game));
+    }
+
+    /**
+     * 从游戏 ROM 路径提取稳定键（最后一段文件名去掉扩展名）。
+     * 用于未匹配 SS 的游戏在 local 命名空间下的目录名，
+     * 保证平台删除重导入后仍能通过同一 ROM 文件名发现旧媒体。
+     */
+    public static String extractGameStem(Game game) {
+        String path = game.getPath();
+        if (path == null || path.isEmpty()) {
+            return game.getId() != null ? String.valueOf(game.getId()) : "unknown";
+        }
+        String normalized = path.replace('\\', '/');
+        int idx = normalized.lastIndexOf('/');
+        String last = idx >= 0 ? normalized.substring(idx + 1) : normalized;
+        int dot = last.lastIndexOf('.');
+        if (dot > 0) {
+            last = last.substring(0, dot);
+        }
+        return last.isEmpty() ? (game.getId() != null ? String.valueOf(game.getId()) : "unknown") : last;
+    }
+
+    /**
+     * 在目录中查找某媒体类型（nomcourt）的已有文件（任意扩展名）。
+     * 不存在或目录无效时返回 null。
+     */
+    public static Path findExistingMedia(Path dir, String mediaTypeNomcourt) {
+        if (dir == null || mediaTypeNomcourt == null || !Files.isDirectory(dir)) {
+            return null;
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, mediaTypeNomcourt + ".*")) {
+            for (Path p : stream) {
+                return p;
+            }
+        } catch (IOException e) {
+            logger.debug("扫描媒体目录失败: dir={}, type={}", dir, mediaTypeNomcourt);
+        }
+        return null;
+    }
+
+    /**
+     * 归一化为数据库存储格式："./" 前缀 + 正斜杠分隔符。
+     * 与 MediaController /view 的路径解析策略（去掉 ./ 前缀后按工作目录查找）兼容。
+     */
+    public static String normalizeForDb(Path path) {
+        String normalized = path.toString().replace('\\', '/');
+        if (!normalized.startsWith("./")) {
+            normalized = "./" + normalized;
+        }
+        return normalized;
     }
 
     // ==================== 相对路径计算 ====================

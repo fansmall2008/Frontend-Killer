@@ -5,6 +5,8 @@ import java.util.Map;
 public class Game {
     private Long id;
     private String gameId;
+    /** ScreenScraper 全局游戏ID：媒体目录稳定键（跨平台复用） */
+    private Long ssGameId;
     private String source;
     private String path;
     private String name;
@@ -174,6 +176,14 @@ public class Game {
 
     public void setGameId(String gameId) {
         this.gameId = gameId;
+    }
+
+    public Long getSsGameId() {
+        return ssGameId;
+    }
+
+    public void setSsGameId(Long ssGameId) {
+        this.ssGameId = ssGameId;
     }
 
     public String getSource() {

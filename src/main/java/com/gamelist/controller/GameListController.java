@@ -252,6 +252,23 @@ public class GameListController {
                     .body(null);
         }
     }
+
+    /**
+     * 仅获取单个平台的统计信息（命中 idx_game_platform_scraped，避免全库扫描）
+     */
+    @GetMapping("/statistics/platforms/{platformId}")
+    public ResponseEntity<PlatformStatistics> getPlatformStatisticsById(@PathVariable Long platformId) {
+        try {
+            PlatformStatistics stats = gameService.getPlatformStatisticsById(platformId);
+            if (stats == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            logger.error("获取平台 {} 统计信息失败", platformId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     
     /**
      * 按刮削状态获取游戏列表
@@ -632,6 +649,7 @@ public class GameListController {
                                 templateInfo.put("name", v3Info.getOrDefault("description", file.getName()));
                                 templateInfo.put("frontend", v3Info.get("dataFile"));
                                 templateInfo.put("description", v3Info.getOrDefault("description", ""));
+                                templateInfo.put("notes", v3Info.getOrDefault("notes", ""));
                                 templateInfo.put("direction", v3Info.get("direction"));
                                 templateInfo.put("dataFileType", v3Info.get("dataFileType"));
                             }

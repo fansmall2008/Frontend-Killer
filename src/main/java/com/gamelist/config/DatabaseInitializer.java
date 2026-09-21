@@ -44,6 +44,8 @@ public class DatabaseInitializer implements ApplicationRunner {
                 logger.info("数据库初始化完成");
             } else {
                 logger.info("数据库已存在，跳过初始化");
+                // 存量库执行幂等补列语句（ALTER TABLE ... ADD COLUMN IF NOT EXISTS），保证 schema 同步
+                executeAlterStatements(connection);
             }
         } catch (Exception e) {
             logger.error("数据库初始化检查失败: {}", e.getMessage(), e);
@@ -98,6 +100,48 @@ public class DatabaseInitializer implements ApplicationRunner {
                 connection.rollback();
                 throw e;
             }
+        }
+    }
+
+    /**
+     * 存量库 schema 同步：每次启动执行 init.sql 中的幂等 DDL 语句
+     * （ALTER TABLE ... IF NOT EXISTS / CREATE TABLE IF NOT EXISTS / CREATE INDEX IF NOT EXISTS）。
+     * 单条失败仅告警不中断，避免历史语句与现有 schema 冲突时阻塞启动。
+     */
+    private void executeAlterStatements(Connection connection) {
+        ClassPathResource resource = new ClassPathResource(INIT_SQL_PATH);
+        if (!resource.exists()) {
+            return;
+        }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+            List<String> statements = parseSqlStatements(reader);
+            int executed = 0;
+            for (String sql : statements) {
+                String trimmed = sql.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                String upper = trimmed.toUpperCase();
+                boolean idempotentDdl = upper.startsWith("ALTER TABLE")
+                        || upper.startsWith("CREATE TABLE IF NOT EXISTS")
+                        || upper.startsWith("CREATE INDEX IF NOT EXISTS");
+                if (!idempotentDdl) {
+                    continue;
+                }
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute(trimmed);
+                    executed++;
+                    logger.info("存量库补列执行: {}", trimmed.length() > 80 ? trimmed.substring(0, 80) + "..." : trimmed);
+                } catch (Exception e) {
+                    logger.warn("存量库补列失败(已跳过): {} - {}", trimmed.length() > 80 ? trimmed.substring(0, 80) + "..." : trimmed, e.getMessage());
+                }
+            }
+            if (executed > 0) {
+                logger.info("存量库 schema 同步完成，执行 {} 条幂等 DDL 语句", executed);
+            }
+        } catch (Exception e) {
+            logger.warn("存量库补列检查失败: {}", e.getMessage());
         }
     }
 

@@ -1,17 +1,49 @@
 # Changelog
 
-## [Unreleased]
+## [1.2-RC1] - 2026-09-21
 
-### Removed
-- Removed legacy v2 template documentation
-  - Deleted `import-templates`, `export-functionality`, and `media-mapping` docs (CN/EN/JA, 9 files)
-  - The v2 template system has been fully abandoned; only the unified v3 template system remains
-- Removed references to the deleted docs from the software guide
+### Added
+- Notification center with SSE real-time push
+  - `notification` table + REST API (`/api/notifications`, `/unread-count`, `/read`, `/stream`)
+  - `NotificationServiceImpl` with 5-minute timeout + 15-second heartbeat
+  - `TaskServiceImpl.completeTask/failTask` auto-creates notifications
+  - Frontend EventSource with `pagehide` graceful close
+- Scrape media type preset from export template
+  - `GET /api/export/rules` returns `mediaTypes` array per template
+  - Scrape modals in platform-management and game-list add "Preset from template" row (dropdown + apply + clear)
+- Batch aggregation endpoints for performance
+  - `GET /api/media-download/platforms/summary` — single GROUP BY replaces N+1 COUNT queries
+  - `GET /api/gamelist/statistics/platforms/{platformId}` — single-platform stats replaces full-table scan
+- Scraper media path restructure (phase 1-2)
+  - New path rule: `data/scraper/games/{ssSystemId}/{ssGameId}/{type}.{ext}`
+  - Local reuse check skips already-downloaded media
+  - `ss_game_id` column added to game and temp_subset_game tables
+  - `PathResolver.resolveGameMediaDir` centralizes directory logic
+  - DB indexes: `idx_mdt_platform_status`, `idx_mdt_status_order`, `idx_game_platform_id`, `idx_game_platform_scraped`, `idx_game_name`, `idx_game_path`
 
 ### Changed
-- Software guide (CN/EN/JA) template configuration sections updated to reflect the v3 template system
-  - Import templates now under `/data/rules/import/` (`esde-v3.json`, `pegasus-v3.json`, `retrobat-v3.json`, `emuelec-v3.json`, `skraper-es-v3.json`)
-  - Export rules now under `/data/rules/export/` (v3 rules)
+- Full Thymeleaf migration: all 18 pages converted from static HTML to Thymeleaf templates with shared layout fragments
+- Unified purple design system across all pages (`--accent-primary: #8b5cf6`, `.pg-container`, normalized button classes)
+- Platform management action column: replaced text buttons with icon buttons (`action-icon-btn` + emoji + i18n tooltip)
+- Platform management row click delegation restored (click row = view games, click name = inline edit)
+- Import template description now shows `notes` field for richer context
+- Frontend polling optimized: 3 requests per cycle (was 3+3N), reentry guard, visibilitychange pause
+- Internationalization: ~50% of remaining untranslated Chinese text resolved (700→357 lines)
+
+### Fixed
+- Media download page causing system-wide slowdown (N+1 request storm → batch GROUP BY)
+- Platform details page freezing (full-table SUM CASE scan → single-platform query + index)
+- Browser spinner on page navigation (SSE zombie connections exhausting HTTP/1.1 6-connection limit)
+- Scrape results always showing 0 success 0 failure (missing `org.tukaani:xz` causing `NoClassDefFoundError` bypassing `catch(Exception)`; added xz dependency + `catch(Throwable)`)
+- Media download page showing "no tasks" despite tasks existing (H2 unquoted SQL alias folded to uppercase, `row.get("platformId")` always null; fixed with `AS "platformId"`)
+- temp-subset-edit notification unread count never decrementing
+- platform-details JS null reference after banner removal
+
+### Breaking Changes
+- ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.
+
+### Removed
+- Legacy v2 template documentation (import-templates, export-functionality, media-mapping docs)
 
 ## [1.1-RC1] - 2026-09-14
 

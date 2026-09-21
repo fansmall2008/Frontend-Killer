@@ -143,7 +143,7 @@
                     <!-- Footer -->
                     <div class="page-footer">
                         <p data-i18n="copyright">© 2024 Frontend-Killer | 模拟游戏元数据管理平台</p>
-                        <p class="version">v1.1-RC1</p>
+                        <p class="version">v1.2-RC1</p>
                     </div>
                 </div>
             </main>
@@ -194,6 +194,7 @@
         // ========== Templates ==========
         function loadTemplates() {
             var sel = document.getElementById('importTemplate');
+            var prevValue = sel.value;   // 保留当前选择，避免重载/bfcache 后下拉与说明区不一致
             sel.innerHTML = '<option value="">' + getI18nText('loading_templates', '加载模板中...') + '</option>';
             fetch('/api/gamelist/import/templates')
                 .then(function(r) { return r.json(); })
@@ -221,6 +222,10 @@
                         o.textContent = getI18nText('no_templates_available', '暂无可用模板');
                         sel.appendChild(o);
                     }
+                    // 若之前选中的模板仍存在，恢复选中（下拉与说明区保持一致）
+                    if (prevValue && templates.some(function(t) { return t.fileName === prevValue; })) {
+                        sel.value = prevValue;
+                    }
                     updateTemplateDescription();
                 })
                 .catch(function() {
@@ -231,8 +236,18 @@
         function updateTemplateDescription() {
             var sel = document.getElementById('importTemplate');
             var desc = document.getElementById('templateDescription');
+            if (!desc) return;
             var t = templates.find(function(x) { return x.fileName === sel.value; });
-            desc.textContent = (t && t.description) ? t.description : getI18nText('no_template_description', '暂无模板描述');
+            if (!t) {
+                desc.textContent = getI18nText('no_template_description', '暂无模板描述');
+                return;
+            }
+            // 标题行用模板全名（description，每个模板唯一），详情行用介绍（notes）；
+            // 二者用换行拼接，配合 .template-desc 的 white-space: pre-line 渲染，确保切换模板时说明必然变化
+            var parts = [];
+            if (t.description) { parts.push(t.description); }
+            if (t.notes) { parts.push(t.notes); }
+            desc.textContent = parts.length ? parts.join('\n') : getI18nText('no_template_description', '暂无模板描述');
         }
 
         function toggleTemplateOptions() {
@@ -559,6 +574,17 @@
             toggleTemplateOptions();
             browseDirectories();
         });
+
+        // bfcache 恢复页面时，浏览器还原下拉选中值不会触发 change，这里主动同步一次说明区
+        window.addEventListener('pageshow', function() {
+            updateTemplateDescription();
+        });
+
+        // 本页脚本包裹在 IIFE 内，而 HTML 内联 onchange/onclick 处理器在全局作用域查找函数，
+        // 因此需将这些被内联 handler 引用的函数显式暴露到 window（与 browseDirectories 一致）
+        window.toggleTemplateOptions = toggleTemplateOptions;
+        window.onSystemSelect = onSystemSelect;
+        window.updateTemplateDescription = updateTemplateDescription;
     })();
     </script>
 </body>

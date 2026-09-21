@@ -1982,6 +1982,7 @@
             }
             initLanguage();
             initNotifications();
+            loadScrapeTemplatePresets();
             console.log('=== 页面初始化结束 ===');
         };
         
@@ -2537,6 +2538,15 @@
                 <!-- 选择媒体类型（多选） -->
                 <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
                     <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_media_types">选择媒体类型</label>
+                    <!-- 从模板预选 -->
+                    <div class="scrape-template-preset" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(255, 215, 0, 0.06); border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.25);">
+                        <label style="color: #ffd700; font-size: 13px; font-weight: bold; white-space: nowrap; margin: 0;" data-i18n="scrape_template_preset">从模板预选</label>
+                        <select id="scrapeTemplatePreset" style="flex: 1; min-width: 180px; padding: 7px 10px; background: #1a1a2e; color: #ccc; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 6px; font-size: 13px;">
+                            <option value="">选择导出模板...</option>
+                        </select>
+                        <button type="button" onclick="applyTemplatePreset()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #ffd700, #ffb300); color: #000; font-weight: bold; white-space: nowrap;" data-i18n="btn_apply_template">应用模板</button>
+                        <button type="button" onclick="clearMediaSelection()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #666, #444); color: #fff; white-space: nowrap;" data-i18n="btn_clear_selection">清空</button>
+                    </div>
                     <div class="media-type-grid" id="mediaTypeGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
                         <!-- 截图类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
@@ -2659,6 +2669,78 @@
             if (mediaGrid) {
                 mediaGrid.style.opacity = checkAll ? '0.5' : '1';
             }
+        }
+        
+        // ==================== 刮削模板预选 ====================
+        let scrapeTemplatePresets = [];
+
+        // 加载导出模板列表（供"从模板预选"下拉使用）
+        async function loadScrapeTemplatePresets() {
+            try {
+                const response = await fetch('/api/export/rules');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                scrapeTemplatePresets = await response.json();
+                const select = document.getElementById('scrapeTemplatePreset');
+                if (!select) return;
+                select.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = I18n.t('scrape_template_default_option', '选择导出模板...');
+                select.appendChild(defaultOption);
+                scrapeTemplatePresets.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t.frontend;
+                    option.textContent = t.name || t.frontend;
+                    select.appendChild(option);
+                });
+            } catch (e) {
+                console.warn('加载导出模板列表失败:', e);
+            }
+        }
+
+        // 应用模板预选：按模板声明的媒体类型勾选对应 checkbox
+        function applyTemplatePreset() {
+            const select = document.getElementById('scrapeTemplatePreset');
+            if (!select || !select.value) {
+                alert(I18n.t('scrape_template_no_selection', '请先选择一个导出模板'));
+                return;
+            }
+            const template = scrapeTemplatePresets.find(t => t.frontend === select.value);
+            if (!template || !Array.isArray(template.mediaTypes)) return;
+
+            // 取消"刮削全部媒体"，恢复手动勾选可用
+            const scrapeAll = document.getElementById('scrapeAllMedia');
+            if (scrapeAll && scrapeAll.checked) {
+                scrapeAll.checked = false;
+                toggleAllMediaSelection();
+            }
+
+            // 清空现有勾选，再按模板勾选
+            clearMediaSelection();
+            const checkboxes = document.querySelectorAll('input[name="scrapeMediaType"]');
+            let applied = 0;
+            template.mediaTypes.forEach(mt => {
+                checkboxes.forEach(cb => {
+                    if (cb.value === mt) { cb.checked = true; applied++; }
+                });
+            });
+            const unmatched = template.mediaTypes.length - applied;
+
+            if (applied > 0) {
+                let msg = I18n.t('scrape_template_applied', '已按模板勾选 {0} 种媒体类型').replace('{0}', applied);
+                if (unmatched > 0) {
+                    msg += '\n' + I18n.t('scrape_template_unmatched', '{0} 种类型在刮削选项中不可用').replace('{0}', unmatched);
+                }
+                alert(msg);
+            } else {
+                alert(I18n.t('scrape_template_none_matched', '模板中的媒体类型与刮削选项无匹配项'));
+            }
+        }
+
+        // 清空媒体类型勾选
+        function clearMediaSelection() {
+            const checkboxes = document.querySelectorAll('input[name="scrapeMediaType"]');
+            checkboxes.forEach(cb => { cb.checked = false; });
         }
         
         // 打开刮削弹窗
@@ -2855,13 +2937,7 @@
     <div th:replace="~{fragments/layout :: notification-modal}"></div>
 
     <script>
-        // Task message panel (layout header bell button)
-        function openNotificationPanel() {
-            document.getElementById('notificationModal').style.display = 'block';
-        }
-        function closeNotificationPanel() {
-            document.getElementById('notificationModal').style.display = 'none';
-        }
+        // 通知面板开合与列表渲染由 layout common-scripts 全局提供
 
         // Watch modal open/close: lock background scroll while open
         (function watchModalScrollLock() {

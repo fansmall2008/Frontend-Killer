@@ -379,45 +379,45 @@
             }
         }
 
-        async function fetchPlatforms() {
+        // 平台名称缓存：一次拉取全量 /api/platforms，避免 N+1 单查
+        let platformNameCache = new Map();
+        let platformNameCacheAt = 0;
+        const PLATFORM_NAME_CACHE_TTL = 60000; // 60s
+
+        async function ensurePlatformNameCache(force) {
+            const now = Date.now();
+            if (!force && platformNameCache.size > 0 && (now - platformNameCacheAt) < PLATFORM_NAME_CACHE_TTL) {
+                return;
+            }
             try {
-                const response = await fetch('/api/media-download/platforms');
+                const response = await fetch('/api/platforms');
+                if (!response.ok) return;
+                const list = await response.json();
+                if (Array.isArray(list)) {
+                    const map = new Map();
+                    for (const p of list) {
+                        if (p && p.id != null) map.set(Number(p.id), p.name || `平台 ${p.id}`);
+                    }
+                    platformNameCache = map;
+                    platformNameCacheAt = now;
+                }
+            } catch (error) {
+                console.error('拉取平台列表失败:', error);
+            }
+        }
+
+        // 一次性拉取所有平台的统计汇总
+        async function fetchPlatformsSummary() {
+            try {
+                const response = await fetch('/api/media-download/platforms/summary');
                 const data = await response.json();
-                if (data.success && data.data) {
+                if (data.success && Array.isArray(data.data)) {
                     return data.data;
                 }
                 return [];
             } catch (error) {
-                console.error('获取平台列表失败:', error);
+                console.error('获取平台汇总失败:', error);
                 return [];
-            }
-        }
-
-        async function fetchPlatformStats(platformId) {
-            try {
-                const response = await fetch(`/api/media-download/platforms/${platformId}/stats`);
-                const data = await response.json();
-                if (data.success && data.data) {
-                    return data.data;
-                }
-                return null;
-            } catch (error) {
-                console.error(`获取平台 ${platformId} 统计失败:`, error);
-                return null;
-            }
-        }
-
-        async function fetchPlatformInfo(platformId) {
-            try {
-                const response = await fetch(`/api/platforms/${platformId}`);
-                const data = await response.json();
-                if (data.success && data.data) {
-                    return data.data;
-                }
-                return null;
-            } catch (error) {
-                console.error(`获取平台信息失败:`, error);
-                return null;
             }
         }
 
@@ -450,13 +450,8 @@
             return Math.round((completed / total) * 100);
         }
 
-        async function buildPlatformCard(platformId) {
-            const stats = await fetchPlatformStats(platformId);
-            if (!stats) return null;
-
-            const platformInfo = await fetchPlatformInfo(platformId);
-            const platformName = platformInfo ? platformInfo.name : `平台 ${platformId}`;
-            
+        function buildPlatformCard(platformId, stats) {
+            const platformName = platformNameCache.get(Number(platformId)) || `平台 ${platformId}`;
             const status = getPlatformStatus(stats);
             const progress = getProgress(stats);
 
@@ -514,58 +509,63 @@
             `;
         }
 
+        // 刷新主流程：固定 3 个请求（scraper/status + thread-status + platforms/summary）
+        // + 首次或缓存过期时 1 个 /api/platforms。不再随平台数量线性增长。
+        let refreshing = false;
         async function refreshPlatforms() {
-            // 同时更新游戏信息刮削状态
-            await updateScrapingStatus();
-            
-            const platformIds = await fetchPlatforms();
-            const platformGrid = document.getElementById('platformGrid');
-            
-            if (platformIds.length === 0) {
-                platformGrid.innerHTML = `
-                    <div class="empty-state">
-                        <h3>📭 暂无媒体下载任务</h3>
-                        <p>当前没有需要刮削的媒体文件，请先执行刮削任务</p>
-                    </div>
-                `;
-                updateTotalStats({ total: 0, downloading: 0, completed: 0, failed: 0, stopped: 0 });
-                return;
-            }
+            if (refreshing) return; // 重入保护：上一轮未完成则跳过
+            refreshing = true;
+            try {
+                // 并行拉取，不再串行 await
+                const [summaryPromise, namePromise, scrapingPromise] = [
+                    fetchPlatformsSummary(),
+                    ensurePlatformNameCache(false),
+                    updateScrapingStatus()
+                ];
+                const summary = await summaryPromise;
+                await namePromise;
+                await scrapingPromise;
 
-            platformGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p data-i18n="loading_text">加载中...</p></div>';
+                const platformGrid = document.getElementById('platformGrid');
 
-            const cards = await Promise.all(platformIds.map(id => buildPlatformCard(id)));
-            const validCards = cards.filter(c => c !== null);
-
-            if (validCards.length === 0) {
-                platformGrid.innerHTML = `
-                    <div class="empty-state">
-                        <h3>📭 暂无媒体下载任务</h3>
-                        <p>当前没有需要刮削的媒体文件</p>
-                    </div>
-                `;
-            } else {
-                platformGrid.innerHTML = validCards.join('');
-            }
-
-            await updateTotalStatsFromPlatforms(platformIds);
-        }
-
-        async function updateTotalStatsFromPlatforms(platformIds) {
-            let total = 0, downloading = 0, completed = 0, failed = 0, stopped = 0;
-
-            for (const id of platformIds) {
-                const stats = await fetchPlatformStats(id);
-                if (stats) {
-                    total++;
-                    downloading += stats.downloading || 0;
-                    completed += stats.completed || 0;
-                    failed += stats.failed || 0;
-                    stopped += stats.stopped || 0;
+                if (!summary || summary.length === 0) {
+                    platformGrid.innerHTML = `
+                        <div class="empty-state">
+                            <h3>📭 暂无媒体下载任务</h3>
+                            <p>当前没有需要刮削的媒体文件，请先执行刮削任务</p>
+                        </div>
+                    `;
+                    updateTotalStats({ total: 0, downloading: 0, completed: 0, failed: 0, stopped: 0 });
+                    return;
                 }
-            }
 
-            updateTotalStats({ total, downloading, completed, failed, stopped });
+                // 卡片渲染 + 汇总统计一次遍历完成，不再二次拉取
+                let total = 0, downloading = 0, completed = 0, failed = 0, stopped = 0;
+                const cards = [];
+                for (const s of summary) {
+                    const pid = s.platformId;
+                    const stats = {
+                        total: s.total || 0,
+                        pending: s.pending || 0,
+                        downloading: s.downloading || 0,
+                        completed: s.completed || 0,
+                        failed: s.failed || 0,
+                        stopped: s.stopped || 0
+                    };
+                    cards.push(buildPlatformCard(pid, stats));
+                    total++;
+                    downloading += stats.downloading;
+                    completed   += stats.completed;
+                    failed      += stats.failed;
+                    stopped     += stats.stopped;
+                }
+                platformGrid.innerHTML = cards.join('');
+                updateTotalStats({ total, downloading, completed, failed, stopped });
+            } catch (err) {
+                console.error('刷新媒体下载页面失败:', err);
+            } finally {
+                refreshing = false;
+            }
         }
 
         function updateTotalStats(stats) {
@@ -669,7 +669,31 @@
 
         document.addEventListener('DOMContentLoaded', refreshPlatforms);
 
-        setInterval(refreshPlatforms, 10000);
+        // 轮询间隔：15s（原 10s 在多平台下容易堆积）；页面不可见时暂停，避免后台标签持续消耗连接与数据库资源。
+        const REFRESH_INTERVAL_MS = 15000;
+        let refreshTimer = null;
+
+        function startRefreshTimer() {
+            if (refreshTimer) return;
+            refreshTimer = setInterval(refreshPlatforms, REFRESH_INTERVAL_MS);
+        }
+        function stopRefreshTimer() {
+            if (!refreshTimer) return;
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopRefreshTimer();
+            } else {
+                // 回到前台时立即刷新一次并重启轮询
+                refreshPlatforms();
+                startRefreshTimer();
+            }
+        });
+
+        startRefreshTimer();
     </script>
 
             </main>

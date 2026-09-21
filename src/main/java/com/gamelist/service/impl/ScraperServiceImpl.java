@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,6 +53,7 @@ import com.gamelist.model.ScraperRequest;
 import com.gamelist.model.ScraperSystem;
 import com.gamelist.service.GameService;
 import com.gamelist.service.MediaDownloadService;
+import com.gamelist.service.NotificationService;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.ScraperService;
 import com.gamelist.service.ScraperSettingsService;
@@ -61,6 +63,7 @@ import com.gamelist.service.ThreadResourceManager;
 import com.gamelist.util.ScreenScraperApiException;
 import com.gamelist.util.ScreenScraperStatusHandler;
 import com.gamelist.util.EncryptionUtil;
+import com.gamelist.util.PathResolver;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -97,6 +100,9 @@ public class ScraperServiceImpl implements ScraperService {
     
     @Autowired
     private MediaDownloadService mediaDownloadService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -339,7 +345,7 @@ public class ScraperServiceImpl implements ScraperService {
                             logger.error("限额触发，暂停刮削: 状态码={}, 消息={}", statusCode, warningMessage);
                             isScrapingPaused.set(true);
                             taskService.updateTaskLog(taskId, warningMessage);
-                            sendNotification(warningMessage, "warning");
+                            sendNotification("刮削警告", warningMessage, "warning");
                             // ★ 不 return，释放资源后进入 finally，latch 正常 countDown
                             // 其他尚未开始的游戏线程会在暂停检查处等待
                         } else if ((Boolean) searchResult.get("shouldStop")) {
@@ -347,7 +353,7 @@ public class ScraperServiceImpl implements ScraperService {
                             logger.error("遇到不可恢复的错误，停止刮削: {}", errorMessage);
                             isScrapingStopped.set(true);
                             taskService.updateTaskLog(taskId, "刮削已停止: " + errorMessage);
-                            sendNotification("刮削停止", errorMessage);
+                            sendNotification("刮削停止", errorMessage, "error");
                             return;
                         } else if ((Boolean) searchResult.get("found")) {
                             logger.info("游戏已找到，开始处理: gameId={}, gameName={}", game.getId(), game.getName());
@@ -359,7 +365,7 @@ public class ScraperServiceImpl implements ScraperService {
                             }
 
                             if (scrapeMedia) {
-                                int taskCount = saveMediaTasksToDb(game, data, request, system.getName(), request.getPlatformId(), taskId, mediaTaskCounter);
+                                int taskCount = saveMediaTasksToDb(game, data, request, system.getName(), request.getPlatformId(), systemId, taskId, mediaTaskCounter);
                                 logger.info("媒体任务保存完成，创建了 {} 个任务", taskCount);
                             }
 
@@ -369,14 +375,14 @@ public class ScraperServiceImpl implements ScraperService {
                             if (shouldStopDueToNotFound()) {
                                 logger.error("10秒内出现10次404错误，停止刮削");
                                 isScrapingStopped.set(true);
-                                sendNotification("刮削停止", "10秒内出现10次404错误，已停止刮削");
+                                sendNotification("刮削停止", "10秒内出现10次404错误，已停止刮削", "error");
                             }
                             taskService.updateTaskLog(taskId, "未找到: " + game.getName());
                         }
                         
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         failedCount.incrementAndGet();
-                        logger.error("刮削游戏失败: {} - {}", game.getName(), e.getMessage());
+                        logger.error("刮削游戏失败: {} - {} ({})", game.getName(), e.getMessage(), e.getClass().getName());
                         taskService.updateTaskLog(taskId, "失败: " + game.getName() + " - " + e.getMessage());
                     } finally {
                         // 关键：必须归还资源
@@ -454,7 +460,7 @@ public class ScraperServiceImpl implements ScraperService {
                                                 logger.error("媒体下载遇到限额限制，暂停刮削: 状态码={}, 消息={}", e.getStatusCode(), e.getLimitWarningMessage());
                                                 isScrapingPaused.set(true);
                                                 taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
-                                                sendNotification(e.getLimitWarningMessage(), "warning");
+                                                sendNotification("配额警告", e.getLimitWarningMessage(), "warning");
                                                 break; // 退出媒体下载循环，等待用户恢复
                                             }
                                             logger.error("下载媒体文件API错误: {}", e.getMessage());
@@ -590,14 +596,12 @@ public class ScraperServiceImpl implements ScraperService {
             // 重置刮削状态计数器
             scrapedCount.set(0);
             totalCount.set(0);
-
-            // 发送通知
-            sendNotification(resultMsg, "success");
+            // 完成通知由 TaskService.completeTask 统一发送，避免重复
             
         } catch (Exception e) {
             logger.error("刮削任务失败: {}", e.getMessage(), e);
             taskService.failTask(taskId, "刮削失败", e.getMessage());
-            sendNotification("刮削任务失败: " + e.getMessage(), "error");
+            // 失败通知由 TaskService.failTask 统一发送，避免重复
         } finally {
             // 关键：重置资源管理器
             threadResourceManager.reset();
@@ -644,7 +648,7 @@ public class ScraperServiceImpl implements ScraperService {
                                     logger.error("提前媒体下载遇到限额限制，暂停刮削: 状态码={}", e.getStatusCode());
                                     isScrapingPaused.set(true);
                                     taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
-                                    sendNotification(e.getLimitWarningMessage(), "warning");
+                                    sendNotification("配额警告", e.getLimitWarningMessage(), "warning");
                                     break;
                                 }
                                 logger.error("提前下载媒体文件API错误: {}", e.getMessage());
@@ -721,7 +725,7 @@ public class ScraperServiceImpl implements ScraperService {
                         logger.error("批量媒体下载遇到限额限制，暂停刮削: 状态码={}", e.getStatusCode());
                         isScrapingPaused.set(true);
                         taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
-                        sendNotification(e.getLimitWarningMessage(), "warning");
+                        sendNotification("配额警告", e.getLimitWarningMessage(), "warning");
                     } else {
                         logger.error("下载媒体文件API错误: {}", e.getMessage());
                         mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
@@ -1014,9 +1018,8 @@ public class ScraperServiceImpl implements ScraperService {
         return sb.toString();
     }
     
-    private void sendNotification(String message, String type) {
-        logger.info("发送通知: [{}] {}", type, message);
-        // TODO: 集成到现有的通知机制
+    private void sendNotification(String title, String message, String type) {
+        notificationService.send(title, message, type, "scraper");
     }
     
     @Override
@@ -1442,6 +1445,28 @@ public class ScraperServiceImpl implements ScraperService {
                 logger.error("平台不存在: {}", platformId);
                 return;
             }
+
+            Game game = gameService.getGameById(gameId);
+            if (game == null) {
+                logger.error("游戏不存在: {}", gameId);
+                return;
+            }
+
+            // 手动搜索下载场景：调用方传入的 ss 游戏 ID（gameMap 顶层 "id"）写回数据库
+            Object ssIdObj = medias.get("id");
+            if (ssIdObj != null) {
+                try {
+                    game.setSsGameId(Long.parseLong(ssIdObj.toString()));
+                    gameService.updateGame(game);
+                    logger.info("手动搜索下载: 写回 ss_game_id={} for game {}", ssIdObj, gameName);
+                } catch (NumberFormatException ex) {
+                    logger.warn("SS游戏ID非数字: {}", ssIdObj);
+                }
+            }
+
+            // 新路径规则目录
+            Path gameMediaDir = PathResolver.resolveGameMediaDir(game, platform.getSystemId());
+            Files.createDirectories(gameMediaDir);
             
             // 创建后台任务
             BackgroundTask bgTask = taskService.createTask("MEDIA_DOWNLOAD", "下载游戏媒体: " + gameName);
@@ -1486,15 +1511,16 @@ public class ScraperServiceImpl implements ScraperService {
                         task.setPlatformName(platform.getName());
                         task.setGameName(gameName);
                         task.setMediaType(mediaType);
-                        task.setDownloadUrl(url);
+                        // 与 createMediaTask 一致：加密存储，下载 worker 会解密
+                        task.setDownloadUrl(EncryptionUtil.encrypt(url));
                         task.setStatus("PENDING");
                         task.setOrderIndex((long) orderIndex++);
                         
-                        // 设置localPath（需要根据mediaType和平台路径计算）
-                        String fileName = url.substring(url.lastIndexOf('/') + 1);
-                        String localPath = platform.getFolderPath() + "/" + mediaType + "/" + fileName;
+                        // 设置localPath（新路径规则：ss 稳定键目录 + 媒体类型命名）
+                        String extension = "." + (selectedMedia.containsKey("format") ? selectedMedia.get("format").toLowerCase() : "png");
+                        String localPath = PathResolver.normalizeForDb(gameMediaDir.resolve(mediaType + extension));
                         task.setLocalPath(localPath);
-                        
+
                         mediaDownloadTaskMapper.insert(task);
                         logger.info("创建媒体下载任务: taskId={}, gameId={}, mediaType={}, url={}", bgTaskId, gameId, mediaType, url);
                     }
@@ -1522,6 +1548,25 @@ public class ScraperServiceImpl implements ScraperService {
                 logger.error("平台不存在: {}", platformId);
                 return 0;
             }
+
+            Game game = gameService.getGameById(gameId);
+
+            // 调用方传入的 ss 游戏 ID 写回数据库
+            Object ssIdObj = medias.get("id");
+            if (game != null && ssIdObj != null) {
+                try {
+                    game.setSsGameId(Long.parseLong(ssIdObj.toString()));
+                    gameService.updateGame(game);
+                } catch (NumberFormatException ex) {
+                    logger.warn("SS游戏ID非数字: {}", ssIdObj);
+                }
+            }
+
+            // 新路径规则目录
+            Path gameMediaDir = (game != null)
+                ? PathResolver.resolveGameMediaDir(game, platform.getSystemId())
+                : Paths.get(PathResolver.MEDIA_BASE, "unknown", "local", String.valueOf(gameId));
+            Files.createDirectories(gameMediaDir);
 
             // 创建后台任务（用于跟踪进度）
             BackgroundTask bgTask = taskService.createTask("MEDIA_DOWNLOAD", "下载游戏媒体: " + gameName);
@@ -1564,10 +1609,9 @@ public class ScraperServiceImpl implements ScraperService {
                         task.setStatus("PENDING");
                         task.setOrderIndex((long) orderIndex++);
 
-                        // 计算本地存储路径
-                        Path gameMediaDir = Paths.get("./data/scraper/games", platform.getName(), String.valueOf(gameId));
-                        String extension = "." + (selectedMedia.containsKey("format") ? selectedMedia.get("format").toLowerCase() : "bin");
-                        String localPath = gameMediaDir.resolve(mediaType + extension).toString();
+                        // 计算本地存储路径（新路径规则目录）
+                        String extension = "." + (selectedMedia.containsKey("format") ? selectedMedia.get("format").toLowerCase() : "png");
+                        String localPath = PathResolver.normalizeForDb(gameMediaDir.resolve(mediaType + extension));
                         task.setLocalPath(localPath);
 
                         mediaDownloadTaskMapper.insert(task);
@@ -2092,6 +2136,12 @@ public class ScraperServiceImpl implements ScraperService {
             // 游戏ID
             if (jeu.has("id")) {
                 game.setGameId(jeu.get("id").asText());
+                // ScreenScraper 全局游戏ID：媒体目录稳定键（跨平台复用）
+                try {
+                    game.setSsGameId(jeu.get("id").asLong());
+                } catch (NumberFormatException ex) {
+                    logger.warn("SS游戏ID非数字: {}", jeu.get("id").asText());
+                }
             }
             
             // 游戏名称 - 从 noms 数组中提取，优先使用用户选择的语种
@@ -2330,7 +2380,7 @@ public class ScraperServiceImpl implements ScraperService {
      * 2. 如果客户要求下载全部种类的媒体文件，优先取 WOR 区域的所有媒体文件，如果有 WOR 区域没有的其他媒体文件也要下载
      */
     private int saveMediaTasksToDb(Game game, Map<String, Object> searchResult, ScraperRequest request,
-                                   String platformName, Long platformId, Long taskId, AtomicInteger mediaTaskCounter) {
+                                   String platformName, Long platformId, Integer ssSystemId, Long taskId, AtomicInteger mediaTaskCounter) {
         try {
             logger.info("========== saveMediaTasksToDb 被调用 ==========");
             logger.info("游戏: {}, searchResult keys: {}", game.getName(), searchResult.keySet());
@@ -2353,7 +2403,25 @@ public class ScraperServiceImpl implements ScraperService {
             String preferredRegion = request.getRegion() != null ? request.getRegion().toLowerCase() : "wor";
             Long gameId = game.getId();
 
-            Path gameMediaDir = Paths.get("./data/scraper/games", platformName, String.valueOf(gameId), preferredRegion);
+            // 兜底写回 ss_game_id：仅刮媒体不刮信息（scope=media）时 updateGameRecord 不会执行
+            if (game.getSsGameId() == null) {
+                Object gameNode = searchResult.get("game");
+                if (gameNode instanceof JsonNode jeu && jeu.has("id")) {
+                    try {
+                        game.setSsGameId(jeu.get("id").asLong());
+                        gameService.updateGame(game);
+                        logger.info("兜底写回 ss_game_id={} for game {}", jeu.get("id").asText(), game.getName());
+                    } catch (NumberFormatException ex) {
+                        logger.warn("SS游戏ID非数字: {}", jeu.get("id").asText());
+                    }
+                }
+            }
+
+            // local → ss 目录平滑迁移（未匹配游戏升级为匹配后，把旧 local 目录媒体搬到 ss 目录）
+            migrateLocalMediaToSs(game, ssSystemId);
+
+            // 新路径规则: {ssSystemId}/{ssGameId}/ 或 {ssSystemId}/local/{stem}/（不再使用平台名/本地ID/region 层）
+            Path gameMediaDir = PathResolver.resolveGameMediaDir(game, ssSystemId);
             Files.createDirectories(gameMediaDir);
 
             List<MediaDownloadTask> tasksToSave = new ArrayList<>();
@@ -2455,6 +2523,103 @@ public class ScraperServiceImpl implements ScraperService {
     }
     
     /**
+     * local → ss 目录平滑迁移：
+     * 未匹配游戏升级为匹配后（写入 ss_game_id），把 {ssSystemId}/local/{stem}/ 下
+     * 已刮削/上传的媒体移动到 {ssSystemId}/{ssGameId}/，并同步更新 game 媒体字段路径。
+     * 目标已存在同名文件时跳过移动（保留 SS 目录版本）。
+     */
+    private void migrateLocalMediaToSs(Game game, Integer ssSystemId) {
+        if (game.getSsGameId() == null || ssSystemId == null) {
+            return;
+        }
+        String stem = PathResolver.extractGameStem(game);
+        Path localDir = Paths.get(PathResolver.MEDIA_BASE, String.valueOf(ssSystemId), "local", stem);
+        if (!Files.isDirectory(localDir)) {
+            return;
+        }
+        try {
+            Path ssDir = Paths.get(PathResolver.MEDIA_BASE, String.valueOf(ssSystemId), String.valueOf(game.getSsGameId()));
+            Files.createDirectories(ssDir);
+
+            String localDirDb = PathResolver.normalizeForDb(localDir);
+
+            // 1. 移动文件（目标同名文件已存在则跳过）
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(localDir)) {
+                for (Path file : stream) {
+                    if (!Files.isRegularFile(file)) {
+                        continue;
+                    }
+                    Path target = ssDir.resolve(file.getFileName());
+                    if (Files.exists(target)) {
+                        logger.info("local→ss 迁移跳过（目标已存在）: {}", file.getFileName());
+                        continue;
+                    }
+                    Files.move(file, target);
+                    logger.info("local→ss 媒体迁移: {} -> {}", file.getFileName(), target);
+                }
+            }
+
+            // 2. 更新 game 媒体字段中指向 local 目录的路径
+            boolean fieldUpdated = false;
+            for (com.gamelist.model.MediaType mt : com.gamelist.model.MediaType.values()) {
+                String value = readMediaField(game, mt);
+                if (value == null) {
+                    continue;
+                }
+                String normalized = value.replace('\\', '/');
+                if (!normalized.startsWith(localDirDb)) {
+                    continue;
+                }
+                String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
+                writeMediaField(game, mt, PathResolver.normalizeForDb(ssDir.resolve(fileName)));
+                fieldUpdated = true;
+            }
+            if (fieldUpdated) {
+                gameService.updateGame(game);
+            }
+
+            // 3. local 目录已空则删除
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(localDir)) {
+                if (!stream.iterator().hasNext()) {
+                    Files.deleteIfExists(localDir);
+                    logger.info("local→ss 迁移完成，删除空目录: {}", localDir);
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("local→ss 迁移失败: game={}, error={}", game.getName(), e.getMessage());
+        }
+    }
+
+    /** 反射读取 game 的媒体字段值 */
+    private String readMediaField(Game game, com.gamelist.model.MediaType mt) {
+        try {
+            String getterName = mt.getGetterName();
+            if ("getBox3d".equals(getterName)) {
+                getterName = "getBox3D";
+            }
+            java.lang.reflect.Method getter = Game.class.getMethod(getterName);
+            Object value = getter.invoke(game);
+            return value != null ? value.toString() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** 反射写入 game 的媒体字段 */
+    private void writeMediaField(Game game, com.gamelist.model.MediaType mt, String path) {
+        try {
+            String setterName = mt.getSetterName();
+            if ("setBox3d".equals(setterName)) {
+                setterName = "setBox3D";
+            }
+            java.lang.reflect.Method setter = Game.class.getMethod(setterName, String.class);
+            setter.invoke(game, path);
+        } catch (Exception e) {
+            logger.warn("反射写入媒体字段失败: field={}, error={}", mt.getJavaField(), e.getMessage());
+        }
+    }
+
+    /**
      * 创建媒体下载任务
      */
     private void createMediaTask(String mediaType, JsonNode mediaNode, Long gameId, String gameName,
@@ -2488,8 +2653,9 @@ public class ScraperServiceImpl implements ScraperService {
             String extension = "." + format.toLowerCase();
             Path mediaPath = gameMediaDir.resolve(mediaType + extension);
 
-            // null-safe Boolean 检查，避免自动拆箱 NPE
-            boolean fileExists = Files.exists(mediaPath);
+            // 目录中已有该类型的媒体文件（任意扩展名）优先复用
+            Path existingFile = PathResolver.findExistingMedia(gameMediaDir, mediaType);
+            boolean fileExists = existingFile != null;
             boolean overwrite = Boolean.TRUE.equals(request.getOverwrite());
             boolean onlyMissing = Boolean.TRUE.equals(request.getOnlyMissing());
 
@@ -2507,14 +2673,23 @@ public class ScraperServiceImpl implements ScraperService {
                 existingTask.setPlatformName(platformName);
                 existingTask.setMediaType(mediaType);
                 existingTask.setDownloadUrl(EncryptionUtil.encrypt(url));
-                existingTask.setLocalPath(mediaPath.toString());
+                existingTask.setLocalPath(PathResolver.normalizeForDb(existingFile));
                 existingTask.setStatus(MediaDownloadTask.STATUS_COMPLETED);
                 existingTask.setOrderIndex(Long.valueOf(mediaTaskCounter.getAndIncrement()));
                 tasksToSave.add(existingTask);
                 // 文件已存在，直接更新游戏记录的媒体路径（COMPLETED 任务不会被下载线程拾取，需在此处同步更新）
-                updateGameMediaPath(gameId, mediaType, mediaPath.toString());
+                updateGameMediaPath(gameId, mediaType, PathResolver.normalizeForDb(existingFile));
                 logger.info("媒体文件已存在，标记为已完成: {} (区域: {}) for game {}", mediaType, region, gameName);
                 return;
+            }
+
+            if (fileExists) {
+                // 覆盖模式：删除旧扩展名文件，避免同类型多文件并存
+                try {
+                    Files.deleteIfExists(existingFile);
+                } catch (IOException e) {
+                    logger.warn("删除旧媒体文件失败: {}", existingFile);
+                }
             }
 
             MediaDownloadTask mediaTask = new MediaDownloadTask();

@@ -12,19 +12,22 @@ import org.springframework.stereotype.Service;
 
 import com.gamelist.mapper.BackgroundTaskMapper;
 import com.gamelist.model.BackgroundTask;
+import com.gamelist.service.NotificationService;
 import com.gamelist.service.TaskService;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 
     private final BackgroundTaskMapper taskMapper;
+    private final NotificationService notificationService;
     private final Map<Long, BackgroundTask> taskCache = new ConcurrentHashMap<>();
     private final AtomicLong taskIdGenerator = new AtomicLong(1);
     private volatile boolean initialized = false;
     private final ReentrantLock initLock = new ReentrantLock();
 
-    public TaskServiceImpl(BackgroundTaskMapper taskMapper) {
+    public TaskServiceImpl(BackgroundTaskMapper taskMapper, NotificationService notificationService) {
         this.taskMapper = taskMapper;
+        this.notificationService = notificationService;
         // 延迟初始化，不在构造函数中调用数据库
     }
 
@@ -72,6 +75,14 @@ public class TaskServiceImpl implements TaskService {
 
         taskMapper.insert(task);
         taskCache.put(task.getId(), task);
+        // 任务创建事件进入通知中心
+        try {
+            notificationService.send(
+                    description != null && !description.isEmpty() ? description : type,
+                    "后台任务已创建（" + type + "）", "info", "task");
+        } catch (Exception e) {
+            // 通知失败不影响任务创建
+        }
         return task;
     }
 
@@ -119,6 +130,14 @@ public class TaskServiceImpl implements TaskService {
             }
             taskMapper.update(task);
             taskCache.remove(taskId);
+            // 任务完成事件进入通知中心
+            try {
+                notificationService.send(
+                        task.getDescription() != null && !task.getDescription().isEmpty() ? task.getDescription() : task.getType(),
+                        message, "success", "task");
+            } catch (Exception e) {
+                // 通知失败不影响任务状态
+            }
         }
     }
 
@@ -137,6 +156,18 @@ public class TaskServiceImpl implements TaskService {
             }
             taskMapper.update(task);
             taskCache.remove(taskId);
+            // 任务失败事件进入通知中心
+            try {
+                String detail = message;
+                if (errorMessage != null && !errorMessage.isEmpty()) {
+                    detail = message + "：" + errorMessage;
+                }
+                notificationService.send(
+                        task.getDescription() != null && !task.getDescription().isEmpty() ? task.getDescription() : task.getType(),
+                        detail, "error", "task");
+            } catch (Exception e) {
+                // 通知失败不影响任务状态
+            }
         }
     }
 

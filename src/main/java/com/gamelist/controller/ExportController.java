@@ -108,6 +108,25 @@ public class ExportController {
                     item.put("exportOptions", exportOptions);
                 }
 
+                // 模板声明的媒体类型列表（源 nomcourt），供刮削模态框"从模板预选"使用
+                List<String> mediaTypes = new ArrayList<>();
+                if (v3.getOutput() != null && v3.getOutput().getMedia() != null
+                        && v3.getOutput().getMedia().getRules() != null) {
+                    for (Map.Entry<String, TemplateV3.MediaOutputRule> entry
+                            : v3.getOutput().getMedia().getRules().entrySet()) {
+                        String nomcourt = entry.getKey();
+                        TemplateV3.MediaOutputRule rule = entry.getValue();
+                        // key 为源 nomcourt；key 缺失语义时回退到 rule.source
+                        if (nomcourt == null || nomcourt.isBlank()) {
+                            nomcourt = (rule != null) ? rule.getSource() : null;
+                        }
+                        if (nomcourt != null && !nomcourt.isBlank() && !mediaTypes.contains(nomcourt)) {
+                            mediaTypes.add(nomcourt);
+                        }
+                    }
+                }
+                item.put("mediaTypes", mediaTypes);
+
                 ruleList.add(item);
             }
 

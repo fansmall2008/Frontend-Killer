@@ -128,6 +128,74 @@ table#tempSubsetTable tbody tr:last-child td {
     border-bottom: none;
 }
 
+/* ---- Row Click (row = view games) & Inline Name Edit ---- */
+table#platformTable tbody tr {
+    cursor: pointer;
+}
+
+table#platformTable td.editable {
+    cursor: text;
+}
+
+table#platformTable td.editable:hover {
+    box-shadow: inset 0 0 0 1px var(--accent-primary);
+    border-radius: 4px;
+}
+
+.inline-edit-input {
+    width: 100%;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--accent-primary);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: inherit;
+    outline: none;
+}
+
+/* ---- Icon-only Action Buttons (platform table) ---- */
+.action-cell {
+    white-space: nowrap;
+}
+
+.action-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin-right: 4px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--accent-info-subtle);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: all var(--transition);
+    vertical-align: middle;
+}
+
+.action-icon-btn:hover {
+    background: var(--accent-info);
+    transform: translateY(-1px);
+}
+
+.action-icon-btn.scrape {
+    background: var(--accent-success-subtle);
+}
+.action-icon-btn.scrape:hover {
+    background: var(--accent-success);
+}
+
+.action-icon-btn.danger {
+    background: var(--accent-danger-subtle);
+}
+.action-icon-btn.danger:hover {
+    background: var(--accent-danger);
+}
+
 /* ---- Action Buttons in Table ---- */
 .action-btn,
 .edit-btn,

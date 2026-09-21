@@ -146,7 +146,7 @@
                 <!-- Footer -->
                 <div class="page-footer">
                     <p data-i18n="copyright">© 2024 Frontend-Killer | 模拟游戏元数据管理平台</p>
-                    <p class="version">v1.1-RC1</p>
+                    <p class="version">v1.2-RC1</p>
                 </div>
             </main>
         </div>
@@ -173,16 +173,7 @@
     </div>
 
     <!-- Notification Modal -->
-    <div class="modal-overlay" id="notificationModal">
-        <div class="modal">
-            <div class="modal-header">
-                <span class="modal-title" data-i18n="task_messages_title">任务消息</span>
-                <button class="modal-close" onclick="document.getElementById('notificationModal').classList.remove('active')">×</button>
-            </div>
-            <div class="modal-body" id="notificationContent" style="max-height:400px;overflow-y:auto">
-            </div>
-        </div>
-    </div>
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
 
     <!-- Include common scripts -->
     <div th:replace="~{fragments/layout :: common-scripts}"></div>
@@ -411,9 +402,7 @@
     }
 
     // ========== Notification ==========
-    function openNotificationPanel() {
-        document.getElementById('notificationModal').classList.add('active');
-    }
+    // 通知面板由 layout common-scripts 全局提供
 
     // ========== Voice Greeting ==========
     (function speakGreeting() {

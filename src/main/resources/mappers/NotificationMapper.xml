@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.NotificationMapper">
+
+    <resultMap id="NotificationResultMap" type="com.gamelist.model.Notification">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="message" property="message"/>
+        <result column="type" property="type"/>
+        <result column="source" property="source"/>
+        <result column="is_read" property="read"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gamelist.model.Notification" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notification (title, message, type, source, is_read)
+        VALUES (#{title}, #{message}, #{type}, #{source}, #{read})
+    </insert>
+
+    <select id="selectRecent" resultMap="NotificationResultMap">
+        SELECT * FROM notification ORDER BY created_at DESC, id DESC LIMIT #{limit}
+    </select>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM notification WHERE is_read = FALSE
+    </select>
+
+    <update id="markAllRead">
+        UPDATE notification SET is_read = TRUE WHERE is_read = FALSE
+    </update>
+
+    <delete id="deleteAll">
+        DELETE FROM notification
+    </delete>
+
+    <delete id="deleteOlderThan">
+        DELETE FROM notification WHERE id &lt;= #{cutoffId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,131 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "dataFileType": "data",
+    "format": "xml",
+    "dataFile": "gamelist.xml",
+    "author": "Frontend-Killer",
+    "description": "EmuELEC",
+    "notes": "输出 gamelist.xml 格式。注意：仅导出元数据和媒体文件，不导出 ROM 文件。gamelist.xml 位于 roms 目录中"
+  },
+  "system": {
+    "header": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<gameList>"
+    ],
+    "footer": [
+      "</gameList>"
+    ],
+    "fields": {}
+  },
+  "game": {
+    "gameStartMarker": "game",
+    "gameInfo": {
+      "path": "if(multiFile, m3uPath, path)",
+      "name": "name",
+      "desc": "desc",
+      "rating": "rating",
+      "releasedate": "releasedate",
+      "developer": "developer",
+      "publisher": "publisher",
+      "genre": "genre",
+      "players": "players"
+    },
+    "mediaInfo": {
+      "box2dfront": "box-2D",
+      "box2dback": "box-2D-back",
+      "box2dside": "box-2D-side",
+      "box3d": "box-3D",
+      "fanart": "fanart",
+      "screenshot": "ss",
+      "video": "video",
+      "wheel": "wheel",
+      "banner": "banner",
+      "manual": "manual",
+      "images": "image"
+    }
+  },
+  "output": {
+    "exportOptions": {
+      "gameFiles": false,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": true
+    },
+    "roms": {
+      "enabled": false,
+      "directory": "{outputPath}/roms/{platform.system}",
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": true
+      }
+    },
+    "media": {
+      "directory": "{outputPath}/downloaded_images/{platform.system}",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "box2dfront/{filename}.png",
+          "dataFileTag": "box2dfront"
+        },
+        "box-2D-back": {
+          "source": "box-2D-back",
+          "target": "box2dback/{filename}.png",
+          "dataFileTag": "box2dback"
+        },
+        "box-2D-side": {
+          "source": "box-2D-side",
+          "target": "box2dside/{filename}.png",
+          "dataFileTag": "box2dside"
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "box3d/{filename}.png",
+          "dataFileTag": "box3d"
+        },
+        "fanart": {
+          "source": "fanart",
+          "target": "fanart/{filename}.png",
+          "dataFileTag": "fanart"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "screenshot/{filename}.png",
+          "dataFileTag": "screenshot"
+        },
+        "video": {
+          "source": "video",
+          "target": "video/{filename}.mp4",
+          "dataFileTag": "video"
+        },
+        "wheel": {
+          "source": "wheel",
+          "target": "wheel/{filename}.png",
+          "dataFileTag": "wheel"
+        },
+        "banner": {
+          "source": "banner",
+          "target": "banner/{filename}.png",
+          "dataFileTag": "banner"
+        },
+        "manual": {
+          "source": "manual",
+          "target": "manuals/{filename}.pdf",
+          "dataFileTag": "manual"
+        },
+        "image": {
+          "source": "image",
+          "target": "images/{filename}.png",
+          "dataFileTag": "images"
+        }
+      }
+    },
+    "dataFile": {
+      "directory": "{outputPath}/roms/{platform.system}",
+      "filename": "gamelist.xml",
+      "pathFormat": "absoluteWithDot",
+      "pathPrefix": ""
+    }
+  }
+}

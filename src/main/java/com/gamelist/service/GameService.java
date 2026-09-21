@@ -48,6 +48,7 @@ public interface GameService {
     int deleteAllGames();
     Statistics getOverallStatistics();
     List<PlatformStatistics> getPlatformStatistics();
+    PlatformStatistics getPlatformStatisticsById(Long platformId);
     List<Game> getGamesByScrapeStatus(Long platformId, String status, int page, int size);
     int updateGame(Game game);
     List<Game> getGamesByFilter(Map<String, Object> filterParams);

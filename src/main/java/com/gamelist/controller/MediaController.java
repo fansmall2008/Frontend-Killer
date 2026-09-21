@@ -30,6 +30,7 @@ import com.gamelist.mapper.GameMapper;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
 import com.gamelist.service.PlatformService;
+import com.gamelist.util.PathResolver;
 
 @RestController
 @RequestMapping("/api/media")
@@ -262,7 +263,9 @@ public class MediaController {
     // ==================== 游戏编辑页 - 媒体上传/删除/状态 ====================
 
     /**
-     * 上传媒体文件到固定路径: ./data/scraper/games/{platformName}/{gameId}/{mediaType}.{ext}
+     * 上传媒体文件到新路径规则目录:
+     * - 已匹配 ss: {ssSystemId}/{ssGameId}/{mediaType}.{ext}
+     * - 未匹配:    {ssSystemId}/local/{stem}/{mediaType}.{ext}
      * 如果该媒体类型已有文件，先删除旧文件再保存新文件
      */
     @PostMapping("/upload")
@@ -291,17 +294,16 @@ public class MediaController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
 
-            // 3. 获取平台名称
+            // 3. 获取平台信息（systemId 用于目录键）
             Platform platform = platformService.getPlatformById(game.getPlatformId());
             if (platform == null) {
                 response.put("success", false);
                 response.put("message", "平台不存在: " + game.getPlatformId());
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            String platformName = platform.getName();
 
-            // 4. 构建目标目录: ./data/scraper/games/{platformName}/{gameId}/
-            Path gameMediaDir = Paths.get("./data/scraper/games", platformName, String.valueOf(gameId));
+            // 4. 构建目标目录（新路径规则）
+            Path gameMediaDir = PathResolver.resolveGameMediaDir(game, platform.getSystemId());
             Files.createDirectories(gameMediaDir);
 
             // 5. 删除该媒体类型的旧文件（按 mediaType nomcourt 前缀匹配）
@@ -318,7 +320,7 @@ public class MediaController {
             file.transferTo(targetPath.toFile());
 
             // 7. 构建相对路径并更新 Game 字段
-            String relativePath = "./data/scraper/games/" + platformName + "/" + gameId + "/" + newFileName;
+            String relativePath = PathResolver.normalizeForDb(targetPath);
             updateGameField(game, mediaType, relativePath);
 
             logger.info("媒体上传成功: gameId={}, mediaType={}, path={}", gameId, mediaTypeNomcourt, relativePath);
@@ -364,10 +366,10 @@ public class MediaController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
 
-            // 3. 获取平台名称，构建目录
+            // 3. 获取平台信息，构建目录（新路径规则）
             Platform platform = platformService.getPlatformById(game.getPlatformId());
             if (platform != null) {
-                Path gameMediaDir = Paths.get("./data/scraper/games", platform.getName(), String.valueOf(gameId));
+                Path gameMediaDir = PathResolver.resolveGameMediaDir(game, platform.getSystemId());
                 if (Files.exists(gameMediaDir)) {
                     deleteExistingMediaFiles(gameMediaDir, mediaTypeNomcourt);
                 }
@@ -403,12 +405,11 @@ public class MediaController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
 
-            // 获取平台名称，用于构建检查路径
+            // 获取平台信息，用于构建检查路径（新路径规则）
             Platform platform = platformService.getPlatformById(game.getPlatformId());
-            String platformName = (platform != null) ? platform.getName() : null;
             Path gameMediaDir = null;
-            if (platformName != null) {
-                gameMediaDir = Paths.get("./data/scraper/games", platformName, String.valueOf(gameId));
+            if (platform != null) {
+                gameMediaDir = PathResolver.resolveGameMediaDir(game, platform.getSystemId());
             }
 
             // 遍历所有媒体类型，检查状态

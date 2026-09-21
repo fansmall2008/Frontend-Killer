@@ -147,24 +147,8 @@
             loadRealtimeLogs();
         });
         
-        // 消息通知功能
-        let notifications = [];
-        let unreadCount = 0;
-
-        // 显示通知
+        // 弹跳提示（通知中心由 layout 全局提供）
         function showNotification(message, type = 'info') {
-            // 添加到通知列表
-            notifications.unshift({
-                id: Date.now(),
-                message: message,
-                type: type,
-                time: new Date().toLocaleString(),
-                read: false
-            });
-            
-            unreadCount++;
-            updateNotificationBell();
-            
             // 显示弹窗通知
             const notificationElement = document.createElement('div');
             notificationElement.className = `notification notification-${type}`;
@@ -201,74 +185,6 @@
             }, 3000);
         }
 
-        // 更新通知铃铛
-        function updateNotificationBell() {
-            const bellIcon = document.getElementById('notificationBell');
-            if (bellIcon) {
-                const badge = bellIcon.querySelector('.badge');
-                if (badge) {
-                    badge.textContent = unreadCount;
-                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
-                }
-            }
-        }
-
-        // 打开通知面板
-        function openNotificationPanel() {
-            const modal = document.getElementById('notificationModal');
-            const content = document.getElementById('notificationContent');
-            
-            // 生成通知列表
-            content.innerHTML = '';
-            
-            if (notifications.length === 0) {
-                content.innerHTML = '<p class="notif-empty">暂无通知</p>';
-            } else {
-                notifications.forEach(notification => {
-                    const notificationItem = document.createElement('div');
-                    notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`;
-                    notificationItem.style.cssText = `
-                        border-left: 4px solid ${notification.type === 'success' ? 'var(--accent-success)' : notification.type === 'error' ? 'var(--accent-danger)' : 'var(--accent-secondary)'};
-                    `;
-                    
-                    notificationItem.innerHTML = `
-                        <div style="font-weight: bold; margin-bottom: 5px;">${notification.message}</div>
-                        <div class="notif-time">${notification.time}</div>
-                    `;
-                    
-                    content.appendChild(notificationItem);
-                    
-                    // 标记为已读
-                    notification.read = true;
-                });
-                
-                unreadCount = 0;
-                updateNotificationBell();
-            }
-            
-            modal.style.display = 'block';
-        }
-
-        // 关闭通知模态框
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('notificationModal');
-            if (modal) {
-                const closeBtn = modal.querySelector('.close');
-                if (closeBtn) {
-                    closeBtn.onclick = function() {
-                        modal.style.display = 'none';
-                    };
-                }
-                
-                // 点击模态框外部关闭
-                window.onclick = function(event) {
-                    if (event.target == modal) {
-                        modal.style.display = 'none';
-                    }
-                };
-            }
-        });
-        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', initLanguage);
     </script>

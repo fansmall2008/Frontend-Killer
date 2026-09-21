@@ -1,7 +1,7 @@
 @echo off
 echo ========================================
 echo  Frontend-Killer EXE Builder
-echo  Version: 1.1-RC1
+echo  Version: 1.2-RC1
 echo ========================================
 
 rem Set Java environment (JDK 17 required for jpackage)
@@ -22,7 +22,7 @@ rem Set variables
 set PROJECT_DIR=%~dp0
 set TARGET_DIR=%PROJECT_DIR%target
 set EXE_DIR=%PROJECT_DIR%distribution\exe
-set JAR_NAME=webGamelistOper-1.1-RC1.jar
+set JAR_NAME=webGamelistOper-1.2-RC1.jar
 set APP_NAME=Frontend-Killer
 
 echo.
@@ -58,7 +58,7 @@ jpackage ^
     --java-options "-Xmx2g" ^
     --java-options "-XX:+UseG1GC" ^
     --java-options "-Dfile.encoding=UTF-8" ^
-    --app-version 1.1.0 ^
+    --app-version 1.2.0 ^
     --vendor "Frontend-Killer" ^
     --dest "%EXE_DIR%"
 

@@ -429,13 +429,37 @@ body::after {
     box-shadow: 0 0 12px var(--accent-primary-glow);
 }
 
-.header-icon-btn .notif-dot {
+.header-icon-btn .notif-badge {
     position: absolute;
-    top: 6px; right: 6px;
-    width: 6px; height: 6px;
+    top: -5px; right: -5px;
+    min-width: 16px; height: 16px;
+    padding: 0 4px;
     background: var(--accent-danger);
-    border-radius: 50%;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
 }
+
+/* ---- Notification Panel Items ---- */
+.notification-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-left: 4px solid var(--text-secondary);
+}
+.notification-item.notif-success { border-left-color: var(--accent-success); }
+.notification-item.notif-warning { border-left-color: var(--accent-warning); }
+.notification-item.notif-error { border-left-color: var(--accent-danger); }
+.notification-item.unread { background: var(--accent-warning-subtle); }
+.notif-title { font-weight: 600; margin-bottom: 4px; }
+.notif-message { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; white-space: pre-wrap; }
+.notif-time { font-size: 11px; color: var(--text-secondary); opacity: .8; }
+.notif-empty { text-align: center; color: var(--text-secondary); padding: 24px 0; }
+.notif-clear-btn { padding: 4px 12px; font-size: 12px; }
 
 /* ---- Content ---- */
 .content {
@@ -1277,6 +1301,7 @@ body::after {
     color: var(--accent-info);
     font-size: 12px;
     line-height: 1.6;
+    white-space: pre-line;
 }
 
 /* Notification toast */

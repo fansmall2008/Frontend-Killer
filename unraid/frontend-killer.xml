@@ -30,7 +30,7 @@
   <Privileged>false</Privileged>
   <Branch>
     <Tag>latest</Tag>
-    <TagDescription>Stable release (currently 1.1-RC1).</TagDescription>
+    <TagDescription>Stable release (currently 1.2-RC1).</TagDescription>
   </Branch>
   <Project>https://github.com/fansmall2008/Frontend-Killer</Project>
   <Overview>Frontend-Killer is a web-based game list manager for emulator frontends. Import, manage, export and scrape game metadata and media across Pegasus, ES-DE, RetroBat, EmuELEC, Lakka and more, with full ScreenScraper integration (auto metadata/media download, CRC32 matching, quota monitoring).</Overview>

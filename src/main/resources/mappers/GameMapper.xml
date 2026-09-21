@@ -5,6 +5,7 @@
     <resultMap id="GameResultMap" type="com.gamelist.model.Game">
         <id column="id" property="id"/>
         <result column="game_id" property="gameId"/>
+        <result column="ss_game_id" property="ssGameId"/>
         <result column="source" property="source"/>
         <result column="path" property="path"/>
         <result column="name" property="name"/>
@@ -118,12 +119,12 @@
     
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO game (
-            game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            game_id, ss_game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
             rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content
         ) VALUES (
-            #{gameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
+            #{gameId}, #{ssGameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
             #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel}, #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper}, #{platformType}, #{hash},
             #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan}, #{support2d}, #{supportTexture}, #{supportScan}, #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee}, #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps}, #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail}, #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs}, #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper}, #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios},
             #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}
@@ -132,14 +133,14 @@
     
     <insert id="insertGamesBatch" parameterType="java.util.List">
         INSERT INTO game (
-            game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            game_id, ss_game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
             rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content
         ) VALUES
         <foreach collection="list" item="game" separator=",">
             (
-                #{game.gameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
+                #{game.gameId}, #{game.ssGameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
                 #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight}, #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen}, #{game.box3D}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.videonormalized}, #{game.wheelcarbon}, #{game.wheelsteel}, #{game.screenmarqueesmall}, #{game.boxside}, #{game.figurine}, #{game.pictoliste}, #{game.pictomonochrome}, #{game.pictomonochromesvg}, #{game.pictocouleur}, #{game.wallpaper}, #{game.platformType}, #{game.hash},
                 #{game.box2d}, #{game.box2dBack}, #{game.box2dSide}, #{game.boxTexture}, #{game.boxScan}, #{game.support2d}, #{game.supportTexture}, #{game.supportScan}, #{game.wheel}, #{game.wheelHd}, #{game.wheelCarbon}, #{game.wheelSteel}, #{game.screenmarquee}, #{game.ss}, #{game.sstitle}, #{game.overlay}, #{game.videoNormalized}, #{game.flyer}, #{game.manuel}, #{game.maps}, #{game.bezel43}, #{game.bezel43V}, #{game.bezel43Cocktail}, #{game.bezel169}, #{game.bezel169V}, #{game.bezel169Cocktail}, #{game.mixrbv1}, #{game.mixrbv2}, #{game.themehb}, #{game.themehs}, #{game.ssdmd}, #{game.ssfronton169}, #{game.ssfronton11}, #{game.ssfronton43}, #{game.sstable}, #{game.sstopper}, #{game.videodmd}, #{game.videofronton43}, #{game.videofronton169}, #{game.videotable}, #{game.videotable4k}, #{game.videotopper}, #{game.wheelTarcisios},
                 #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.platformId}, #{game.scraped, jdbcType=BOOLEAN}, #{game.edited, jdbcType=BOOLEAN}, #{game.exists, jdbcType=BOOLEAN}, #{game.absolutePath}, #{game.platformPath}, #{game.multiFile, jdbcType=BOOLEAN}, #{game.multiFileContent}
@@ -610,10 +611,103 @@
         GROUP BY p.id, p.system
         ORDER BY p.system
     </select>
+
+    <!--
+        仅统计单个平台的刷刮状态分布。相比 selectPlatformStatistics：
+          1) WHERE g.platform_id = ? 可命中 idx_game_platform_scraped，避免全表扫描
+          2) 不再 JOIN platform，仅取一个平台，时量从 O(全库) 降到 O(该平台)
+        平台不存在时返回一行统计全为 0 的记录（platformName 可为 NULL）。
+    -->
+    <select id="selectPlatformStatisticsById" resultType="com.gamelist.model.PlatformStatistics">
+        SELECT
+            #{platformId} AS platformId,
+            (SELECT p.system FROM platform p WHERE p.id = #{platformId}) AS platformName,
+            COUNT(g.id) AS totalGames,
+            SUM(CASE WHEN g.scraped = true
+                AND NOT (
+                    (g.box_2d IS NULL OR g.box_2d = '')
+                    OR (g.ss IS NULL OR g.ss = '')
+                    OR (g.wheel IS NULL OR g.wheel = '')
+                    OR ((g.`desc` IS NULL OR g.`desc` = '' OR LENGTH(g.`desc`) &lt;= 20)
+                        AND (g.developer IS NULL OR g.developer = '' OR g.developer = 'unknown')
+                        AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown'))
+                )
+                THEN 1 ELSE 0 END) AS scraped,
+            SUM(CASE WHEN (g.scraped IS NULL OR g.scraped != true)
+                AND (
+                    (g.developer IS NOT NULL AND g.developer != '' AND g.developer != 'unknown')
+                    OR (g.publisher IS NOT NULL AND g.publisher != '' AND g.publisher != 'unknown')
+                    OR (g.genre IS NOT NULL AND g.genre != '' AND g.genre != 'unknown')
+                    OR (g.`desc` IS NOT NULL AND g.`desc` != '' AND g.`desc` != 'unknown' AND LENGTH(g.`desc`) &gt; 10)
+                    OR (g.translated_desc IS NOT NULL AND g.translated_desc != '' AND LENGTH(g.translated_desc) &gt; 10)
+                    OR (g.releasedate IS NOT NULL AND g.releasedate != '')
+                    OR (g.players IS NOT NULL AND g.players != '' AND g.players != '1')
+                    OR g.rating IS NOT NULL
+                    OR (g.image IS NOT NULL AND g.image != '')
+                    OR (g.box_2d IS NOT NULL AND g.box_2d != '')
+                    OR (g.ss IS NOT NULL AND g.ss != '')
+                    OR (g.wheel IS NOT NULL AND g.wheel != '')
+                    OR (g.video IS NOT NULL AND g.video != '')
+                    OR (g.marquee IS NOT NULL AND g.marquee != '')
+                    OR (g.thumbnail IS NOT NULL AND g.thumbnail != '')
+                    OR (g.manual IS NOT NULL AND g.manual != '')
+                    OR (g.sstitle IS NOT NULL AND g.sstitle != '')
+                    OR (g.steamgrid IS NOT NULL AND g.steamgrid != '')
+                    OR (g.fanart IS NOT NULL AND g.fanart != '')
+                    OR (g.bezel_4_3 IS NOT NULL AND g.bezel_4_3 != '')
+                    OR (g.bezel_16_9 IS NOT NULL AND g.bezel_16_9 != '')
+                    OR (g.mixrbv1 IS NOT NULL AND g.mixrbv1 != '')
+                    OR (g.mixrbv2 IS NOT NULL AND g.mixrbv2 != '')
+                    OR (g.flyer IS NOT NULL AND g.flyer != '')
+                    OR (g.maps IS NOT NULL AND g.maps != '')
+                    OR (g.figurine IS NOT NULL AND g.figurine != '')
+                )
+                THEN 1 ELSE 0 END) AS originalData,
+            SUM(CASE WHEN g.scraped = true
+                AND (
+                    (g.box_2d IS NULL OR g.box_2d = '')
+                    OR (g.ss IS NULL OR g.ss = '')
+                    OR (g.wheel IS NULL OR g.wheel = '')
+                    OR ((g.`desc` IS NULL OR g.`desc` = '' OR LENGTH(g.`desc`) &lt;= 20)
+                        AND (g.developer IS NULL OR g.developer = '' OR g.developer = 'unknown')
+                        AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown'))
+                )
+                THEN 1 ELSE 0 END) AS poorQuality,
+            SUM(CASE WHEN (g.scraped IS NULL OR g.scraped != true)
+                AND (g.developer IS NULL OR g.developer = '' OR g.developer = 'unknown')
+                AND (g.publisher IS NULL OR g.publisher = '' OR g.publisher = 'unknown')
+                AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown')
+                AND (g.`desc` IS NULL OR g.`desc` = '' OR g.`desc` = 'unknown' OR LENGTH(g.`desc`) &lt;= 10)
+                AND (g.translated_desc IS NULL OR g.translated_desc = '' OR LENGTH(g.translated_desc) &lt;= 10)
+                AND (g.releasedate IS NULL OR g.releasedate = '')
+                AND (g.players IS NULL OR g.players = '' OR g.players = '1')
+                AND g.rating IS NULL
+                AND (g.image IS NULL OR g.image = '')
+                AND (g.box_2d IS NULL OR g.box_2d = '')
+                AND (g.ss IS NULL OR g.ss = '')
+                AND (g.wheel IS NULL OR g.wheel = '')
+                AND (g.video IS NULL OR g.video = '')
+                AND (g.marquee IS NULL OR g.marquee = '')
+                AND (g.thumbnail IS NULL OR g.thumbnail = '')
+                AND (g.manual IS NULL OR g.manual = '')
+                AND (g.sstitle IS NULL OR g.sstitle = '')
+                AND (g.steamgrid IS NULL OR g.steamgrid = '')
+                AND (g.fanart IS NULL OR g.fanart = '')
+                AND (g.bezel_4_3 IS NULL OR g.bezel_4_3 = '')
+                AND (g.bezel_16_9 IS NULL OR g.bezel_16_9 = '')
+                AND (g.mixrbv1 IS NULL OR g.mixrbv1 = '')
+                AND (g.mixrbv2 IS NULL OR g.mixrbv2 = '')
+                AND (g.flyer IS NULL OR g.flyer = '')
+                AND (g.maps IS NULL OR g.maps = '')
+                AND (g.figurine IS NULL OR g.figurine = '')
+                THEN 1 ELSE 0 END) AS rawRom,
+            SUM(CASE WHEN g.`exists` = false THEN 1 ELSE 0 END) AS missingGames
+        FROM game g
+        WHERE g.platform_id = #{platformId}
+    </select>
     
     <select id="selectGamesByScrapeStatus" resultMap="GameResultMap">
         SELECT g.* FROM game g
-        LEFT JOIN platform p ON g.platform_id = p.id
         WHERE 1=1
         <if test="platformId != null">
             AND g.platform_id = #{platformId}
@@ -801,6 +895,7 @@
             rating = #{rating},
             lang = #{lang},
             game_id = #{gameId},
+            ss_game_id = #{ssGameId},
             source = #{source},
             crc32 = #{crc32},
             genreid = #{genreid},
