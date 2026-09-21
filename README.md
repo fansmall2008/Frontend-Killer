@@ -6,15 +6,17 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
-## What's New in 1.1-RC1
+## What's New in 1.2-RC1
 
-- **ScreenScraper Integration** - Full game scraping via ScreenScraper API with auto metadata/media download, CRC32 calculation, quota monitoring
-- **v3 Template System** - New generation import/export templates with expression engine, media discovery, and support for Pegasus, ES-DE, RetroBat, EmuELEC
-- **Game Edit Page** - Dedicated game editing page with full field support and media preview
-- **SS Standard Field Migration** - Unified MediaType enum with 50 media types aligned to ScreenScraper standard
-- **File Existence Verification** - Validate game files exist on filesystem during import, with visual indicators
-- **Task Recovery** - Auto-resume interrupted media download and background tasks on startup
-- **Multi-language** - Full Chinese, English, and Japanese support
+- **Notification Center** - Real-time task notifications via SSE push, with unread badge and auto-created alerts on task completion/failure
+- **Scraper Media Path Restructure** - New storage layout keyed by ScreenScraper system/game ID (`data/scraper/games/{ssSystemId}/{ssGameId}/`), with local-file reuse to skip already-downloaded media
+- **Batch Aggregation Endpoints** - Single GROUP BY queries replace N+1 COUNT/statistics calls for media-download summaries and platform stats
+- **Template Media-Type Preset** - Scrape modals can preset media types directly from an export template
+- **Thymeleaf Migration & UI Polish** - Unified server-side layout, icon-based action buttons, and row-click editing across pages
+- **Performance & Stability Fixes** - Fixed import performance, SSE zombie connections, missing xz dependency, and H2 summary bugs
+- **Internationalization** - Continued Chinese / English / Japanese coverage across pages
+
+> Upgrading from 1.1-RC1? The scraper media directory structure changed, so previously scraped media files may not be reused directly and may require re-scraping.
 
 ---
 
@@ -85,7 +87,7 @@ Run: `docker compose up -d`
 #### Option 3: JAR File
 Requires Java 17+.
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2-RC1.jar
 ```
 
 #### Option 4: Windows EXE (No Java Required)
@@ -166,7 +168,7 @@ services:
 #### 方式三：JAR 包运行
 需要 Java 17+。
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2-RC1.jar
 ```
 
 #### 方式四：Windows EXE（无需 Java）
@@ -247,7 +249,7 @@ services:
 #### オプション3：JARファイル
 Java 17+ が必要です。
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2-RC1.jar
 ```
 
 #### オプション4：Windows EXE（Java不要）
@@ -281,4 +283,4 @@ http://localhost:8080
 
 ---
 
-**Version**: 1.1-RC1
+**Version**: 1.2-RC1
