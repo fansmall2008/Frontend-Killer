@@ -1,0 +1,638 @@
+{
+    "20682":  {
+                  "parent":  "40",
+                  "en":  "Build And Management"
+              },
+    "28585":  {
+                  "parent":  "425",
+                  "en":  "Singing"
+              },
+    "2960":  {
+                 "parent":  "685",
+                 "en":  "Sports / Handball"
+             },
+    "31":  {
+               "parent":  "0",
+               "en":  "Pinball"
+           },
+    "20684":  {
+                  "parent":  "40",
+                  "en":  "Simulation / Life"
+              },
+    "26638":  {
+                  "parent":  "685",
+                  "en":  "Sports / Extreme"
+              },
+    "2648":  {
+                 "parent":  "0",
+                 "en":  "Hunting and Fishing"
+             },
+    "2882":  {
+                 "parent":  "2647",
+                 "en":  "Hanafuda"
+             },
+    "3034":  {
+                 "parent":  "685",
+                 "en":  "Sports / Fighting"
+             },
+    "2943":  {
+                 "parent":  "28",
+                 "en":  "Racing, Driving / Motorcycle"
+             },
+    "28":  {
+               "parent":  "0",
+               "en":  "Racing, Driving"
+           },
+    "2932":  {
+                 "parent":  "320",
+                 "en":  "Casino / Lottery"
+             },
+    "20670":  {
+                  "parent":  "13",
+                  "en":  "Adventure / Text"
+              },
+    "2968":  {
+                 "parent":  "685",
+                 "en":  "Sports / Skydiving"
+             },
+    "2860":  {
+                 "parent":  "320",
+                 "en":  "Casino / Slot machine"
+             },
+    "28582":  {
+                  "parent":  "425",
+                  "en":  "Dancing"
+              },
+    "2881":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Plane, TPV"
+             },
+    "2883":  {
+                 "parent":  "685",
+                 "en":  "Sports / Volleyball"
+             },
+    "2952":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / Italian"
+             },
+    "2893":  {
+                 "parent":  "28",
+                 "en":  "Racing, Driving / Plane"
+             },
+    "2948":  {
+                 "parent":  "685",
+                 "en":  "Sports / Rugby"
+             },
+    "2646":  {
+                 "parent":  "0",
+                 "en":  "Shooter"
+             },
+    "39":  {
+               "parent":  "0",
+               "en":  "Various"
+           },
+    "20696":  {
+                  "parent":  "8",
+                  "en":  "Japanese RPG"
+              },
+    "2888":  {
+                 "parent":  "28",
+                 "en":  "Racing TPV"
+             },
+    "2870":  {
+                 "parent":  "79",
+                 "en":  "Shoot\u0027em Up / Horizontal"
+             },
+    "2851":  {
+                 "parent":  "79",
+                 "en":  "Shoot\u0027em Up / Vertical"
+             },
+    "2855":  {
+                 "parent":  "39",
+                 "en":  "Various / System"
+             },
+    "685":  {
+                "parent":  "0",
+                "en":  "Sports"
+            },
+    "2949":  {
+                 "parent":  "2647",
+                 "en":  "Othello"
+             },
+    "2955":  {
+                 "parent":  "79",
+                 "en":  "Shoot\u0027em Up / Diagonal"
+             },
+    "20680":  {
+                  "parent":  "13",
+                  "en":  "Adventure / Survival Horror"
+              },
+    "20692":  {
+                  "parent":  "8",
+                  "en":  "Dungeon Crawler RPG"
+              },
+    "2878":  {
+                 "parent":  "685",
+                 "en":  "Sports / Swimming"
+             },
+    "20694":  {
+                  "parent":  "8",
+                  "en":  "Tactical RPG"
+              },
+    "2920":  {
+                 "parent":  "14",
+                 "en":  "Fighting / 3D"
+             },
+    "2884":  {
+                 "parent":  "28",
+                 "en":  "Racing FPV"
+             },
+    "3024":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / FPV"
+             },
+    "20700":  {
+                  "parent":  "40",
+                  "en":  "Simulation / Vehicle"
+              },
+    "2957":  {
+                 "parent":  "14",
+                 "en":  "Fighting / Vs Co-op"
+             },
+    "2913":  {
+                 "parent":  "685",
+                 "en":  "Sports / Golf"
+             },
+    "2867":  {
+                 "parent":  "685",
+                 "en":  "Sports / Tennis"
+             },
+    "2923":  {
+                 "parent":  "26",
+                 "en":  "Puzzle / Throw"
+             },
+    "3237":  {
+                 "parent":  "13",
+                 "en":  "Adventure / Point and Click"
+             },
+    "2922":  {
+                 "parent":  "14",
+                 "en":  "Fighting / Vertical"
+             },
+    "2890":  {
+                 "parent":  "39",
+                 "en":  "Various / Electro- Mechanical"
+             },
+    "2874":  {
+                 "parent":  "14",
+                 "en":  "Fighting / 2.5D"
+             },
+    "2967":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / Music Japanese"
+             },
+    "2894":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / Japanese"
+             },
+    "320":  {
+                "parent":  "0",
+                "en":  "Casino"
+            },
+    "2892":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Plane, FPV"
+             },
+    "2906":  {
+                 "parent":  "685",
+                 "en":  "Sports / Darts"
+             },
+    "28579":  {
+                  "parent":  "425",
+                  "en":  "Music"
+              },
+    "2647":  {
+                 "parent":  "0",
+                 "en":  "Asiatic board game"
+             },
+    "8":  {
+              "parent":  "0",
+              "en":  "Role Playing Game"
+          },
+    "2912":  {
+                 "parent":  "26",
+                 "en":  "Puzzle / Fall"
+             },
+    "2965":  {
+                 "parent":  "2857",
+                 "en":  "Pachinko"
+             },
+    "2904":  {
+                 "parent":  "39",
+                 "en":  "Various / Utilities"
+             },
+    "32":  {
+               "parent":  "0",
+               "en":  "Lightgun Shooter"
+           },
+    "33":  {
+               "parent":  "0",
+               "en":  "Board game"
+           },
+    "2928":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Plane"
+             },
+    "2933":  {
+                 "parent":  "685",
+                 "en":  "Sports / Hockey"
+             },
+    "34":  {
+               "parent":  "0",
+               "en":  "Compilation"
+           },
+    "425":  {
+                "parent":  "0",
+                "en":  "Music and Dancing"
+            },
+    "2917":  {
+                 "parent":  "10",
+                 "en":  "Action / Breakout games"
+             },
+    "2876":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Horizontal"
+             },
+    "2915":  {
+                 "parent":  "7",
+                 "en":  "Platform / Run \u0026 Jump"
+             },
+    "42":  {
+               "parent":  "0",
+               "en":  "Playing cards"
+           },
+    "2958":  {
+                 "parent":  "2647",
+                 "en":  "Go"
+             },
+    "2900":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Space Invaders Like"
+             },
+    "2914":  {
+                 "parent":  "14",
+                 "en":  "Fighting / 2D"
+             },
+    "79":  {
+               "parent":  "0",
+               "en":  "Shoot\u0027em Up"
+           },
+    "2861":  {
+                 "parent":  "685",
+                 "en":  "Sports / Wrestling"
+             },
+    "20678":  {
+                  "parent":  "13",
+                  "en":  "Adventure / RealTime 3D"
+              },
+    "2852":  {
+                 "parent":  "685",
+                 "en":  "Sports / Basketball"
+             },
+    "2872":  {
+                 "parent":  "320",
+                 "en":  "Casino / Cards"
+             },
+    "2954":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / German"
+             },
+    "2877":  {
+                 "parent":  "685",
+                 "en":  "Sports / Running trails"
+             },
+    "2895":  {
+                 "parent":  "2648",
+                 "en":  "Fishing"
+             },
+    "2970":  {
+                 "parent":  "685",
+                 "en":  "Sports / Dodgeball"
+             },
+    "2901":  {
+                 "parent":  "685",
+                 "en":  "Sports / Bowling"
+             },
+    "20688":  {
+                  "parent":  "8",
+                  "en":  "Action RPG"
+              },
+    "2896":  {
+                 "parent":  "7",
+                 "en":  "Platform / Fighter Scrolling"
+             },
+    "2846":  {
+                 "parent":  "685",
+                 "en":  "Sports / Football (American)"
+             },
+    "2962":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / Spanish"
+             },
+    "2875":  {
+                 "parent":  "685",
+                 "en":  "Sports / Skateboard"
+             },
+    "2951":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / Korean"
+             },
+    "30":  {
+               "parent":  "0",
+               "en":  "Educational"
+           },
+    "25726":  {
+                  "parent":  "685",
+                  "en":  "Sports / Multisports"
+              },
+    "2950":  {
+                 "parent":  "320",
+                 "en":  "Casino / Race"
+             },
+    "171":  {
+                "parent":  "0",
+                "en":  "Casual Game"
+            },
+    "2909":  {
+                 "parent":  "10",
+                 "en":  "Action / Climbing"
+             },
+    "2853":  {
+                 "parent":  "685",
+                 "en":  "Sports / Baseball"
+             },
+    "2889":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Vertical"
+             },
+    "1":  {
+              "parent":  "0",
+              "en":  "Beat\u0027em Up"
+          },
+    "2953":  {
+                 "parent":  "28",
+                 "en":  "Racing, Driving / Hang Gliding"
+             },
+    "2944":  {
+                 "parent":  "320",
+                 "en":  "Casino / Roulette"
+             },
+    "2945":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Missile Command Like"
+             },
+    "20698":  {
+                  "parent":  "8",
+                  "en":  "Party-Based RPG"
+              },
+    "2937":  {
+                 "parent":  "10",
+                 "en":  "Action / Labyrinth"
+             },
+    "2891":  {
+                 "parent":  "26",
+                 "en":  "Puzzle / Glide"
+             },
+    "3028":  {
+                 "parent":  "685",
+                 "en":  "Sports / Pool"
+             },
+    "14":  {
+               "parent":  "0",
+               "en":  "Fighting"
+           },
+    "2931":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / English"
+             },
+    "2974":  {
+                 "parent":  "0",
+                 "en":  "Demo"
+             },
+    "2902":  {
+                 "parent":  "685",
+                 "en":  "Sports / Skiing"
+             },
+    "23258":  {
+                  "parent":  "685",
+                  "en":  "Sports / Cycling"
+              },
+    "3192":  {
+                 "parent":  "2648",
+                 "en":  "Hunting"
+             },
+    "20690":  {
+                  "parent":  "8",
+                  "en":  "MMORPG"
+              },
+    "2924":  {
+                 "parent":  "28",
+                 "en":  "Racing, Driving / Racing"
+             },
+    "2929":  {
+                 "parent":  "685",
+                 "en":  "Sports / Boxing"
+             },
+    "2934":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Vehicle, Diagonal"
+             },
+    "2961":  {
+                 "parent":  "2647",
+                 "en":  "Shougi"
+             },
+    "26635":  {
+                  "parent":  "685",
+                  "en":  "Sports / Water"
+              },
+    "2847":  {
+                 "parent":  "685",
+                 "en":  "Sports / Football (Soccer)"
+             },
+    "323":  {
+                "parent":  "0",
+                "en":  "N/A"
+            },
+    "2940":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Vehicle, FPV"
+             },
+    "20672":  {
+                  "parent":  "13",
+                  "en":  "Adventure / Graphic"
+              },
+    "3566":  {
+                 "parent":  "10",
+                 "en":  "Action / Adventure"
+             },
+    "26363":  {
+                  "parent":  "2646",
+                  "en":  "Shooter / Top view"
+              },
+    "2885":  {
+                 "parent":  "14",
+                 "en":  "Fighting / Versus"
+             },
+    "20702":  {
+                  "parent":  "40",
+                  "en":  "Simulation / SciFi"
+              },
+    "2899":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / TPV"
+             },
+    "2969":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / French"
+             },
+    "27530":  {
+                  "parent":  "685",
+                  "en":  "Sports / Motorsport"
+              },
+    "3511":  {
+                 "parent":  "0",
+                 "en":  "Thinking"
+             },
+    "27":  {
+               "parent":  "0",
+               "en":  "Strategy"
+           },
+    "13":  {
+               "parent":  "0",
+               "en":  "Adventure"
+           },
+    "10":  {
+               "parent":  "0",
+               "en":  "Action"
+           },
+    "2864":  {
+                 "parent":  "26",
+                 "en":  "Puzzle / Equalize"
+             },
+    "2887":  {
+                 "parent":  "7",
+                 "en":  "Platform / Shooter Scrolling"
+             },
+    "2921":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Vehicle, Vertical"
+             },
+    "2973":  {
+                 "parent":  "28",
+                 "en":  "Motorcycle race FPV"
+             },
+    "2650":  {
+                 "parent":  "0",
+                 "en":  "Sports with animals"
+             },
+    "2919":  {
+                 "parent":  "685",
+                 "en":  "Sports / Arm wrestling"
+             },
+    "2925":  {
+                 "parent":  "425",
+                 "en":  "Rhythm"
+             },
+    "2903":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Run and Gun"
+             },
+    "23278":  {
+                  "parent":  "685",
+                  "en":  "Sports / Fitness"
+              },
+    "2897":  {
+                 "parent":  "7",
+                 "en":  "Platform / Run \u0026 Jump Scrolling"
+             },
+    "20674":  {
+                  "parent":  "13",
+                  "en":  "Adventure / Visual Novel"
+              },
+    "2844":  {
+                 "parent":  "2843",
+                 "en":  "Shooter Small"
+             },
+    "2871":  {
+                 "parent":  "28",
+                 "en":  "Motorcycle race TPV"
+             },
+    "2964":  {
+                 "parent":  "2649",
+                 "en":  "Quiz / Music English"
+             },
+    "2649":  {
+                 "parent":  "0",
+                 "en":  "Quiz"
+             },
+    "2971":  {
+                 "parent":  "685",
+                 "en":  "Sports / Shuffleboard"
+             },
+    "2869":  {
+                 "parent":  "2647",
+                 "en":  "Mahjong"
+             },
+    "40":  {
+               "parent":  "0",
+               "en":  "Simulation"
+           },
+    "2911":  {
+                 "parent":  "28",
+                 "en":  "Racing, Driving / Boat"
+             },
+    "2966":  {
+                 "parent":  "685",
+                 "en":  "Sports / Table tennis"
+             },
+    "413":  {
+                "parent":  "0",
+                "en":  "Adults"
+            },
+    "20676":  {
+                  "parent":  "13",
+                  "en":  "Adventure / Interactive Movie"
+              },
+    "26":  {
+               "parent":  "0",
+               "en":  "Puzzle"
+           },
+    "2879":  {
+                 "parent":  "39",
+                 "en":  "Various / Print Club"
+             },
+    "2938":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Vehicle, Horizontal"
+             },
+    "7":  {
+              "parent":  "0",
+              "en":  "Platform"
+          },
+    "2918":  {
+                 "parent":  "2650",
+                 "en":  "Horse racing"
+             },
+    "2910":  {
+                 "parent":  "2646",
+                 "en":  "Shooter / Vehicle, TPV"
+             },
+    "2947":  {
+                 "parent":  "685",
+                 "en":  "Sports / Sumo"
+             },
+    "2956":  {
+                 "parent":  "2647",
+                 "en":  "Renju"
+             }
+}

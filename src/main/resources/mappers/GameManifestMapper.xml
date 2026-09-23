@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.GameManifestMapper">
+
+    <resultMap id="GameManifestMap" type="com.gamelist.model.GameManifest">
+        <id     column="ss_game_id" property="ssGameId"/>
+        <result column="manifest"   property="manifest"/>
+        <result column="fetched_at" property="fetchedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectBySsGameId" resultMap="GameManifestMap">
+        SELECT ss_game_id, manifest, fetched_at, created_at, updated_at
+        FROM game_manifest
+        WHERE ss_game_id = #{ssGameId}
+    </select>
+
+    <!-- H2 兼容的 UPSERT：MERGE INTO ... KEY(...)；created_at 仅在插入时取默认值，更新时不动 -->
+    <insert id="upsert" parameterType="com.gamelist.model.GameManifest">
+        MERGE INTO game_manifest (
+            ss_game_id, manifest, fetched_at, updated_at
+        ) KEY (ss_game_id) VALUES (
+            #{ssGameId}, #{manifest}, #{fetchedAt, jdbcType=TIMESTAMP}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <delete id="deleteBySsGameId">
+        DELETE FROM game_manifest WHERE ss_game_id = #{ssGameId}
+    </delete>
+
+</mapper>

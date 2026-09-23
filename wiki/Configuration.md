@@ -1,4 +1,4 @@
-# Configuration
+﻿# Configuration
 
 This guide explains how to configure Frontend-Killer.
 
@@ -133,7 +133,7 @@ services:
 ### Command Line Arguments
 
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar \
+java -jar webGamelistOper-1.2.jar \
   --server.port=8081 \
   --app.data.path=/custom/data \
   --app.output.path=/custom/output
@@ -144,7 +144,7 @@ java -jar webGamelistOper-1.1-RC1.jar \
 ```bash
 java -Dserver.port=8081 \
      -Dapp.data.path=/custom/data \
-     -jar webGamelistOper-1.1-RC1.jar
+     -jar webGamelistOper-1.2.jar
 ```
 
 ## Logging Configuration
@@ -169,16 +169,16 @@ Logs are stored in:
 
 ### Memory Settings
 ```bash
-java -Xmx2g -Xms512m -jar webGamelistOper-1.1-RC1.jar
+java -Xmx2g -Xms512m -jar webGamelistOper-1.2.jar
 ```
 
 ### G1GC Garbage Collector
 ```bash
-java -XX:+UseG1GC -jar webGamelistOper-1.1-RC1.jar
+java -XX:+UseG1GC -jar webGamelistOper-1.2.jar
 ```
 
 ### Remote Debugging
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
-     -jar webGamelistOper-1.1-RC1.jar
+     -jar webGamelistOper-1.2.jar
 ```

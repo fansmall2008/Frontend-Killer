@@ -1,4 +1,4 @@
-# 快速开始
+﻿# 快速开始
 
 > 从零到导出的最小操作步骤，适合首次使用者。
 
@@ -17,7 +17,7 @@
 ### JAR 方式
 
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 ### Docker 方式

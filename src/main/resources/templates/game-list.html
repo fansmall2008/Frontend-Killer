@@ -49,14 +49,32 @@
                 </div>
                 <div class="field-group">
                     <label data-i18n="developer">开发商:</label>
-                    <div class="checkbox-group" id="developerCheckboxes">
-                        <!-- 动态填充开发商复选框 -->
+                    <div class="ms-select" id="developerMs">
+                        <div class="ms-display" data-ms-display="developer"><span class="ms-placeholder" data-i18n="ms_placeholder">选择开发商</span></div>
+                        <div class="ms-dropdown" style="display: none;">
+                            <input type="text" class="ms-search" data-ms-search="developer" placeholder="" data-i18n-placeholder="ms_search_placeholder">
+                            <div class="ms-options" data-ms-options="developer"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label data-i18n="publisher">发行商:</label>
+                    <div class="ms-select" id="publisherMs">
+                        <div class="ms-display" data-ms-display="publisher"><span class="ms-placeholder" data-i18n="ms_placeholder">选择发行商</span></div>
+                        <div class="ms-dropdown" style="display: none;">
+                            <input type="text" class="ms-search" data-ms-search="publisher" placeholder="" data-i18n-placeholder="ms_search_placeholder">
+                            <div class="ms-options" data-ms-options="publisher"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="field-group">
                     <label data-i18n="genre">游戏类型:</label>
-                    <div class="checkbox-group" id="genreCheckboxes">
-                        <!-- 动态填充游戏类型复选框 -->
+                    <div class="ms-select" id="genreMs">
+                        <div class="ms-display" data-ms-display="genre"><span class="ms-placeholder" data-i18n="ms_placeholder">选择类型</span></div>
+                        <div class="ms-dropdown" style="display: none;">
+                            <input type="text" class="ms-search" data-ms-search="genre" placeholder="" data-i18n-placeholder="ms_search_placeholder">
+                            <div class="ms-options" data-ms-options="genre"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="field-group">
@@ -68,9 +86,10 @@
                 <div class="field-group">
                     <label data-i18n="scrape-status">刮削状态:</label>
                     <div class="checkbox-group" id="scrapeStatusCheckboxes">
-                        <label><input type="checkbox" value="fully" data-i18n="fully-scraped"> 完全刮削</label>
-                        <label><input type="checkbox" value="partially" data-i18n="partially-scraped"> 部分刮削</label>
-                        <label><input type="checkbox" value="not" data-i18n="not-scraped"> 未刮削</label>
+                        <label><input type="checkbox" value="scraped" data-i18n="status_scraped"> 已刮削</label>
+                        <label><input type="checkbox" value="original" data-i18n="status_original"> 有原始数据</label>
+                        <label><input type="checkbox" value="poor_quality" data-i18n="status_poor_quality"> 质量差</label>
+                        <label><input type="checkbox" value="raw" data-i18n="status_raw_rom"> 纯ROM</label>
                     </div>
                 </div>
                 <div class="field-group">
@@ -1425,11 +1444,14 @@
             const startYear = document.getElementById('startYear').value;
             const endYear = document.getElementById('endYear').value;
             
-            // 获取选中的开发商
-            const developers = Array.from(document.querySelectorAll('#developerCheckboxes input:checked')).map(input => input.value);
+            // 获取选中的开发商（多选下拉）
+            const developers = [...msState.developer.selected];
             
-            // 获取选中的游戏类型
-            const genres = Array.from(document.querySelectorAll('#genreCheckboxes input:checked')).map(input => input.value);
+            // 获取选中的发行商（多选下拉）
+            const publishers = [...msState.publisher.selected];
+            
+            // 获取选中的游戏类型（多选下拉，顶级已展开为子级 id 集合）
+            const genres = [...msState.genre.selected];
             
             // 获取选中的玩家数量
             const players = Array.from(document.querySelectorAll('#playersCheckboxes input:checked')).map(input => input.value);
@@ -1448,6 +1470,7 @@
                 startYear: startYear,
                 endYear: endYear,
                 developers: developers,
+                publishers: publishers,
                 genres: genres,
                 players: players,
                 scrapeStatuses: scrapeStatuses,
@@ -1466,11 +1489,14 @@
             document.getElementById('endYear').value = '';
             document.getElementById('folderPath').value = '';
             
-            // 重置开发商复选框
-            document.querySelectorAll('#developerCheckboxes input').forEach(input => input.checked = false);
+            // 重置开发商多选下拉
+            resetMsSelect('developer');
             
-            // 重置游戏类型复选框
-            document.querySelectorAll('#genreCheckboxes input').forEach(input => input.checked = false);
+            // 重置发行商多选下拉
+            resetMsSelect('publisher');
+            
+            // 重置游戏类型多选下拉
+            resetMsSelect('genre');
             
             // 重置玩家数量复选框
             document.querySelectorAll('#playersCheckboxes input').forEach(input => input.checked = false);
@@ -1500,48 +1526,218 @@
             }
         }
         
-        // 填充下拉框选项
+        // ==================== 多选下拉筛选组件（开发商 / 发行商 / 游戏类型两级） ====================
+        const msState = {
+            developer: { selected: new Set(), options: [], labels: {} },
+            publisher: { selected: new Set(), options: [], labels: {} },
+            genre: { selected: new Set(), tree: [], labels: {}, childrenOf: {} }
+        };
+        
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        
+        // 从后端加载筛选选项（开发商、发行商、类型两级树）
+        function loadFilterOptions() {
+            const qs = (platformId && platformId !== 0) ? `?platformId=${platformId}` : '';
+            fetch(`/api/gamelist/filter-options${qs}`)
+                .then(r => r.json())
+                .then(data => {
+                    msState.developer.options = data.developers || [];
+                    msState.publisher.options = data.publishers || [];
+                    msState.genre.tree = data.genres || [];
+                    msState.developer.labels = {};
+                    msState.developer.options.forEach(n => msState.developer.labels[n] = n);
+                    msState.publisher.labels = {};
+                    msState.publisher.options.forEach(n => msState.publisher.labels[n] = n);
+                    msState.genre.labels = {};
+                    msState.genre.childrenOf = {};
+                    msState.genre.tree.forEach(top => {
+                        msState.genre.labels[top.id] = top.name;
+                        const childIds = (top.children || []).map(c => c.id);
+                        msState.genre.childrenOf[top.id] = childIds;
+                        (top.children || []).forEach(c => { msState.genre.labels[c.id] = c.name; });
+                    });
+                    renderMsDisplay('developer');
+                    renderMsDisplay('publisher');
+                    renderMsDisplay('genre');
+                })
+                .catch(err => console.error('加载筛选选项失败:', err));
+        }
+        
+        function currentMsFilter(key) {
+            const input = document.querySelector(`[data-ms-search="${key}"]`);
+            return input ? input.value : '';
+        }
+        
+        function toggleMsDropdown(key) {
+            const selectEl = document.getElementById(key + 'Ms');
+            if (!selectEl) return;
+            const dd = selectEl.querySelector('.ms-dropdown');
+            const wasClosed = dd.style.display === 'none';
+            closeAllMsDropdowns();
+            if (wasClosed) {
+                dd.style.display = 'block';
+                selectEl.classList.add('open');
+                const input = dd.querySelector('.ms-search');
+                input.value = '';
+                renderMsOptions(key, '');
+                setTimeout(() => input.focus(), 0);
+            }
+        }
+        
+        function closeAllMsDropdowns() {
+            document.querySelectorAll('.ms-select').forEach(el => {
+                el.classList.remove('open');
+                el.querySelector('.ms-dropdown').style.display = 'none';
+            });
+        }
+        
+        function renderMsOptions(key, filterText) {
+            const container = document.querySelector(`[data-ms-options="${key}"]`);
+            if (!container) return;
+            const f = (filterText || '').toLowerCase();
+            let html = '';
+            if (key === 'genre') {
+                msState.genre.tree.forEach(top => {
+                    const children = (top.children || []).filter(c => c.name.toLowerCase().includes(f));
+                    const topMatch = top.name.toLowerCase().includes(f);
+                    if (!topMatch && children.length === 0) return;
+                    if (topMatch || children.length > 0) {
+                        html += `<div class="ms-option${msState.genre.selected.has(top.id) ? ' ms-checked' : ''}" data-ms-id="${escapeHtml(top.id)}">
+                            <input type="checkbox" ${msState.genre.selected.has(top.id) ? 'checked' : ''}>
+                            <span>${escapeHtml(top.name)}</span></div>`;
+                    }
+                    children.forEach(c => {
+                        html += `<div class="ms-option ms-child${msState.genre.selected.has(c.id) ? ' ms-checked' : ''}" data-ms-id="${escapeHtml(c.id)}">
+                            <input type="checkbox" ${msState.genre.selected.has(c.id) ? 'checked' : ''}>
+                            <span>${escapeHtml(c.name)}</span></div>`;
+                    });
+                });
+            } else {
+                const st = msState[key];
+                st.options.filter(n => n.toLowerCase().includes(f)).forEach(name => {
+                    html += `<div class="ms-option${st.selected.has(name) ? ' ms-checked' : ''}" data-ms-id="${escapeHtml(name)}">
+                        <input type="checkbox" ${st.selected.has(name) ? 'checked' : ''}>
+                        <span>${escapeHtml(name)}</span></div>`;
+                });
+            }
+            if (!html) {
+                html = `<div class="ms-empty" data-i18n="ms_no_match">${typeof I18n !== 'undefined' && I18n.t ? I18n.t('ms_no_match') : '无匹配选项'}</div>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        function toggleMsOption(key, value) {
+            const st = msState[key];
+            if (key === 'genre') {
+                if (st.selected.has(value)) {
+                    // 取消：顶级取消时连带其子级一并取消
+                    st.selected.delete(value);
+                    const children = st.childrenOf[value] || [];
+                    children.forEach(c => st.selected.delete(c));
+                } else {
+                    // 选中：顶级自动展开其全部子级
+                    st.selected.add(value);
+                    const children = st.childrenOf[value] || [];
+                    children.forEach(c => st.selected.add(c));
+                }
+            } else {
+                if (st.selected.has(value)) st.selected.delete(value); else st.selected.add(value);
+            }
+            renderMsDisplay(key);
+            renderMsOptions(key, currentMsFilter(key));
+        }
+        
+        // 按树顺序（顶级在前、子级在后）输出已选项标签
+        function orderedGenreSelection() {
+            const out = [];
+            const seen = new Set();
+            msState.genre.tree.forEach(top => {
+                if (msState.genre.selected.has(top.id) && !seen.has(top.id)) {
+                    out.push(top.id);
+                    seen.add(top.id);
+                }
+                (top.children || []).forEach(c => {
+                    if (msState.genre.selected.has(c.id) && !seen.has(c.id)) {
+                        out.push(c.id);
+                        seen.add(c.id);
+                    }
+                });
+            });
+            msState.genre.selected.forEach(id => {
+                if (!seen.has(id)) out.push(id);
+            });
+            return out;
+        }
+        
+        function renderMsDisplay(key) {
+            const displayEl = document.querySelector(`[data-ms-display="${key}"]`);
+            if (!displayEl) return;
+            const st = msState[key];
+            const values = key === 'genre' ? orderedGenreSelection() : [...st.selected];
+            if (values.length === 0) {
+                displayEl.innerHTML = `<span class="ms-placeholder" data-i18n="ms_placeholder">${typeof I18n !== 'undefined' && I18n.t ? I18n.t('ms_placeholder') : '点击选择…'}</span>`;
+                return;
+            }
+            displayEl.innerHTML = values.map(v => {
+                const label = key === 'genre' ? (st.labels[v] || v) : v;
+                return `<span class="ms-tag">${escapeHtml(label)}<span class="ms-tag-remove" data-ms-remove="${escapeHtml(v)}">×</span></span>`;
+            }).join('');
+            displayEl.querySelectorAll('.ms-tag-remove').forEach(el => {
+                el.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const v = el.getAttribute('data-ms-remove');
+                    msState[key].selected.delete(v);
+                    renderMsDisplay(key);
+                    renderMsOptions(key, currentMsFilter(key));
+                });
+            });
+        }
+        
+        function resetMsSelect(key) {
+            msState[key].selected.clear();
+            renderMsDisplay(key);
+            renderMsOptions(key, '');
+        }
+        
+        function initMsSelects() {
+            document.querySelectorAll('.ms-select').forEach(sel => {
+                const displayEl = sel.querySelector('.ms-display');
+                const key = displayEl ? displayEl.getAttribute('data-ms-display') : null;
+                if (!key) return;
+                displayEl.addEventListener('click', e => {
+                    if (e.target.closest('.ms-tag-remove')) return;
+                    toggleMsDropdown(key);
+                });
+                const searchInput = sel.querySelector('.ms-search');
+                if (searchInput) {
+                    searchInput.addEventListener('input', e => renderMsOptions(key, e.target.value));
+                    searchInput.addEventListener('click', e => e.stopPropagation());
+                    searchInput.addEventListener('keydown', e => {
+                        if (e.key === 'Escape') closeAllMsDropdowns();
+                    });
+                }
+                const optionsEl = sel.querySelector('.ms-options');
+                if (optionsEl) {
+                    optionsEl.addEventListener('mousedown', e => {
+                        const opt = e.target.closest('.ms-option');
+                        if (!opt) return;
+                        e.preventDefault();
+                        toggleMsOption(key, opt.getAttribute('data-ms-id'));
+                    });
+                }
+            });
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.ms-select')) closeAllMsDropdowns();
+            });
+        }
+        
+        // 填充下拉框选项（玩家数量复选框，开发商/发行商/类型已改为多选下拉）
         function populateDropdowns() {
-            // 这里可以从后端获取数据，或者从当前游戏列表中提取唯一值
             const games = window.currentGames || [];
             
-            // 提取唯一值 - 支持 genres 数组格式
-            const developers = [...new Set(games.map(game => game.developer).filter(Boolean))];
-            const genres = [...new Set(games.flatMap(game => {
-                if (Array.isArray(game.genres)) {
-                    return game.genres.filter(Boolean);
-                } else if (game.genre) {
-                    return game.genre.split(', ');
-                }
-                return [];
-            }))];
             const players = [...new Set(games.map(game => game.players).filter(Boolean))];
-            
-            // 填充开发商复选框
-            const developerCheckboxes = document.getElementById('developerCheckboxes');
-            developerCheckboxes.innerHTML = '';
-            developers.forEach(developer => {
-                const label = document.createElement('label');
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.value = developer;
-                label.appendChild(input);
-                label.appendChild(document.createTextNode(developer));
-                developerCheckboxes.appendChild(label);
-            });
-            
-            // 填充游戏类型复选框
-            const genreCheckboxes = document.getElementById('genreCheckboxes');
-            genreCheckboxes.innerHTML = '';
-            genres.forEach(genre => {
-                const label = document.createElement('label');
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.value = genre;
-                label.appendChild(input);
-                label.appendChild(document.createTextNode(genre));
-                genreCheckboxes.appendChild(label);
-            });
             
             // 填充玩家数量复选框
             const playersCheckboxes = document.getElementById('playersCheckboxes');
@@ -1588,6 +1784,11 @@
                 if (searchParams.developers && searchParams.developers.length > 0) {
                     searchParams.developers.forEach(developer => {
                         url += `&developers=${encodeURIComponent(developer)}`;
+                    });
+                }
+                if (searchParams.publishers && searchParams.publishers.length > 0) {
+                    searchParams.publishers.forEach(publisher => {
+                        url += `&publishers=${encodeURIComponent(publisher)}`;
                     });
                 }
                 if (searchParams.genres && searchParams.genres.length > 0) {
@@ -1983,6 +2184,8 @@
             initLanguage();
             initNotifications();
             loadScrapeTemplatePresets();
+            initMsSelects();
+            loadFilterOptions();
             console.log('=== 页面初始化结束 ===');
         };
         

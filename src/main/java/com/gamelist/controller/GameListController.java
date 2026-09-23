@@ -140,12 +140,13 @@ public class GameListController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) List<String> developers,
+            @RequestParam(required = false) List<String> publishers,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) List<String> players,
             @RequestParam(required = false) List<String> scrapeStatuses,
             @RequestParam(required = false) String folderPath) {
         try {
-            List<Game> games = gameService.getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses, folderPath);
+            List<Game> games = gameService.getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses, folderPath, publishers);
             
             // 处理分页
             int totalElements = games.size();
@@ -178,13 +179,14 @@ public class GameListController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) List<String> developers,
+            @RequestParam(required = false) List<String> publishers,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) List<String> players,
             @RequestParam(required = false) List<String> scrapeStatuses,
             @RequestParam(required = false) List<String> fileStatuses,
             @RequestParam(required = false) String folderPath) {
         try {
-            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, folderPath);
+            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, folderPath, publishers);
             
             // 处理分页
             int totalElements = games.size();
@@ -212,6 +214,20 @@ public class GameListController {
     public ResponseEntity<Game> getGameById(@PathVariable Long gameId) {
         Game game = gameService.getGameById(gameId);
         return game != null ? ResponseEntity.ok(game) : ResponseEntity.notFound().build();
+    }
+    
+    /**
+     * 获取检索筛选选项（开发商、发行商、游戏类型两级树），platformId 可选（不传或 0 为全库）
+     */
+    @GetMapping("/filter-options")
+    public ResponseEntity<?> getFilterOptions(@RequestParam(required = false) Long platformId) {
+        try {
+            Map<String, Object> options = gameService.getFilterOptions(platformId);
+            return ResponseEntity.ok(options);
+        } catch (Exception e) {
+            logger.error("获取检索筛选选项失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "获取检索筛选选项失败"));
+        }
     }
     
     /**

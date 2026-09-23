@@ -278,6 +278,50 @@
                 connectSse();
             });
         })();
+
+        // ====== 首次运行：自动缓存游戏信息征询弹窗（全局，仅一次） ======
+        (function() {
+            function tf(key, fallback) {
+                if (typeof I18n !== 'undefined' && I18n.t) { return I18n.t(key, fallback) || fallback; }
+                return fallback;
+            }
+            function saveAutoCache(enabled) {
+                fetch('/api/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ auto_cache_game_info: enabled ? 'true' : 'false', auto_cache_prompted: 'true' })
+                }).catch(function() {});
+            }
+            function showPrompt() {
+                if (document.getElementById('autoCachePromptModal')) return;
+                const m = document.createElement('div');
+                m.id = 'autoCachePromptModal';
+                m.style.cssText = 'display:flex;position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;';
+                m.innerHTML = '<div style="max-width:540px;width:90%;background:var(--card-bg,#1e1e2e);color:var(--text-color,#e0e0e0);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.5);">'
+                    + '<h3 style="margin:0 0 12px 0;font-size:18px;">' + tf('auto_cache_prompt_title', '启用游戏信息自动缓存？') + '</h3>'
+                    + '<div style="font-size:14px;line-height:1.6;margin-bottom:20px;">' + tf('auto_cache_prompt_msg', '启用后，刮削成功的街机游戏信息会被缓存，导出时可自动找齐父 rom（会占用部分 ScreenScraper 额度）。该设置也可随时在系统设置中修改。') + '</div>'
+                    + '<div style="display:flex;gap:10px;justify-content:flex-end;">'
+                    + '<button type="button" class="btn btn-secondary" id="autoCachePromptNo">' + tf('auto_cache_prompt_no', '暂不启用') + '</button>'
+                    + '<button type="button" class="btn btn-primary" id="autoCachePromptYes">' + tf('auto_cache_prompt_yes', '启用') + '</button>'
+                    + '</div></div>';
+                document.body.appendChild(m);
+                document.getElementById('autoCachePromptYes').onclick = function() { saveAutoCache(true); localStorage.setItem('autoCachePrompted', 'true'); m.remove(); };
+                document.getElementById('autoCachePromptNo').onclick = function() { saveAutoCache(false); localStorage.setItem('autoCachePrompted', 'true'); m.remove(); };
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                if (localStorage.getItem('autoCachePrompted') === 'true') return;
+                fetch('/api/settings/get')
+                    .then(function(r) { return r.json(); })
+                    .then(function(s) {
+                        if (s && s.auto_cache_prompted) {
+                            localStorage.setItem('autoCachePrompted', 'true');
+                            return;
+                        }
+                        showPrompt();
+                    })
+                    .catch(function() {});
+            });
+        })();
     </script>
 </th:block>
 

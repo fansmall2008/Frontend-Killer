@@ -227,4 +227,74 @@ public class ExportServiceImpl implements ExportService {
         }
         return result;
     }
+
+    @Override
+    public Map<String, Object> preflight(ExportRequest request) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // 汇总待检平台（兼容单选 platformId 与多选 platformIds）
+            List<Long> ids = request.getPlatformIds();
+            if (ids == null || ids.isEmpty()) {
+                ids = new ArrayList<>();
+                if (request.getPlatformId() != null) {
+                    ids.add(request.getPlatformId());
+                }
+            }
+            if (ids.isEmpty()) {
+                result.put("success", false);
+                result.put("error", "No platforms selected");
+                return result;
+            }
+
+            List<Map<String, Object>> platformReports = new ArrayList<>();
+            boolean anyUnscraped = false;
+            for (Long pid : ids) {
+                Platform p = platformService.getPlatformById(pid);
+                if (p == null) {
+                    continue;
+                }
+                int total = gameMapper.countGamesByPlatformId(pid);
+                long unscraped = gameMapper.countUnscrapedGamesByPlatformId(pid);
+                if (unscraped > 0) {
+                    anyUnscraped = true;
+                }
+                Map<String, Object> item = new HashMap<>();
+                item.put("platformId", pid);
+                item.put("platformName", p.getName());
+                item.put("total", total);
+                item.put("unscraped", unscraped);
+                platformReports.add(item);
+            }
+
+            boolean multi = platformReports.size() > 1;
+            // 分流策略：
+            //   多平台 + 任一含未刮削 → 阻断（blocked），action=split（请单独导出）
+            //   单平台 + 含未刮削   → 不阻断，action=suggest_whole_dir（建议整目录拷贝）
+            //   其余               → action=proceed
+            String action;
+            boolean blocked;
+            if (anyUnscraped && multi) {
+                action = "split";
+                blocked = true;
+            } else if (anyUnscraped) {
+                action = "suggest_whole_dir";
+                blocked = false;
+            } else {
+                action = "proceed";
+                blocked = false;
+            }
+
+            result.put("success", true);
+            result.put("platforms", platformReports);
+            result.put("anyUnscraped", anyUnscraped);
+            result.put("multi", multi);
+            result.put("blocked", blocked);
+            result.put("action", action);
+        } catch (Exception e) {
+            logger.error("Preflight failed", e);
+            result.put("success", false);
+            result.put("error", "Preflight failed: " + e.getMessage());
+        }
+        return result;
+    }
 }

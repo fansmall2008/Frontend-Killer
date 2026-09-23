@@ -2,13 +2,16 @@ package com.gamelist.service.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.gamelist.mapper.GameMapper;
 import com.gamelist.mapper.MediaDownloadTaskMapper;
@@ -2070,7 +2077,12 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath) {
-        List<Game> games = gameMapper.selectAllGamesWithFilter(search, startDate, endDate, developers, genres, players, scrapeStatuses);
+        return getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses, folderPath, null);
+    }
+
+    @Override
+    public List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath, List<String> publishers) {
+        List<Game> games = gameMapper.selectAllGamesWithFilter(search, startDate, endDate, developers, genres, players, scrapeStatuses, publishers);
         
         // 按文件夹路径过滤
         if (folderPath != null && !folderPath.isEmpty()) {
@@ -2109,6 +2121,112 @@ public class GameServiceImpl implements GameService {
             }
         }
         return games;
+    }
+
+    @Override
+    public Map<String, Object> getFilterOptions(Long platformId) {
+        List<String> developers;
+        List<String> publishers;
+        List<Map<String, Object>> genreRows;
+        if (platformId != null && platformId > 0) {
+            developers = gameMapper.selectUniqueDevelopersByPlatformId(platformId);
+            publishers = gameMapper.selectUniquePublishersByPlatformId(platformId);
+            genreRows = gameMapper.selectUniqueGenreInfoByPlatformId(platformId);
+        } else {
+            developers = gameMapper.selectUniqueDevelopers();
+            publishers = gameMapper.selectUniquePublishers();
+            genreRows = gameMapper.selectUniqueGenreInfo();
+        }
+        
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("developers", developers);
+        result.put("publishers", publishers);
+        result.put("genres", buildGenreTree(genreRows));
+        return result;
+    }
+    
+    /**
+     * 根据库内出现的 genreid/genre 对构建两级类型树（顶级 + 子级），
+     * 父子关系来自 classpath 下的 ss-genres.json（ScreenScraper genresListe 快照）。
+     */
+    private List<Map<String, Object>> buildGenreTree(List<Map<String, Object>> genreRows) {
+        Map<String, String> parents = loadSsGenreParents();
+        Map<String, Map<String, Object>> nodes = new LinkedHashMap<>();
+        for (Map<String, Object> row : genreRows) {
+            String genreid = row.get("GENREID") == null ? null : String.valueOf(row.get("GENREID"));
+            String genre = row.get("GENRE") == null ? null : String.valueOf(row.get("GENRE"));
+            if (genreid == null || genreid.isEmpty()) continue;
+            String[] ids = genreid.split(",");
+            String[] names = genre == null ? new String[0] : genre.split(",");
+            for (int i = 0; i < ids.length; i++) {
+                String id = ids[i].trim();
+                if (id.isEmpty()) continue;
+                String name = i < names.length ? names[i].trim() : "";
+                if (name.isEmpty()) name = id;
+                nodes.putIfAbsent(id, newGenreNode(id, name));
+            }
+        }
+        
+        List<Map<String, Object>> topLevel = new ArrayList<>();
+        for (Map<String, Object> node : nodes.values()) {
+            String id = (String) node.get("id");
+            String parent = parents.getOrDefault(id, "0");
+            node.put("parent", parent);
+        }
+        for (Map<String, Object> node : nodes.values()) {
+            String parent = (String) node.get("parent");
+            if (!"0".equals(parent) && nodes.containsKey(parent)) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> children = (List<Map<String, Object>>) nodes.get(parent).get("children");
+                children.add(node);
+            } else {
+                topLevel.add(node);
+            }
+        }
+        
+        Comparator<Map<String, Object>> byName = Comparator.comparing(
+                n -> String.valueOf(n.get("name")), String.CASE_INSENSITIVE_ORDER);
+        topLevel.sort(byName);
+        for (Map<String, Object> node : nodes.values()) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> children = (List<Map<String, Object>>) node.get("children");
+            children.sort(byName);
+        }
+        return topLevel;
+    }
+    
+    private Map<String, Object> newGenreNode(String id, String name) {
+        Map<String, Object> node = new LinkedHashMap<>();
+        node.put("id", id);
+        node.put("name", name);
+        node.put("parent", "0");
+        node.put("children", new ArrayList<Map<String, Object>>());
+        return node;
+    }
+    
+    private static volatile Map<String, String> ssGenreParents;
+    
+    /** 懒加载 classpath:ss-genres.json（ScreenScraper 类型快照），返回 id -> parent 映射 */
+    private Map<String, String> loadSsGenreParents() {
+        Map<String, String> cached = ssGenreParents;
+        if (cached != null) return cached;
+        synchronized (GameServiceImpl.class) {
+            cached = ssGenreParents;
+            if (cached != null) return cached;
+            Map<String, String> map = new HashMap<>();
+            try (InputStream in = new ClassPathResource("ss-genres.json").getInputStream()) {
+                JsonNode root = new ObjectMapper().readTree(in);
+                root.fields().forEachRemaining(e -> {
+                    JsonNode v = e.getValue();
+                    map.put(e.getKey(), v != null && v.has("parent") ? v.get("parent").asText() : "0");
+                });
+                logger.info("SS 类型快照 ss-genres.json 加载完成，共 {} 条", map.size());
+            } catch (Exception e) {
+                logger.warn("加载 ss-genres.json 失败，类型筛选将全部按顶级处理: {}", e.getMessage());
+            }
+            ssGenreParents = map;
+            return map;
+        }
     }
 
     @Override
@@ -2168,7 +2286,12 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath) {
-        List<Game> games = gameMapper.selectGamesByPlatformIdWithFilter(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses);
+        return getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, folderPath, null);
+    }
+
+    @Override
+    public List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath, List<String> publishers) {
+        List<Game> games = gameMapper.selectGamesByPlatformIdWithFilter(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, publishers);
         
         // 按文件夹路径过滤
         if (folderPath != null && !folderPath.isEmpty()) {

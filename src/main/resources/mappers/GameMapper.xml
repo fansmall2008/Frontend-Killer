@@ -115,6 +115,8 @@
         <result column="platform_path" property="platformPath"/>
         <result column="multi_file" property="multiFile"/>
         <result column="multi_file_content" property="multiFileContent"/>
+        <result column="cached" property="cached"/>
+        <result column="parent_rom" property="parentRom"/>
     </resultMap>
     
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
@@ -122,12 +124,12 @@
             game_id, ss_game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
-            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content, cached, parent_rom
         ) VALUES (
             #{gameId}, #{ssGameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
             #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel}, #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper}, #{platformType}, #{hash},
             #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan}, #{support2d}, #{supportTexture}, #{supportScan}, #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee}, #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps}, #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail}, #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs}, #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper}, #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios},
-            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}
+            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}, #{cached, jdbcType=BOOLEAN}, #{parentRom}
         )
     </insert>
     
@@ -169,11 +171,19 @@
                 #{developer}
             </foreach>
         </if>
-        <if test="genres != null and genres.size() &gt; 0">
-            AND genre IN
-            <foreach item="genre" collection="genres" open="(" separator="," close=")">
-                #{genre}
+        <if test="publishers != null and publishers.size() &gt; 0">
+            AND publisher IN
+            <foreach item="publisher" collection="publishers" open="(" separator="," close=")">
+                #{publisher}
             </foreach>
+        </if>
+        <!-- 游戏类型按 genreid 逗号分隔匹配（genres 传入类型 id 集合，顶级已展开含全部子级 id） -->
+        <if test="genres != null and genres.size() &gt; 0">
+            AND (
+            <foreach item="genreId" collection="genres" open="" separator=" OR " close="">
+                CONCAT(',', REPLACE(COALESCE(genreid, ''), ' ', ''), ',') LIKE CONCAT('%,', #{genreId}, ',%')
+            </foreach>
+            )
         </if>
         <if test="players != null and players.size() &gt; 0">
             AND players IN
@@ -290,11 +300,19 @@
                 #{developer}
             </foreach>
         </if>
-        <if test="genres != null and genres.size() &gt; 0">
-            AND genre IN
-            <foreach item="genre" collection="genres" open="(" separator="," close=")">
-                #{genre}
+        <if test="publishers != null and publishers.size() &gt; 0">
+            AND publisher IN
+            <foreach item="publisher" collection="publishers" open="(" separator="," close=")">
+                #{publisher}
             </foreach>
+        </if>
+        <!-- 游戏类型按 genreid 逗号分隔匹配（genres 传入类型 id 集合，顶级已展开含全部子级 id） -->
+        <if test="genres != null and genres.size() &gt; 0">
+            AND (
+            <foreach item="genreId" collection="genres" open="" separator=" OR " close="">
+                CONCAT(',', REPLACE(COALESCE(genreid, ''), ' ', ''), ',') LIKE CONCAT('%,', #{genreId}, ',%')
+            </foreach>
+            )
         </if>
         <if test="players != null and players.size() &gt; 0">
             AND players IN
@@ -907,7 +925,9 @@
             absolute_path = #{absolutePath},
             platform_path = #{platformPath},
             multi_file = #{multiFile, jdbcType=BOOLEAN},
-            multi_file_content = #{multiFileContent}
+            multi_file_content = #{multiFileContent},
+            cached = #{cached, jdbcType=BOOLEAN},
+            parent_rom = #{parentRom}
         WHERE id = #{id}
     </update>
     
@@ -1322,6 +1342,11 @@
     <select id="countGamesByPlatformId" parameterType="java.lang.Long" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM game WHERE platform_id = #{platformId}
     </select>
+
+    <!-- 导出预检：统计单平台未刮削(scraped!=true)游戏数，O(1) 计数，供关联性强校验分流 -->
+    <select id="countUnscrapedGamesByPlatformId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM game WHERE platform_id = #{platformId} AND (scraped IS NULL OR scraped != true)
+    </select>
     
     <!-- 获取唯一的开发商 -->
     <select id="selectUniqueDevelopers" resultType="java.lang.String">
@@ -1341,5 +1366,25 @@
     <!-- 获取唯一的玩家数量 -->
     <select id="selectUniquePlayers" resultType="java.lang.String">
         SELECT DISTINCT players FROM game WHERE players IS NOT NULL AND players != '' ORDER BY players
+    </select>
+    
+    <!-- 获取指定平台的唯一开发商 -->
+    <select id="selectUniqueDevelopersByPlatformId" resultType="java.lang.String">
+        SELECT DISTINCT developer FROM game WHERE platform_id = #{platformId} AND developer IS NOT NULL AND developer != '' ORDER BY developer
+    </select>
+    
+    <!-- 获取指定平台的唯一发行商 -->
+    <select id="selectUniquePublishersByPlatformId" resultType="java.lang.String">
+        SELECT DISTINCT publisher FROM game WHERE platform_id = #{platformId} AND publisher IS NOT NULL AND publisher != '' ORDER BY publisher
+    </select>
+    
+    <!-- 获取全库的游戏类型 id/名称对（用于筛选选项） -->
+    <select id="selectUniqueGenreInfo" resultType="map">
+        SELECT DISTINCT genreid, genre FROM game WHERE genreid IS NOT NULL AND genreid != ''
+    </select>
+    
+    <!-- 获取指定平台的游戏类型 id/名称对 -->
+    <select id="selectUniqueGenreInfoByPlatformId" resultType="map">
+        SELECT DISTINCT genreid, genre FROM game WHERE platform_id = #{platformId} AND genreid IS NOT NULL AND genreid != ''
     </select>
 </mapper>

@@ -24,7 +24,7 @@ if errorlevel 1 (
 
 echo.
 echo [4/4] 验证JAR文件...
-if not exist "target\webGamelistOper-1.2-RC1.jar" (
+if not exist "target\webGamelistOper-1.2.jar" (
     echo [ERROR] JAR文件未找到！
     pause
     exit /b 1
@@ -33,7 +33,7 @@ if not exist "target\webGamelistOper-1.2-RC1.jar" (
 echo.
 echo ========================================
 echo 构建成功！
-echo JAR文件: target\webGamelistOper-1.2-RC1.jar
+echo JAR文件: target\webGamelistOper-1.2.jar
 echo ========================================
 echo.
 echo 现在可以执行 docker build -t fansmall/webgamelistoper:dev .

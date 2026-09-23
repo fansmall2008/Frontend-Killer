@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2-RC1] - 2026-09-21
+## [1.2] - 2026-09-23
 
 ### Added
 - Notification center with SSE real-time push
@@ -20,6 +20,11 @@
   - `ss_game_id` column added to game and temp_subset_game tables
   - `PathResolver.resolveGameMediaDir` centralizes directory logic
   - DB indexes: `idx_mdt_platform_status`, `idx_mdt_status_order`, `idx_game_platform_id`, `idx_game_platform_scraped`, `idx_game_name`, `idx_game_path`
+- Search area multi-select dropdowns
+  - Developer, publisher and genre (two-level: top-level + sub-genre) filters upgraded from flat checkboxes to searchable multi-select dropdowns
+  - `GET /api/gamelist/filter-options` returns developers, publishers and a genre tree (top-level with children)
+  - `publishers` filter parameter added to game list and platform game endpoints
+  - Built-in `ss-genres.json` caches ScreenScraper's 159 genres with parent-child relations (zero runtime API calls)
 
 ### Changed
 - Full Thymeleaf migration: all 18 pages converted from static HTML to Thymeleaf templates with shared layout fragments
@@ -38,6 +43,8 @@
 - Media download page showing "no tasks" despite tasks existing (H2 unquoted SQL alias folded to uppercase, `row.get("platformId")` always null; fixed with `AS "platformId"`)
 - temp-subset-edit notification unread count never decrementing
 - platform-details JS null reference after banner removal
+- Genre filtering broken for multi-genre games (`genre IN` exact match vs comma-separated values; now matches `genreid` with comma-boundary LIKE)
+- Scrape-status filter not working (frontend sent `fully/partially/not` while SQL expected `scraped/original/poor_quality/raw`; search area now offers the same four statuses as platform management)
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.

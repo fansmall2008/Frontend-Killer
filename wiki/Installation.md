@@ -1,4 +1,4 @@
-# Installation Guide
+﻿# Installation Guide
 
 This guide covers multiple ways to install and run Frontend-Killer.
 
@@ -80,7 +80,7 @@ Frontend-Killer ships an unRAID template at `unraid/frontend-killer.xml`. Instal
 mkdir -p ./data/rules/export ./data/rules/import ./output ./logs
 
 # Run the JAR file
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 ### Configuration
@@ -88,7 +88,7 @@ java -jar webGamelistOper-1.1-RC1.jar
 You can override default settings using environment variables:
 
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar \
+java -jar webGamelistOper-1.2.jar \
   --server.port=8081 \
   --app.data.path=/custom/data/path
 ```

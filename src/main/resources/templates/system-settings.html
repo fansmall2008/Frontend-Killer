@@ -55,6 +55,21 @@
             <p class="section-tip" data-i18n="scraper_settings_tip">ScreenScraper账号用于获取游戏元数据。如不填写用户名密码，将使用游客模式（每日约20000次请求限制）。如需更高限额，请提前在 <a href="https://www.screenscraper.fr/" target="_blank">ScreenScraper.fr</a> 注册账号。</p>
         </div>
         
+        <!-- 游戏信息缓存设置 -->
+        <div class="settings-section">
+            <h2 data-i18n="game_cache_settings_title">游戏信息缓存</h2>
+            <div class="setting-item">
+                <label style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="autoCacheGameInfo" style="width:auto;">
+                    <span data-i18n="auto_cache_game_info_label">自动缓存游戏信息（仅街机）</span>
+                </label>
+                <p class="section-tip" data-i18n="auto_cache_game_info_tip">开启后，刮削成功的街机游戏会把 ScreenScraper 返回的完整信息缓存到本地，导出时可据此自动找齐父 rom（clone 依赖）。会占用部分请求额度，默认关闭。</p>
+            </div>
+            <div class="button-group">
+                <button class="btn" id="saveCacheSettingsBtn" data-i18n="save_settings">保存设置</button>
+            </div>
+        </div>
+
         <!-- 游戏列表展示设置 -->
         <div class="settings-section">
             <h2 data-i18n="game_list_display">游戏列表展示设置</h2>
@@ -513,6 +528,41 @@
             localStorage.setItem('gameListIconField', iconField);
             showMessage(I18n.t('game_list_settings_saved', '游戏列表展示设置已保存，刷新页面生效！'), true);
         }
+
+        // 加载游戏信息缓存设置
+        async function loadCacheSettings() {
+            try {
+                const response = await fetch('/api/settings/get');
+                if (response.ok) {
+                    const settings = await response.json();
+                    const enabled = String(settings.auto_cache_game_info).toLowerCase() === 'true'
+                        || settings.auto_cache_game_info === '1' || settings.auto_cache_game_info === 'yes';
+                    document.getElementById('autoCacheGameInfo').checked = enabled;
+                }
+            } catch (error) {
+                console.error('加载缓存设置失败:', error);
+            }
+        }
+
+        // 保存游戏信息缓存设置
+        async function saveCacheSettings() {
+            const enabled = document.getElementById('autoCacheGameInfo').checked;
+            try {
+                const response = await fetch('/api/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ auto_cache_game_info: enabled ? 'true' : 'false' })
+                });
+                if (response.ok) {
+                    showMessage(I18n.t('settings_saved', '设置已保存'), true);
+                } else {
+                    showMessage(I18n.t('error', '操作失败'), false);
+                }
+            } catch (error) {
+                console.error('保存缓存设置失败:', error);
+                showMessage(I18n.t('error', '操作失败'), false);
+            }
+        }
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -520,6 +570,7 @@
             loadDatabaseBackups();
             loadScraperSettings();
             loadGameListSettings();
+            loadCacheSettings();
             
             // 语言选择器事件监听
             document.getElementById('languageSelect').addEventListener('change', async (e) => {
@@ -541,6 +592,9 @@
             
             // 游戏列表展示设置按钮
             document.getElementById('saveGameListSettingsBtn').addEventListener('click', saveGameListSettings);
+
+            // 游戏信息缓存设置按钮
+            document.getElementById('saveCacheSettingsBtn').addEventListener('click', saveCacheSettings);
 
             // 通知模态框关闭按钮
             document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);

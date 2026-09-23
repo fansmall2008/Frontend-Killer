@@ -1,4 +1,4 @@
-# Troubleshooting
+﻿# Troubleshooting
 
 This guide helps you solve common issues with Frontend-Killer.
 
@@ -168,12 +168,12 @@ This guide helps you solve common issues with Frontend-Killer.
 **Solutions:**
 1. **Increase memory allocation**
    ```bash
-   java -Xmx4g -Xms1g -jar webGamelistOper-1.1-RC1.jar
+   java -Xmx4g -Xms1g -jar webGamelistOper-1.2.jar
    ```
 
 2. **Use G1GC collector**
    ```bash
-   java -XX:+UseG1GC -Xmx4g -jar webGamelistOper-1.1-RC1.jar
+   java -XX:+UseG1GC -Xmx4g -jar webGamelistOper-1.2.jar
    ```
 
 3. **Limit concurrent imports**

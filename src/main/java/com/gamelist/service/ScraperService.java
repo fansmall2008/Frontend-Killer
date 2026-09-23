@@ -70,4 +70,10 @@ public interface ScraperService {
      * @return 创建的任务数量
      */
     int enqueueGameMedia(Long gameId, String gameName, Long platformId, Map<String, Object> medias);
+
+    /**
+     * 从 manifest 缓存回填缺失元数据（genre/genreid/releasedate），零 SS 请求
+     * @return 回填统计（updated/alreadyOk/noManifest/failed）
+     */
+    Map<String, Object> backfillMetadataFromManifest();
 }

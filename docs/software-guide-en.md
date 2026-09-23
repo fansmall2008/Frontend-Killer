@@ -1,4 +1,4 @@
-# Frontend Killer - Software Guide
+﻿# Frontend Killer - Software Guide
 
 ## 1. Software Overview
 
@@ -614,7 +614,7 @@ A: Check if the H2 console JDBC URL configuration is correct, the default should
 
 ## 10. Version Information
 
-**Current Version**: 1.1-RC1
+**Current Version**: 1.2
 **Last Updated**: 2026-09-13
 
 ## 11. Docker Deployment Guide

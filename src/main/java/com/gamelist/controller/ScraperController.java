@@ -209,4 +209,18 @@ public class ScraperController {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
+
+    /**
+     * 从 manifest 缓存回填缺失元数据（genre/genreid/releasedate），零 SS 请求
+     */
+    @PostMapping("/backfill-metadata")
+    public ResponseEntity<?> backfillMetadata() {
+        try {
+            Map<String, Object> result = scraperService.backfillMetadataFromManifest();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("元数据回填失败: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

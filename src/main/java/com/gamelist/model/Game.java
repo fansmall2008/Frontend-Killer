@@ -160,6 +160,9 @@ public class Game {
     // ========== 多文件游戏（多盘/合盘） ==========
     private Boolean multiFile;         // 是否多文件（多盘游戏）
     private String multiFileContent;   // 多文件文本（m3u 格式：一行一个文件路径，相对平台目录，不带 ./）
+    // ========== 游戏信息缓存（SS manifest） ==========
+    private Boolean cached;            // 是否已缓存完整 jeuInfos manifest（按 ssGameId）
+    private String parentRom;          // 父 rom 文件名（从 cloneof 投影，仅街机类，导出时 copy-if-missing）
     
     // Getters and Setters
     public Long getId() {
@@ -728,6 +731,22 @@ public class Game {
 
     public void setMultiFileContent(String multiFileContent) {
         this.multiFileContent = multiFileContent;
+    }
+
+    public Boolean getCached() {
+        return cached;
+    }
+
+    public void setCached(Boolean cached) {
+        this.cached = cached;
+    }
+
+    public String getParentRom() {
+        return parentRom;
+    }
+
+    public void setParentRom(String parentRom) {
+        this.parentRom = parentRom;
     }
 
 

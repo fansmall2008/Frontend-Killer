@@ -356,75 +356,149 @@
         
         document.getElementById('exportForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const selected = msComboGetSelected();
             if (selected.length === 0) {
                 showNotification(getI18nText('please_select_platform'), 'error');
                 return;
             }
-            
             const frontend = document.getElementById('frontend').value;
             if (!frontend) {
                 showNotification(getI18nText('please_select_frontend'), 'error');
                 return;
             }
-            
-            const outputPath = document.getElementById('outputPath').value;
-            const copyRoms = document.getElementById('copyRoms').checked;
-            const copyMedia = document.getElementById('copyMedia').checked;
-            const generateDataFile = document.getElementById('generateDataFile').checked;
-            
-            document.getElementById('loading').style.display = 'inline-block';
-            document.getElementById('exportBtn').disabled = true;
-            
-            const exportData = {
-                platformIds: selected.map(s => s.id),
+
+            const platformIds = selected.map(s => s.id);
+            const baseData = {
+                platformIds: platformIds,
                 frontend: frontend,
-                outputPath: outputPath,
-                copyRoms: copyRoms,
-                copyMedia: copyMedia,
-                generateDataFile: generateDataFile,
+                outputPath: document.getElementById('outputPath').value,
+                copyRoms: document.getElementById('copyRoms').checked,
+                copyMedia: document.getElementById('copyMedia').checked,
+                generateDataFile: document.getElementById('generateDataFile').checked,
                 threadCount: parseInt(document.getElementById('threadCount').value)
             };
-            
-            showNotification(getI18nText('batch_export_started').replace('{0}', selected.length));
-            
-            const apiEndpoint = selected.length === 1 ? '/api/export/platform' : '/api/export/batch';
-            
-            // For single platform, keep backward compatibility
+
+            // 预检仅关乎 ROM 关联性：未勾选游戏文件时纯模板导出，无风险，直接执行
+            if (!baseData.copyRoms) {
+                doExport(baseData, selected, false);
+                return;
+            }
+
+            setLoading(true);
+            fetch('/api/export/preflight', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ platformIds: platformIds, frontend: frontend })
+            })
+            .then(r => r.json())
+            .then(pf => {
+                setLoading(false);
+                if (!pf || !pf.success) { doExport(baseData, selected, false); return; }
+                if (pf.action === 'split') { showSplitDialog(pf.platforms); return; }
+                if (pf.action === 'suggest_whole_dir') { showWholeDirDialog(pf.platforms, baseData, selected); return; }
+                doExport(baseData, selected, false);
+            })
+            .catch(() => { setLoading(false); doExport(baseData, selected, false); });
+        });
+
+        function setLoading(on) {
+            document.getElementById('loading').style.display = on ? 'inline-block' : 'none';
+            document.getElementById('exportBtn').disabled = on;
+        }
+
+        function doExport(baseData, selected, wholeDirectoryCopy) {
+            const exportData = Object.assign({}, baseData, { wholeDirectoryCopy: !!wholeDirectoryCopy });
             if (selected.length === 1) {
                 exportData.platformId = selected[0].id;
             }
-            
+            setLoading(true);
+            showNotification(I18n.t('batch_export_started', '导出任务已启动').replace('{0}', selected.length));
+            const apiEndpoint = selected.length === 1 ? '/api/export/platform' : '/api/export/batch';
             fetch(apiEndpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(exportData)
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('exportBtn').disabled = false;
-                
+                setLoading(false);
                 if (data.success) {
-                    const msg = selected.length > 1 
-                        ? getI18nText('batch_export_success').replace('{0}', data.successCount || selected.length).replace('{1}', selected.length)
-                        : (data.message || getI18nText('export_success'));
+                    const msg = selected.length > 1
+                        ? I18n.t('batch_export_success', '批量导出已启动').replace('{0}', data.successCount || selected.length).replace('{1}', selected.length)
+                        : (data.message || I18n.t('export_success', '导出成功'));
                     showNotification(msg, 'success');
-                    showNotification(getI18nText('check_task_management'), 'info');
+                    showNotification(I18n.t('check_task_management', '请到任务管理查看进度'), 'info');
                 } else {
-                    showNotification(data.error || getI18nText('export_failed'), 'error');
+                    showNotification(data.error || I18n.t('export_failed', '导出失败'), 'error');
                 }
             })
             .catch(error => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('exportBtn').disabled = false;
-                
-                showNotification(getI18nText('export_failed') + ': ' + error.message, 'error');
+                setLoading(false);
+                showNotification(I18n.t('export_failed', '导出失败') + ': ' + error.message, 'error');
             });
-        });
+        }
+
+        // ========== 导出预检弹窗 ==========
+        function escapeHtml(s) {
+            return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function ensureChoiceModal() {
+            let m = document.getElementById('preflightModal');
+            if (m) return m;
+            m = document.createElement('div');
+            m.id = 'preflightModal';
+            m.style.cssText = 'display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;';
+            m.innerHTML = '<div style="max-width:520px;width:90%;background:#1e1e2e;color:#e0e0e0;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.5);">'
+                + '<h3 id="preflightModalTitle" style="margin:0 0 12px 0;font-size:18px;"></h3>'
+                + '<div id="preflightModalBody" style="font-size:14px;line-height:1.6;margin-bottom:20px;"></div>'
+                + '<div id="preflightModalButtons" style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;"></div>'
+                + '</div>';
+            document.body.appendChild(m);
+            return m;
+        }
+
+        function showChoiceDialog(title, bodyHtml, buttons) {
+            const m = ensureChoiceModal();
+            document.getElementById('preflightModalTitle').textContent = title;
+            document.getElementById('preflightModalBody').innerHTML = bodyHtml;
+            const btnArea = document.getElementById('preflightModalButtons');
+            btnArea.innerHTML = '';
+            buttons.forEach(b => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn ' + (b.cls || 'btn-secondary');
+                btn.textContent = b.label;
+                btn.onclick = () => { m.style.display = 'none'; if (b.onClick) b.onClick(); };
+                btnArea.appendChild(btn);
+            });
+            m.style.display = 'flex';
+        }
+
+        function renderUnscrapedLines(platforms) {
+            return '<ul style="margin:8px 0 0 0;padding-left:20px;">' + platforms.map(p =>
+                '<li>' + escapeHtml(p.platformName) + ' \u2014 ' + I18n.t('preflight_unscraped', '未刮削') + ' ' + p.unscraped + '/' + p.total + '</li>'
+            ).join('') + '</ul>';
+        }
+
+        function showSplitDialog(platforms) {
+            const withUn = platforms.filter(p => p.unscraped > 0);
+            const title = I18n.t('preflight_split_title', '存在未刮削游戏，无法导出');
+            const body = '<p>' + I18n.t('preflight_split_msg', '勾选的多个平台中存在未刮削的游戏，无法保证关联性。请单独导出以下平台：') + '</p>' + renderUnscrapedLines(withUn);
+            showChoiceDialog(title, body, [{ label: I18n.t('preflight_got_it', '知道了'), cls: 'btn-primary' }]);
+        }
+
+        function showWholeDirDialog(platforms, baseData, selected) {
+            const withUn = platforms.filter(p => p.unscraped > 0);
+            const title = I18n.t('preflight_whole_dir_title', '检测到未刮削游戏');
+            const body = '<p>' + I18n.t('preflight_whole_dir_msg', '该平台存在未刮削的游戏，逐游戏导出可能遗漏父 rom / 关联文件。建议整目录拷贝（直接复制源目录全部文件）。') + '</p>' + renderUnscrapedLines(withUn);
+            showChoiceDialog(title, body, [
+                { label: I18n.t('preflight_cancel', '取消'), cls: 'btn-secondary' },
+                { label: I18n.t('preflight_normal_export', '照常导出'), cls: 'btn-secondary', onClick: () => doExport(baseData, selected, false) },
+                { label: I18n.t('preflight_whole_dir_confirm', '整目录拷贝'), cls: 'btn-primary', onClick: () => doExport(baseData, selected, true) }
+            ]);
+        }
         
         // 更新前端规则描述和导出选项
         function updateFrontendDescription() {

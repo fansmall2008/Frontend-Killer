@@ -104,6 +104,12 @@ public class ScraperServiceImpl implements ScraperService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private com.gamelist.service.GameManifestService gameManifestService;
+
+    @Autowired
+    private com.gamelist.service.SystemSettingsService systemSettingsService;
+
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     
@@ -1540,6 +1546,75 @@ public class ScraperServiceImpl implements ScraperService {
         }
     }
 
+    /**
+     * 从 manifest 缓存回填缺失元数据（genre/genreid/releasedate），零 SS 请求
+     * 只补空字段不覆盖已有值；只处理 cached=true 且已绑 ssGameId 的游戏。
+     */
+    @Override
+    public Map<String, Object> backfillMetadataFromManifest() {
+        int updated = 0, alreadyOk = 0, noManifest = 0, failed = 0;
+        try {
+            List<Game> games = gameService.getAllGames();
+            for (Game game : games) {
+                if (!Boolean.TRUE.equals(game.getCached())) continue;
+                Long ssGameId = game.getSsGameId();
+                if (ssGameId == null) continue;
+                try {
+                    JsonNode jeu = gameManifestService.getCachedGame(ssGameId);
+                    if (jeu == null || jeu.isNull()) { noManifest++; continue; }
+                    boolean changed = false;
+
+                    // genre / genreid：只补空
+                    if ((game.getGenre() == null || game.getGenre().isEmpty())
+                            && jeu.has("genres") && jeu.get("genres").isArray()) {
+                        StringBuilder genreBuilder = new StringBuilder();
+                        StringBuilder genreIdBuilder = new StringBuilder();
+                        for (JsonNode genreNode : jeu.get("genres")) {
+                            if (!genreNode.isObject()) continue;
+                            String genreText = extractTextFromRegionArray(genreNode.get("noms"), "en");
+                            if (genreText == null || genreText.isEmpty()) continue;
+                            String genreId = genreNode.has("id") ? genreNode.get("id").asText() : "";
+                            if (genreBuilder.length() > 0) genreBuilder.append(", ");
+                            if (genreIdBuilder.length() > 0) genreIdBuilder.append(", ");
+                            genreBuilder.append(genreText);
+                            genreIdBuilder.append(isInvalidText(genreId) ? "" : genreId);
+                        }
+                        if (genreBuilder.length() > 0) {
+                            game.setGenre(genreBuilder.toString());
+                            game.setGenreid(genreIdBuilder.toString());
+                            changed = true;
+                        }
+                    }
+
+                    // releasedate：只补空
+                    if ((game.getReleasedate() == null || game.getReleasedate().isEmpty())
+                            && jeu.has("dates") && jeu.get("dates").isArray()) {
+                        String releaseDate = extractDateFromRegionArray(jeu.get("dates"), "wor");
+                        if (releaseDate != null && !releaseDate.isEmpty()) {
+                            game.setReleasedate(releaseDate);
+                            changed = true;
+                        }
+                    }
+
+                    if (changed) {
+                        gameService.updateGame(game);
+                        updated++;
+                    } else {
+                        alreadyOk++;
+                    }
+                } catch (Exception e) {
+                    logger.warn("回填元数据失败: game={}, ssGameId={}, err={}", game.getName(), ssGameId, e.getMessage());
+                    failed++;
+                }
+            }
+            logger.info("元数据回填完成: updated={}, alreadyOk={}, noManifest={}, failed={}", updated, alreadyOk, noManifest, failed);
+            return Map.of("updated", updated, "alreadyOk", alreadyOk, "noManifest", noManifest, "failed", failed);
+        } catch (Exception e) {
+            logger.error("元数据回填异常: {}", e.getMessage(), e);
+            return Map.of("updated", updated, "alreadyOk", alreadyOk, "noManifest", noManifest, "failed", failed, "error", String.valueOf(e.getMessage()));
+        }
+    }
+
     @Override
     public int enqueueGameMedia(Long gameId, String gameName, Long platformId, Map<String, Object> medias) {
         try {
@@ -1688,6 +1763,27 @@ public class ScraperServiceImpl implements ScraperService {
         }
         
         return system;
+    }
+
+    /**
+     * 判定游戏所属平台是否为街机类（绑定系统 && type 含 "arcade"）。
+     * 复用现成谓词，与 calculateCRC32 里的 isArcade 一致。异常/未绑定一律视为非街机。
+     */
+    private boolean isArcadePlatform(Game game) {
+        try {
+            if (game == null || game.getPlatformId() == null) {
+                return false;
+            }
+            Platform p = platformService.getPlatformById(game.getPlatformId());
+            if (p == null || p.getSystemId() == null || p.getSystemId() == 0) {
+                return false;
+            }
+            ScraperSystem sys = getSystemInfo(p.getSystemId());
+            return sys != null && sys.getType() != null && sys.getType().toLowerCase().contains("arcade");
+        } catch (Exception e) {
+            logger.debug("判定街机平台失败(视为非街机): {}", e.getMessage());
+            return false;
+        }
     }
     
     /**
@@ -2190,18 +2286,20 @@ public class ScraperServiceImpl implements ScraperService {
                 }
             }
             
-            // 类型 - 从 genres 数组中提取
+            // 类型 - 从 genres 数组中提取（SS 结构: [{id, noms:[{langue,text}]}]
             if (jeu.has("genres") && jeu.get("genres").isArray()) {
                 StringBuilder genreBuilder = new StringBuilder();
                 StringBuilder genreIdBuilder = new StringBuilder();
                 for (JsonNode genreNode : jeu.get("genres")) {
-                    String genreText = getTextValue(genreNode);
-                    if (genreText == null || isInvalidText(genreText)) continue;
+                    if (!genreNode.isObject()) continue;
+                    // genre 是对象：文本在 noms 数组里（按 langue 区分），id 是数字串
+                    String genreText = extractTextFromRegionArray(genreNode.get("noms"), preferredLang);
+                    if (genreText == null || genreText.isEmpty()) continue;
+                    String genreId = genreNode.has("id") ? genreNode.get("id").asText() : "";
                     
                     if (genreBuilder.length() > 0) genreBuilder.append(", ");
                     if (genreIdBuilder.length() > 0) genreIdBuilder.append(", ");
                     genreBuilder.append(genreText);
-                    String genreId = genreNode.has("id") ? genreNode.get("id").asText() : "";
                     genreIdBuilder.append(isInvalidText(genreId) ? "" : genreId);
                 }
                 game.setGenre(genreBuilder.toString());
@@ -2241,7 +2339,27 @@ public class ScraperServiceImpl implements ScraperService {
             game.setScraped(true);
             // 设置数据来源
             game.setSource("ScreenScraper");
-            
+
+            // 方案C：手动刮削(single/batch=用户显式操作)无条件落缓存（不限平台）；
+            //        平台全量刮削保持"街机 + 自动缓存开关"门。
+            //        用手里已有的完整 jeu 落 manifest（零额外请求）+ 从 roms[] 投影 parent_rom
+            //        + 按真实落库结果置 cached。任何异常都不得影响刮削。
+            try {
+                Long ssGameIdForCache = game.getSsGameId();
+                boolean manualScrape = "single".equals(request.getType()) || "batch".equals(request.getType());
+                boolean autoCacheArcade = systemSettingsService.getBoolean("auto_cache_game_info", false)
+                        && isArcadePlatform(game);
+                if (ssGameIdForCache != null && (manualScrape || autoCacheArcade)) {
+                    boolean stored = gameManifestService.storeManifest(ssGameIdForCache, jeu);
+                    game.setParentRom(gameManifestService.projectParentRom(jeu, game.getCrc32()));
+                    game.setCached(stored);
+                    logger.info("缓存 manifest {}: game={}, ssGameId={}, parentRom={}, type={}",
+                            stored ? "成功" : "失败", game.getName(), ssGameIdForCache, game.getParentRom(), request.getType());
+                }
+            } catch (Exception e) {
+                logger.warn("缓存 manifest/投影父rom失败(忽略，不影响刮削): {}", e.getMessage());
+            }
+
             gameService.updateGame(game);
             logger.info("更新游戏记录: {} (语种: {})", game.getName(), preferredLang);
             
@@ -2324,7 +2442,10 @@ public class ScraperServiceImpl implements ScraperService {
         String fallback = null;
         
         for (JsonNode item : arrayNode) {
-            String region = item.has("region") ? item.get("region").asText().toLowerCase() : "wor";
+            // SS 的 noms 用 region 键（noms/dates），synopsis/genres 的 noms 用 langue 键，两者都兼容
+            String region = item.has("region") ? item.get("region").asText().toLowerCase()
+                    : item.has("langue") ? item.get("langue").asText().toLowerCase()
+                    : "wor";
             String text = item.has("text") ? item.get("text").asText() : null;
             
             if (isInvalidText(text)) continue;
@@ -2357,7 +2478,10 @@ public class ScraperServiceImpl implements ScraperService {
         
         for (JsonNode item : arrayNode) {
             String region = item.has("region") ? item.get("region").asText().toLowerCase() : "wor";
-            String date = item.has("date") ? item.get("date").asText() : null;
+            // SS 的 dates 用 text 键存日期（如 {"region":"wor","text":"1992"}），date 键兼容旧格式
+            String date = item.has("date") ? item.get("date").asText()
+                    : item.has("text") ? item.get("text").asText()
+                    : null;
             
             if (isInvalidText(date)) continue;
             

@@ -94,9 +94,17 @@ public class ExportOrchestrator {
             createDirectories(output, platform, vars);
 
             // 2. 复制 ROM 文件
+            List<String> missingParents = new ArrayList<>();
             if (request.isCopyRoms() && output.getRoms() != null && output.getRoms().isEnabled()) {
-                taskService.updateTaskProgress(task.getId(), 10, "开始复制游戏文件", 0, 100);
-                copyGameFiles(games, output.getRoms(), platform, vars, threadCount, task.getId());
+                if (request.isWholeDirectoryCopy()) {
+                    // 整目录拷贝：不逐游戏依赖 scraped 关联性，直接把平台源 ROM 目录全量搬到 romsDir
+                    taskService.updateTaskProgress(task.getId(), 10, "开始整目录拷贝游戏文件", 0, 100);
+                    String romsDir = resolveTemplateString(output.getRoms().getDirectory(), platform, vars);
+                    copyWholeDirectory(platform, romsDir, task.getId());
+                } else {
+                    taskService.updateTaskProgress(task.getId(), 10, "开始复制游戏文件", 0, 100);
+                    missingParents = copyGameFiles(games, output.getRoms(), platform, vars, threadCount, task.getId());
+                }
                 progress = 40;
                 taskService.updateTaskProgress(task.getId(), progress, "游戏文件复制完成", 0, 100);
             } else {
@@ -123,7 +131,7 @@ public class ExportOrchestrator {
                 logger.info("v3 导出: 跳过数据文件生成");
             }
 
-            taskService.completeTask(task.getId(), "v3 导出完成", "导出路径: " + request.getOutputPath());
+            taskService.completeTask(task.getId(), "v3 导出完成", buildCompletionResult(request.getOutputPath(), missingParents));
             logger.info("v3 导出完成: {}", platform.getName());
 
         } catch (Exception e) {
@@ -169,7 +177,7 @@ public class ExportOrchestrator {
      * 文件名由 output.roms.filename 模板驱动（支持表达式引擎）。
      * 默认 "{filename}{ext}" 表示保持原名。
      */
-    private void copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
+    private List<String> copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
                                 Platform platform, Map<String, String> vars,
                                 int threadCount, Long taskId) {
         String romsDir = resolveTemplateString(romsConfig.getDirectory(), platform, vars);
@@ -181,11 +189,15 @@ public class ExportOrchestrator {
 
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         boolean enableM3U = romsConfig.getM3u() != null && romsConfig.getM3u().isEnabled();
+        // 窄口径缺件报告：仅收集"父 rom 在源目录找不到"的游戏（线程安全）
+        final List<String> missingParents = java.util.Collections.synchronizedList(new ArrayList<>());
 
         for (Game game : games) {
             executor.submit(() -> {
                 try {
                     copySingleGameFile(game, romsDir, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId);
+                    // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
+                    copyParentRomIfMissing(game, romsDir, taskId, missingParents);
                 } catch (Exception e) {
                     logger.error("复制 ROM 文件失败: {}", game.getName(), e);
                 }
@@ -201,6 +213,119 @@ public class ExportOrchestrator {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        return missingParents;
+    }
+
+    /**
+     * 街机 clone 父 rom 找齐（copy-if-missing）。
+     * <p>
+     * 仅当游戏带有 parent_rom（街机类且已缓存 manifest 时由刮削投影写入）才触发；
+     * 默认关闭时 parent_rom 恒为 null → 本方法零影响。
+     * 目标已存在则跳过；源找不到才计入缺件报告（不报错、不中断导出）。
+     */
+    private void copyParentRomIfMissing(Game game, String romsDir, Long taskId, List<String> missingParents) {
+        String parentRom = game.getParentRom();
+        if (parentRom == null || parentRom.trim().isEmpty()) {
+            return;
+        }
+        parentRom = parentRom.trim();
+        try {
+            Path target = Paths.get(romsDir, parentRom);
+            if (Files.exists(target)) {
+                return; // copy-if-missing：目标已有，跳过
+            }
+            Path src = locateParentRomSource(game, parentRom);
+            if (src == null) {
+                missingParents.add(game.getName() + " → " + parentRom);
+                if (taskId != null) {
+                    taskService.updateTaskLog(taskId, "缺父rom(源未找到): " + game.getName() + " 需要 " + parentRom);
+                }
+                return;
+            }
+            copyFile(src, target);
+            if (taskId != null) {
+                taskService.updateTaskLog(taskId, "复制父rom: " + parentRom + " → " + romsDir);
+            }
+        } catch (Exception e) {
+            logger.error("复制父rom失败: game={}, parentRom={}, err={}", game.getName(), parentRom, e.getMessage());
+        }
+    }
+
+    /**
+     * 在有限的候选目录内定位父 rom 源文件（不做全盘递归扫描）：
+     *   1) 本体 ROM 所在目录
+     *   2) 平台 ROM 根目录 platformPath
+     */
+    private Path locateParentRomSource(Game game, String parentRom) {
+        List<Path> candidateDirs = new ArrayList<>();
+        Path self = resolveSourcePath(game);
+        if (self != null && self.getParent() != null) {
+            candidateDirs.add(self.getParent());
+        }
+        String platformPath = game.getPlatformPath();
+        if (platformPath != null && !platformPath.isEmpty()) {
+            candidateDirs.add(Paths.get(platformPath));
+        }
+        for (Path dir : candidateDirs) {
+            Path cand = dir.resolve(parentRom);
+            if (Files.exists(cand)) {
+                return cand;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 整目录拷贝：把平台源 ROM 目录（folderPath）下所有文件递归全量拷到 romsDir，
+     * 保持相对目录结构。不按扩展名过滤（保完整），也不逐游戏判关联。
+     */
+    private void copyWholeDirectory(Platform platform, String romsDir, Long taskId) throws Exception {
+        String srcRoot = platform.getFolderPath();
+        if (srcRoot == null || srcRoot.trim().isEmpty()) {
+            String msg = "平台未配置源目录(folderPath)，无法整目录拷贝: " + platform.getName();
+            logger.warn(msg);
+            if (taskId != null) taskService.updateTaskLog(taskId, msg);
+            return;
+        }
+        Path source = Paths.get(srcRoot);
+        if (!Files.exists(source) || !Files.isDirectory(source)) {
+            String msg = "平台源目录不存在或不是目录: " + srcRoot;
+            logger.warn(msg);
+            if (taskId != null) taskService.updateTaskLog(taskId, msg);
+            return;
+        }
+        Path targetRoot = Paths.get(romsDir);
+        Files.createDirectories(targetRoot);
+        int count = 0;
+        try (java.util.stream.Stream<Path> stream = Files.walk(source)) {
+            for (Path p : (Iterable<Path>) stream::iterator) {
+                if (!Files.isRegularFile(p)) continue;
+                Path rel = source.relativize(p);
+                Path target = targetRoot.resolve(rel.toString());
+                copyFile(p, target);
+                count++;
+            }
+        }
+        logger.info("整目录拷贝完成: {} → {}, 共 {} 个文件", srcRoot, romsDir, count);
+        if (taskId != null) {
+            taskService.updateTaskLog(taskId, "整目录拷贝完成: 共 " + count + " 个文件");
+        }
+    }
+
+    /**
+     * 组装导出结果字符串；若有缺件父 rom，则附窄口径清单（最多列 20 条）。
+     */
+    private String buildCompletionResult(String outputPath, List<String> missingParents) {
+        StringBuilder sb = new StringBuilder("导出路径: " + outputPath);
+        if (missingParents != null && !missingParents.isEmpty()) {
+            sb.append("；缺失父rom ").append(missingParents.size()).append(" 个: ");
+            int show = Math.min(20, missingParents.size());
+            sb.append(String.join(" | ", missingParents.subList(0, show)));
+            if (missingParents.size() > show) {
+                sb.append(" …");
+            }
+        }
+        return sb.toString();
     }
 
     /**

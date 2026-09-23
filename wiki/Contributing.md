@@ -1,4 +1,4 @@
-# Contributing
+﻿# Contributing
 
 Welcome to Frontend-Killer! We welcome contributions from everyone.
 
@@ -36,7 +36,7 @@ mvn test
 mvn clean package -DskipTests
 
 # Run the application
-java -jar target/webGamelistOper-1.1-RC1.jar
+java -jar target/webGamelistOper-1.2.jar
 ```
 
 ### 6. Commit Your Changes
@@ -115,7 +115,7 @@ cd Frontend-Killer
 mvn clean package -DskipTests
 
 # Run the application
-java -jar target/webGamelistOper-1.1-RC1.jar
+java -jar target/webGamelistOper-1.2.jar
 
 # Access the application
 open http://localhost:8081

@@ -1,6 +1,6 @@
-# Frontend-Killer 软件说明
+﻿# Frontend-Killer 软件说明
 
-> **版本**：v1.1-RC1 · **更新日期**：2026-09-13
+> **版本**：v1.2 · **更新日期**：2026-09-23
 
 Frontend-Killer（webGamelistOper）是一款基于 Web 的模拟游戏元数据管理平台，用于将 ROM 文件集合加工为各前端启动器可直接使用的游戏列表数据。
 

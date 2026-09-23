@@ -1,4 +1,4 @@
-# Quick Start
+﻿# Quick Start
 
 > Minimum steps from zero to export — ideal for first-time users.
 
@@ -17,7 +17,7 @@
 ### JAR
 
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 ### Docker

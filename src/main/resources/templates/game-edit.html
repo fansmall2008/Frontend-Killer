@@ -154,6 +154,20 @@
                     <label data-i18n="sort-by">排序字段（sortBy）</label>
                     <input type="text" id="sortByEdit">
                 </div>
+                <!-- 高级字段（与刮削/缓存机制相关，不懂别动） -->
+                <div class="form-group full-width" style="color: #e6a23c; font-size: 13px;" data-i18n="advanced_fields_warning">⚠️ 高级设置：以下字段与刮削/缓存机制相关，不懂别动</div>
+                <div class="form-group">
+                    <label data-i18n="ss-game-id-label">SS游戏ID（ssGameId）</label>
+                    <input type="text" id="ssGameIdEdit" placeholder="留空 = 未绑定">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="parent-rom-label">父ROM文件名（parentRom）</label>
+                    <input type="text" id="parentRomEdit" placeholder="仅街机 clone 有意义">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="cached-status-label">缓存状态（cached）</label>
+                    <span id="cachedBadge" style="display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 13px;">-</span>
+                </div>
             </div>
         </div>
 
@@ -346,6 +360,20 @@
         document.getElementById('platformPathMeta').value = game.platformPath || '';
         document.getElementById('sortByEdit').value = game.sortBy || '';
 
+        // 高级字段：ssGameId/parentRom 可编辑，cached 只读徽标
+        document.getElementById('ssGameIdEdit').value = game.ssGameId || '';
+        document.getElementById('parentRomEdit').value = game.parentRom || '';
+        const cachedBadge = document.getElementById('cachedBadge');
+        if (game.cached === true) {
+            cachedBadge.textContent = I18n.t('cached_yes', '✅ 已缓存');
+            cachedBadge.style.background = 'rgba(76,175,80,0.15)';
+            cachedBadge.style.color = '#4caf50';
+        } else {
+            cachedBadge.textContent = I18n.t('cached_no', '未缓存');
+            cachedBadge.style.background = 'rgba(136,136,136,0.12)';
+            cachedBadge.style.color = '#888';
+        }
+
         // 顶部显示游戏名
         document.getElementById('gameNameDisplay').textContent = '- ' + (game.name || '');
     }
@@ -375,7 +403,10 @@
             gameId: document.getElementById('gameIdInput').value,
             source: document.getElementById('sourceEdit').value,
             crc32: document.getElementById('crc32').value,
-            genreid: document.getElementById('genreid').value
+            genreid: document.getElementById('genreid').value,
+            // 高级字段：ssGameId/parentRom 可编辑（留空=置 null）
+            ssGameId: parseInt(document.getElementById('ssGameIdEdit').value) || null,
+            parentRom: document.getElementById('parentRomEdit').value || null
         };
 
         // 保留废弃字段的双写兼容
@@ -383,6 +414,11 @@
             gameData.boxFront = currentGameCache.boxFront || currentGameCache.box2d || null;
             gameData.boxBack = currentGameCache.boxBack || currentGameCache.box2dBack || null;
             gameData.boxSpine = currentGameCache.boxSpine || currentGameCache.box2dSide || null;
+            // 系统状态字段回填，避免全量覆盖更新将其清空
+            gameData.cached = !!currentGameCache.cached;
+            gameData.scraped = !!currentGameCache.scraped;
+            gameData.edited = !!currentGameCache.edited;
+            gameData.exists = !!currentGameCache.exists;
         }
 
         fetch('/api/gamelist/games', {

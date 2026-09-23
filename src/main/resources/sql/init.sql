@@ -156,21 +156,27 @@ CREATE TABLE IF NOT EXISTS system_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 清空系统设置表
-DELETE FROM system_settings;
-
--- 插入默认设置
-INSERT INTO system_settings (setting_key, setting_value, description) VALUES
-('backup_root_directory', '.backup', 'Backup root directory'),
-('game_path', '', 'Game path'),
-('backup_path', '.backup', 'Backup path'),
-('google_api_key', '', 'Google Translation API Key'),
-('baidu_app_id', '', 'Baidu Translation APP ID'),
-('baidu_app_key', '', 'Baidu Translation APP Key'),
-('youdao_app_key', '', 'Youdao Translation APP Key'),
-('youdao_app_secret', '', 'Youdao Translation APP Secret'),
-('deepseek_api_key', '', 'DeepSeek API Key')
-;
+-- 补充默认设置（只补缺、不覆盖：升级时新键自动出现，用户已修改的值保留）
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'backup_root_directory', '.backup', 'Backup root directory' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'backup_root_directory');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'game_path', '', 'Game path' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'game_path');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'backup_path', '.backup', 'Backup path' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'backup_path');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'google_api_key', '', 'Google Translation API Key' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'google_api_key');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'baidu_app_id', '', 'Baidu Translation APP ID' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'baidu_app_id');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'baidu_app_key', '', 'Baidu Translation APP Key' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'baidu_app_key');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'youdao_app_key', '', 'Youdao Translation APP Key' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'youdao_app_key');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'youdao_app_secret', '', 'Youdao Translation APP Secret' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'youdao_app_secret');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'deepseek_api_key', '', 'DeepSeek API Key' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'deepseek_api_key');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'auto_cache_game_info', 'false', 'Auto cache game manifest (arcade only, speeds up scraping but uses SS quota)' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'auto_cache_game_info');
 
 -- 创建临时子集表
 CREATE TABLE IF NOT EXISTS temp_subset (
@@ -538,6 +544,22 @@ ALTER TABLE game ADD COLUMN IF NOT EXISTS multi_file_content CLOB;
 -- V1.0.15 ScreenScraper 游戏ID（媒体目录稳定键，跨平台复用）
 ALTER TABLE game ADD COLUMN IF NOT EXISTS ss_game_id BIGINT DEFAULT NULL;
 ALTER TABLE temp_subset_game ADD COLUMN IF NOT EXISTS ss_game_id BIGINT DEFAULT NULL;
+
+-- V1.0.16 游戏信息缓存（SS manifest）+ 导出找齐第一步
+--   game 新增 cached / parent_rom 两列（scraped 列已存在，复用之）
+ALTER TABLE game ADD COLUMN IF NOT EXISTS cached BOOLEAN DEFAULT false;
+ALTER TABLE game ADD COLUMN IF NOT EXISTS parent_rom VARCHAR(512) DEFAULT NULL;
+
+-- game_manifest：按 SS gameId 缓存完整 jeuInfos 响应，导出找齐的离线权威源
+--   · 同一条 jeu 的多个 clone 共享一份（按 ss_game_id 去重）
+--   · 内部不透明存储：不进导出包/备份、不被任何接口列举
+CREATE TABLE IF NOT EXISTS game_manifest (
+    ss_game_id  BIGINT    PRIMARY KEY,
+    manifest    CLOB,
+    fetched_at  TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+    created_at  TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP  DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ============================================================
 -- V1.0.13 平台体量统计缓存表

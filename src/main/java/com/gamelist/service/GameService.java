@@ -40,10 +40,17 @@ public interface GameService {
     List<Game> getAllGames();
     List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath);
+    List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath, List<String> publishers);
     List<Game> getGamesByPlatformId(Long platformId);
     List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses);
     List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath);
+    List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath, List<String> publishers);
+    
+    /**
+     * 获取检索筛选选项：开发商、发行商、游戏类型（两级树）。platformId 为 null 或 0 时返回全库范围。
+     */
+    Map<String, Object> getFilterOptions(Long platformId);
     Game getGameById(Long id);
     int deleteAllGames();
     Statistics getOverallStatistics();

@@ -6,8 +6,9 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
-## What's New in 1.2-RC1
+## What's New in 1.2
 
+- **Searchable Multi-Select Filters** - Developer, publisher and genre (two-level with sub-genres) filters in the game list now use searchable multi-select dropdowns; genre filtering now works correctly for multi-genre games and scrape-status filtering offers four states
 - **Notification Center** - Real-time task notifications via SSE push, with unread badge and auto-created alerts on task completion/failure
 - **Scraper Media Path Restructure** - New storage layout keyed by ScreenScraper system/game ID (`data/scraper/games/{ssSystemId}/{ssGameId}/`), with local-file reuse to skip already-downloaded media
 - **Batch Aggregation Endpoints** - Single GROUP BY queries replace N+1 COUNT/statistics calls for media-download summaries and platform stats
@@ -87,7 +88,7 @@ Run: `docker compose up -d`
 #### Option 3: JAR File
 Requires Java 17+.
 ```bash
-java -jar webGamelistOper-1.2-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 #### Option 4: Windows EXE (No Java Required)
@@ -168,7 +169,7 @@ services:
 #### 方式三：JAR 包运行
 需要 Java 17+。
 ```bash
-java -jar webGamelistOper-1.2-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 #### 方式四：Windows EXE（无需 Java）
@@ -249,7 +250,7 @@ services:
 #### オプション3：JARファイル
 Java 17+ が必要です。
 ```bash
-java -jar webGamelistOper-1.2-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 #### オプション4：Windows EXE（Java不要）
@@ -283,4 +284,4 @@ http://localhost:8080
 
 ---
 
-**Version**: 1.2-RC1
+**Version**: 1.2

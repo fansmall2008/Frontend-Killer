@@ -78,6 +78,24 @@ public class ExportController {
     }
 
     /**
+     * 导出预检：基于 scraped 计数判断关联性风险（不启动导出）。
+     * 返回 action：proceed / split(多平台含未刮削→阻断) / suggest_whole_dir(单平台含未刮削)。
+     */
+    @PostMapping("/preflight")
+    public ResponseEntity<Map<String, Object>> preflight(@RequestBody ExportRequest request) {
+        try {
+            Map<String, Object> result = exportService.preflight(request);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("Preflight failed", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "Preflight failed: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
      * 获取导出规则列表（v3）
      */
     @GetMapping("/rules")

@@ -15,10 +15,12 @@ public interface GameMapper {
     List<Game> selectAllGames();
     List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players);
     List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
+    List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> publishers);
     List<Game> selectGamesByPlatformId(Long platformId);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses);
+    List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, List<String> publishers);
     Game selectGameById(Long id);
     int deleteAllGames();
     
@@ -65,12 +67,19 @@ public interface GameMapper {
     
     // 获取平台游戏数量
     int countGamesByPlatformId(Long platformId);
+
+    // 导出预检：统计单平台未刮削游戏数（scraped != true）
+    long countUnscrapedGamesByPlatformId(Long platformId);
     
     // 获取唯一值
     List<String> selectUniqueDevelopers();
     List<String> selectUniquePublishers();
     List<String> selectUniqueGenres();
     List<String> selectUniquePlayers();
+    List<String> selectUniqueDevelopersByPlatformId(Long platformId);
+    List<String> selectUniquePublishersByPlatformId(Long platformId);
+    List<Map<String, Object>> selectUniqueGenreInfo();
+    List<Map<String, Object>> selectUniqueGenreInfoByPlatformId(Long platformId);
     
     // 删除游戏
     int deleteGameById(Long id);

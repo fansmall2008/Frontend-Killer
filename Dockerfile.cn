@@ -1,6 +1,6 @@
 # Multi-stage build for Frontend-Killer (China mirror acceleration)
 # Stage 1: Build the application
-FROM docker.m.daocloud.io/library/maven:3.9-eclipse-temurin-17 AS builder
+FROM docker.io/library/maven:3.9-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
@@ -17,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B
 
 # Stage 2: Run the application
-FROM docker.m.daocloud.io/library/eclipse-temurin:17-jre
+FROM docker.io/library/eclipse-temurin:17-jre
 
 # Set timezone
 ENV TZ=Asia/Shanghai
@@ -25,7 +25,7 @@ ENV TZ=Asia/Shanghai
 WORKDIR /app
 
 # Copy the built JAR file
-COPY --from=builder /build/target/webGamelistOper-1.2-RC1.jar app.jar
+COPY --from=builder /build/target/webGamelistOper-1.2.jar app.jar
 
 # Copy default rules (from rules/ directory, which contains all v2+v3 templates)
 COPY rules/export/ /app/default-rules/export/

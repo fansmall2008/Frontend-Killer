@@ -525,7 +525,11 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
             boolean fieldSet = false;
             
             // 1. 尝试通过 MediaType 枚举查找并反射调用 setter
-            com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromDbColumn(gameField);
+            //    gameField 可能是 Java 字段名（任务创建时存入的口径）或 DB 列名，两种都兼容
+            com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromJavaField(gameField);
+            if (mt == null) {
+                mt = com.gamelist.model.MediaType.fromDbColumn(gameField);
+            }
             if (mt != null) {
                 try {
                     java.lang.reflect.Method setter = Game.class.getMethod(mt.getSetterName(), String.class);

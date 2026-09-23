@@ -1,4 +1,4 @@
-# Quick Start Guide
+﻿# Quick Start Guide
 
 Get started with Frontend-Killer in just a few minutes!
 
@@ -32,7 +32,7 @@ docker run -d \
 ### Using JAR File
 
 ```bash
-java -jar webGamelistOper-1.1-RC1.jar
+java -jar webGamelistOper-1.2.jar
 ```
 
 ## Step 2: Access the Application

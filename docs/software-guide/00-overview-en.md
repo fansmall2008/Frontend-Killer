@@ -1,6 +1,6 @@
-# Frontend-Killer User Guide
+﻿# Frontend-Killer User Guide
 
-> **Version**: v1.1-RC1 · **Updated**: 2026-09-13
+> **Version**: v1.2 · **Updated**: 2026-09-23
 
 Frontend-Killer (webGamelistOper) is a web-based retro game metadata management platform that transforms ROM file collections into game list data ready for use by frontend launchers.
 
