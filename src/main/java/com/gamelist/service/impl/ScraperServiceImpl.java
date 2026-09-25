@@ -123,6 +123,7 @@ public class ScraperServiceImpl implements ScraperService {
     @Autowired(required = false)
     private ScrapeWorkerPool scrapeWorkerPool;
     
+    @Lazy
     @Autowired
     private ScrapeStatus scrapeStatus;
 
