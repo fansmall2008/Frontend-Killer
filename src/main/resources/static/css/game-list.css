@@ -901,3 +901,37 @@
     border-color: var(--border-accent);
     color: var(--text-primary);
 }
+
+/* ---- 列排序指示器 ---- */
+.game-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 18px;
+}
+
+.game-table th.sortable::after {
+    content: '\2195';  /* ↕ */
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.3;
+    font-size: 0.8em;
+}
+
+.game-table th.sortable.sort-asc::after {
+    content: '\2191';  /* ↑ */
+    opacity: 1;
+    color: var(--accent-primary, #8b5cf6);
+}
+
+.game-table th.sortable.sort-desc::after {
+    content: '\2193';  /* ↓ */
+    opacity: 1;
+    color: var(--accent-primary, #8b5cf6);
+}
+
+.game-table th.sortable:hover {
+    background: rgba(139, 92, 246, 0.08);
+}

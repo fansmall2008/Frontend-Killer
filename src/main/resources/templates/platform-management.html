@@ -32,15 +32,15 @@
             <table id="platformTable">
                 <thead>
                     <tr>
-                        <th data-i18n="platform_id">ID</th>
+                        <th data-sort="id" class="sortable" data-i18n="platform_id">ID</th>
                         <th data-i18n="platform_logo">Logo</th>
-                        <th data-i18n="platform_name">平台名称</th>
-                        <th data-i18n="game_count">游戏数量</th>
-                        <th data-i18n="scraped">已刮削</th>
-                        <th data-i18n="original_data">原始数据</th>
-                        <th data-i18n="poor_quality">质量差</th>
-                        <th data-i18n="raw_rom">纯ROM</th>
-                        <th data-i18n="missing_games">缺失游戏</th>
+                        <th data-sort="name" class="sortable" data-i18n="platform_name">平台名称</th>
+                        <th data-sort="totalGames" class="sortable" data-i18n="game_count">游戏数量</th>
+                        <th data-sort="scraped" class="sortable" data-i18n="scraped">已刮削</th>
+                        <th data-sort="originalData" class="sortable" data-i18n="original_data">原始数据</th>
+                        <th data-sort="poorQuality" class="sortable" data-i18n="poor_quality">质量差</th>
+                        <th data-sort="rawRom" class="sortable" data-i18n="raw_rom">纯ROM</th>
+                        <th data-sort="missingGames" class="sortable" data-i18n="missing_games">缺失游戏</th>
                         <th data-i18n="platform_actions">操作</th>
                     </tr>
                 </thead>
@@ -940,6 +940,11 @@
     </div>
     <div th:replace="~{fragments/layout :: notification-modal}"></div>
 <script>
+        // 平台排序状态
+        let _platformRows = [];      // 合并后的行数据
+        let _sortCol = null;         // 当前排序列
+        let _sortAsc = true;         // 当前排序方向
+
         // 获取平台列表
         function getPlatforms() {
             fetch('/api/platforms')
@@ -949,80 +954,116 @@
                     fetch('/api/gamelist/statistics/platforms')
                         .then(response => response.json())
                         .then(stats => {
-                            const tableBody = document.querySelector('#platformTable tbody');
-                            tableBody.innerHTML = '';
-                            
                             // 创建统计数据映射
                             const statsMap = {};
                             stats.forEach(stat => {
                                 statsMap[stat.platformId] = stat;
                             });
-                            
-                            platforms.forEach(platform => {
+
+                            // 合并平台 + 统计数据
+                            _platformRows = platforms.map(platform => {
                                 const stat = statsMap[platform.id] || {
-                                    totalGames: 0,
-                                    scraped: 0,
-                                    originalData: 0,
-                                    poorQuality: 0,
-                                    rawRom: 0,
-                                    missingGames: 0
+                                    totalGames: 0, scraped: 0, originalData: 0,
+                                    poorQuality: 0, rawRom: 0, missingGames: 0
                                 };
-                                
-                                // 获取 logo URL
-                                const logoUrl = getPlatformLogoUrl(platform);
-                                
-                                const row = document.createElement('tr');
-                                row.setAttribute('data-platform-id', platform.id);
-                                row.innerHTML = `
-                                    <td>${platform.id}</td>
-                                    <td>
-                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
-                                    </td>
-                                    <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
-                                    <td>${stat.totalGames}</td>
-                                    <td style="color: #00ff00;">${stat.scraped}</td>
-                                    <td style="color: #87ceeb;">${stat.originalData}</td>
-                                    <td style="color: #ffa500;">${stat.poorQuality}</td>
-                                    <td style="color: #888;">${stat.rawRom}</td>
-                                    <td style="color: #ff6666;">${stat.missingGames}</td>
-                                    <td class="action-cell">${buildPlatformActionButtons(platform, stat.totalGames)}</td>
-                                `;
-                                tableBody.appendChild(row);
+                                return { platform, stat };
                             });
+
+                            // 如果有排序则保持排序
+                            if (_sortCol) {
+                                _sortRows(_sortCol, _sortAsc);
+                            }
+                            _renderPlatformTable();
                             updateTranslations(getCurrentLanguage());
                             refreshActionTitles();
                         })
                         .catch(error => {
                             console.error('Error fetching platform statistics:', error);
-                            // 如果统计数据获取失败，仍然显示平台列表
-                            const tableBody = document.querySelector('#platformTable tbody');
-                            tableBody.innerHTML = '';
-                            
-                            platforms.forEach(platform => {
-                                // 获取 logo URL
-                                const logoUrl = getPlatformLogoUrl(platform);
-                                
-                                const row = document.createElement('tr');
-                                row.setAttribute('data-platform-id', platform.id);
-                                row.innerHTML = `
-                                    <td>${platform.id}</td>
-                                    <td>
-                                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
-                                    </td>
-                                    <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
-                                    <td>0</td>
-                                    <td>0</td>
-                                    <td>0</td>
-                                    <td>0</td>
-                                    <td class="action-cell">${buildPlatformActionButtons(platform, 0)}</td>
-                                `;
-                                tableBody.appendChild(row);
-                            });
+                            // 统计数据获取失败时，用全零统计渲染
+                            _platformRows = platforms.map(p => ({
+                                platform: p,
+                                stat: { totalGames:0, scraped:0, originalData:0, poorQuality:0, rawRom:0, missingGames:0 }
+                            }));
+                            if (_sortCol) _sortRows(_sortCol, _sortAsc);
+                            _renderPlatformTable();
                             updateTranslations(getCurrentLanguage());
                             refreshActionTitles();
                         });
                 })
                 .catch(error => console.error('Error fetching platforms:', error));
+        }
+
+        // ---- 列排序逻辑 ----
+        function _sortRows(col, asc) {
+            _platformRows.sort((a, b) => {
+                let va, vb;
+                if (col === 'id') {
+                    va = a.platform.id; vb = b.platform.id;
+                } else if (col === 'name') {
+                    va = (a.platform.name || a.platform.system || '').toLowerCase();
+                    vb = (b.platform.name || b.platform.system || '').toLowerCase();
+                } else {
+                    va = a.stat[col] || 0;
+                    vb = b.stat[col] || 0;
+                }
+                if (va < vb) return asc ? -1 : 1;
+                if (va > vb) return asc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function _renderPlatformTable() {
+            const tableBody = document.querySelector('#platformTable tbody');
+            tableBody.innerHTML = '';
+            _platformRows.forEach(({ platform, stat }) => {
+                const logoUrl = getPlatformLogoUrl(platform);
+                const row = document.createElement('tr');
+                row.setAttribute('data-platform-id', platform.id);
+                row.innerHTML = `
+                    <td>${platform.id}</td>
+                    <td>
+                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
+                    </td>
+                    <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
+                    <td>${stat.totalGames}</td>
+                    <td style="color: #00ff00;">${stat.scraped}</td>
+                    <td style="color: #87ceeb;">${stat.originalData}</td>
+                    <td style="color: #ffa500;">${stat.poorQuality}</td>
+                    <td style="color: #888;">${stat.rawRom}</td>
+                    <td style="color: #ff6666;">${stat.missingGames}</td>
+                    <td class="action-cell">${buildPlatformActionButtons(platform, stat.totalGames)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function _updateSortHeaders() {
+            document.querySelectorAll('#platformTable th.sortable').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                const col = th.getAttribute('data-sort');
+                if (col === _sortCol) {
+                    th.classList.add(_sortAsc ? 'sort-asc' : 'sort-desc');
+                }
+            });
+        }
+
+        // 初始化表头排序点击
+        function initPlatformSort() {
+            document.querySelectorAll('#platformTable th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.getAttribute('data-sort');
+                    if (_sortCol === col) {
+                        _sortAsc = !_sortAsc;
+                    } else {
+                        _sortCol = col;
+                        _sortAsc = true;
+                    }
+                    _sortRows(_sortCol, _sortAsc);
+                    _renderPlatformTable();
+                    _updateSortHeaders();
+                    refreshActionTitles();
+                });
+            });
         }
 
         // 平台操作列：纯图标按钮 + 悬停提示（title 随语言切换刷新）
@@ -3801,6 +3842,7 @@
             
             // 加载平台列表（平台管理）
             getPlatforms();
+            initPlatformSort();
             
             // 加载刮削模板预选列表
             loadScrapeTemplatePresets();

@@ -617,3 +617,37 @@ table#platformTable td.editable:hover {
         margin: 10% auto;
     }
 }
+
+/* ---- 列排序指示器 ---- */
+#platformTable th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 20px;
+}
+
+#platformTable th.sortable::after {
+    content: '\2195';  /* ↕ up-down arrow */
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.3;
+    font-size: 0.85em;
+}
+
+#platformTable th.sortable.sort-asc::after {
+    content: '\2191';  /* ↑ */
+    opacity: 1;
+    color: var(--accent-primary, #8b5cf6);
+}
+
+#platformTable th.sortable.sort-desc::after {
+    content: '\2193';  /* ↓ */
+    opacity: 1;
+    color: var(--accent-primary, #8b5cf6);
+}
+
+#platformTable th.sortable:hover {
+    background: rgba(139, 92, 246, 0.08);
+}

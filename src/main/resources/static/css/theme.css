@@ -912,6 +912,31 @@ body::after {
     box-shadow: var(--shadow-lg);
 }
 
+/* 通知模态框全局定位 */
+#notificationModal.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+}
+
+#notificationModal.modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 480px;
+    max-height: 80vh;
+}
+
 .modal-header {
     display: flex;
     align-items: center;

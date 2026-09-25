@@ -51,6 +51,7 @@
 - Import template description now shows `notes` field for richer context
 - Frontend polling optimized: 3 requests per cycle (was 3+3N), reentry guard, visibilitychange pause
 - Internationalization: ~50% of remaining untranslated Chinese text resolved (700→357 lines)
+- Column sorting on platform-management and game-list tables (click header to sort, click again to reverse)
 
 ### Fixed
 - Media download page causing system-wide slowdown (N+1 request storm → batch GROUP BY)
@@ -64,6 +65,7 @@
 - Scrape-status filter not working (frontend sent `fully/partially/not` while SQL expected `scraped/original/poor_quality/raw`; search area now offers the same four statuses as platform management)
 - Export genre subdirectory fragmentation: `map()` returned all matching dialect combos producing directory names like `ACT-AVG` instead of a single folder; switched to `mapFirst()` for single-value result
 - `poor_quality` scrape-status filter too broad: original SQL matched any scraped game missing a single media type (box_2d/ss/wheel all null for every scraped game), making it indistinguishable from `scraped`; redefined to check metadata completeness (desc/developer/publisher/genre/releasedate)
+- Notification modal positioning broken on data-import page (missing `position: fixed` CSS; moved `#notificationModal` positioning to global `theme.css` so all pages share correct fixed overlay + centering)
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.

@@ -157,22 +157,22 @@
                     <tr>
                         <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
                         <th style="width: 40px;" data-i18n="col_status">状态</th>
-                        <th style="width: 50px;">ID</th>
+                        <th style="width: 50px;" data-sort="id" class="sortable">ID</th>
                         <th style="width: 60px;" data-i18n="col_icon">图标</th>
-                        <th style="width: 150px;" data-i18n="game-name">游戏名称</th>
-                        <th style="width: 150px;" data-i18n="game-path">游戏路径</th>
-                        <th style="width: 150px;" data-i18n="platform-path">平台路径</th>
-                        <th style="width: 200px;" data-i18n="game-desc">游戏描述</th>
-                        <th style="width: 150px;" data-i18n="translated-name">翻译名称</th>
-                        <th style="width: 200px;" data-i18n="translated-desc">翻译描述</th>
-                        <th style="width: 120px;" data-i18n="developer">开发商</th>
-                        <th style="width: 120px;" data-i18n="publisher">发行商</th>
-                        <th style="width: 100px;" data-i18n="genre">游戏类型</th>
-                        <th style="width: 80px;" data-i18n="players">玩家数量</th>
-                        <th style="width: 100px;" data-i18n="release-date">发行日期</th>
-                        <th style="width: 60px;" data-i18n="rating">评分</th>
-                        <th style="width: 80px;" data-i18n="language">语言</th>
-                        <th style="width: 80px;" data-i18n="file-status">文件状态</th>
+                        <th style="width: 150px;" data-sort="name" class="sortable" data-i18n="game-name">游戏名称</th>
+                        <th style="width: 150px;" data-sort="path" class="sortable" data-i18n="game-path">游戏路径</th>
+                        <th style="width: 150px;" data-sort="platformPath" class="sortable" data-i18n="platform-path">平台路径</th>
+                        <th style="width: 200px;" data-sort="desc" class="sortable" data-i18n="game-desc">游戏描述</th>
+                        <th style="width: 150px;" data-sort="translatedName" class="sortable" data-i18n="translated-name">翻译名称</th>
+                        <th style="width: 200px;" data-sort="translatedDesc" class="sortable" data-i18n="translated-desc">翻译描述</th>
+                        <th style="width: 120px;" data-sort="developer" class="sortable" data-i18n="developer">开发商</th>
+                        <th style="width: 120px;" data-sort="publisher" class="sortable" data-i18n="publisher">发行商</th>
+                        <th style="width: 100px;" data-sort="genre" class="sortable" data-i18n="genre">游戏类型</th>
+                        <th style="width: 80px;" data-sort="players" class="sortable" data-i18n="players">玩家数量</th>
+                        <th style="width: 100px;" data-sort="releasedate" class="sortable" data-i18n="release-date">发行日期</th>
+                        <th style="width: 60px;" data-sort="rating" class="sortable" data-i18n="rating">评分</th>
+                        <th style="width: 80px;" data-sort="lang" class="sortable" data-i18n="language">语言</th>
+                        <th style="width: 80px;" data-sort="exists" class="sortable" data-i18n="file-status">文件状态</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1752,7 +1752,62 @@
                 playersCheckboxes.appendChild(label);
             });
         }
-        
+
+        // ---- 游戏列表排序状态 ----
+        let _gameSortCol = null;
+        let _gameSortAsc = true;
+
+        function _sortGames(games, col, asc) {
+            return games.slice().sort((a, b) => {
+                let va = a[col], vb = b[col];
+                // 特殊处理 exists 字段（布尔值或字符串）
+                if (col === 'exists') {
+                    va = va === true ? 1 : (va === false ? 0 : 2);
+                    vb = vb === true ? 1 : (vb === false ? 0 : 2);
+                }
+                // 数字列
+                if (col === 'id' || col === 'players' || col === 'rating') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                }
+                // 字符串列
+                if (typeof va === 'string') va = va.toLowerCase();
+                if (typeof vb === 'string') vb = vb.toLowerCase();
+                if (va < vb) return asc ? -1 : 1;
+                if (va > vb) return asc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function _updateGameSortHeaders() {
+            document.querySelectorAll('#gameTable th.sortable').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.getAttribute('data-sort') === _gameSortCol) {
+                    th.classList.add(_gameSortAsc ? 'sort-asc' : 'sort-desc');
+                }
+            });
+        }
+
+        function initGameSort() {
+            document.querySelectorAll('#gameTable th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.getAttribute('data-sort');
+                    if (_gameSortCol === col) {
+                        _gameSortAsc = !_gameSortAsc;
+                    } else {
+                        _gameSortCol = col;
+                        _gameSortAsc = true;
+                    }
+                    // 对当前页数据排序并重新渲染
+                    if (window.currentGames && window.currentGames.length) {
+                        window.currentGames = _sortGames(window.currentGames, col, _gameSortAsc);
+                        displayGames(window.currentGames, window.currentPage, window.totalPages, window.totalGames);
+                        _updateGameSortHeaders();
+                    }
+                });
+            });
+        }
+
         // 修改loadGames函数以支持搜索参数
         function loadGames(page = 1, searchTerm = null, searchParams = null) {
             console.log('********************************');
@@ -2147,6 +2202,7 @@
         // 页面加载时初始化
         window.onload = function() {
             console.log('=== 页面初始化开始 ===');
+            initGameSort();
             const platformIdParam = getUrlParameter('platformId');
             const subsetIdParam = getUrlParameter('subsetId');
             console.log('platformIdParam:', platformIdParam);
