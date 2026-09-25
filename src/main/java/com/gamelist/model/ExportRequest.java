@@ -1,6 +1,7 @@
 package com.gamelist.model;
 
 import java.util.List;
+import java.util.Map;
 
 public class ExportRequest {
     private Long platformId;
@@ -13,6 +14,8 @@ public class ExportRequest {
     private int threadCount;
     // 整目录拷贝模式：存在未刮削游戏时，用户选择直接把平台源 ROM 目录全量拷贝（不依赖刮削关联性）
     private boolean wholeDirectoryCopy;
+    // 模板声明变量的用户填写值（key=变量名, value=用户输入），执行前注入表达式与路径占位符
+    private Map<String, String> templateVariables;
 
     public Long getPlatformId() {
         return platformId;
@@ -84,5 +87,13 @@ public class ExportRequest {
 
     public void setWholeDirectoryCopy(boolean wholeDirectoryCopy) {
         this.wholeDirectoryCopy = wholeDirectoryCopy;
+    }
+
+    public Map<String, String> getTemplateVariables() {
+        return templateVariables;
+    }
+
+    public void setTemplateVariables(Map<String, String> templateVariables) {
+        this.templateVariables = templateVariables;
     }
 }

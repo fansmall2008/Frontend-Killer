@@ -6,6 +6,7 @@
     <title>Frontend-Killer · Data Import</title>
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <script src="/js/i18n.js"></script>
+    <script src="/js/template-vars.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -250,6 +251,12 @@
             desc.textContent = parts.length ? parts.join('\n') : getI18nText('no_template_description', '暂无模板描述');
         }
 
+        function getImportTemplateVars(fileName) {
+            if (!fileName) return [];
+            var t = (templates || []).find(function(x) { return x.fileName === fileName; });
+            return (t && t.variables) ? t.variables : [];
+        }
+
         function toggleTemplateOptions() {
             var method = document.getElementById('importMethod').value;
             document.getElementById('templateOptions').style.display = 'block';
@@ -490,6 +497,8 @@
                 return;
             }
 
+            // 包裹导入执行体，便于在收集完模板变量后统一调用
+            function runImport(templateVariables) {
             localStorage.setItem('gamePath', path);
             spinner.style.display = 'inline-block';
             btnText.textContent = getI18nText('scanning', '扫描中...');
@@ -506,7 +515,7 @@
                 fetch('/api/scan/import', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ files: [], type: 'none', threadCount: threadCount, importMethod: importMethod, importTemplate: importTemplate, noDataFile: true, fileExtensions: fileExtensions, scanPath: path, scraperSystemId: scraperSystemId, enableMediaDiscovery: enableMediaDiscovery, levels: levels })
+                    body: JSON.stringify({ files: [], type: 'none', threadCount: threadCount, importMethod: importMethod, importTemplate: importTemplate, noDataFile: true, fileExtensions: fileExtensions, scanPath: path, scraperSystemId: scraperSystemId, enableMediaDiscovery: enableMediaDiscovery, levels: levels, templateVariables: templateVariables })
                 })
                 .then(function(resp) {
                     return resp.json().then(function(data) { return { ok: resp.ok, data: data }; });
@@ -547,7 +556,7 @@
                     return fetch('/api/scan/import', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ files: dataFiles.map(function(d) { return d.filePath; }), type: dataFiles[0].type, threadCount: threadCount, importMethod: importMethod, importTemplate: importTemplate, scanPath: path, scraperSystemId: scraperSystemId, enableMediaDiscovery: enableMediaDiscovery })
+                        body: JSON.stringify({ files: dataFiles.map(function(d) { return d.filePath; }), type: dataFiles[0].type, threadCount: threadCount, importMethod: importMethod, importTemplate: importTemplate, scanPath: path, scraperSystemId: scraperSystemId, enableMediaDiscovery: enableMediaDiscovery, templateVariables: templateVariables })
                     }).then(function(r) { return r.json(); });
                 })
                 .then(function(importResult) {
@@ -563,6 +572,15 @@
                 })
                 .catch(function(err) { showNotification(getI18nText('error_prefix', err.message), 'error'); })
                 .finally(finish);
+            }
+            }
+
+            // 模板声明了执行前变量时，先弹窗收集用户设定再执行导入（noDataFile 模式无模板变量）
+            var declarations = (!noDataFile && importTemplate) ? getImportTemplateVars(importTemplate) : [];
+            if (declarations && declarations.length) {
+                TemplateVars.open(declarations, { onConfirm: function (vals) { runImport(vals); } });
+            } else {
+                runImport({});
             }
         });
 

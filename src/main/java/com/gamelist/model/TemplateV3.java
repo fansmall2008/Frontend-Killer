@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * v3 统一模板模型 — 同时支持导入和导出。
  * <p>
@@ -27,11 +30,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateV3 {
 
+    private static final Logger logger = LoggerFactory.getLogger(TemplateV3.class);
+
     private TemplateInfo templateInfo;
     private SystemMapping system;
     private GameMapping game;
     private ParsingConfig parsing;  // 数据文件解析配置（注释符、分隔符、编码等）
     private OutputConfig output;    // 导出用：输出配置（ROM/媒体/数据文件的目录、文件名、路径格式等）
+    private List<TemplateVariable> variables;  // 执行前需用户设定的模板变量（可选，导入/导出共用）
 
     // ==================== 内部类 ====================
 
@@ -170,9 +176,28 @@ public class TemplateV3 {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ParsingConfig {
         private TextParsingConfig text;
+        private JsonParsingConfig json;
 
         public TextParsingConfig getText() { return text; }
         public void setText(TextParsingConfig text) { this.text = text; }
+
+        public JsonParsingConfig getJson() { return json; }
+        public void setJson(JsonParsingConfig json) { this.json = json; }
+    }
+
+    /**
+     * JSON 型数据文件的解析参数。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class JsonParsingConfig {
+        private String root = "items";   // 游戏条目数组的 JSON 路径（点号分隔），省略则默认 "items"
+        private String encoding;          // 文件编码（如 "UTF-8"、"GBK"），默认 UTF-8
+
+        public String getRoot() { return root; }
+        public void setRoot(String root) { this.root = root; }
+
+        public String getEncoding() { return encoding; }
+        public void setEncoding(String encoding) { this.encoding = encoding; }
     }
 
     /**
@@ -327,6 +352,7 @@ public class TemplateV3 {
         private RomOutput roms;                // ROM 文件输出规则
         private MediaOutput media;             // 媒体文件输出规则
         private DataFileOutput dataFile;       // 数据文件输出规则
+        private ReadmeOutput readme;           // 使用说明输出规则（可选）
 
         public ExportOptions getExportOptions() { return exportOptions; }
         public void setExportOptions(ExportOptions exportOptions) { this.exportOptions = exportOptions; }
@@ -339,6 +365,35 @@ public class TemplateV3 {
 
         public DataFileOutput getDataFile() { return dataFile; }
         public void setDataFile(DataFileOutput dataFile) { this.dataFile = dataFile; }
+
+        public ReadmeOutput getReadme() { return readme; }
+        public void setReadme(ReadmeOutput readme) { this.readme = readme; }
+    }
+
+    /**
+     * 使用说明输出规则（可选）。
+     * <p>
+     * 导出完成后在导出目录生成使用说明文件；directory/filename/content
+     * 均支持模板变量替换（{outputPath}、{platform.xxx} 等）。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ReadmeOutput {
+        private boolean enabled = false;       // 是否生成使用说明
+        private String directory;              // 输出目录模板（如 "{outputPath}"）
+        private String filename;               // 文件名模板（如 "使用说明-{platform.name}.md"）
+        private List<String> content;          // 内容行模板（逐行变量替换）
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public String getDirectory() { return directory; }
+        public void setDirectory(String directory) { this.directory = directory; }
+
+        public String getFilename() { return filename; }
+        public void setFilename(String filename) { this.filename = filename; }
+
+        public List<String> getContent() { return content; }
+        public void setContent(List<String> content) { this.content = content; }
     }
 
     /**
@@ -469,6 +524,8 @@ public class TemplateV3 {
         private String filename;               // 数据文件名
         private String pathFormat;             // 路径格式
         private String pathPrefix;             // 路径前缀（如 "./"）
+        private String jsonItemsKey;           // JSON 型：游戏条目数组的键名，默认 "items"
+        private List<Map<String, String>> jsonTopLevelFields;  // JSON 型：条目数组之前输出的顶层字段（保序），每项含 key/value
 
         public String getDirectory() { return directory; }
         public void setDirectory(String directory) { this.directory = directory; }
@@ -481,6 +538,12 @@ public class TemplateV3 {
 
         public String getPathPrefix() { return pathPrefix; }
         public void setPathPrefix(String pathPrefix) { this.pathPrefix = pathPrefix; }
+
+        public String getJsonItemsKey() { return jsonItemsKey; }
+        public void setJsonItemsKey(String jsonItemsKey) { this.jsonItemsKey = jsonItemsKey; }
+
+        public List<Map<String, String>> getJsonTopLevelFields() { return jsonTopLevelFields; }
+        public void setJsonTopLevelFields(List<Map<String, String>> jsonTopLevelFields) { this.jsonTopLevelFields = jsonTopLevelFields; }
     }
 
     // ==================== 工具方法 ====================
@@ -572,6 +635,102 @@ public class TemplateV3 {
     public ParsingConfig getParsing() { return parsing; }
     public void setParsing(ParsingConfig parsing) { this.parsing = parsing; }
 
+    /**
+     * 模板执行前需用户设定的变量声明。
+     * <p>
+     * 模板若在 {@code variables} 块中声明了变量，前端在导入/导出动作执行前会弹出对话框，
+     * 逐项展示 {@code label}（变量名）、输入框与 {@code description}（用途说明）；
+     * 用户填写的值作为全局变量注入表达式引擎与 {@code {name}} 路径占位符，
+     * 可用于拼接 URL、设定输出目录等。无变量声明的模板行为完全不变。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TemplateVariable {
+        private String name;                 // 变量名（表达式与 {xxx} 占位符中使用）
+        private String label;                // 弹窗显示的变量名
+        private String description;          // 弹窗显示的用途说明
+        private String type = "text";        // text | path
+        @com.fasterxml.jackson.annotation.JsonProperty("default")
+        private String defaultValue;         // 默认值（支持 {platform.xxx} 占位符，执行时按平台解析）
+        private boolean required = false;    // 是否必填
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+
+        public String getDefaultValue() { return defaultValue; }
+        public void setDefaultValue(String defaultValue) { this.defaultValue = defaultValue; }
+
+        public boolean isRequired() { return required; }
+        public void setRequired(boolean required) { this.required = required; }
+    }
+
+    /** 与内置变量冲突的名字（用户变量不得覆盖，防止 outputPath 等被篡改） */
+    public static final java.util.Set<String> BUILTIN_VARIABLE_NAMES =
+            java.util.Collections.unmodifiableSet(new java.util.HashSet<>(java.util.Arrays.asList(
+                    "outputPath", "platform", "platform.system", "platform.name", "platform.launch",
+                    "platform.software", "platform.database", "platform.web", "platform.folderPath",
+                    "filename", "gameName", "name", "ext")));
+
+    /**
+     * 返回可注入的合法变量声明：过滤掉变量名非法（非标识符）或与内置变量重名的项。
+     * 非法/冲突项打 WARN 日志并忽略，保证旧模板与误配不影响主流程。
+     */
+    public java.util.List<TemplateVariable> getValidVariables() {
+        java.util.List<TemplateVariable> valid = new ArrayList<>();
+        if (variables == null) return valid;
+        for (TemplateVariable v : variables) {
+            if (v == null || v.getName() == null || v.getName().isBlank()) continue;
+            String n = v.getName().trim();
+            if (!n.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+                logger.warn("忽略非法模板变量名（须为标识符）: {}", n);
+                continue;
+            }
+            if (BUILTIN_VARIABLE_NAMES.contains(n)) {
+                logger.warn("忽略与内置变量重名的模板变量: {}", n);
+                continue;
+            }
+            v.setName(n);
+            valid.add(v);
+        }
+        return valid;
+    }
+
+    /** 返回合法声明的变量名列表 */
+    public java.util.List<String> getDeclaredVariableNames() {
+        java.util.List<String> names = new ArrayList<>();
+        for (TemplateVariable v : getValidVariables()) names.add(v.getName());
+        return names;
+    }
+
+    /**
+     * 构造导入路径使用的有效变量表：以声明的 default 为基底，用户填写值覆盖。
+     * 仅包含合法声明的变量名，避免任意注入。
+     */
+    public Map<String, String> buildEffectiveVariables(Map<String, String> userVars) {
+        Map<String, String> effective = new LinkedHashMap<>();
+        for (TemplateVariable v : getValidVariables()) {
+            String value = userVars != null ? userVars.get(v.getName()) : null;
+            if (value == null || value.isEmpty()) {
+                value = v.getDefaultValue();
+            }
+            if (value != null) {
+                effective.put(v.getName(), value);
+            }
+        }
+        return effective;
+    }
+
     public OutputConfig getOutput() { return output; }
     public void setOutput(OutputConfig output) { this.output = output; }
+
+    public List<TemplateVariable> getVariables() { return variables; }
+    public void setVariables(List<TemplateVariable> variables) { this.variables = variables; }
 }

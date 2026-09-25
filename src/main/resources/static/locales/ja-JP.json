@@ -1,4 +1,10 @@
 {
+    "tv_modal_title":  "テンプレート変数設定",
+    "tv_cancel":  "キャンセル",
+    "tv_confirm":  "決定",
+    "tv_required_tip":  "必須",
+    "tv_required_error":  "この項目は必須です",
+    "tv_path_placeholder":  "パスを入力してください",
     "realtime_log_title":  "リアルタイムシステムログ",
     "log_lines_label":  "表示行数:",
     "auto_refresh_label":  "自動更新",
@@ -1104,5 +1110,17 @@
     "cached_no":  "未キャッシュ",
     "ms_placeholder":  "クリックして選択…",
     "ms_search_placeholder":  "検索…",
-    "ms_no_match":  "一致する項目なし"
+    "ms_no_match":  "一致する項目なし",
+    "match_modal_title":  "システムマッチング",
+    "match_modal_desc":  "このプラットフォームはまだスクレイピングシステムに紐付けられていません。候補システムを選択してください：",
+    "match_select_label":  "マッチしたシステム",
+    "match_no_candidates":  "一致するシステムが見つかりません。プラットフォーム管理ページで手動設定できます。",
+    "match_bind_btn":  "システムを紐付け",
+    "match_later_btn":  "後で",
+    "match_binding":  "システムを紐付け中...",
+    "match_bind_success":  "システムの紐付けに成功しました",
+    "match_bind_failed":  "紐付けに失敗しました。もう一度お試しください",
+    "match_scrape_started":  "システムメディアのスクレイピングを開始しました。タスク管理ページで進捗を確認できます。",
+    "match_already_scraped":  "システムメディアは既にスクレイピング済みです。",
+    "match_no_credentials":  "ScreenScraper 認証情報が未設定のため、システムメディアのスクレイピングをスキップしました。システム管理ページで手動実行してください。"
 }

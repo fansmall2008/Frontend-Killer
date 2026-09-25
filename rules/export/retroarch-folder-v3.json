@@ -1,0 +1,123 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "dataFileType": "data",
+    "format": "json",
+    "dataFile": "*.lpl",
+    "author": "Frontend-Killer",
+    "description": "RetroArch 播放列表导出（模板变量示例：自定义游戏所在目录）",
+    "notes": "本模板演示 v3 variables 机制在 RetroArch 导出中的真实用途：导出前弹出对话框让用户填写「游戏所在目录」。该目录仅用于拼接 .lpl 中每条 path 的前缀——代表目标机器上 ROM 实际存放的目录；ROM 文件本身会拷贝到导出表单里设置的输出路径（{outputPath}/roms/{platform.name}/）下，与 lpl、缩略图一起组成导出包。\n\n拼接规则：用户填了目录 → path = 游戏所在目录 / 平台名(platform.name) / 游戏显示名(去非法字符) + 扩展名；用户留空 → path 回退为数据库中的原始 path（去掉 # 元数据后缀）。多平台批量导出只弹一次框，所有平台共享同一份目录取值。\n\n使用方式：导出后把 playlists/{platform.name}.lpl 与 thumbnails/{platform.name} 复制到 RetroArch 对应目录；把 roms/{platform.name} 下的 ROM 文件放到「游戏所在目录」对应的 {platform.name} 子目录即可运行。\n\n重要 / Important：.lpl 里的 path 必须指向 ROM 实际所在的路径，否则 RetroArch 无法运行游戏；本模板只是帮你把 path 前缀批量改写成目标机器上的目录。\n\nROM paths in the .lpl must point to where the ROMs actually live, otherwise RetroArch cannot launch them; this template only rewrites the path prefix to a directory on the target machine."
+  },
+  "variables": [
+    {
+      "name": "romDir",
+      "label": "游戏所在目录 / ROM Directory",
+      "description": "仅用于拼接 .lpl 里的 path 前缀，代表目标机器上 ROM 存放目录；ROM 文件会拷贝到导出表单设置的输出路径。填了：path = 该目录/平台名/游戏名+扩展名；留空：使用数据库中的原始 path。/ Only prefixes the .lpl path (ROM dir on the target machine); ROMs are copied to the output path set in the export form. Filled: dir/platform/game name+ext. Left empty: falls back to the stored DB path.",
+      "type": "text",
+      "default": "",
+      "required": false
+    }
+  ],
+  "game": {
+    "gameInfo": {
+      "path": "if(romDir, if(genre, concat(romDir, '/', platform.name, '/', mapFirst(genre), '/', sanitize(coalesce(name, translatedName), '&*/:\\<>?|'), ext(before(path, '#'))), concat(romDir, '/', platform.name, '/', sanitize(coalesce(name, translatedName), '&*/:\\<>?|'), ext(before(path, '#')))), before(path, '#'))",
+      "label": "coalesce(name, translatedName)",
+      "core_path": "'DETECT'",
+      "core_name": "'DETECT'",
+      "crc32": "if(crc32, concat(crc32, '|crc'), 'DETECT')",
+      "db_name": "concat(platform.name, '.lpl')"
+    },
+    "mediaInfo": {}
+  },
+  "output": {
+    "exportOptions": {
+      "gameFiles": true,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": false
+    },
+    "roms": {
+      "enabled": true,
+      "directory": "if(genre, concat('{outputPath}/roms/', platform.name, '/', mapFirst(genre)), '{outputPath}/roms/{platform.name}')",
+      "filename": "concat(sanitize(coalesce(name, translatedName), '&*/:\\<>?|'), ext(before(path, '#')))"
+    },
+    "readme": {
+      "enabled": true,
+      "directory": "{outputPath}",
+      "filename": "使用说明-{platform.name}.md",
+      "content": [
+        "# {platform.name} 播放列表导出说明 / Playlist Export Guide",
+        "",
+        "本目录由 WebGamelistOper 导出，供 RetroArch 使用。",
+        "Exported by WebGamelistOper for use with RetroArch.",
+        "",
+        "## 模板变量 / Template Variable",
+        "- 游戏所在目录 / ROM Directory: `{romDir}`",
+        "- 该值仅用于拼接下面 .lpl 中每条 path 的前缀（代表目标机器上 ROM 存放位置）；ROM 文件已拷贝到 `roms/{platform.name}/` 下。",
+        "- This value only prefixes each path in the .lpl (where ROMs live on the target machine); ROM files are copied under `roms/{platform.name}/`.",
+        "",
+        "## 重要提示 / Important",
+        "- 请务必确保游戏 ROM 文件位于播放列表 .lpl 中记录的 path 路径上，否则 RetroArch 无法加载运行游戏。",
+        "- Make sure your ROM files are located at the exact paths recorded in the .lpl playlist, otherwise RetroArch cannot launch the games.",
+        "- 若上面「游戏所在目录」留空，则 path 使用数据库中记录的原始路径 / If the ROM Directory is left empty, the stored original path is used.",
+        "",
+        "## 目录结构 / Directory Structure",
+        "- playlists/{platform.name}.lpl — 播放列表文件 / playlist file",
+        "- thumbnails/{platform.name}/ — 缩略图 / thumbnails（Named_Boxarts / Named_Snaps / Named_Titles / Named_Logos）",
+        "- roms/{platform.name}/{类别缩写}/ — ROM 文件 / ROM files（按方言映射后的游戏类别分子目录，如 ACT/FTG；无类别直接放 {platform.name}/ 下）",
+        "",
+        "## 安装到 RetroArch / Install to RetroArch",
+        "1. 将 playlists/{platform.name}.lpl 复制到 RetroArch 的 playlists 目录 / Copy the .lpl into the RetroArch playlists directory",
+        "2. 将 thumbnails/{platform.name} 文件夹复制到 RetroArch 的 thumbnails 目录 / Copy the thumbnails folder into the RetroArch thumbnails directory",
+        "3. 将 roms/{platform.name} 下的 ROM 文件（含类别子目录）放到「游戏所在目录」对应的 {platform.name} 子目录 / Place ROMs from roms/{platform.name} (with category subdirs) into the matching {platform.name} subdirectory under the ROM Directory you set",
+        "4. 打开 RetroArch → 播放列表 → 导入内容 → 手动扫描，选择 {platform.name}.lpl / Open RetroArch → Playlists → Import Content → Manual Scan",
+        "",
+        "## 注意事项 / Notes",
+        "- 若游戏文件移动过，或在其他设备（NAS / Docker 等）上使用，请在导出时填写「游戏所在目录」为目标机器上的实际目录，并将 roms/{platform.name} 下的 ROM（含类别子目录）放到该目录",
+        "- If the ROMs have been moved or are used on another device (NAS / Docker, etc.), fill in the ROM Directory at export time with the actual path on the target machine, and place roms/{platform.name} ROMs (with category subdirs) there.",
+        "- core_path / core_name 已设为 DETECT，RetroArch 会自动匹配已安装的核心",
+        "- core_path / core_name are set to DETECT, so RetroArch automatically matches installed cores.",
+        "- 兼容 RetroArch 1.5+ JSON 播放列表格式；不支持旧版 6-Line 行格式（如 Lakka）",
+        "- Compatible with RetroArch 1.5+ JSON playlists; the legacy 6-Line format (e.g. Lakka) is not supported."
+      ]
+    },
+    "media": {
+      "directory": "{outputPath}/thumbnails/{platform.name}",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "concat('Named_Snaps/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        },
+        "sstitle": {
+          "source": "sstitle",
+          "target": "concat('Named_Titles/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        },
+        "wheel-carbon": {
+          "source": "wheel-carbon",
+          "target": "concat('Named_Logos/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        }
+      }
+    },
+    "dataFile": {
+      "directory": "{outputPath}/playlists",
+      "filename": "{platform.name}.lpl",
+      "pathFormat": "absolute",
+      "pathPrefix": "",
+      "jsonItemsKey": "items",
+      "jsonTopLevelFields": [
+        {"key": "version", "value": "1.5", "type": "string"},
+        {"key": "default_core_path", "value": "", "type": "string"},
+        {"key": "default_core_name", "value": "", "type": "string"},
+        {"key": "label_display_mode", "value": "0", "type": "number"},
+        {"key": "right_thumbnail_mode", "value": "0", "type": "number"},
+        {"key": "left_thumbnail_mode", "value": "0", "type": "number"},
+        {"key": "sort_mode", "value": "0", "type": "number"}
+      ]
+    }
+  }
+}

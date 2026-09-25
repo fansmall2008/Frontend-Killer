@@ -668,6 +668,23 @@ public class GameListController {
                                 templateInfo.put("notes", v3Info.getOrDefault("notes", ""));
                                 templateInfo.put("direction", v3Info.get("direction"));
                                 templateInfo.put("dataFileType", v3Info.get("dataFileType"));
+
+                                // 附加模板声明的执行前变量（供前端渲染变量设定弹窗）
+                                com.gamelist.model.TemplateV3 v3Template = com.gamelist.model.TemplateV3.loadFromFile(file);
+                                if (v3Template != null) {
+                                    java.util.List<java.util.Map<String, Object>> varDecls = new java.util.ArrayList<>();
+                                    for (com.gamelist.model.TemplateV3.TemplateVariable var : v3Template.getValidVariables()) {
+                                        java.util.Map<String, Object> m = new java.util.HashMap<>();
+                                        m.put("name", var.getName());
+                                        m.put("label", var.getLabel() != null && !var.getLabel().isEmpty() ? var.getLabel() : var.getName());
+                                        m.put("description", var.getDescription());
+                                        m.put("type", var.getType() != null ? var.getType() : "text");
+                                        m.put("default", var.getDefaultValue());
+                                        m.put("required", var.isRequired());
+                                        varDecls.add(m);
+                                    }
+                                    templateInfo.put("variables", varDecls);
+                                }
                             }
                             
                             templates.add(templateInfo);

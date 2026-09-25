@@ -33,6 +33,13 @@ public class ExportController {
     public ResponseEntity<Map<String, Object>> exportPlatform(@RequestBody ExportRequest request) {
         try {
             logger.info("Export platform request: {}", request);
+            String missingErr = validateTemplateVariables(request.getFrontend(), request.getTemplateVariables());
+            if (missingErr != null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", missingErr
+                ));
+            }
             Map<String, Object> result = exportService.exportPlatform(request);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -55,6 +62,14 @@ public class ExportController {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", "No platforms selected"
+                ));
+            }
+
+            String missingErr = validateTemplateVariables(request.getFrontend(), request.getTemplateVariables());
+            if (missingErr != null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", missingErr
                 ));
             }
 
@@ -145,6 +160,13 @@ public class ExportController {
                 }
                 item.put("mediaTypes", mediaTypes);
 
+                // 模板声明的执行前变量（供前端渲染变量设定弹窗）
+                List<Map<String, Object>> varDecls = new ArrayList<>();
+                for (TemplateV3.TemplateVariable var : v3.getValidVariables()) {
+                    varDecls.add(variableToMap(var));
+                }
+                item.put("variables", varDecls);
+
                 ruleList.add(item);
             }
 
@@ -156,5 +178,39 @@ public class ExportController {
                 "error", "Failed to get export rules: " + e.getMessage()
             ));
         }
+    }
+
+    /**
+     * 校验模板声明的必填变量是否已由用户填写。
+     * @return 缺失时返回错误信息（含缺失变量名），全部满足时返回 null
+     */
+    private String validateTemplateVariables(String frontend, Map<String, String> userVars) {
+        if (frontend == null || frontend.isEmpty()) return null;
+        TemplateV3 v3 = exportRuleService.getV3RuleByFrontend(frontend);
+        if (v3 == null) return null;
+        List<String> missing = new ArrayList<>();
+        for (TemplateV3.TemplateVariable var : v3.getValidVariables()) {
+            if (!var.isRequired()) continue;
+            String value = userVars != null ? userVars.get(var.getName()) : null;
+            if (value == null || value.trim().isEmpty()) {
+                missing.add(var.getLabel() != null && !var.getLabel().isEmpty() ? var.getLabel() : var.getName());
+            }
+        }
+        if (!missing.isEmpty()) {
+            return "请先填写必需的模板变量: " + String.join(", ", missing);
+        }
+        return null;
+    }
+
+    /** 将变量声明转为前端可读的 Map（default 键避免 Java 关键字冲突） */
+    private Map<String, Object> variableToMap(TemplateV3.TemplateVariable var) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("name", var.getName());
+        m.put("label", var.getLabel() != null ? var.getLabel() : var.getName());
+        m.put("description", var.getDescription());
+        m.put("type", var.getType() != null ? var.getType() : "text");
+        m.put("default", var.getDefaultValue());
+        m.put("required", var.isRequired());
+        return m;
     }
 }

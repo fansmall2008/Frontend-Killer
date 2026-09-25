@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.TermMappingMapper">
+
+    <resultMap id="TermMappingResultMap" type="com.gamelist.model.TermMapping">
+        <id column="id" property="id"/>
+        <result column="source_term" property="sourceTerm"/>
+        <result column="target_term" property="targetTerm"/>
+        <result column="category" property="category"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="TermMappingResultMap">
+        SELECT * FROM term_mapping ORDER BY category, source_term
+    </select>
+
+    <select id="selectByCategory" resultMap="TermMappingResultMap">
+        SELECT * FROM term_mapping WHERE category = #{category} ORDER BY source_term
+    </select>
+
+    <select id="selectById" resultMap="TermMappingResultMap">
+        SELECT * FROM term_mapping WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.gamelist.model.TermMapping" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO term_mapping (source_term, target_term, category)
+        VALUES (#{sourceTerm}, #{targetTerm}, #{category})
+    </insert>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM term_mapping WHERE id = #{id}
+    </delete>
+
+</mapper>

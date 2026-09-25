@@ -4,11 +4,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamelist.model.Game;
 import com.gamelist.model.ParsedDataFile;
 import com.gamelist.model.Platform;
@@ -17,6 +19,7 @@ import com.gamelist.service.impl.TemplateV3ExportService;
 import com.gamelist.service.impl.TemplateV3ImportService;
 import com.gamelist.util.GenericTextParser;
 import com.gamelist.util.GenericXmlParser;
+import com.gamelist.util.TemplateExpressionEngine;
 
 /**
  * v3 模板系统端到端集成测试。
@@ -233,6 +236,118 @@ class TemplateV3IntegrationTest {
         assertTrue(output.contains("<gameList>"), "应包含 gameList 标签");
         assertTrue(output.contains("<game>"), "应包含 game 标签");
         assertTrue(output.contains("<provider>"), "应包含 provider 标签");
+    }
+
+    // ==================== 模板变量机制测试 ====================
+
+    /** 1. 含 variables 块的模板 JSON 反序列化 + 合法变量过滤 */
+    @Test
+    void testVariablesBlockDeserialization() throws Exception {
+        String json = "{\"templateInfo\":{\"version\":3,\"direction\":\"export\"},"
+                + "\"variables\":["
+                + "{\"name\":\"cdnBase\",\"label\":\"CDN 前缀\",\"type\":\"text\",\"default\":\"https://cdn\",\"required\":true},"
+                + "{\"name\":\"romSubdir\",\"type\":\"text\",\"default\":\"{platform.system}\"},"
+                + "{\"name\":\"outputPath\"}"
+                + "]}";
+        TemplateV3 template = new ObjectMapper().readValue(json, TemplateV3.class);
+
+        List<String> names = template.getDeclaredVariableNames();
+        // outputPath 与内置变量重名，应被过滤
+        assertEquals(2, names.size(), "与内置重名的变量应被过滤");
+        assertTrue(names.contains("cdnBase"));
+        assertTrue(names.contains("romSubdir"));
+        assertFalse(names.contains("outputPath"));
+
+        TemplateV3.TemplateVariable cdn = template.getValidVariables().get(0);
+        assertEquals("CDN 前缀", cdn.getLabel());
+        assertEquals("https://cdn", cdn.getDefaultValue());
+        assertTrue(cdn.isRequired());
+    }
+
+    /** 2. 用户填写值优先，未填时回退到 default（buildEffectiveVariables） */
+    @Test
+    void testBuildEffectiveVariables() throws Exception {
+        String json = "{\"templateInfo\":{\"version\":3},\"variables\":["
+                + "{\"name\":\"a\",\"default\":\"defA\"},"
+                + "{\"name\":\"b\",\"default\":\"defB\"}]}";
+        TemplateV3 template = new ObjectMapper().readValue(json, TemplateV3.class);
+        Map<String, String> user = new HashMap<>();
+        user.put("a", "userA");
+        Map<String, String> effective = template.buildEffectiveVariables(user);
+        assertEquals("userA", effective.get("a"), "用户填写值优先");
+        assertEquals("defB", effective.get("b"), "未填时回退 default");
+    }
+
+    /** 3. 用户设定的模板变量注入后，可在表达式中裸标识符拼接 URL / 字符串 */
+    @Test
+    void testVariableUsedInExpression() {
+        Game game = new Game();
+        game.setName("Mario");
+        // 仅使用用户声明的模板变量（普通标识符），验证其流经表达式引擎的变量查表通道
+        Map<String, String> vars = new HashMap<>();
+        vars.put("cdnBase", "https://my.cdn");
+        vars.put("romSubdir", "snes");
+
+        String url = TemplateExpressionEngine.evaluate(
+                "concat(cdnBase, '/', romSubdir, '/', 'logo', '.png')", game, vars);
+        assertEquals("https://my.cdn/snes/logo.png", url, "模板变量应可用于 URL 拼接");
+    }
+
+    /** 3b. retroarch 示例的 path 表达式：填了 romDir 拼接，未填回退数据库 path */
+    @Test
+    void testRomDirPathVariableExpression() {
+        Game game = new Game();
+        game.setName("Mario Bros");                       // 显示名（与文件名不同，验证用的是显示名）
+        game.setPath("D:\\old\\roms\\Mario [!].smc#CRC123"); // DB path 带 # 元数据与非法字符
+
+        Platform platform = new Platform();
+        platform.setName("Super Nintendo");
+
+        String expr = "if(romDir, concat(romDir, '/', platform.name, '/', "
+                + "sanitize(coalesce(name, translatedName), '&*/:\\<>?|'), ext(before(path, '#'))), "
+                + "before(path, '#'))";
+
+        // 未填 romDir（空串）→ 回退 before(path,'#')
+        Map<String, String> empty = new HashMap<>();
+        empty.put("romDir", "");
+        String fallback = TemplateExpressionEngine.evaluate(expr,
+                new TemplateExpressionEngine.Context(game, platform, empty));
+        assertEquals("D:\\old\\roms\\Mario [!].smc", fallback, "未填时应回退数据库 path（去 #）");
+
+        // 填了 romDir → 拼接 目录/平台名/显示名+扩展名
+        Map<String, String> filled = new HashMap<>();
+        filled.put("romDir", "E:\\Games");
+        String result = TemplateExpressionEngine.evaluate(expr,
+                new TemplateExpressionEngine.Context(game, platform, filled));
+        assertEquals("E:\\Games/Super Nintendo/Mario Bros.smc", result, "填了应用用户目录拼接 path");
+    }
+
+    /** 4. 无 variables 的旧模板行为不变（getValidVariables 返回空） */
+    @Test
+    void testTemplateWithoutVariables() throws Exception {
+        String json = "{\"templateInfo\":{\"version\":3,\"direction\":\"export\"}}";
+        TemplateV3 template = new ObjectMapper().readValue(json, TemplateV3.class);
+        assertNotNull(template);
+        assertTrue(template.getValidVariables().isEmpty(), "无变量声明时列表应为空");
+        assertTrue(template.buildEffectiveVariables(null).isEmpty());
+    }
+
+    /** 5. 示例模板 retroarch-folder-v3.json 可加载并正确解析变量 */
+    @Test
+    void testSampleTemplateLoads() {
+        File f = new File("rules/export/retroarch-folder-v3.json");
+        if (!f.exists()) {
+            f = new File("d:\\\\code\\\\qoder\\\\webGamelistOper\\\\rules\\\\export\\\\retroarch-folder-v3.json");
+        }
+        if (!f.exists()) {
+            System.out.println("SKIP: retroarch-folder-v3.json not found");
+            return;
+        }
+        TemplateV3 template = TemplateV3.loadFromFile(f);
+        assertNotNull(template, "示例模板应能加载");
+        List<String> names = template.getDeclaredVariableNames();
+        assertTrue(names.contains("romDir"), "示例模板应声明 romDir");
+        assertEquals(1, names.size(), "示例模板仅声明一个变量");
     }
 
     private static String truncate(String s, int maxLen) {

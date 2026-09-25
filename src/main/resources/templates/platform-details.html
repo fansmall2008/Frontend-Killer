@@ -78,6 +78,20 @@
             </form>
         </div>
     </div>
+
+    <!-- 系统匹配弹窗（TODO #9：平台未绑定刮削系统时引导用户选择） -->
+    <div id="matchModal" class="modal">
+        <div class="modal-content">
+            <h2 data-i18n="match_modal_title">系统匹配</h2>
+            <p class="match-desc" data-i18n="match_modal_desc">该平台尚未关联刮削系统，根据平台信息匹配到以下候选系统，请选择：</p>
+            <div id="matchCandidates" class="match-candidates">
+                <!-- 候选系统列表动态生成 -->
+            </div>
+            <div class="match-actions">
+                <button id="matchLaterBtn" class="btn btn-secondary" data-i18n="match_later_btn">稍后再说</button>
+            </div>
+        </div>
+    </div>
     
     
     <script>
@@ -375,6 +389,118 @@
             
             // 加载游戏列表
             loadGameList(currentStatus, currentPage);
+            
+            // TODO #9：平台未绑定刮削系统时弹出匹配引导框
+            checkSystemBinding();
+        }
+        
+        // ---- 系统匹配弹窗（TODO #9） ----
+        let matchModalDismissed = false;
+        
+        // 检查平台是否已绑定系统，未绑定时拉取候选并弹窗
+        function checkSystemBinding() {
+            if (!currentPlatformId || matchModalDismissed) return;
+            fetch(`/api/platforms/${currentPlatformId}/match-systems`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 已绑定或请求失败 → 无需弹窗
+                    if (!data.success || data.bound) return;
+                    renderMatchCandidates(data.candidates || []);
+                    document.getElementById('matchModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error checking system binding:', error);
+                });
+        }
+        
+        // 渲染候选系统列表
+        function renderMatchCandidates(candidates) {
+            const container = document.getElementById('matchCandidates');
+            if (!candidates || candidates.length === 0) {
+                container.innerHTML = `<p class="match-empty" data-i18n="match_no_candidates">未找到匹配的系统，可稍后在平台管理页手动设置</p>`;
+                updateTranslations(getCurrentLanguage());
+                return;
+            }
+            
+            let html = `<label class="match-label" data-i18n="match_select_label">匹配的系统</label>`;
+            candidates.forEach((c, index) => {
+                const displayName = c.nameCn && c.nameCn !== c.name ? `${c.name} (${c.nameCn})` : c.name;
+                html += `
+                    <div class="match-candidate ${index === 0 ? 'selected' : ''}" data-system-id="${c.systemId}">
+                        <span class="match-name">${displayName}</span>
+                        <span class="match-score">${Math.round(c.score || 0)}%</span>
+                    </div>`;
+            });
+            html += `<button id="matchBindBtn" class="btn" data-i18n="match_bind_btn">绑定系统</button>`;
+            container.innerHTML = html;
+            updateTranslations(getCurrentLanguage());
+            
+            // 候选点击选中
+            container.querySelectorAll('.match-candidate').forEach(el => {
+                el.addEventListener('click', () => {
+                    container.querySelectorAll('.match-candidate').forEach(x => x.classList.remove('selected'));
+                    el.classList.add('selected');
+                });
+            });
+            
+            // 绑定按钮
+            document.getElementById('matchBindBtn').addEventListener('click', bindSelectedSystem);
+        }
+        
+        // 绑定选中的系统；若该系统媒体未刮削则自动发起系统媒体刮削
+        function bindSelectedSystem() {
+            const selected = document.querySelector('.match-candidate.selected');
+            if (!selected) {
+                showNotification(getI18nText('match_select_label'), 'warning');
+                return;
+            }
+            const systemId = parseInt(selected.dataset.systemId, 10);
+            const btn = document.getElementById('matchBindBtn');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.textContent = getI18nText('match_binding');
+            
+            fetch(`/api/platforms/${currentPlatformId}/bind-system`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ systemId: systemId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    closeMatchModal();
+                    if (result.scraped) {
+                        showNotification(getI18nText('match_already_scraped'), 'success');
+                    } else if (result.scrapeStarted) {
+                        showNotification(getI18nText('match_scrape_started'), 'success');
+                    } else {
+                        showNotification(getI18nText('match_no_credentials'), 'warning');
+                    }
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = getI18nText('match_bind_btn');
+                    showNotification(result.errorMessage || getI18nText('match_bind_failed'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error binding system:', error);
+                btn.disabled = false;
+                btn.textContent = getI18nText('match_bind_btn');
+                showNotification(getI18nText('match_bind_failed'), 'error');
+            });
+        }
+        
+        // 关闭匹配弹窗（本次会话不再弹出）
+        function closeMatchModal() {
+            matchModalDismissed = true;
+            document.getElementById('matchModal').style.display = 'none';
         }
         
         // 状态按钮点击事件
@@ -394,10 +520,17 @@
             if (e.target === modal) {
                 closeEditModal();
             }
+            const matchModal = document.getElementById('matchModal');
+            if (e.target === matchModal) {
+                closeMatchModal();
+            }
         });
         
         // 提交编辑表单事件
         document.getElementById('editForm').addEventListener('submit', submitEditForm);
+        
+        // 系统匹配弹窗：稍后再说
+        document.getElementById('matchLaterBtn').addEventListener('click', closeMatchModal);
         
         // 弹跳提示（通知中心由 layout 全局提供）
         function showNotification(message, type = 'info') {

@@ -18,6 +18,7 @@ import com.gamelist.mapper.TempSubsetMapper;
 import com.gamelist.model.BackgroundTask;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
+import com.gamelist.model.ScraperSystem;
 import com.gamelist.model.TempSubset;
 import com.gamelist.model.TempSubsetGame;
 import com.gamelist.service.PlatformService;
@@ -1233,6 +1234,68 @@ public class PlatformServiceImpl implements PlatformService {
             return result;
         } catch (Exception e) {
             logger.error("刮削平台失败: {}", e.getMessage(), e);
+            result.put("success", false);
+            result.put("errorMessage", e.getMessage());
+            return result;
+        }
+    }
+
+    @Override
+    public Map<String, Object> bindSystem(Long platformId, Integer systemId) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            Platform platform = platformMapper.selectPlatformById(platformId);
+            if (platform == null) {
+                throw new IllegalArgumentException("平台不存在: " + platformId);
+            }
+            if (systemId == null || systemId <= 0) {
+                throw new IllegalArgumentException("系统 ID 无效");
+            }
+            ScraperSystem scraperSystem = scraperSystemService.getBySystemId(systemId);
+            if (scraperSystem == null) {
+                throw new IllegalArgumentException("刮削系统不存在: systemId=" + systemId);
+            }
+
+            // 先记录该系统媒体是否已刮削：updatePlatform 会同步触发 icon 下载并可能置位 media_scraped，
+            // 必须在绑定前读取原始状态，否则未刮削的系统会被误判为已刮削而跳过全量媒体刮削
+            boolean wasScraped = scraperSystemService.isMediaScraped(systemId);
+
+            // 1. 绑定 systemId（updatePlatform 检测到 systemId 变更会自动下载系统 icon）
+            platform.setSystemId(systemId);
+            updatePlatform(platform);
+
+            result.put("success", true);
+            result.put("systemId", systemId);
+            result.put("systemName", scraperSystem.getName());
+
+            // 2. 该系统媒体未刮削 → 自动发起系统媒体刮削（SS 系统媒体文件，非游戏刮削）
+            if (wasScraped) {
+                result.put("scraped", true);
+                result.put("scrapeStarted", false);
+                result.put("message", "已绑定系统 " + scraperSystem.getName());
+                return result;
+            }
+
+            result.put("scraped", false);
+            Map<String, String> settings = scraperSettingsService.getSettings();
+            String username = settings.get("username");
+            String password = settings.get("password");
+            if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+                result.put("scrapeStarted", false);
+                result.put("message", "已绑定系统 " + scraperSystem.getName()
+                        + "，但未配置 ScreenScraper 凭据，请稍后在系统管理页手动刮削系统媒体");
+                return result;
+            }
+
+            Map<String, Object> scrapeResult = scraperSystemService.scrapeSystemAllMedia(systemId);
+            result.put("scrapeStarted", Boolean.TRUE.equals(scrapeResult.get("success")));
+            result.put("taskId", scrapeResult.get("taskId"));
+            result.put("message", "已绑定系统 " + scraperSystem.getName() + "，系统媒体刮削任务已启动");
+
+            return result;
+        } catch (Exception e) {
+            logger.error("绑定系统失败: platformId={}, systemId={}, error={}", platformId, systemId, e.getMessage(), e);
             result.put("success", false);
             result.put("errorMessage", e.getMessage());
             return result;

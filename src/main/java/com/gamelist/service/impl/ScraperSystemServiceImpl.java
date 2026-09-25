@@ -36,6 +36,14 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     @Autowired
     private TaskService taskService;
 
+    /**
+     * 自代理：自调用 @Async 方法会绕过 Spring 代理导致同步执行，
+     * 必须通过代理对象调用才能真正异步（否则刮削会阻塞 HTTP 请求）。
+     */
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private ScraperSystemServiceImpl self;
+
     @Override
     @Transactional
     public ScraperSystem save(ScraperSystem system) {
@@ -138,7 +146,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             String taskDescription = "刮削系统: " + system.getName() + " (systemId: " + systemId + ")";
             BackgroundTask task = taskService.createTask("SCRAPE", taskDescription);
             
-            scrapeSystemAsync(task.getId(), systemId, regions, mediaTypes, username, password);
+            self.scrapeSystemAsync(task.getId(), systemId, regions, mediaTypes, username, password);
             
             result.put("success", true);
             result.put("taskId", task.getId());
@@ -154,7 +162,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     }
     
     @Async
-    private void scrapeSystemAsync(Long taskId, Integer systemId, List<String> regions, List<String> mediaTypes, String username, String password) {
+    public void scrapeSystemAsync(Long taskId, Integer systemId, List<String> regions, List<String> mediaTypes, String username, String password) {
         try {
             taskService.updateTaskProgress(taskId, 10, "开始刮削系统", 0, 100);
             
@@ -432,7 +440,6 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     }
     
     @Override
-    @Transactional
     public Map<String, Object> scrapeSystemAllMedia(Integer systemId) {
         Map<String, Object> result = new HashMap<>();
         
@@ -449,7 +456,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             String taskDescription = "刮削系统所有媒体: " + system.getName() + " (systemId: " + systemId + ")";
             BackgroundTask task = taskService.createTask("SCRAPE", taskDescription);
             
-            scrapeSystemAllMediaAsync(task.getId(), systemId, username, password);
+            self.scrapeSystemAllMediaAsync(task.getId(), systemId, username, password);
             
             result.put("success", true);
             result.put("taskId", task.getId());
@@ -465,7 +472,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     }
     
     @Async
-    private void scrapeSystemAllMediaAsync(Long taskId, Integer systemId, String username, String password) {
+    public void scrapeSystemAllMediaAsync(Long taskId, Integer systemId, String username, String password) {
         try {
             taskService.updateTaskProgress(taskId, 0, "正在获取系统信息...", 0, 0);
             

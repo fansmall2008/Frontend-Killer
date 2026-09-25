@@ -13,6 +13,8 @@
 - **媒体路径重构（阶段 1-2）**：`PathResolver.resolveGameMediaDir` 统一新路径规则 `data/scraper/games/{ssSystemId}/{ssGameId}/{type}.{ext}`；本地复用检查跳过已下载媒体；local→ssGameId 迁移；scope=media 兜底写回 ss_game_id
   - ⚠️ **破坏性变更**：目录结构从旧 `{platformName}/{本地id}/{region}/` 变为 `{ssSystemId}/{ssGameId}/`，原有已刮削的媒体文件不能直接复用，用户需重新刮削或等待后续兼容迁移
 - **批量聚合端点**：`GET /api/media-download/platforms/summary`（GROUP BY 一次返回所有平台统计）；`GET /api/gamelist/statistics/platforms/{platformId}`（单平台统计替代全库扫描）
+- **游戏信息缓存（SS manifest）+ 导出找齐**：成功刮削时把 `jeuInfos` 完整 manifest 按 SS gameId 缓存到 `game_manifest` 表（内部不透明存储，不进导出包/不被接口列举）；game 表回写 `scraped`/`cached`/`parent_rom` 三列（其余元数据只躺缓存不覆盖手改）；系统设置新增“自动缓存游戏信息”开关（默认关、仅街机类平台生效、读取时校验防篡改）；刮削侧缓存优先命中不走 SS 接口；导出预检 O(1) 弹窗（未刮削平台单独导出/拷源目录）+ 父 rom 链 copy-if-missing 找齐 + 窄口径缺件报告
+- **检索区多选下拉**：开发商/发行商/游戏类型由平铺复选框改为可搜索多选下拉；类型两级分组（顶级+子级）支持级联勾选；新增 `GET /api/gamelist/filter-options`（开发商/发行商/类型树）与 `publishers` 筛选参数；内置 `ss-genres.json`（ScreenScraper 159 类型父子关系，零运行时请求）
 
 ### 改造与优化
 
@@ -37,6 +39,8 @@
 | 媒体下载页"暂无任务"但实际有任务 | H2 未引号别名转大写，`row.get("platformId")` 永远 null | SQL 别名加双引号 `AS "platformId"` |
 | temp-subset-edit 通知未读数永不递减 | 前端已读逻辑缺失 | 标记已读后刷新 unreadCount |
 | platform-details 删除 banner 后 JS 空引用 | 残留 DOM 引用 | 移除无用代码 |
+| 游戏类型筛选对多类型游戏失效 | `genre IN` 整字段精确匹配 vs 逗号分隔多值存储 | genreid 逗号边界 LIKE 匹配，顶级自动展开全部子级 id |
+| 刮削状态筛选无效 | 前端传 `fully/partially/not`，SQL 只认 `scraped/original/poor_quality/raw` | 检索区改为与平台管理页一致的四档 |
 
 ### 迁移经验留档
 

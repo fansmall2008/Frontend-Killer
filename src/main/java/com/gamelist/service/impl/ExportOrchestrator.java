@@ -81,6 +81,8 @@ public class ExportOrchestrator {
 
         // 构建基础变量
         Map<String, String> vars = buildBaseVariables(request.getOutputPath(), platform);
+        // 注入模板声明变量的用户填写值（未填时用模板 default 按当前上下文解析）
+        applyTemplateVariables(vars, template, request.getTemplateVariables(), platform);
 
         // 获取游戏列表
         List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
@@ -129,6 +131,11 @@ public class ExportOrchestrator {
                 taskService.updateTaskProgress(task.getId(), progress, "数据文件生成完成", 0, 100);
             } else {
                 logger.info("v3 导出: 跳过数据文件生成");
+            }
+
+            // 5. 生成使用说明（output.readme 声明，模板驱动）
+            if (output.getReadme() != null && output.getReadme().isEnabled()) {
+                generateReadme(output.getReadme(), platform, vars);
             }
 
             taskService.completeTask(task.getId(), "v3 导出完成", buildCompletionResult(request.getOutputPath(), missingParents));
@@ -180,12 +187,15 @@ public class ExportOrchestrator {
     private List<String> copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
                                 Platform platform, Map<String, String> vars,
                                 int threadCount, Long taskId) {
-        String romsDir = resolveTemplateString(romsConfig.getDirectory(), platform, vars);
+        // roms.directory 可能含 per-game 表达式（如 if(genre,...)），在 createDirectories 中已创建基础路径
+        // 此处为每个游戏重新求值，确保 genre 等字段正确参与计算
+        String rawDirTemplate = romsConfig.getDirectory();
+        String baseRomsDir = resolveTemplateString(rawDirTemplate, platform, vars);
         String rawFilenameTemplate = romsConfig.getFilename();
         final String filenameTemplate = (rawFilenameTemplate == null || rawFilenameTemplate.isEmpty())
                 ? "{filename}{ext}" : rawFilenameTemplate;
 
-        logger.info("复制 ROM 文件: {} 个游戏 → {}, 文件名模板: {}", games.size(), romsDir, filenameTemplate);
+        logger.info("复制 ROM 文件: {} 个游戏 → {}, 文件名模板: {}", games.size(), baseRomsDir, filenameTemplate);
 
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         boolean enableM3U = romsConfig.getM3u() != null && romsConfig.getM3u().isEnabled();
@@ -195,9 +205,11 @@ public class ExportOrchestrator {
         for (Game game : games) {
             executor.submit(() -> {
                 try {
-                    copySingleGameFile(game, romsDir, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId);
+                    // 为当前游戏重新求值 roms.directory（支持 genre 等 per-game 字段）
+                    String romsDirForGame = resolveRomDirForGame(rawDirTemplate, game, platform, vars);
+                    copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId);
                     // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
-                    copyParentRomIfMissing(game, romsDir, taskId, missingParents);
+                    copyParentRomIfMissing(game, romsDirForGame, taskId, missingParents);
                 } catch (Exception e) {
                     logger.error("复制 ROM 文件失败: {}", game.getName(), e);
                 }
@@ -326,6 +338,29 @@ public class ExportOrchestrator {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * 为单个游戏求值 roms.directory（支持 genre 等 per-game 字段的表达式）。
+     */
+    private String resolveRomDirForGame(String dirTemplate, Game game, Platform platform, Map<String, String> vars) {
+        logger.info("[DEBUG] resolveRomDirForGame: template={}, genre={}, isExpression={}", 
+            dirTemplate, game.getGenre(), TemplateExpressionEngine.isExpression(dirTemplate));
+        if (dirTemplate == null || !TemplateExpressionEngine.isExpression(dirTemplate)) {
+            return resolveTemplateString(dirTemplate, platform, vars);
+        }
+        try {
+            Map<String, String> gameVars = buildGameVariables(game, vars);
+            TemplateExpressionEngine.Context ctx = new TemplateExpressionEngine.Context(game, platform, gameVars);
+            String result = TemplateExpressionEngine.evaluate(dirTemplate, ctx);
+            logger.info("[DEBUG] evaluate result: {}", result);
+            if (result != null && !result.isEmpty()) {
+                return result;
+            }
+        } catch (Exception e) {
+            logger.warn("[DEBUG] roms.directory 表达式求值失败: {}", e.getMessage(), e);
+        }
+        return resolveTemplateString(dirTemplate, platform, vars);
     }
 
     /**
@@ -486,7 +521,10 @@ public class ExportOrchestrator {
                         }
 
                         // 目标路径 = mediaDirectory + resolvedTarget
-                        String resolvedTarget = resolveTemplateString(rule.getTarget(), platform, gameVars);
+                        // target 支持表达式引擎（如 sanitize(name, charset)），失败回退到变量替换
+                        String targetTemplate = rule.getTarget();
+                        if (targetTemplate == null || targetTemplate.isEmpty()) continue;
+                        String resolvedTarget = evaluateFilenameTemplate(targetTemplate, game, platform, gameVars, sourcePath);
                         if (resolvedTarget == null || resolvedTarget.isEmpty()) continue;
 
                         Path targetPath = Paths.get(mediaDir, resolvedTarget);
@@ -524,6 +562,38 @@ public class ExportOrchestrator {
         v3ExportService.exportToFile(games, template, platform, vars);
     }
 
+    /**
+     * 生成使用说明文件（output.readme 声明）。
+     * <p>
+     * directory/filename/content 均支持模板变量替换（{outputPath}、{platform.xxx} 等），
+     * 说明内容本身由模板定义，Java 只负责替换变量与写文件。
+     */
+    private void generateReadme(TemplateV3.ReadmeOutput readme, Platform platform, Map<String, String> vars) {
+        try {
+            String dir = resolveTemplateString(readme.getDirectory(), platform, vars);
+            String fileName = resolveTemplateString(readme.getFilename(), platform, vars);
+            if (dir == null || dir.isEmpty() || fileName == null || fileName.isEmpty()) {
+                logger.warn("readme 配置缺少 directory/filename，跳过生成");
+                return;
+            }
+            Path dirPath = Paths.get(dir);
+            Files.createDirectories(dirPath);
+
+            StringBuilder sb = new StringBuilder();
+            if (readme.getContent() != null) {
+                for (String line : readme.getContent()) {
+                    String resolved = resolveTemplateString(line, platform, vars);
+                    sb.append(resolved != null ? resolved : "").append("\n");
+                }
+            }
+            Path readmePath = dirPath.resolve(fileName);
+            Files.writeString(readmePath, sb.toString());
+            logger.info("使用说明生成完成: {}", readmePath.toAbsolutePath());
+        } catch (Exception e) {
+            logger.error("使用说明生成失败", e);
+        }
+    }
+
     // ==================== 变量构建 ====================
 
     /**
@@ -544,6 +614,34 @@ public class ExportOrchestrator {
         }
 
         return vars;
+    }
+
+    /**
+     * 注入模板声明变量的用户填写值。
+     * <p>
+     * 仅处理 {@link TemplateV3#getValidVariables()} 声明的合法变量（变量名已排除与内置变量冲突）。
+     * 用户填写值优先；未填写时若模板声明了 default，则以当前 vars 为上下文解析 default
+     * （支持 {platform.xxx} 等占位符，按平台自动展开）后填入。
+     * 这样变量即可用于 {name} 路径占位符替换与表达式引擎的裸标识符拼接（如 URL）。
+     */
+    private void applyTemplateVariables(Map<String, String> vars, TemplateV3 template,
+                                       Map<String, String> userVars, Platform platform) {
+        if (template == null) return;
+        java.util.List<TemplateV3.TemplateVariable> declared = template.getValidVariables();
+        if (declared.isEmpty()) return;
+        for (TemplateV3.TemplateVariable var : declared) {
+            String name = var.getName();
+            String value = userVars != null ? userVars.get(name) : null;
+            if (value == null || value.isEmpty()) {
+                String def = var.getDefaultValue();
+                if (def != null && !def.isEmpty()) {
+                    value = resolveTemplateString(def, platform, vars);
+                }
+            }
+            if (value != null) {
+                vars.put(name, value);
+            }
+        }
     }
 
     /**
@@ -659,9 +757,26 @@ public class ExportOrchestrator {
 
     /**
      * 解析模板字符串：替换 {platform.xxx} 和 {variable} 占位符。
+     * <p>
+     * 若模板是表达式（含函数调用），则优先用表达式引擎求值；失败回退到简单变量替换。
      */
     private String resolveTemplateString(String template, Platform platform, Map<String, String> vars) {
         if (template == null) return null;
+
+        // 尝试表达式引擎（支持 if/concat/map/sanitize 等）
+        if (TemplateExpressionEngine.isExpression(template)) {
+            try {
+                TemplateExpressionEngine.Context ctx = new TemplateExpressionEngine.Context(null, platform, vars);
+                String result = TemplateExpressionEngine.evaluate(template, ctx);
+                if (result != null && !result.isEmpty()) {
+                    return result;
+                }
+            } catch (Exception e) {
+                logger.debug("表达式求值失败，回退到变量替换: {}", e.getMessage());
+            }
+        }
+
+        // 回退：简单变量替换
         String result = template;
         if (platform != null) {
             result = result

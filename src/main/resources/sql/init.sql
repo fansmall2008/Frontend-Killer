@@ -622,3 +622,19 @@ CREATE INDEX IF NOT EXISTS idx_game_platform_id      ON game(platform_id);
 CREATE INDEX IF NOT EXISTS idx_game_platform_scraped ON game(platform_id, scraped);
 CREATE INDEX IF NOT EXISTS idx_game_name             ON game(name);
 CREATE INDEX IF NOT EXISTS idx_game_path             ON game(path);
+
+-- ============================================================
+-- term_mapping 方言映射表（TODO #10/#9）：多对一 source_term -> target_term
+-- category 区分用途：system_alias（系统别名）/ genre（类型归类，预留）
+-- 种子数据由 TermMappingInitializer 负责（表空时插入）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS term_mapping (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    source_term VARCHAR(255) NOT NULL,
+    target_term VARCHAR(255) NOT NULL,
+    category    VARCHAR(50)  NOT NULL DEFAULT 'system_alias',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_term_mapping_source_category ON term_mapping(source_term, category);

@@ -36,7 +36,10 @@ v3 templates use a unified JSON structure:
   },
   "output": {
     // Export configuration (export templates only)
-  }
+  },
+  "variables": [
+    // Optional: template variables the user sets before execution (see 3.4)
+  ]
 }
 ```
 
@@ -117,6 +120,19 @@ platform.system + "_" + filename
 - `MM/dd/yyyy`
 - `dd/MM/yyyy`
 
+#### 2.2.5 Dialect Mapping Functions
+
+| Function | Syntax | Description | Example |
+|----------|--------|-------------|---------|
+| `map` | `map(value[, category])` | Dialect mapping: returns the mapped target word on hit, otherwise the original value | `map(genre, "genre")` |
+
+`map()` performs deterministic translation using the system's **dialect mapping table** (term_mapping, maintained in System Settings), e.g. normalizing scraped English genres to Chinese: `Beat-'Em-Up` → `清版游戏`.
+
+- `map(value)`: searches all mapping categories (the `system_alias` category is internal to platform-system matching and is excluded); if one word hits multiple categories, the first in category-name dictionary order is used for deterministic results
+- `map(value, category)`: searches only the specified category
+- Source words are normalized before lookup (lowercased, spaces and punctuation stripped), so `Beat'em Up`, `beat-em-up` and `BEAT EM UP` are treated as the same word
+- On miss the input value is returned unchanged, no error is raised
+
 ### 2.3 Expression Examples
 
 ```
@@ -143,6 +159,10 @@ trim(replace(name, " ", "_"))
 # Conditional expressions
 if(video, "Has video", "No video")
 default(desc, "No description")
+
+# Dialect mapping
+map(genre, "genre")
+map(desc)
 
 # Complex expressions
 (name or filename) + ".jpg"
@@ -227,6 +247,45 @@ The system automatically injects the following computed variables in import temp
 - `path` = `./roms/nes/supermario.nes`
 - `filename` = `supermario`
 - `filepath` = `roms/nes/supermario`
+
+### 3.4 Template Variables (variables block)
+
+Some values are unknown during the "game processing stage" and must be set by the user **before** the import/export action runs (e.g. a URL prefix for concatenation, or the folder name where ROMs are placed after export). The v3 template offers an optional top-level `variables` block to declare them; when a template with variable declarations is selected, clicking import/export pops up a dialog showing each **variable name, input field, and description**, and the entered values are sent to the backend as global variables with the request.
+
+```json
+"variables": [
+  {
+    "name": "romSubdir",
+    "label": "ROM Folder",
+    "description": "Sub-folder under the output directory where ROMs are placed; the playlist path points into it",
+    "type": "text",
+    "default": "{platform.system}",
+    "required": true
+  }
+]
+```
+
+| Field | Description |
+|-------|-------------|
+| `name` | Variable name used in expressions and `{xxx}` placeholders; must be an identifier (letter/underscore start), must not clash with a built-in variable |
+| `label` | Name shown in the dialog |
+| `description` | Explanation shown in the dialog (why it is needed / what it does) |
+| `type` | Only `text` \| `path` (`path` provides a path browser in the dialog) |
+| `default` | Optional default, supports `{platform.xxx}` placeholders, resolved per platform at execution |
+| `required` | Defaults to `false`; when empty and `required=true` the frontend blocks submit and the backend returns 400 |
+
+**Behavior**:
+- Variable values are **not persisted**; they must be entered for every import/export.
+- A multi-platform batch export pops up once; all platforms **share the same** values. Platform differences are handled via `{platform.xxx}` in `default`/expressions.
+- When a variable name clashes with a built-in, the built-in wins (the declaration is ignored with a WARN log), keeping old templates unaffected.
+- Templates without a `variables` block behave exactly as before.
+
+**Using variables in a template (concatenating URLs / strings)**: injected variables live in the same vars map, and the engine reads it through two channels, so a variable can be concatenated directly:
+
+1. **`{var}` placeholder channel**: literal `{key}→value` replacement for `output.*.directory`, `filename`, header/footer lines, etc. e.g. `"directory": "{outputPath}/{romSubdir}"`.
+2. **Bare-identifier expression channel**: the variable name can appear directly inside `concat(...)`, `+`, etc. e.g. `"image": "concat(cdnBase, '/', platform.system, '/', filename(name), '.png')"`.
+
+When a variable is empty, `concat`/`+` skip empty values or return null per existing semantics, without affecting other fields. See the sample template: `rules/export/retroarch-folder-v3.json`.
 
 ---
 

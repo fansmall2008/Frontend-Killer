@@ -12,6 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
 import com.gamelist.model.TemplateV3;
@@ -31,16 +40,20 @@ import com.gamelist.util.TemplateExpressionEngine;
  *   <li>写入输出文件</li>
  * </ol>
  * <p>
- * 支持两种输出格式：
+ * 支持三种输出格式：
  * <ul>
  *   <li>text — 纯文本 key-value 格式（如 Pegasus metadata.txt）</li>
  *   <li>data/xml — XML 标签格式（如 EmulationStation gamelist.xml）</li>
+ *   <li>data/json — JSON 格式（如 RetroArch playlist），顶层字段与条目数组由模板声明</li>
  * </ul>
  */
 @Service
 public class TemplateV3ExportService {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateV3ExportService.class);
+
+    /** JSON 序列化（线程安全，复用） */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * 使用 v3 模板生成数据文件。
@@ -67,8 +80,9 @@ public class TemplateV3ExportService {
 
         Map<String, String> vars = buildVariables(platform, variables);
         String dataFileDir = resolveTemplateString(output.getDataFile().getDirectory(), platform, vars);
-        String dataFileName = output.getDataFile().getFilename();
-        if (dataFileName == null) {
+        // 文件名同样支持模板变量（如 {platform.name}.lpl）
+        String dataFileName = resolveTemplateString(output.getDataFile().getFilename(), platform, vars);
+        if (dataFileName == null || dataFileName.isEmpty()) {
             dataFileName = template.getTemplateInfo().getDataFile();
         }
 
@@ -95,7 +109,14 @@ public class TemplateV3ExportService {
                                   Map<String, String> variables) {
         Map<String, String> vars = buildVariables(platform, variables);
         String fileType = template.getTemplateInfo().getDataFileType();
-        boolean isXml = "data".equalsIgnoreCase(fileType);
+        String format = template.getTemplateInfo().getFormat();
+        boolean isJson = "data".equalsIgnoreCase(fileType) && "json".equalsIgnoreCase(format);
+        boolean isXml = "data".equalsIgnoreCase(fileType) && !isJson;
+
+        // JSON 型：整体由顶层字段 + 条目数组组成，单独组装
+        if (isJson) {
+            return generateJsonContent(games, template, platform, vars);
+        }
 
         StringBuilder content = new StringBuilder();
 
@@ -147,6 +168,161 @@ public class TemplateV3ExportService {
             String line = evaluateTemplateLine(lineTemplate, null, platform, vars);
             content.append(line).append("\n");
         }
+    }
+
+    // ==================== JSON 格式生成 ====================
+
+    /**
+     * 生成 JSON 数据文件的完整内容。
+     * <p>
+     * 结构：output.dataFile.jsonTopLevelFields 保序输出顶层字段，
+     * 游戏条目数组输出到 output.dataFile.jsonItemsKey（默认 "items"）。
+     * 转义与缩进全部交给 Jackson。
+     */
+    private String generateJsonContent(List<Game> games, TemplateV3 template,
+                                       Platform platform, Map<String, String> vars) {
+        ObjectNode doc = MAPPER.createObjectNode();
+
+        // 顶层字段（保序）
+        TemplateV3.OutputConfig output = template.getOutput();
+        TemplateV3.DataFileOutput dataFile = output != null ? output.getDataFile() : null;
+        if (dataFile != null && dataFile.getJsonTopLevelFields() != null) {
+            for (Map<String, String> field : dataFile.getJsonTopLevelFields()) {
+                String key = field.get("key");
+                if (key == null || key.isEmpty()) {
+                    continue;
+                }
+                String rawValue = field.get("value");
+                String value = rawValue != null ? resolveTemplateString(rawValue, platform, vars) : null;
+                // 可选 type 键显式声明 JSON 类型（string/number/boolean/null），缺省 auto 推断
+                doc.set(key, toJsonNode(value, field.get("type")));
+            }
+        }
+
+        // 游戏条目数组
+        String itemsKey = (dataFile != null && dataFile.getJsonItemsKey() != null
+                && !dataFile.getJsonItemsKey().isEmpty()) ? dataFile.getJsonItemsKey() : "items";
+        ArrayNode items = MAPPER.createArrayNode();
+        for (Game game : games) {
+            Map<String, String> mediaOverrides = computeMediaPathOverrides(game, template, platform, vars);
+            items.add(buildJsonEntry(game, template, platform, vars, mediaOverrides));
+        }
+        doc.set(itemsKey, items);
+
+        try {
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(doc);
+        } catch (Exception e) {
+            logger.error("JSON 数据文件生成失败", e);
+            throw new RuntimeException("JSON 数据文件生成失败", e);
+        }
+    }
+
+    /**
+     * 生成单个游戏的 JSON 条目对象。
+     * <p>
+     * 字段顺序由模板 game.gameInfo / game.mediaInfo 的声明顺序决定（LinkedHashMap 保序）。
+     * 媒体字段优先使用 output.media.rules 计算的路径覆盖，与 text/xml 分支行为一致。
+     */
+    private ObjectNode buildJsonEntry(Game game, TemplateV3 template, Platform platform,
+                                      Map<String, String> vars, Map<String, String> mediaOverrides) {
+        ObjectNode entry = MAPPER.createObjectNode();
+        TemplateV3.GameMapping gameMapping = template.getGame();
+        Map<String, Object> gameInfoMapping = gameMapping != null ? gameMapping.getGameInfo() : null;
+        Map<String, Object> mediaInfoMapping = gameMapping != null ? gameMapping.getMediaInfo() : null;
+
+        // 游戏信息字段
+        if (gameInfoMapping != null) {
+            for (Map.Entry<String, Object> mapEntry : gameInfoMapping.entrySet()) {
+                String outputKey = mapEntry.getKey();
+                String sourceExpr = TemplateV3.toExpression(mapEntry.getValue());
+                String value = resolveExportValue(sourceExpr, game, platform, vars);
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                // 路径类字段（path/m3uPath）：按 dataFile.pathFormat 格式化路径
+                if (containsPathField(sourceExpr)) {
+                    value = PathResolver.formatExportPath(value, getPathFormat(template));
+                }
+                entry.put(outputKey, value);
+            }
+        }
+
+        // 媒体信息字段（优先使用 output.media.rules 计算的路径）
+        if (mediaInfoMapping != null) {
+            for (Map.Entry<String, Object> mapEntry : mediaInfoMapping.entrySet()) {
+                String outputKey = mapEntry.getKey();
+                String sourceNomcourt = TemplateV3.toExpression(mapEntry.getValue());
+
+                String value = mediaOverrides.getOrDefault(outputKey, null);
+                if (value == null) {
+                    value = GameFieldAccessor.getValue(game, sourceNomcourt);
+                }
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                entry.put(outputKey, value);
+            }
+        }
+
+        return entry;
+    }
+
+    /**
+     * 将字符串值推断为合适的 JSON 节点类型：
+     * 空 → null；true/false → 布尔；纯数字 → 数字；否则 → 字符串。
+     */
+    private JsonNode toJsonNode(String value) {
+        if (value == null || value.isEmpty()) {
+            return NullNode.getInstance();
+        }
+        if ("true".equals(value) || "false".equals(value)) {
+            return BooleanNode.valueOf(Boolean.parseBoolean(value));
+        }
+        try {
+            if (value.matches("-?\\d+")) {
+                return LongNode.valueOf(Long.parseLong(value));
+            }
+            if (value.matches("-?\\d+\\.\\d+")) {
+                return DoubleNode.valueOf(Double.parseDouble(value));
+            }
+        } catch (NumberFormatException e) {
+            // 超出范围，按字符串处理
+        }
+        return TextNode.valueOf(value);
+    }
+
+    /**
+     * 按显式声明的类型构造 JSON 节点（jsonTopLevelFields 每项的 type 键）：
+     * string/number/boolean/null，缺省走 auto 推断。
+     * <p>
+     * 用途：防止 auto 推断把 "1.5" 这类数字型字符串误判为 JSON 数字（如 RetroArch version 字段）。
+     */
+    private JsonNode toJsonNode(String value, String type) {
+        if (type == null || type.isEmpty() || "auto".equalsIgnoreCase(type)) {
+            return toJsonNode(value);
+        }
+        if ("null".equalsIgnoreCase(type)) {
+            return NullNode.getInstance();
+        }
+        if ("string".equalsIgnoreCase(type)) {
+            return value == null ? NullNode.getInstance() : TextNode.valueOf(value);
+        }
+        if ("boolean".equalsIgnoreCase(type)) {
+            if (value == null || value.isEmpty()) return NullNode.getInstance();
+            return BooleanNode.valueOf(Boolean.parseBoolean(value));
+        }
+        if ("number".equalsIgnoreCase(type)) {
+            if (value == null || value.isEmpty()) return NullNode.getInstance();
+            try {
+                if (value.matches("-?\\d+")) {
+                    return LongNode.valueOf(Long.parseLong(value));
+                }
+                return DoubleNode.valueOf(Double.parseDouble(value));
+            } catch (NumberFormatException e) {
+                return TextNode.valueOf(value);
+            }
+        }
+        return toJsonNode(value);
     }
 
     // ==================== 文本格式游戏条目 ====================
@@ -428,9 +604,16 @@ public class TemplateV3ExportService {
             String mediaDbValue = GameFieldAccessor.getValue(game, nomcourt);
             if (mediaDbValue == null || mediaDbValue.isEmpty()) continue;
 
-            // 解析 target 模板
+            // 解析 target 模板（支持表达式引擎，如 sanitize 函数；求值失败保留变量替换结果）
             String resolvedTarget = resolveTemplateString(rule.getTarget(), platform, gameVars);
             if (resolvedTarget == null || resolvedTarget.isEmpty()) continue;
+            if (TemplateExpressionEngine.isExpression(resolvedTarget)) {
+                TemplateExpressionEngine.Context ctx = new TemplateExpressionEngine.Context(game, platform, gameVars);
+                String evaluated = TemplateExpressionEngine.evaluate(resolvedTarget, ctx);
+                if (evaluated != null && !evaluated.isEmpty()) {
+                    resolvedTarget = evaluated;
+                }
+            }
 
             // 拼接媒体目录 + target = 媒体文件完整路径
             String mediaDir = resolveTemplateString(mediaOutput.getDirectory(), platform, gameVars);

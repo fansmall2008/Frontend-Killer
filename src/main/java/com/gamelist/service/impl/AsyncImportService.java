@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 异步导入服务
@@ -35,7 +36,8 @@ public class AsyncImportService {
     public void executeImport(Long taskId, List<String> files, String type, int threadCount,
                               String importMethod, String importTemplate, String scanPath,
                               boolean noDataFile, String fileExtensions, Long scraperSystemId,
-                              boolean enableMediaDiscovery, List<Integer> levels) {
+                              boolean enableMediaDiscovery, List<Integer> levels,
+                              Map<String, String> templateVariables) {
         try {
             if (noDataFile) {
                 taskService.updateTaskLog(taskId, "使用无数据文件导入模式");
@@ -80,19 +82,29 @@ public class AsyncImportService {
                     }
 
                     if (filePath.endsWith("gamelist.xml")) {
-                        ImportStatistics stats = gameService.importGamesFromXml(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery);
+                        ImportStatistics stats = gameService.importGamesFromXml(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery, templateVariables);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else if (filePath.endsWith("metadata.pegasus.txt")) {
-                        ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery, taskId);
+                        ImportStatistics stats = gameService.importGamesFromPegasusMetadata(filePath, importMethod, importTemplate, false, threadCount, scraperSystemId, enableMediaDiscovery, taskId, templateVariables);
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else {
-                        String errorMsg = "不支持的文件类型: " + filePath;
-                        logger.warn(errorMsg);
-                        skippedFiles.append(errorMsg).append("\n");
-                        taskService.updateTaskLog(taskId, errorMsg);
-                        continue;
+                        // 模板驱动的数据文件分发：按 v3 导入模板的 templateInfo.dataFile 模式匹配
+                        // （如 "*.lpl" → retroarch-v3.json），用户显式选择的模板优先，否则自动扫描匹配
+                        String matchedTemplate = (importTemplate != null && !importTemplate.isEmpty())
+                                ? importTemplate : gameService.findImportTemplateForFile(file.getName());
+                        if (matchedTemplate != null && !matchedTemplate.isEmpty()) {
+                            ImportStatistics stats = gameService.importGamesFromTemplate(filePath, matchedTemplate, threadCount, scraperSystemId, enableMediaDiscovery, templateVariables);
+                            importedPlatforms += stats.getImportedPlatforms();
+                            importedGames += stats.getImportedGames();
+                        } else {
+                            String errorMsg = "不支持的文件类型: " + filePath;
+                            logger.warn(errorMsg);
+                            skippedFiles.append(errorMsg).append("\n");
+                            taskService.updateTaskLog(taskId, errorMsg);
+                            continue;
+                        }
                     }
 
                     processed++;

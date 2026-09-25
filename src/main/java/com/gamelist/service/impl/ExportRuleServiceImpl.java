@@ -46,6 +46,9 @@ public class ExportRuleServiceImpl implements ExportRuleService {
         logger.info("rulesPath value: {}", rulesPath);
         logger.info("rulesDirectory value: {}", rulesDirectory);
 
+        // 清空旧数据，确保完全重载
+        v3Rules.clear();
+
         // 只从外部路径（data/rules/export/）加载规则
         File externalRulesDir = new File(rulesPath);
         logger.info("Checking externalRulesDir: {}, exists: {}, isDirectory: {}",

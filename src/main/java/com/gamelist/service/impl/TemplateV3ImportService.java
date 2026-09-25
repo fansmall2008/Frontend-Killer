@@ -23,6 +23,7 @@ import com.gamelist.model.Platform;
 import com.gamelist.model.TemplateV3;
 import com.gamelist.service.TaskService;
 import com.gamelist.util.GameFieldAccessor;
+import com.gamelist.util.GenericJsonParser;
 import com.gamelist.util.GenericTextParser;
 import com.gamelist.util.GenericXmlParser;
 import com.gamelist.util.TemplateExpressionEngine;
@@ -56,6 +57,13 @@ public class TemplateV3ImportService {
 
     /** 目录列举缓存（线程安全），避免重复 listFiles() 调用 */
     private Map<String, File[]> dirListCache;
+
+    /** 全局模板变量（执行前用户设定），注入每条游戏的 rawFields 供表达式与 {name} 占位符使用 */
+    private Map<String, String> globalVariables = new HashMap<>();
+
+    public void setGlobalVariables(Map<String, String> globalVariables) {
+        this.globalVariables = globalVariables != null ? globalVariables : new HashMap<>();
+    }
 
     public boolean isEnableMediaDiscovery() {
         return enableMediaDiscovery;
@@ -123,6 +131,11 @@ public class TemplateV3ImportService {
         if ("text".equalsIgnoreCase(fileType)) {
             return GenericTextParser.parse(dataFile, template);
         } else if ("data".equalsIgnoreCase(fileType)) {
+            // data 型按 templateInfo.format 细分（缺省视为 XML，保持向后兼容）
+            String format = template.getTemplateInfo().getFormat();
+            if ("json".equalsIgnoreCase(format)) {
+                return GenericJsonParser.parse(dataFile, template);
+            }
             return GenericXmlParser.parse(dataFile, template);
         } else {
             throw new UnsupportedOperationException("不支持的数据文件类型: " + fileType);
@@ -152,6 +165,7 @@ public class TemplateV3ImportService {
         // 收集所有展开后的 (Game, mediaValues) 对
         List<Game> allGames = new ArrayList<>();
         List<Map<String, String>> allMediaValues = new ArrayList<>();
+        List<Map<String, String>> allRawFields = new ArrayList<>();
 
         for (int idx = 0; idx < totalGames; idx++) {
             Map<String, String> rawFields = parsedGames.get(idx);
@@ -160,6 +174,13 @@ public class TemplateV3ImportService {
             if (taskId != null && taskService != null && (idx % 10 == 0 || idx == totalGames - 1)) {
                 int progress = (int) ((double) idx / totalGames * 90) + 5;
                 taskService.updateTaskProgress(taskId, progress, "解析游戏 " + (idx + 1) + "/" + totalGames, idx, totalGames);
+            }
+
+            // —— 注入全局模板变量（用户执行前设定），游戏自身解析字段优先 ——
+            for (Map.Entry<String, String> gv : globalVariables.entrySet()) {
+                if (gv.getValue() != null) {
+                    rawFields.putIfAbsent(gv.getKey(), gv.getValue());
+                }
             }
 
             // —— 注入计算变量（从模板 computedVariables 读取） ——
@@ -207,6 +228,7 @@ public class TemplateV3ImportService {
             for (Game g : expandedGames) {
                 allGames.add(g);
                 allMediaValues.add(mediaValues);
+                allRawFields.add(rawFields);
             }
         }
 
@@ -220,10 +242,11 @@ public class TemplateV3ImportService {
             for (int i = 0; i < allGames.size(); i++) {
                 final Game g = allGames.get(i);
                 final Map<String, String> mv = allMediaValues.get(i);
+                final Map<String, String> rf = allRawFields.get(i);
                 final int gameIdx = i;
 
                 futures.add(executor.submit(() -> {
-                    processMediaPaths(g, mv, baseDir, mediaDiscovery);
+                    processMediaPaths(g, mv, baseDir, mediaDiscovery, rf);
 
                     // 进度回调（每 10 个游戏更新一次）
                     int done = completedCount.incrementAndGet();
@@ -521,7 +544,7 @@ public class TemplateV3ImportService {
      */
     public void processMediaPathsForNoDataFile(Game game, Map<String, String> mediaValues,
                                                 File baseDir, TemplateV3.MediaDiscovery mediaDiscovery) {
-        processMediaPaths(game, mediaValues, baseDir, mediaDiscovery);
+        processMediaPaths(game, mediaValues, baseDir, mediaDiscovery, null);
     }
 
     /**
@@ -535,7 +558,8 @@ public class TemplateV3ImportService {
      * 只要 mediaDiscovery 启用，仍会扫描磁盘查找媒体文件。
      */
     private void processMediaPaths(Game game, Map<String, String> mediaValues,
-                                    File baseDir, TemplateV3.MediaDiscovery mediaDiscovery) {
+                                    File baseDir, TemplateV3.MediaDiscovery mediaDiscovery,
+                                    Map<String, String> rawFields) {
         Set<String> processedTypes = new HashSet<>();
 
         // —— 预构建游戏子目录文件索引（每个游戏只构建一次，所有媒体类型共享） ——
@@ -550,7 +574,7 @@ public class TemplateV3ImportService {
                 List<String> subDirPatterns = mediaDiscovery.getSubDirPatterns();
                 if (subDirPatterns != null) {
                     for (String pattern : subDirPatterns) {
-                        String folderName = resolvePattern(pattern, filename, name);
+                        String folderName = resolvePattern(pattern, filename, name, rawFields);
                         if (folderName != null && !folderName.isEmpty()) {
                             subDirIndexes.put(folderName, buildGameFileIndex(mediaBaseDir, folderName));
                         }
@@ -583,7 +607,7 @@ public class TemplateV3ImportService {
 
             // 不存在 → 仅在 enableMediaDiscovery=true 时走 mediaDiscovery 规则
             if (!found && needIndex) {
-                applyMediaDiscovery(game, nomcourt, mediaDiscovery, baseDir, subDirIndexes);
+                applyMediaDiscovery(game, nomcourt, mediaDiscovery, baseDir, subDirIndexes, rawFields);
             } else if (!found) {
                 logger.debug("媒体文件不存在且跳过 mediaDiscovery: {} → {}", nomcourt, rawPath);
             }
@@ -598,7 +622,7 @@ public class TemplateV3ImportService {
                 String existing = GameFieldAccessor.getValue(game, nomcourt);
                 if (existing != null && !existing.isEmpty()) continue;
 
-                applyMediaDiscovery(game, nomcourt, mediaDiscovery, baseDir, subDirIndexes);
+                applyMediaDiscovery(game, nomcourt, mediaDiscovery, baseDir, subDirIndexes, rawFields);
             }
         }
     }
@@ -615,7 +639,8 @@ public class TemplateV3ImportService {
      */
     private boolean applyMediaDiscovery(Game game, String nomcourt,
                                          TemplateV3.MediaDiscovery mediaDiscovery, File baseDir,
-                                         Map<String, Map<String, File>> subDirIndexes) {
+                                         Map<String, Map<String, File>> subDirIndexes,
+                                         Map<String, String> rawFields) {
         if (baseDir == null) return false;
 
         List<String> rules = mediaDiscovery.getRules().get(nomcourt);
@@ -651,13 +676,13 @@ public class TemplateV3ImportService {
 
         for (String pattern : subDirPatterns) {
             // 将模式解析为具体值
-            String folderName = resolvePattern(pattern, filename, name);
+            String folderName = resolvePattern(pattern, filename, name, rawFields);
             if (folderName == null || folderName.isEmpty()) continue;
 
             // 使用预构建的索引（由 processMediaPaths 为每个游戏统一构建）
             Map<String, File> gameFileIndex = subDirIndexes.getOrDefault(folderName, java.util.Collections.emptyMap());
 
-            if (tryDiscoveryRules(game, nomcourt, rules, folderName, name, extensions, mediaBaseDir, baseDir, gameFileIndex)) {
+            if (tryDiscoveryRules(game, nomcourt, rules, folderName, name, extensions, mediaBaseDir, baseDir, gameFileIndex, rawFields)) {
                 return true;
             }
         }
@@ -669,17 +694,34 @@ public class TemplateV3ImportService {
      * 将模式字符串解析为具体值。
      * <p>
      * 支持 {filename} 和 {name} 占位符，如果模式就是其中一个则直接返回对应值。
+     * 其他 {var} 占位符从 rawFields（含 computedVariables 注入的变量）解析，
+     * 使模板可以声明自定义变量（如 sanitize 后的名称）供 mediaDiscovery 规则使用。
      *
      * @param pattern  模式字符串，如 "{filename}" 或 "{name}"
      * @param filename ROM 文件名去扩展名
      * @param name     游戏显示名
+     * @param rawFields 原始解析字段（含 computedVariables），可为 null
      * @return 解析后的具体值
      */
-    private String resolvePattern(String pattern, String filename, String name) {
+    private String resolvePattern(String pattern, String filename, String name, Map<String, String> rawFields) {
         if (pattern == null || pattern.isEmpty()) return null;
-        return pattern
+        return replaceCustomVars(pattern
                 .replace("{filename}", filename != null ? filename : "")
-                .replace("{name}", name != null ? name : "");
+                .replace("{name}", name != null ? name : ""), rawFields);
+    }
+
+    /**
+     * 将字符串中剩余的 {var} 占位符替换为 rawFields 中同名变量的值。
+     */
+    private String replaceCustomVars(String value, Map<String, String> rawFields) {
+        if (rawFields == null || rawFields.isEmpty() || !value.contains("{")) {
+            return value;
+        }
+        String result = value;
+        for (Map.Entry<String, String> entry : rawFields.entrySet()) {
+            result = result.replace("{" + entry.getKey() + "}", entry.getValue() != null ? entry.getValue() : "");
+        }
+        return result;
     }
 
     /**
@@ -724,11 +766,12 @@ public class TemplateV3ImportService {
                                        String folderName, String name,
                                        List<String> extensions,
                                        File mediaBaseDir, File baseDir,
-                                       Map<String, File> gameFileIndex) {
+                                       Map<String, File> gameFileIndex,
+                                       Map<String, String> rawFields) {
         for (String rule : rules) {
-            String mediaPath = rule
+            String mediaPath = replaceCustomVars(rule
                     .replace("{filename}", folderName)
-                    .replace("{name}", name != null ? name : folderName);
+                    .replace("{name}", name != null ? name : folderName), rawFields);
 
             if (mediaPath.contains("{ext}")) {
                 String basePath = mediaPath.substring(0, mediaPath.indexOf("{ext}"));
@@ -978,6 +1021,7 @@ public class TemplateV3ImportService {
             case "system":      platform.setSystem(value); break;
             case "name":        platform.setName(value); break;
             case "launch":      platform.setLaunch(value); break;
+            case "database":    platform.setDatabase(value); break;
             case "sortBy":      platform.setSortBy(value); break;
             case "extensions":  platform.setExtensions(value); break;
             case "ignoreFiles": platform.setIgnoreFiles(value); break;

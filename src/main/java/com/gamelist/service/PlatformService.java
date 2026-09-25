@@ -35,4 +35,12 @@ public interface PlatformService {
     int deleteTempSubset(Long subsetId);
     Map<String, Object> getPlatformStatistics(Long platformId);
     Map<String, Object> scrapePlatform(Long platformId, Integer systemId, String region, List<String> mediaTypes);
+
+    /**
+     * 将平台绑定到刮削系统（TODO #9 匹配引导）：
+     * 绑定 systemId（自动下载 icon）；若该系统媒体未刮削且有 ScreenScraper 凭据，自动发起系统媒体刮削。
+     *
+     * @return {success, systemId, systemName, scraped, scrapeStarted, taskId?, message/errorMessage}
+     */
+    Map<String, Object> bindSystem(Long platformId, Integer systemId);
 }

@@ -1,0 +1,43 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "author": "Frontend-Killer",
+    "description": "游戏 + RetroArch 缩略图（封面/截图/标题/标志 4 种），游戏文件按方言分类建子目录",
+    "notes": "导出游戏文件和 4 种 RetroArch 标准缩略图：封面(box-2D→Named_Boxarts)、截图(ss→Named_Snaps)、标题(sstitle→Named_Titles)、标志(wheel-carbon→Named_Logos)。缩略图按 RetroArch 规则输出到 thumbnails/{平台名}/Named_* 目录，文件名按 RetroArch sanitize 规则生成（显示名中的非法字符 &*/:\\<>?| 替换为 _）。游戏有类别时用方言映射的分类缩写（map(genre)，如 FTG/ACT，多种类型用 - 连接）作为游戏文件子目录，无类别则直接放在平台目录下。不生成数据文件。"
+  },
+  "output": {
+    "exportOptions": {
+      "gameFiles": true,
+      "mediaFiles": true,
+      "gameListFile": false,
+      "showWarning": false
+    },
+    "roms": {
+      "enabled": true,
+      "directory": "{outputPath}/{platform.system}",
+      "filename": "if(genre, trim(mapFirst(genre) + \"/\" + default(name, filename) + ext), default(name, filename) + ext)"
+    },
+    "media": {
+      "directory": "{outputPath}/thumbnails/{platform.name}",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "concat('Named_Snaps/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        },
+        "sstitle": {
+          "source": "sstitle",
+          "target": "concat('Named_Titles/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        },
+        "wheel-carbon": {
+          "source": "wheel-carbon",
+          "target": "concat('Named_Logos/', sanitize(name, '&*/:\\<>?|'), '.png')"
+        }
+      }
+    }
+  }
+}

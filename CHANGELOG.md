@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Template variables collection mechanism (v3 `variables` block)
+  - Optional top-level `variables` block in v3 templates declares global variables the user sets before an import/export runs (e.g. a URL prefix, the ROM output folder)
+  - `TemplateV3.TemplateVariable` model + `getValidVariables()`/`getDeclaredVariableNames()`/`buildEffectiveVariables()` helpers; names clashing with built-in variables are ignored (built-in wins)
+  - `ExportRequest.templateVariables` and import request bodies carry user values; injected into the shared vars map so variables work in both `{var}` placeholders and `concat(...)`/`+` expressions (URL/string concatenation)
+  - `ExportOrchestrator.applyTemplateVariables` resolves per-platform `default` expressions; `TemplateV3ImportService.setGlobalVariables` injects into `rawFields` via `putIfAbsent` (game-parsed fields win)
+  - Server-side `required` validation on export/import entry points (400 with missing variable list)
+  - `GET /api/export/rules` and `/api/import/templates` expose each template's `variables` declarations
+  - Shared frontend modal `js/template-vars.js` (`tv-` prefixed, i18n keys `tv_*`) wired into `export.html` and `data-import.html`; multi-platform batch pops up once
+  - Sample template `rules/export/retroarch-folder-v3.json` (`romSubdir` + `cdnBase`)
+
 ## [1.2] - 2026-09-23
 
 ### Added

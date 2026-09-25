@@ -119,6 +119,14 @@ public class ScanController {
         private String scraperSystemId; // 选中的 scraper 系统 ID
         private boolean enableMediaDiscovery = true; // 是否执行 mediaDiscovery 规则扫描
         private List<Integer> levels; // 勾选的扫描层级集合（noDataFile 模式使用）
+        private Map<String, String> templateVariables; // 模板声明变量的用户填写值
+
+        public Map<String, String> getTemplateVariables() {
+            return templateVariables;
+        }
+        public void setTemplateVariables(Map<String, String> templateVariables) {
+            this.templateVariables = templateVariables;
+        }
 
         public List<Integer> getLevels() {
             return levels;
@@ -280,7 +288,16 @@ public class ScanController {
      * 异步执行导入任务
      */
     @PostMapping("/import")
-    public BackgroundTask importFiles(@RequestBody ImportRequest request) {
+    public org.springframework.http.ResponseEntity<Object> importFiles(@RequestBody ImportRequest request) {
+        // 校验模板声明的必填变量
+        String missingErr = validateImportTemplateVariables(request.getImportTemplate(), request.getTemplateVariables());
+        if (missingErr != null) {
+            return org.springframework.http.ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", missingErr
+            ));
+        }
+
         BackgroundTask task = taskService.createTask("IMPORT", "导入游戏数据");
 
         int threadCount = request.getThreadCount();
@@ -304,9 +321,37 @@ public class ScanController {
         asyncImportService.executeImport(task.getId(), request.getFiles(), request.getType(), threadCount,
                          request.getImportMethod(), request.getImportTemplate(), request.getScanPath(),
                          request.isNoDataFile(), request.getFileExtensions(), scraperSystemIdLong,
-                         request.isEnableMediaDiscovery(), request.getLevels());
+                         request.isEnableMediaDiscovery(), request.getLevels(), request.getTemplateVariables());
 
-        return task;
+        return org.springframework.http.ResponseEntity.ok(task);
+    }
+
+    /**
+     * 校验导入模板声明的必填变量是否已由用户填写。
+     * @return 缺失时返回错误信息，否则 null
+     */
+    private String validateImportTemplateVariables(String importTemplate, Map<String, String> userVars) {
+        if (importTemplate == null || importTemplate.isEmpty()) return null;
+        try {
+            java.io.File tplFile = new java.io.File(com.gamelist.util.PathUtil.getRulesPath() + "/import/" + importTemplate);
+            if (!tplFile.exists()) return null;
+            com.gamelist.model.TemplateV3 v3 = com.gamelist.model.TemplateV3.loadFromFile(tplFile);
+            if (v3 == null) return null;
+            List<String> missing = new ArrayList<>();
+            for (com.gamelist.model.TemplateV3.TemplateVariable var : v3.getValidVariables()) {
+                if (!var.isRequired()) continue;
+                String value = userVars != null ? userVars.get(var.getName()) : null;
+                if (value == null || value.trim().isEmpty()) {
+                    missing.add(var.getLabel() != null && !var.getLabel().isEmpty() ? var.getLabel() : var.getName());
+                }
+            }
+            if (!missing.isEmpty()) {
+                return "请先填写必需的模板变量: " + String.join(", ", missing);
+            }
+        } catch (Exception e) {
+            logger.warn("导入模板变量校验失败: {}", e.getMessage());
+        }
+        return null;
     }
 
     /**
@@ -374,11 +419,22 @@ public class ScanController {
                         importedPlatforms += stats.getImportedPlatforms();
                         importedGames += stats.getImportedGames();
                     } else {
-                        String errorMsg = "不支持的文件类型: " + filePath;
-                        logger.warn(errorMsg);
-                        skippedFiles.append(errorMsg).append("\n");
-                        taskService.updateTaskLog(taskId, errorMsg);
-                        continue;
+                        // 模板驱动的数据文件分发：按 v3 导入模板的 templateInfo.dataFile 模式匹配
+                        // （如 "*.lpl" → retroarch-v3.json），替代扩展名硬编码；
+                        // 用户显式选择的模板优先，否则自动扫描匹配
+                        String matchedTemplate = (importTemplate != null && !importTemplate.isEmpty())
+                                ? importTemplate : gameService.findImportTemplateForFile(file.getName());
+                        if (matchedTemplate != null && !matchedTemplate.isEmpty()) {
+                            ImportStatistics stats = gameService.importGamesFromTemplate(filePath, matchedTemplate, threadCount, scraperSystemId, enableMediaDiscovery);
+                            importedPlatforms += stats.getImportedPlatforms();
+                            importedGames += stats.getImportedGames();
+                        } else {
+                            String errorMsg = "不支持的文件类型: " + filePath;
+                            logger.warn(errorMsg);
+                            skippedFiles.append(errorMsg).append("\n");
+                            taskService.updateTaskLog(taskId, errorMsg);
+                            continue;
+                        }
                     }
 
                     processed++;

@@ -1,0 +1,54 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "import",
+    "dataFileType": "data",
+    "format": "json",
+    "dataFile": "*.lpl",
+    "author": "Frontend-Killer",
+    "description": "RetroArch 播放列表（.lpl）导入模板（v3 统一格式）",
+    "notes": "兼容 JSON 1.0/1.5 与裸 items 变体；path 支持纯文件、zip 与 zip#entry（导入时剥离 # 后缀）；crc32 校验 |crc 后缀后落库；缩略图按 thumbnails/<PlaylistName>/Named_* 目录发现，文件名按 RetroArch sanitize 规则匹配（&*/:\\<>?| → _）\n\n注意事项 / Notes:\n- NAS / Docker 等部署环境下，程序可能无法访问游戏 ROM 文件，文件存在性、大小等信息将无法获取\n- 播放列表条目中无 crc 信息时，刮削可能无法精确匹配游戏\n- On NAS / Docker deployments, the app may be unable to access the ROM files, so file info (existence, size, etc.) will be missing\n- Entries without crc info may fail to match games precisely during scraping"
+  },
+  "parsing": {
+    "json": {
+      "root": "items",
+      "encoding": "UTF-8"
+    }
+  },
+  "system": {
+    "fields": {
+      "platform.name": ["stem(db_name)"],
+      "platform.database": ["db_name"]
+    }
+  },
+  "game": {
+    "computedVariables": {
+      "playlistName": "stem(db_name)",
+      "safeName": "sanitize(label, '&*/:\\<>?|')",
+      "filename": "stem(after(path, '#'))"
+    },
+    "gameInfo": {
+      "name": ["label"],
+      "path": ["before(path, '#')"],
+      "crc32": ["if(matches(crc32, '^[0-9A-Fa-f]{8}\\|crc$'), before(crc32, '|'), '')"]
+    },
+    "mediaInfo": {},
+    "mediaDiscovery": {
+      "enabled": true,
+      "baseDir": "../thumbnails",
+      "subDirPatterns": [
+        "{playlistName}/Named_Boxarts",
+        "{playlistName}/Named_Snaps",
+        "{playlistName}/Named_Titles",
+        "{playlistName}/Named_Logos"
+      ],
+      "extensions": ["png", "jpg", "jpeg", "bmp", "tga"],
+      "rules": {
+        "box-2D": ["{playlistName}/Named_Boxarts/{safeName}.{ext}"],
+        "ss": ["{playlistName}/Named_Snaps/{safeName}.{ext}"],
+        "sstitle": ["{playlistName}/Named_Titles/{safeName}.{ext}"],
+        "wheel-carbon": ["{playlistName}/Named_Logos/{safeName}.{ext}"]
+      }
+    }
+  }
+}

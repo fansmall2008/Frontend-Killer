@@ -1,4 +1,10 @@
 {
+    "tv_modal_title":  "Template Variables",
+    "tv_cancel":  "Cancel",
+    "tv_confirm":  "OK",
+    "tv_required_tip":  "Required",
+    "tv_required_error":  "This field is required",
+    "tv_path_placeholder":  "Enter a path",
     "realtime_log_title":  "Real-time System Logs",
     "log_lines_label":  "Display Lines:",
     "auto_refresh_label":  "Auto Refresh",
@@ -1104,5 +1110,17 @@
     "cached_no":  "Not cached",
     "ms_placeholder":  "Click to select...",
     "ms_search_placeholder":  "Search...",
-    "ms_no_match":  "No matches"
+    "ms_no_match":  "No matches",
+    "match_modal_title":  "System Matching",
+    "match_modal_desc":  "This platform is not bound to a scraper system yet. Please choose one of the matched candidates:",
+    "match_select_label":  "Matched system",
+    "match_no_candidates":  "No matching system found. You can set it manually on the platform management page.",
+    "match_bind_btn":  "Bind system",
+    "match_later_btn":  "Later",
+    "match_binding":  "Binding system...",
+    "match_bind_success":  "System bound successfully",
+    "match_bind_failed":  "Binding failed, please try again",
+    "match_scrape_started":  "System media scraping started. Track progress on the task management page.",
+    "match_already_scraped":  "System media already scraped, skipping.",
+    "match_no_credentials":  "ScreenScraper credentials not configured, system media scraping skipped. Scrape it manually on the system management page."
 }

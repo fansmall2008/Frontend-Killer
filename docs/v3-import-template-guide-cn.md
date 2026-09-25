@@ -614,3 +614,13 @@ default(lower(name), 'unknown')
 7. **多文件游戏**：启用 `multiFile` 后，含分隔符的字段值会被展开为多条记录
 8. **媒体发现**：`mediaDiscovery` 的 `baseDir`、`subDirPatterns`、`extensions` 必须显式声明
 9. **向后兼容**：不含 `parsing`/`computedVariables`/`multiFile` 的旧 v3 模板仍可正常工作
+
+## 10. 模板变量（variables 块）
+
+导入模板也支持可选的顶层 `variables` 块，声明“执行导入前需用户设定的全局变量”（例如拼接路径的固定前缀）。字段定义与导出侧一致（`name`/`label`/`description`/`type`/`default`/`required`），详见《v3 模板系统文档》§3.4。
+
+导入侧行为：
+- 选中含 `variables` 声明的导入模板后，点击导入会弹出变量设定框，用户填写值以 `templateVariables` 字段随请求提交。
+- 服务端以声明的 `default` 为基底、用户填写值覆盖，构造有效变量表并注入 `TemplateV3ImportService` 的 `rawFields`（`putIfAbsent`，**游戏自身解析出的字段优先于全局变量**，避免覆盖真实数据）。
+- 因此变量可在 `gameInfo`/`mediaInfo` 表达式与 `{var}` 占位符中直接引用，用于拼接。变量名为内置/解析字段名时不会覆盖该字段。
+- `required=true` 且未填时，前后端双重拦截（前端阻止提交，后端返回 400）。

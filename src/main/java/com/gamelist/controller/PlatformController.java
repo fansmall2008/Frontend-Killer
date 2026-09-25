@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gamelist.model.Platform;
 import com.gamelist.service.PlatformService;
+import com.gamelist.service.SystemMatchService;
 
 @RestController
 @RequestMapping("/api/platforms")
@@ -29,6 +30,9 @@ public class PlatformController {
 
     @Autowired
     private PlatformService platformService;
+
+    @Autowired
+    private SystemMatchService systemMatchService;
 
     @GetMapping
     public ResponseEntity<List<Platform>> getAllPlatforms() {
@@ -173,6 +177,43 @@ public class PlatformController {
             errorResult.put("errorMessage", e.getMessage());
             return new ResponseEntity<>(errorResult, HttpStatus.OK);
         }
+    }
+
+    /**
+     * TODO #9：平台未绑定系统时，返回智能匹配的候选系统列表。
+     * 返回 {success, bound, terms, candidates}，bound=true 表示已绑定无需弹窗。
+     */
+    @GetMapping("/{id}/match-systems")
+    public ResponseEntity<Map<String, Object>> matchSystems(@PathVariable Long id) {
+        Platform platform = platformService.getPlatformById(id);
+        if (platform == null) {
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("message", "平台不存在");
+            return new ResponseEntity<>(errorResult, HttpStatus.NOT_FOUND);
+        }
+        Map<String, Object> result = systemMatchService.matchSystems(platform);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * TODO #9：将平台绑定到指定刮削系统；若该系统媒体未刮削，自动发起系统媒体刮削。
+     */
+    @PostMapping("/{id}/bind-system")
+    public ResponseEntity<Map<String, Object>> bindSystem(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        Object rawSystemId = request.get("systemId");
+        Integer systemId = null;
+        if (rawSystemId instanceof Number) {
+            systemId = ((Number) rawSystemId).intValue();
+        } else if (rawSystemId instanceof String) {
+            try {
+                systemId = Integer.valueOf((String) rawSystemId);
+            } catch (NumberFormatException ignored) {
+                // systemId 无效，交给 service 校验
+            }
+        }
+        Map<String, Object> result = platformService.bindSystem(id, systemId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 }

@@ -36,7 +36,10 @@ v3 模板采用统一的 JSON 结构：
   },
   "output": {
     // 导出配置（仅导出模板）
-  }
+  },
+  "variables": [
+    // 可选：执行前需用户设定的模板变量（见 3.4）
+  ]
 }
 ```
 
@@ -117,6 +120,19 @@ platform.system + "_" + filename
 - `MM/dd/yyyy`
 - `dd/MM/yyyy`
 
+#### 2.2.5 方言映射函数
+
+| 函数 | 语法 | 说明 | 示例 |
+|------|------|------|------|
+| `map` | `map(value[, category])` | 方言映射：命中方言映射表返回目标词，未命中原样返回 | `map(genre, "genre")` |
+
+`map()` 基于系统的**方言映射表**（term_mapping，可在「系统设置」中维护）做确定性翻译，例如把刮削返回的英文游戏类型统一为中文：`Beat-'Em-Up` → `清版游戏`。
+
+- `map(value)`：在全部映射分类中查找（`system_alias` 分类为平台系统匹配内部使用，不参与）；同一词命中多个分类时按分类名字典序取第一个，保证结果确定
+- `map(value, category)`：仅在指定分类中查找
+- 匹配前对源词做归一化（小写、去空格与标点），因此 `Beat'em Up`、`beat-em-up`、`BEAT EM UP` 视为同一个词
+- 未命中时原样返回输入值，不报错
+
 ### 2.3 表达式示例
 
 ```
@@ -143,6 +159,10 @@ trim(replace(name, " ", "_"))
 # 条件判断
 if(video, "有视频", "无视频")
 default(desc, "暂无描述")
+
+# 方言映射
+map(genre, "genre")
+map(desc)
 
 # 复杂表达式
 (name or filename) + ".jpg"
@@ -227,6 +247,45 @@ coalesce(box-2D, screenshot, image)
 - `path` = `./roms/nes/supermario.nes`
 - `filename` = `supermario`
 - `filepath` = `roms/nes/supermario`
+
+### 3.4 模板自定义变量（variables 块）
+
+有些数值在“游戏加工阶段”是不知道的，需要在执行导入/导出**动作之前**由用户设定（例如拼接 URL 的前缀、导出后 ROM 存放的文件夹名）。v3 模板提供可选的顶层 `variables` 块声明这些变量；选中含变量声明的模板后，点击导入/导出会弹出对话框，逐项显示**变量名、输入框、说明**，用户填写的值作为全局变量随请求发送到后端。
+
+```json
+"variables": [
+  {
+    "name": "romSubdir",
+    "label": "ROM 文件夹",
+    "description": "导出后游戏文件存放的子文件夹名，播放列表 path 会指向它",
+    "type": "text",
+    "default": "{platform.system}",
+    "required": true
+  }
+]
+```
+
+| 字段 | 说明 |
+|------|------|
+| `name` | 变量名，表达式与 `{xxx}` 占位符中使用；须为标识符（字母/下划线开头），不得与内置变量重名 |
+| `label` | 弹窗中显示的变量名 |
+| `description` | 弹窗中显示的说明（为什么需要、作用是什么） |
+| `type` | 仅 `text` \| `path` 两种（`path` 类型弹窗提供路径浏览） |
+| `default` | 可选默认值，支持 `{platform.xxx}` 等占位符，执行时按平台解析 |
+| `required` | 默认 `false`；为空且 `required=true` 时前端阻止提交、后端返回 400 |
+
+**行为约定**：
+- 变量值**不持久化**，每次导入/导出都需重新填写。
+- 多平台批量导出只弹一次框，所有平台**共享同一份**取值；平台差异通过 `default`/表达式中的 `{platform.xxx}` 解决。
+- 变量名与内置变量冲突时内置优先（该声明被忽略并打 WARN 日志），保证旧模板不受影响。
+- 无 `variables` 块的模板行为完全不变。
+
+**如何在模板中使用变量（拼接 URL / 字符串）**：注入的变量存于同一份 vars map，引擎有两条通道都会读取它，变量可直接用于拼接：
+
+1. **`{var}` 占位符通道**：对 `output.*.directory`、`filename`、header/footer 行等做字面 `{key}→value` 替换。如 `"directory": "{outputPath}/{romSubdir}"`。
+2. **表达式裸标识符通道**：变量名可直接出现在 `concat(...)`、`+` 等表达式中。如 `"image": "concat(cdnBase, '/', platform.system, '/', filename(name), '.png')"`。
+
+变量为空时，`concat`/`+` 按现有语义跳过空值或返回 null，不影响其他字段。参考示例模板：`rules/export/retroarch-folder-v3.json`。
 
 ---
 

@@ -19,6 +19,7 @@ public interface GameService {
     ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount);
     ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
     ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery);
+    ImportStatistics importGamesFromXml(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery, Map<String, String> templateVariables);
 
     ImportStatistics importGamesFromPegasusMetadata(String filePath);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, boolean metadataOnly, int threadCount);
@@ -26,6 +27,20 @@ public interface GameService {
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery);
     ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery, Long taskId);
+    ImportStatistics importGamesFromPegasusMetadata(String filePath, String importMethod, String importTemplate, boolean metadataOnly, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery, Long taskId, Map<String, String> templateVariables);
+    
+        /**
+         * 按 v3 模板导入任意 data 型数据文件（如 RetroArch .lpl），
+         * 复用通用 v3 管线（表头/系统字段映射、gameId/absolutePath/exists 补全、批量入库）。
+         */
+        ImportStatistics importGamesFromTemplate(String filePath, String importTemplate, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery);
+        ImportStatistics importGamesFromTemplate(String filePath, String importTemplate, int threadCount, Long scraperSystemId, boolean enableMediaDiscovery, Map<String, String> templateVariables);
+    
+        /**
+         * 根据文件名匹配 v3 导入模板：扫描 rules/import/*.json，
+         * 返回 templateInfo.dataFile 模式（如 "*.lpl"）匹配的模板文件名，无匹配返回 null。
+         */
+        String findImportTemplateForFile(String fileName);
 
     ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId);
     ImportStatistics importGamesFromFileScan(String scanPath, String fileExtensions, String importTemplate, int threadCount, Long taskId, Long scraperSystemId);

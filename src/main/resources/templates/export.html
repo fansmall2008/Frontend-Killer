@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <link rel="stylesheet" th:href="@{/css/export.css}">
     <script src="/js/i18n.js"></script>
+    <script src="/js/template-vars.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -379,7 +380,22 @@
                 threadCount: parseInt(document.getElementById('threadCount').value)
             };
 
-            // 预检仅关乎 ROM 关联性：未勾选游戏文件时纯模板导出，无风险，直接执行
+            // 模板若声明了执行前变量，先弹窗收集用户设定，再继续导出流程（多平台共享一份全局变量）
+            const declarations = TemplateVars.getDeclarationsForFrontend(frontendRules, frontend);
+            if (declarations && declarations.length) {
+                TemplateVars.open(declarations, {
+                    onConfirm: function (values) {
+                        baseData.templateVariables = values;
+                        runExportFlow(baseData, selected);
+                    }
+                });
+                return;
+            }
+            runExportFlow(baseData, selected);
+        });
+
+        // 预检仅关乎 ROM 关联性：未勾选游戏文件时纯模板导出，无风险，直接执行
+        function runExportFlow(baseData, selected) {
             if (!baseData.copyRoms) {
                 doExport(baseData, selected, false);
                 return;
@@ -389,7 +405,7 @@
             fetch('/api/export/preflight', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ platformIds: platformIds, frontend: frontend })
+                body: JSON.stringify({ platformIds: baseData.platformIds, frontend: baseData.frontend })
             })
             .then(r => r.json())
             .then(pf => {
@@ -400,7 +416,7 @@
                 doExport(baseData, selected, false);
             })
             .catch(() => { setLoading(false); doExport(baseData, selected, false); });
-        });
+        }
 
         function setLoading(on) {
             document.getElementById('loading').style.display = on ? 'inline-block' : 'none';
