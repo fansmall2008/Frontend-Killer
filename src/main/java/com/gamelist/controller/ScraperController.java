@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gamelist.model.ScraperRequest;
+import com.gamelist.service.ScrapeStatus;
 import com.gamelist.service.ScraperService;
-import com.gamelist.service.ThreadResourceManager;
 
 @RestController
 @RequestMapping("/api/scraper")
@@ -29,7 +29,7 @@ public class ScraperController {
     private ScraperService scraperService;
     
     @Autowired
-    private ThreadResourceManager threadResourceManager;
+    private ScrapeStatus scrapeStatus;
     
     /**
      * 启动刮削任务
@@ -166,37 +166,41 @@ public class ScraperController {
     }
     
     /**
-     * 获取线程资源管理器实时状态（包含配额信息）
+     * 获取刮削状态（包含配额信息）
      */
     @GetMapping("/thread-status")
     public ResponseEntity<?> getThreadStatus() {
         try {
-            ThreadResourceManager.ResourceSnapshot snapshot = threadResourceManager.getSnapshot();
+            Map<String, Object> snapshot = scrapeStatus.getStatusSnapshot();
             Map<String, Object> result = new java.util.LinkedHashMap<>();
             result.put("success", true);
             
             // 线程状态
             Map<String, Object> data = new java.util.LinkedHashMap<>();
-            data.put("maxThreads", snapshot.maxThreads);
-            data.put("availableThreads", snapshot.availableThreads);
-            data.put("gameInfoActive", snapshot.gameInfoActive);
-            data.put("mediaActive", snapshot.mediaActive);
-            data.put("gameInfoWaiting", snapshot.gameInfoWaiting);
-            data.put("mediaWaiting", snapshot.mediaWaiting);
+            data.put("maxThreads", snapshot.getOrDefault("maxThreads", 0));
+            data.put("availableThreads", snapshot.getOrDefault("availableThreads", 0));
+            data.put("gameInfoActive", snapshot.getOrDefault("gameInfoActive", 0));
+            data.put("mediaActive", snapshot.getOrDefault("mediaActive", 0));
+            data.put("gameInfoWaiting", snapshot.getOrDefault("gameInfoWaiting", 0));
+            data.put("mediaWaiting", snapshot.getOrDefault("mediaWaiting", 0));
             data.put("cachedMaxThreads", scraperService.getUserMaxThreads());
             
             // 配额信息
             Map<String, Object> quota = new java.util.LinkedHashMap<>();
-            quota.put("requestsToday", snapshot.requestsToday);
-            quota.put("maxRequestsPerDay", snapshot.maxRequestsPerDay);
-            quota.put("maxRequestsPerMin", snapshot.maxRequestsPerMin);
-            quota.put("maxDownloadSpeed", snapshot.maxDownloadSpeed);
-            quota.put("requestsKoToday", snapshot.requestsKoToday);
-            quota.put("userNiveau", snapshot.userNiveau);
-            quota.put("userContribution", snapshot.userContribution);
+            quota.put("requestsToday", snapshot.getOrDefault("requestsToday", 0));
+            quota.put("maxRequestsPerDay", snapshot.getOrDefault("maxRequestsPerDay", 0));
+            quota.put("maxRequestsPerMin", snapshot.getOrDefault("maxRequestsPerMin", 0));
+            quota.put("maxDownloadSpeed", snapshot.getOrDefault("maxDownloadSpeed", 0));
+            quota.put("requestsKoToday", snapshot.getOrDefault("requestsKoToday", 0));
+            quota.put("userNiveau", snapshot.getOrDefault("userNiveau", 0));
+            quota.put("userContribution", snapshot.getOrDefault("userContribution", 0));
             // 计算配额使用百分比
-            if (snapshot.maxRequestsPerDay > 0) {
-                quota.put("usagePercent", Math.round((float) snapshot.requestsToday / snapshot.maxRequestsPerDay * 100));
+            Object maxRequestsPerDay = snapshot.get("maxRequestsPerDay");
+            Object requestsToday = snapshot.get("requestsToday");
+            if (maxRequestsPerDay instanceof Number && ((Number) maxRequestsPerDay).intValue() > 0) {
+                int max = ((Number) maxRequestsPerDay).intValue();
+                int current = requestsToday instanceof Number ? ((Number) requestsToday).intValue() : 0;
+                quota.put("usagePercent", Math.round((float) current / max * 100));
             } else {
                 quota.put("usagePercent", 0);
             }
@@ -205,7 +209,7 @@ public class ScraperController {
             result.put("data", data);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            logger.error("获取线程状态失败", e);
+            logger.error("获取刮削状态失败", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }

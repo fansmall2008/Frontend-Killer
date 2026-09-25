@@ -5,6 +5,15 @@
 ## [1.2] - 2026-09-26
 
 ### Added
+- Unified scraping task pool with dynamic worker threads
+  - New `scrape_task` database table replaces in-memory thread management with persistent task queue
+  - `ScrapeWorkerPool` with `ThreadPoolExecutor` supports runtime dynamic thread resizing (no restart needed when SS maxThreads changes)
+  - Three-level priority scheduling: User scrape (0) > Media download (10) > Arcade auto-download (50)
+  - JSON game info tasks automatically produce media download tasks in the same queue
+  - SS quota validation on every API response; auto-adjusts thread pool when maxThreads changes
+  - Periodic quota refresh every 100 media tasks when no JSON tasks are pending
+  - `ScrapeStatus` replaces `ThreadResourceManager` for quota storage and real-time monitoring
+  - App restart auto-recovers interrupted tasks (RUNNING → PENDING on startup)
 - Theme package system
   - `ThemeController` REST API (`GET /api/themes`, `/api/themes/current`, `POST /api/themes/apply`) for listing, querying and switching themes
   - `ThemeManager` JS module loads theme config, injects CSS variable overrides and dynamically loads custom fonts

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.ScrapeTaskMapper">
+
+    <resultMap id="ScrapeTaskResultMap" type="com.gamelist.model.ScrapeTask">
+        <id column="id" property="id"/>
+        <result column="task_type" property="taskType"/>
+        <result column="game_id" property="gameId"/>
+        <result column="platform_id" property="platformId"/>
+        <result column="rom_filename" property="romFilename"/>
+        <result column="system_id" property="systemId"/>
+        <result column="ss_game_id" property="ssGameId"/>
+        <result column="media_type" property="mediaType"/>
+        <result column="media_region" property="mediaRegion"/>
+        <result column="download_url" property="downloadUrl"/>
+        <result column="local_path" property="localPath"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="status" property="status"/>
+        <result column="priority" property="priority"/>
+        <result column="order_index" property="orderIndex"/>
+        <result column="retry_count" property="retryCount"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 插入单条任务 -->
+    <insert id="insert" parameterType="com.gamelist.model.ScrapeTask" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id,
+            media_type, media_region, download_url, local_path, file_size, status, priority, order_index, retry_count, error_message)
+        VALUES (#{taskType}, #{gameId}, #{platformId}, #{romFilename}, #{systemId}, #{ssGameId},
+            #{mediaType}, #{mediaRegion}, #{downloadUrl}, #{localPath}, #{fileSize}, 
+            COALESCE(#{status}, 'PENDING'), #{priority}, #{orderIndex}, 0, #{errorMessage})
+    </insert>
+
+    <!-- 批量插入任务 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id,
+            media_type, media_region, download_url, local_path, file_size, status, priority, order_index)
+        VALUES
+        <foreach collection="list" item="task" separator=",">
+            (#{task.taskType}, #{task.gameId}, #{task.platformId}, #{task.romFilename}, #{task.systemId}, #{task.ssGameId},
+            #{task.mediaType}, #{task.mediaRegion}, #{task.downloadUrl}, #{task.localPath}, #{task.fileSize},
+            COALESCE(#{task.status}, 'PENDING'), #{task.priority}, #{task.orderIndex})
+        </foreach>
+    </insert>
+
+    <!-- 按优先级取下一个待处理任务 -->
+    <select id="pickNextPendingTask" resultMap="ScrapeTaskResultMap">
+        SELECT * FROM scrape_task 
+        WHERE status = 'PENDING' 
+        ORDER BY priority ASC, order_index ASC 
+        LIMIT 1
+    </select>
+
+    <!-- 乐观锁抢占：只有 PENDING 时才更新为 RUNNING -->
+    <update id="tryClaimTask">
+        UPDATE scrape_task 
+        SET status = 'RUNNING', updated_at = CURRENT_TIMESTAMP 
+        WHERE id = #{id} AND status = 'PENDING'
+    </update>
+
+    <!-- 更新任务状态（乐观锁） -->
+    <update id="updateStatus">
+        UPDATE scrape_task 
+        SET status = #{toStatus}, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = #{id} AND status = #{fromStatus}
+    </update>
+
+    <!-- 更新任务状态（带错误信息） -->
+    <update id="updateStatusWithError">
+        UPDATE scrape_task 
+        SET status = #{toStatus}, error_message = #{errorMessage}, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = #{id} AND status = #{fromStatus}
+    </update>
+
+    <!-- 重置所有 RUNNING 任务为 PENDING（应用重启时调用） -->
+    <update id="resetRunningToPending">
+        UPDATE scrape_task 
+        SET status = 'PENDING', updated_at = CURRENT_TIMESTAMP 
+        WHERE status = 'RUNNING'
+    </update>
+
+    <!-- 按类型和状态统计 -->
+    <select id="countByTypeAndStatus" resultType="int">
+        SELECT COUNT(*) FROM scrape_task 
+        WHERE task_type = #{type} AND status = #{status}
+    </select>
+
+    <!-- 按平台ID和状态统计 -->
+    <select id="countByPlatformIdAndStatus" resultType="int">
+        SELECT COUNT(*) FROM scrape_task 
+        WHERE platform_id = #{platformId} AND status = #{status}
+    </select>
+
+    <!-- 停止指定平台的所有 PENDING 任务 -->
+    <update id="stopPendingTasksByPlatformId">
+        UPDATE scrape_task 
+        SET status = 'STOPPED', updated_at = CURRENT_TIMESTAMP 
+        WHERE platform_id = #{platformId} AND status = 'PENDING'
+    </update>
+
+    <!-- 删除指定平台的所有任务 -->
+    <delete id="deleteByPlatformId">
+        DELETE FROM scrape_task WHERE platform_id = #{platformId}
+    </delete>
+
+    <!-- 按游戏ID查找任务 -->
+    <select id="selectByGameId" resultMap="ScrapeTaskResultMap">
+        SELECT * FROM scrape_task 
+        WHERE game_id = #{gameId} 
+        ORDER BY priority ASC, order_index ASC
+    </select>
+
+    <!-- 获取下一个 order_index 值 -->
+    <select id="getNextOrderIndex" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(order_index), 0) + 1 FROM scrape_task
+    </select>
+
+</mapper>

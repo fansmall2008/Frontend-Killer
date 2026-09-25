@@ -44,18 +44,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamelist.config.ScreenScraperConfig;
 import com.gamelist.mapper.MediaDownloadTaskMapper;
+import com.gamelist.mapper.ScrapeTaskMapper;
 import com.gamelist.model.BackgroundTask;
 import com.gamelist.model.FileType;
 import com.gamelist.model.Game;
 import com.gamelist.model.GameFileInfo;
 import com.gamelist.model.MediaDownloadTask;
 import com.gamelist.model.Platform;
+import com.gamelist.model.ScrapeTask;
 import com.gamelist.model.ScraperRequest;
 import com.gamelist.model.ScraperSystem;
 import com.gamelist.service.GameService;
 import com.gamelist.service.MediaDownloadService;
 import com.gamelist.service.NotificationService;
 import com.gamelist.service.PlatformService;
+import com.gamelist.service.ScrapeStatus;
+import com.gamelist.service.ScrapeWorkerPool;
 import com.gamelist.service.ScraperService;
 import com.gamelist.service.ScraperSettingsService;
 import com.gamelist.service.ScraperSystemService;
@@ -97,6 +101,9 @@ public class ScraperServiceImpl implements ScraperService {
     private MediaDownloadTaskMapper mediaDownloadTaskMapper;
     
     @Autowired
+    private ScrapeTaskMapper scrapeTaskMapper;
+    
+    @Autowired
     private ThreadResourceManager threadResourceManager;
     
     @Autowired
@@ -110,6 +117,12 @@ public class ScraperServiceImpl implements ScraperService {
 
     @Autowired
     private com.gamelist.service.SystemSettingsService systemSettingsService;
+    
+    @Autowired(required = false)
+    private ScrapeWorkerPool scrapeWorkerPool;
+    
+    @Autowired
+    private ScrapeStatus scrapeStatus;
 
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -206,15 +219,26 @@ public class ScraperServiceImpl implements ScraperService {
         currentScrapingTaskId = taskId;
         
         logger.info("任务ID: {}, 描述: {}", taskId, taskDescription);
-        logger.info("正在异步执行刮削...");
+        logger.info("正在创建刮削任务...");
         
-        // 5. 异步执行刮削（使用两阶段线程分配策略）
-        scrapeGamesWithTwoPhaseStrategy(taskId, request, platform.getSystemId(), maxThreads);
+        // 5. 获取游戏列表并创建任务
+        List<Game> games = getTargetGames(request);
+        int totalGames = games.size();
+        
+        if (totalGames == 0) {
+            taskService.completeTask(taskId, "没有游戏需要刮削", "没有游戏需要刮削");
+            return Map.of("success", true, "taskId", taskId, "message", "没有游戏需要刮削");
+        }
+        
+        // 6. 创建游戏信息刮削任务（写入 scrape_task 表）
+        enqueueGameInfoTasks(games, request, platform.getSystemId(), taskId, ScrapeTask.PRIORITY_USER_SCRAPE);
+        
+        logger.info("已创建 {} 个游戏信息刮削任务，等待 ScrapeWorkerPool 处理", totalGames);
         
         return Map.of(
             "success", true,
             "taskId", taskId,
-            "message", "刮削任务已启动，请在任务管理页面查看进度。游戏信息和媒体文件将异步进行。"
+            "message", String.format("刮削任务已创建，共 %d 个游戏。系统会自动处理。", totalGames)
         );
     }
     
@@ -1026,6 +1050,42 @@ public class ScraperServiceImpl implements ScraperService {
         } catch (Exception e) {
             logger.error("调用ssuserInfos.php获取用户信息失败: {}", e.getMessage(), e);
             return 1;
+        }
+    }
+    
+    @Override
+    public JsonNode fetchUserInfosFromSS() {
+        try {
+            Map<String, String> settings = scraperSettingsService.getSettings();
+            String username = settings.get("username");
+            String password = settings.get("password");
+
+            if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+                logger.warn("未设置ScreenScraper用户凭证，无法查询用户信息");
+                return null;
+            }
+
+            String baseUrl = scraperConfig.getBaseUrl();
+            okhttp3.HttpUrl.Builder urlBuilder = okhttp3.HttpUrl.parse(baseUrl + "/api2/ssuserInfos.php").newBuilder();
+            urlBuilder.addQueryParameter("devid", scraperConfig.getDevPseudo());
+            urlBuilder.addQueryParameter("devpassword", scraperConfig.getDevPassword());
+            urlBuilder.addQueryParameter("softname", "FrontendKiller");
+            urlBuilder.addQueryParameter("output", "json");
+            urlBuilder.addQueryParameter("ssid", username);
+            urlBuilder.addQueryParameter("sspassword", password);
+
+            String url = urlBuilder.build().toString();
+            String response = executeRequest(url);
+
+            if (response == null || response.isEmpty()) {
+                logger.warn("ssuserInfos.php返回空响应");
+                return null;
+            }
+
+            return objectMapper.readTree(response);
+        } catch (Exception e) {
+            logger.warn("查询SS用户信息失败: {}", e.getMessage());
+            return null;
         }
     }
     
@@ -3072,5 +3132,238 @@ public class ScraperServiceImpl implements ScraperService {
         } finally {
             connection.disconnect();
         }
+    }
+    
+    // ==================== 统一任务池相关方法 ====================
+    
+    @Override
+    public void enqueueGameInfoTasks(List<Game> games, ScraperRequest request, Integer systemId, Long taskId, int priority) {
+        if (games == null || games.isEmpty()) {
+            return;
+        }
+        
+        List<ScrapeTask> tasks = new ArrayList<>();
+        long orderIndex = System.currentTimeMillis();
+        
+        for (Game game : games) {
+            ScrapeTask task = new ScrapeTask();
+            task.setTaskType(ScrapeTask.TYPE_GAME_INFO);
+            task.setGameId(game.getId());
+            task.setPlatformId(request.getPlatformId());
+            // 从 path 提取文件名作为 romFilename
+            if (game.getPath() != null) {
+                String path = game.getPath();
+                int lastSlash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+                if (lastSlash >= 0) {
+                    task.setRomFilename(path.substring(lastSlash + 1));
+                } else {
+                    task.setRomFilename(path);
+                }
+            }
+            task.setSystemId(systemId);
+            task.setSsGameId(game.getSsGameId());
+            task.setStatus(ScrapeTask.STATUS_PENDING);
+            task.setPriority(priority);
+            task.setOrderIndex(orderIndex++);
+            tasks.add(task);
+        }
+        
+        scrapeTaskMapper.batchInsert(tasks);
+        logger.info("已创建 {} 个游戏信息刮削任务，优先级={}", tasks.size(), priority);
+    }
+    
+    @Override
+    public boolean executeGameInfoTask(ScrapeTask task) {
+        logger.info("执行游戏信息刮削任务: taskId={}, gameId={}", task.getId(), task.getGameId());
+        
+        try {
+            // 获取游戏信息
+            Game game = gameService.getGameById(task.getGameId());
+            if (game == null) {
+                logger.error("游戏不存在: gameId={}", task.getGameId());
+                return false;
+            }
+            
+            // 获取系统配置
+            ScraperSystem system = getSystemInfo(task.getSystemId());
+            if (system == null) {
+                logger.error("无法获取系统配置: systemId={}", task.getSystemId());
+                return false;
+            }
+            
+            // 处理游戏文件
+            GameFileInfo fileInfo = processGameFile(game, system);
+            
+            // 调用 ScreenScraper API 搜索游戏
+            // TODO: 需要从某处获取 request 参数，暂时使用空对象
+            ScraperRequest request = new ScraperRequest();
+            request.setPlatformId(task.getPlatformId());
+            request.setType("single");
+            
+            Map<String, Object> searchResult = searchGameWithStatus(fileInfo, system.getSystemId(), request);
+            
+            if (Boolean.TRUE.equals(searchResult.get("found"))) {
+                Map<String, Object> data = (Map<String, Object>) searchResult.get("data");
+                
+                // 更新游戏记录
+                updateGameRecord(game, data, request);
+                
+                // 创建媒体下载任务
+                enqueueMediaTasksFromGameInfo(game, data, request, system.getName(), task.getPlatformId(), 
+                    task.getSystemId());
+                
+                logger.info("游戏信息刮削完成: gameId={}, gameName={}", game.getId(), game.getName());
+                return true;
+            } else {
+                logger.warn("游戏未找到: gameId={}, gameName={}", game.getId(), game.getName());
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("执行游戏信息刮削任务失败: taskId={}, error={}", task.getId(), e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean executeMediaDownloadTask(ScrapeTask task) {
+        logger.info("执行媒体下载任务: taskId={}, gameId={}, mediaType={}", 
+            task.getId(), task.getGameId(), task.getMediaType());
+        
+        try {
+            if (task.getDownloadUrl() == null || task.getLocalPath() == null) {
+                logger.error("媒体下载任务缺少必要参数: taskId={}", task.getId());
+                return false;
+            }
+            
+            // 解密下载 URL
+            String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
+            
+            // 下载文件
+            downloadMediaFile(decryptedUrl, task.getLocalPath());
+            
+            // 更新游戏媒体路径
+            updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
+            
+            logger.info("媒体下载完成: taskId={}, path={}", task.getId(), task.getLocalPath());
+            return true;
+        } catch (Exception e) {
+            logger.error("执行媒体下载任务失败: taskId={}, error={}", task.getId(), e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    /**
+     * 从游戏信息刮削结果创建媒体下载任务
+     */
+    private void enqueueMediaTasksFromGameInfo(Game game, Map<String, Object> searchResult, 
+            ScraperRequest request, String platformName, Long platformId, Integer ssSystemId) {
+        try {
+            JsonNode medias = (JsonNode) searchResult.get("medias");
+            if (medias == null || !medias.isArray() || medias.size() == 0) {
+                logger.info("无媒体文件需要下载: gameId={}", game.getId());
+                return;
+            }
+            
+            String preferredRegion = request.getRegion() != null ? request.getRegion().toLowerCase() : "wor";
+            Long gameId = game.getId();
+            
+            // 确保 ss_game_id 已写入
+            if (game.getSsGameId() == null) {
+                Object gameNode = searchResult.get("game");
+                if (gameNode instanceof JsonNode jeu && jeu.has("id")) {
+                    try {
+                        game.setSsGameId(jeu.get("id").asLong());
+                        gameService.updateGame(game);
+                    } catch (NumberFormatException ex) {
+                        logger.warn("SS游戏ID非数字: {}", jeu.get("id").asText());
+                    }
+                }
+            }
+            
+            // 创建媒体目录
+            Path gameMediaDir = PathResolver.resolveGameMediaDir(game, ssSystemId);
+            Files.createDirectories(gameMediaDir);
+            
+            List<ScrapeTask> mediaTasks = new ArrayList<>();
+            long orderIndex = System.currentTimeMillis();
+            
+            // 遍历媒体文件并创建任务
+            boolean scrapeAllMedia = Boolean.TRUE.equals(request.getScrapeAllMedia());
+            List<String> requestedTypes = request.getMediaTypes();
+            
+            for (JsonNode media : medias) {
+                if (!media.has("type") || !media.has("url")) continue;
+                
+                String type = media.get("type").asText();
+                String region = media.has("region") ? media.get("region").asText().toLowerCase() : "wor";
+                
+                // 检查是否需要下载这个类型
+                boolean shouldDownload = false;
+                if (scrapeAllMedia) {
+                    shouldDownload = true;
+                } else if (requestedTypes != null) {
+                    String screenScraperType = mapMediaType(type);
+                    if (screenScraperType == null) screenScraperType = type;
+                    shouldDownload = requestedTypes.contains(type) || requestedTypes.contains(screenScraperType);
+                }
+                
+                if (!shouldDownload) continue;
+                
+                // 优先区域优先
+                if (!region.equals(preferredRegion) && !scrapeAllMedia) {
+                    // 检查是否已有优先区域的同类型媒体
+                    boolean hasPreferred = false;
+                    for (JsonNode other : medias) {
+                        if (!other.has("type") || !other.has("url")) continue;
+                        if (other.get("type").asText().equals(type)) {
+                            String otherRegion = other.has("region") ? other.get("region").asText().toLowerCase() : "wor";
+                            if (otherRegion.equals(preferredRegion)) {
+                                hasPreferred = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (hasPreferred) continue;
+                }
+                
+                // 创建下载任务
+                String encryptedUrl = EncryptionUtil.encrypt(media.get("url").asText());
+                String fileName = buildMediaFileName(type, region, media);
+                String localPath = gameMediaDir.resolve(fileName).toString();
+                
+                ScrapeTask mediaTask = new ScrapeTask();
+                mediaTask.setTaskType(ScrapeTask.TYPE_MEDIA_DOWNLOAD);
+                mediaTask.setGameId(gameId);
+                mediaTask.setPlatformId(platformId);
+                mediaTask.setSystemId(ssSystemId);
+                mediaTask.setSsGameId(game.getSsGameId());
+                mediaTask.setMediaType(type);
+                mediaTask.setMediaRegion(region);
+                mediaTask.setDownloadUrl(encryptedUrl);
+                mediaTask.setLocalPath(localPath);
+                mediaTask.setStatus(ScrapeTask.STATUS_PENDING);
+                mediaTask.setPriority(ScrapeTask.PRIORITY_MEDIA_DOWNLOAD);
+                mediaTask.setOrderIndex(orderIndex++);
+                mediaTasks.add(mediaTask);
+            }
+            
+            if (!mediaTasks.isEmpty()) {
+                scrapeTaskMapper.batchInsert(mediaTasks);
+                logger.info("已创建 {} 个媒体下载任务 for gameId={}", mediaTasks.size(), gameId);
+            }
+        } catch (Exception e) {
+            logger.error("创建媒体下载任务失败: gameId={}", game.getId(), e);
+        }
+    }
+    
+    /**
+     * 构建媒体文件名
+     */
+    private String buildMediaFileName(String type, String region, JsonNode media) {
+        String ext = "png"; // 默认扩展名
+        if (media.has("format")) {
+            ext = media.get("format").asText();
+        }
+        return String.format("%s_%s.%s", type, region, ext);
     }
 }

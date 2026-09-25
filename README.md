@@ -8,6 +8,7 @@
 
 ## What's New in 1.2
 
+- **Unified Scraping Task Pool & Dynamic Threads** - Completely redesigned scraping architecture: database-backed task queue (`scrape_task`) replaces in-memory thread management; `ThreadPoolExecutor` with runtime dynamic resizing (no restart when SS maxThreads changes); three-level priority scheduling (user scrape > media download > arcade auto-download); SS quota auto-validation on every API call; app restart auto-recovers interrupted tasks
 - **Theme Package System** - Customizable UI themes with `data/themes/{themeId}/theme.json` configuration; supports colors (dark/light mode), custom fonts, and per-theme sound effects; theme grid UI in system settings with live preview cards
 - **Scraper Stability Fix** - Fixed scraping hang/deadlock caused by `ThreadResourceManager` counter corruption; media downloads now use an independent `Semaphore` decoupled from the shared game-info thread pool
 - **Media Download Performance** - Media download throughput improved with 64KB buffer (was 8KB) and independent concurrency control (3 parallel downloads) that no longer competes with game info scraping threads

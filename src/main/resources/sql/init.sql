@@ -422,6 +422,32 @@ CREATE TABLE IF NOT EXISTS media_download_task (
     FOREIGN KEY (game_id) REFERENCES game(id)
 );
 
+-- 统一刮削任务池表（游戏信息刮削/媒体下载/街机自动下载）
+CREATE TABLE IF NOT EXISTS scrape_task (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    task_type VARCHAR(20) NOT NULL,
+    game_id BIGINT,
+    platform_id BIGINT,
+    rom_filename VARCHAR(500),
+    system_id INT,
+    ss_game_id BIGINT,
+    media_type VARCHAR(50),
+    media_region VARCHAR(10),
+    download_url VARCHAR(1024),
+    local_path VARCHAR(1024),
+    file_size BIGINT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    priority INT DEFAULT 0,
+    order_index BIGINT DEFAULT 0,
+    retry_count INT DEFAULT 0,
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_scrape_task_status_priority ON scrape_task(status, priority, order_index);
+CREATE INDEX IF NOT EXISTS idx_scrape_task_platform_status ON scrape_task(platform_id, status);
+CREATE INDEX IF NOT EXISTS idx_scrape_task_game_id ON scrape_task(game_id);
+
 -- ============================================================
 -- 增量补全已有数据库缺失的列（ALTER TABLE IF NOT EXISTS）
 -- 对于已存在的表，CREATE TABLE IF NOT EXISTS 不会添加新列，
