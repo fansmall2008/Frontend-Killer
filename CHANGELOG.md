@@ -36,6 +36,12 @@
   - `GET /api/gamelist/filter-options` returns developers, publishers and a genre tree (top-level with children)
   - `publishers` filter parameter added to game list and platform game endpoints
   - Built-in `ss-genres.json` caches ScreenScraper's 159 genres with parent-child relations (zero runtime API calls)
+- Genre dialect mapping (term mapping system)
+  - `term_mapping` table with many-to-one structure: multiple source terms → single normalized target, keyed by `(source_term, category)`
+  - 261 seed entries across 2 categories (`genre` for genre normalization, `system_alias` for platform matching)
+  - `map(value)` and `mapFirst(value)` expression functions in v3 export templates for runtime genre lookup
+  - `map()` returns all matching targets (for multi-value scenarios); `mapFirst()` returns single value (for directory names)
+  - Racing/Driving dialect mapping added to unify synonymous genre terms
 
 ### Changed
 - Full Thymeleaf migration: all 18 pages converted from static HTML to Thymeleaf templates with shared layout fragments
@@ -57,7 +63,6 @@
 - Genre filtering broken for multi-genre games (`genre IN` exact match vs comma-separated values; now matches `genreid` with comma-boundary LIKE)
 - Scrape-status filter not working (frontend sent `fully/partially/not` while SQL expected `scraped/original/poor_quality/raw`; search area now offers the same four statuses as platform management)
 - Export genre subdirectory fragmentation: `map()` returned all matching dialect combos producing directory names like `ACT-AVG` instead of a single folder; switched to `mapFirst()` for single-value result
-- Racing/Driving genre dialect mapping added to term_mapping for correct genre normalization
 - `poor_quality` scrape-status filter too broad: original SQL matched any scraped game missing a single media type (box_2d/ss/wheel all null for every scraped game), making it indistinguishable from `scraped`; redefined to check metadata completeness (desc/developer/publisher/genre/releasedate)
 
 ### Breaking Changes

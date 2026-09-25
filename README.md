@@ -15,7 +15,8 @@
 - **Batch Aggregation Endpoints** - Single GROUP BY queries replace N+1 COUNT/statistics calls for media-download summaries and platform stats
 - **Template Media-Type Preset** - Scrape modals can preset media types directly from an export template
 - **Thymeleaf Migration & UI Polish** - Unified server-side layout, icon-based action buttons, and row-click editing across pages
-- **Export & Filter Fixes** - Genre subdirectory export uses `mapFirst()` for single-value results; Racing/Driving dialect mapping added; `poor_quality` filter redefined to check metadata completeness instead of media presence
+- **Genre Dialect Mapping** - Term mapping system (`term_mapping` table) with 261 seed entries normalizes genre synonyms across languages and frontends (e.g. "Beat'em Up" / "act" → unified target); `map()` and `mapFirst()` expression functions available in v3 export templates for genre subdirectory generation; Racing/Driving dialect mapping added
+- **Export & Filter Fixes** - `poor_quality` scrape-status filter redefined to check metadata completeness (desc/developer/publisher/genre/releasedate) instead of media presence
 - **Performance & Stability Fixes** - Fixed import performance, SSE zombie connections, missing xz dependency, and H2 summary bugs
 - **Internationalization** - Continued Chinese / English / Japanese coverage across pages
 
