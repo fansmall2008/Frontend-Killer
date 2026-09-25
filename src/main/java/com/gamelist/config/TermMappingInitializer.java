@@ -140,7 +140,8 @@ public class TermMappingInitializer implements ApplicationRunner {
 
     private boolean hasSeedData(Connection connection) {
         try (Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM term_mapping")) {
+             ResultSet rs = statement.executeQuery(
+                     "SELECT COUNT(*) FROM term_mapping WHERE category = 'system_alias'")) {
             if (rs.next()) {
                 return rs.getLong(1) > 0;
             }

@@ -63,6 +63,7 @@ INSERT INTO term_mapping (source_term, target_term, category) VALUES
 ('gg', '21', 'system_alias'),
 ('gamegear', '21', 'system_alias'),
 ('saturn', '22', 'system_alias'),
+('ss', '22', 'system_alias'),
 ('segasturn', '22', 'system_alias'),
 ('dc', '23', 'system_alias'),
 ('dreamcast', '23', 'system_alias'),

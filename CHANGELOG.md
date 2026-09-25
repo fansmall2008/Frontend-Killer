@@ -42,6 +42,7 @@
   - `map(value)` and `mapFirst(value)` expression functions in v3 export templates for runtime genre lookup
   - `map()` returns all matching targets (for multi-value scenarios); `mapFirst()` returns single value (for directory names)
   - Racing/Driving dialect mapping added to unify synonymous genre terms
+  - System alias `ss` → Sega Saturn (systemId 22) added for smart platform matching
 
 ### Changed
 - Full Thymeleaf migration: all 18 pages converted from static HTML to Thymeleaf templates with shared layout fragments
@@ -66,6 +67,7 @@
 - Export genre subdirectory fragmentation: `map()` returned all matching dialect combos producing directory names like `ACT-AVG` instead of a single folder; switched to `mapFirst()` for single-value result
 - `poor_quality` scrape-status filter too broad: original SQL matched any scraped game missing a single media type (box_2d/ss/wheel all null for every scraped game), making it indistinguishable from `scraped`; redefined to check metadata completeness (desc/developer/publisher/genre/releasedate)
 - Notification modal positioning broken on data-import page (missing `position: fixed` CSS; moved `#notificationModal` positioning to global `theme.css` so all pages share correct fixed overlay + centering)
+- `TermMappingInitializer` seed data bug: `hasSeedData()` checked total row count but `seedGenreMappings()` ran first inserting genre rows, causing `system_alias` seeds to be skipped; fixed by filtering on `category = 'system_alias'`
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.
