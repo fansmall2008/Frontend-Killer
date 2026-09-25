@@ -36,6 +36,41 @@
             </div>
         </div>
         
+        <!-- 🎨 主题包设置 -->
+        <div class="settings-section">
+            <h2>🎨 <span data-i18n="theme_settings_title">主题包设置</span></h2>
+            <div id="themeGrid" class="theme-grid">
+                <!-- 动态生成主题卡片 -->
+            </div>
+            <p class="section-tip" data-i18n="theme_tip">选择主题包以更改界面配色、字体和音效。主题包文件存放在 data/themes/ 目录下。</p>
+        </div>
+
+        <!-- 🔊 音效设置 -->
+        <div class="settings-section">
+            <h2>🔊 <span data-i18n="sound_settings_title">音效设置</span></h2>
+            <div class="setting-item">
+                <label style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="soundEnabledToggle" style="width:auto;">
+                    <span data-i18n="sound_enabled_label">启用界面音效</span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <label data-i18n="sound_volume_label">主音量</label>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <input type="range" id="soundVolumeSlider" min="0" max="100" value="50"
+                           style="flex:1;accent-color:var(--accent-primary);">
+                    <span id="soundVolumeDisplay" style="min-width:40px;text-align:right;color:var(--text-secondary);font-size:13px;">50%</span>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label data-i18n="sound_events_label">各事件音效（点击可试听 / 开关）</label>
+                <div id="soundEventList" class="sound-event-list">
+                    <!-- 动态生成事件音效开关 -->
+                </div>
+            </div>
+            <p class="section-tip" data-i18n="sound_tip">音效使用 Web Audio API 合成，无需音频文件。自定义主题可放置 mp3/wav 文件到主题目录。</p>
+        </div>
+
         <!-- ScreenScraper 设置 -->
         <div class="settings-section">
             <h2 data-i18n="scraper_settings_title">ScreenScraper 设置</h2>
@@ -182,6 +217,8 @@
             messageDiv.textContent = message;
             messageDiv.className = `message ${isSuccess ? 'message-success' : 'message-error'}`;
             messageDiv.style.display = 'block';
+            // 音效反馈（message 元素是预存在的，MutationObserver 无法捕获）
+            SoundEngine.play(isSuccess ? 'success' : 'error');
             
             // 3秒后隐藏消息
             setTimeout(() => {
@@ -563,6 +600,109 @@
                 showMessage(I18n.t('error', '操作失败'), false);
             }
         }
+
+        // ========== 主题包设置 ==========
+        async function loadThemeSettings() {
+            const grid = document.getElementById('themeGrid');
+            try {
+                const resp = await fetch('/api/themes');
+                const themes = await resp.json();
+                const currentId = localStorage.getItem('activeThemeId') || 'default';
+                grid.innerHTML = '';
+                themes.forEach(function(theme) {
+                    const isActive = theme.id === currentId;
+                    const card = document.createElement('div');
+                    card.className = 'theme-card' + (isActive ? ' active' : '');
+                    card.setAttribute('data-theme-id', theme.id);
+                    card.innerHTML =
+                        '<div class="theme-card-preview">' +
+                            '<div class="theme-color-dots">' +
+                                '<span class="dot" style="background:#8b5cf6"></span>' +
+                                '<span class="dot" style="background:#06b6d4"></span>' +
+                                '<span class="dot" style="background:#10b981"></span>' +
+                                '<span class="dot" style="background:#f59e0b"></span>' +
+                            '</div>' +
+                            '<div class="theme-name">' + (theme.name || theme.id) + '</div>' +
+                            '<div class="theme-ver">v' + (theme.version || '1.0') + '</div>' +
+                        '</div>' +
+                        '<div class="theme-card-footer">' +
+                            '<span class="theme-desc">' + (theme.description || '') + '</span>' +
+                            (isActive ? '<span class="theme-badge">' + I18n.t('theme_active', '当前') + '</span>' :
+                                       '<button class="btn btn-sm theme-apply-btn" data-i18n="theme_apply">' + I18n.t('theme_apply', '应用') + '</button>') +
+                        '</div>';
+                    if (!isActive) {
+                        card.querySelector('.theme-apply-btn').addEventListener('click', async function(e) {
+                            e.stopPropagation();
+                            const result = await ThemeManager.switchTo(theme.id);
+                            if (result.success) {
+                                showMessage(I18n.t('theme_applied', '主题已切换') + ': ' + theme.name, true);
+                                SoundEngine.play('success');
+                                loadThemeSettings(); // 刷新主题列表
+                            } else {
+                                showMessage(result.message, false);
+                                SoundEngine.play('error');
+                            }
+                        });
+                    }
+                    grid.appendChild(card);
+                });
+            } catch (e) {
+                grid.innerHTML = '<p style="color:var(--text-secondary)">' + I18n.t('theme_load_error', '加载主题列表失败') + '</p>';
+            }
+        }
+
+        // ========== 音效设置 ==========
+        var soundEventDefs = [
+            { id: 'click',         icon: '👆', label: '按钮点击',     labelEn: 'Button Click',       labelJa: 'ボタンクリック' },
+            { id: 'success',       icon: '✅', label: '操作成功',     labelEn: 'Success',             labelJa: '成功' },
+            { id: 'error',         icon: '❌', label: '操作失败',     labelEn: 'Error',               labelJa: 'エラー' },
+            { id: 'notification',  icon: '🔔', label: '新通知',       labelEn: 'Notification',        labelJa: '通知' },
+            { id: 'task_complete', icon: '🎉', label: '任务完成',     labelEn: 'Task Complete',       labelJa: 'タスク完了' },
+            { id: 'task_fail',     icon: '💥', label: '任务失败',     labelEn: 'Task Failed',         labelJa: 'タスク失敗' },
+            { id: 'warning',       icon: '⚠️', label: '警告',         labelEn: 'Warning',             labelJa: '警告' },
+            { id: 'theme_switch',  icon: '🎨', label: '主题切换',     labelEn: 'Theme Switch',        labelJa: 'テーマ切替' }
+        ];
+
+        function initSoundSettings() {
+            // 同步 SoundEngine 状态到 UI
+            var toggle = document.getElementById('soundEnabledToggle');
+            toggle.checked = SoundEngine.enabled;
+            var slider = document.getElementById('soundVolumeSlider');
+            slider.value = Math.round(SoundEngine.masterVolume * 100);
+            document.getElementById('soundVolumeDisplay').textContent = slider.value + '%';
+
+            // 生成事件音效开关列表
+            var list = document.getElementById('soundEventList');
+            list.innerHTML = '';
+            var lang = (localStorage.getItem('language') || 'zh-CN').substring(0, 2);
+            soundEventDefs.forEach(function(evt) {
+                var row = document.createElement('div');
+                row.className = 'sound-event-row';
+                var labelText = lang === 'en' ? evt.labelEn : (lang === 'ja' ? evt.labelJa : evt.label);
+                var isEnabled = SoundEngine.isEventEnabled(evt.id);
+                row.innerHTML =
+                    '<div class="sound-event-info">' +
+                        '<span class="sound-event-icon">' + evt.icon + '</span>' +
+                        '<span>' + labelText + '</span>' +
+                    '</div>' +
+                    '<div class="sound-event-actions">' +
+                        '<button class="btn btn-sm sound-preview-btn" title="' + I18n.t('sound_preview', '试听') + '">▶</button>' +
+                        '<label class="sound-toggle-label">' +
+                            '<input type="checkbox" class="sound-event-toggle" data-event="' + evt.id + '"' +
+                                (isEnabled ? ' checked' : '') + ' style="width:auto;">' +
+                        '</label>' +
+                    '</div>';
+                // 试听按钮
+                row.querySelector('.sound-preview-btn').addEventListener('click', function() {
+                    SoundEngine.preview(evt.id);
+                });
+                // 独立开关
+                row.querySelector('.sound-event-toggle').addEventListener('change', function() {
+                    SoundEngine.setEventEnabled(evt.id, this.checked);
+                });
+                list.appendChild(row);
+            });
+        }
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -571,6 +711,8 @@
             loadScraperSettings();
             loadGameListSettings();
             loadCacheSettings();
+            loadThemeSettings();
+            initSoundSettings();
             
             // 语言选择器事件监听
             document.getElementById('languageSelect').addEventListener('change', async (e) => {
@@ -595,6 +737,17 @@
 
             // 游戏信息缓存设置按钮
             document.getElementById('saveCacheSettingsBtn').addEventListener('click', saveCacheSettings);
+
+            // 音效总开关
+            document.getElementById('soundEnabledToggle').addEventListener('change', function() {
+                SoundEngine.setEnabled(this.checked);
+            });
+            // 音量滑块
+            document.getElementById('soundVolumeSlider').addEventListener('input', function() {
+                const vol = this.value / 100;
+                SoundEngine.setVolume(vol);
+                document.getElementById('soundVolumeDisplay').textContent = this.value + '%';
+            });
 
             // 通知模态框关闭按钮
             document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);

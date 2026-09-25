@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,6 +119,10 @@ public class ScraperServiceImpl implements ScraperService {
     
     // 缓存从 API 响应中获取的 maxthreads，避免重复调用 ssuserInfos.php
     private volatile int cachedMaxThreads = 0;
+    
+    // 媒体下载独立并发控制（不与游戏信息线程竞争共享资源池）
+    private static final int MEDIA_DOWNLOAD_CONCURRENCY = 3;
+    private volatile Semaphore mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
     
     // 刮削任务控制标志
     private final AtomicBoolean isScrapingPaused = new AtomicBoolean(false);
@@ -229,6 +234,9 @@ public class ScraperServiceImpl implements ScraperService {
         resetNotFoundCount();
         
         try {
+            // ★ 关键：刮削启动时先重置资源管理器，确保不受上一次任务（刮削或媒体下载）的残留状态影响
+            // 修复日志中 observed 的计数器损坏问题：mediaActive=-6, availableThreads=12, gameInfoActive=12
+            threadResourceManager.reset();
             // 初始化线程资源管理器
             threadResourceManager.updateMaxThreads(maxThreads);
             logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -410,6 +418,11 @@ public class ScraperServiceImpl implements ScraperService {
             if (scrapeMedia) {
                 // 根据最大线程数启动多个媒体下载线程
                 // 注意：游戏信息刮削优先，所以媒体线程数设为 maxThreads（实际并发由资源管理器控制）
+                // ★ 媒体下载使用独立 Semaphore，不与游戏信息线程竞争 ThreadResourceManager 资源
+                // 这样即使所有游戏信息槽位被占满，媒体下载仍可正常进行
+                mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
+                logger.info("媒体下载并发控制: 最大 {} 个并发下载（独立于游戏信息资源池）", MEDIA_DOWNLOAD_CONCURRENCY);
+                            
                 for (int i = 0; i < maxThreads; i++) {
                     final int threadIndex = i;
                     executor.submit(() -> {
@@ -417,10 +430,10 @@ public class ScraperServiceImpl implements ScraperService {
                             // 只在第一个线程打印启动日志
                             if (threadIndex == 0) {
                                 logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                                logger.info("  📍 启动媒体下载任务 ({}个线程)", maxThreads);
+                                logger.info("  📍 启动媒体下载任务 ({}个线程, 并发={})", maxThreads, MEDIA_DOWNLOAD_CONCURRENCY);
                                 logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                             }
-                            
+                                        
                             // ★ 同时检查停止和暂停，暂停时不退出而是等待
                             while (!isScrapingStopped.get()) {
                                 // ★ 暂停检查：等待恢复，不占用资源
@@ -430,21 +443,27 @@ public class ScraperServiceImpl implements ScraperService {
                                 if (isScrapingStopped.get()) {
                                     break;
                                 }
-                                
-                                // 尝试获取资源（低优先级，游戏信息线程优先）
-                                boolean acquired = threadResourceManager.acquireForMedia(5000);
+                                            
+                                // ★ 使用独立 Semaphore 获取并发许可（不再与游戏信息线程竞争 ThreadResourceManager）
+                                boolean acquired = false;
+                                try {
+                                    acquired = mediaDownloadSemaphore.tryAcquire(5, TimeUnit.SECONDS);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    break;
+                                }
                                 if (!acquired) {
-                                    // 获取资源失败，可能是有游戏信息任务在等待或超时
+                                    // Semaphore 超时，短暂等待后重试
                                     Thread.sleep(100);
                                     continue;
                                 }
-                                
+                                            
                                 try {
                                     // 获取资源后再次检查暂停（获取资源期间可能被暂停）
                                     if (isScrapingPaused.get() || isScrapingStopped.get()) {
-                                        continue; // 释放资源后重新循环
+                                        continue; // 释放许可后重新循环
                                     }
-                                    
+                                                
                                     // 尝试获取一个待下载任务
                                     MediaDownloadTask task = mediaDownloadTaskMapper.selectOnePendingTask(taskId);
                                     if (task != null) {
@@ -452,14 +471,14 @@ public class ScraperServiceImpl implements ScraperService {
                                             // 标记为下载中（乐观锁）
                                             int updated = mediaDownloadTaskMapper.tryUpdateStatus(task.getId(), 
                                                 MediaDownloadTask.STATUS_PENDING, MediaDownloadTask.STATUS_DOWNLOADING);
-                                            
+                                                        
                                             if (updated > 0) {
                                                 String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
                                                 downloadMediaFile(decryptedUrl, task.getLocalPath());
                                                 mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_COMPLETED, null);
                                                 updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
-                                                logger.info("媒体下载完成: {} [资源状态: {}]", task.getLocalPath(), 
-                                                    threadResourceManager.getSnapshot());
+                                                logger.info("媒体下载完成: {} [Semaphore可用={}]", task.getLocalPath(), 
+                                                    mediaDownloadSemaphore.availablePermits());
                                             }
                                         } catch (ScreenScraperApiException e) {
                                             if (e.isLimitError()) {
@@ -481,10 +500,7 @@ public class ScraperServiceImpl implements ScraperService {
                                             // 检查是否还有待下载任务
                                             long pending = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
                                             if (pending == 0) {
-                                                logger.info("媒体下载线程完成: 活跃游戏={}, 活跃媒体={}, 可用={}", 
-                                                    threadResourceManager.getSnapshot().gameInfoActive,
-                                                    threadResourceManager.getSnapshot().mediaActive,
-                                                    threadResourceManager.getSnapshot().availableThreads);
+                                                logger.info("媒体下载线程完成: 游戏信息已完成且无待下载任务");
                                                 break;
                                             }
                                         }
@@ -492,8 +508,8 @@ public class ScraperServiceImpl implements ScraperService {
                                         Thread.sleep(200);
                                     }
                                 } finally {
-                                    // 关键：必须归还资源
-                                    threadResourceManager.releaseForMedia();
+                                    // 关键：必须归还 Semaphore 许可
+                                    mediaDownloadSemaphore.release();
                                 }
                             }
                         } catch (Exception e) {
@@ -3048,7 +3064,7 @@ public class ScraperServiceImpl implements ScraperService {
         try (java.io.InputStream inputStream = connection.getInputStream();
              java.io.FileOutputStream outputStream = new java.io.FileOutputStream(localPath)) {
 
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[65536]; // 64KB 缓冲区，提升大文件下载吞吐量
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);

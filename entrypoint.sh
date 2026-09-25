@@ -28,7 +28,7 @@ if [ ! -f "/app/app.jar" ]; then
     error_exit "找不到 app.jar 文件"
 fi
 
-mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR" "/data/backup" "/data/input" "/data/output" "/data/scraper/system" "/data/scraper/games"
+mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR" "/data/backup" "/data/input" "/data/output" "/data/scraper/system" "/data/scraper/games" "/data/themes"
 
 # 释放data文件夹到挂载目录（不覆盖已存在的数据库）
 if [ -d "/app/seed-data" ]; then

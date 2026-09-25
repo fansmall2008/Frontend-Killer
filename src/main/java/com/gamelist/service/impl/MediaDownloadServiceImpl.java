@@ -58,6 +58,10 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     private volatile Long currentPlatformId; // 当前下载的平台ID，用于按平台查找待下载任务
     private static final int BATCH_SIZE = 100;
     private static final long BATCH_PAUSE_MS = 30000;
+    
+    // ★ 媒体下载独立并发控制（不与游戏信息线程竞争 ThreadResourceManager 资源池）
+    private static final int MEDIA_DOWNLOAD_CONCURRENCY = 3;
+    private volatile Semaphore mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
 
     // 限流计数器 - 10秒内20次访问则休息20秒
     private final RateLimitCounter rateLimitCounter = new RateLimitCounter();
@@ -97,12 +101,15 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
             return;
         }
 
-        // 更新线程资源管理器的最大线程数（实际并发由资源管理器控制）
-        threadResourceManager.updateMaxThreads(maxThreads);
+        // ★ 不再调用 threadResourceManager.updateMaxThreads(maxThreads)
+        // 媒体下载使用独立 Semaphore，不影响游戏信息刮削的资源池
+        
+        // ★ 初始化独立 Semaphore（媒体下载不再与游戏信息线程竞争共享资源）
+        mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
+        logger.info("媒体下载并发控制: 最大 {} 个并发下载（独立于游戏信息资源池）", MEDIA_DOWNLOAD_CONCURRENCY);
         
         // 创建线程池：至少 2 个工作线程，保证 maxThreads=1 时下载不会完全串行
-        // 实际并发仍由 ThreadResourceManager.acquireForMedia() 严格控制
-        int poolSize = Math.max(maxThreads, 2);
+        int poolSize = Math.max(MEDIA_DOWNLOAD_CONCURRENCY, 2);
         ExecutorService executor = Executors.newFixedThreadPool(poolSize);
         AtomicInteger totalProcessed = new AtomicInteger(0);
 
@@ -148,10 +155,16 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                 break;
                             }
 
-                            // 关键：使用线程资源管理器获取资源（低优先级，游戏信息线程优先）
-                            boolean acquired = threadResourceManager.acquireForMedia(5000);
+                            // ★ 使用独立 Semaphore 获取并发许可（不再与游戏信息线程竞争 ThreadResourceManager）
+                            boolean acquired = false;
+                            try {
+                                acquired = mediaDownloadSemaphore.tryAcquire(5, TimeUnit.SECONDS);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
                             if (!acquired) {
-                                // 获取资源失败，可能是有游戏信息线程在等待，短暂等待后重试
+                                // Semaphore 超时，短暂等待后重试
                                 Thread.sleep(100);
                                 continue;
                             }
@@ -238,8 +251,8 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                     mediaDownloadTaskMapper.updateStatusById(mediaTask.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
                                 }
                             } finally {
-                                // 关键：必须归还资源
-                                threadResourceManager.releaseForMedia();
+                                // 关键：必须归还 Semaphore 许可
+                                mediaDownloadSemaphore.release();
                             }
                         }
                     } catch (InterruptedException e) {
@@ -280,8 +293,7 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
         } catch (Exception e) {
             logger.error("媒体下载任务执行异常: {}", e.getMessage());
         } finally {
-            // 重置资源管理器
-            threadResourceManager.reset();
+            // 不再重置 threadResourceManager（媒体下载已不再使用共享资源池）
             
             isRunning.set(false);
             isPaused.set(false);
@@ -361,7 +373,7 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                 try (InputStream inputStream = connection.getInputStream();
                      FileOutputStream outputStream = new FileOutputStream(localPath)) {
 
-                    byte[] buffer = new byte[8192];
+                    byte[] buffer = new byte[65536]; // 64KB 缓冲区，提升大文件下载吞吐量
                     int bytesRead;
                     while ((bytesRead = inputStream.read(buffer)) != -1) {
                         outputStream.write(buffer, 0, bytesRead);

@@ -2,9 +2,21 @@
 
 ## [Unreleased]
 
-## [1.2] - 2026-09-25
+## [1.2] - 2026-09-26
 
 ### Added
+- Theme package system
+  - `ThemeController` REST API (`GET /api/themes`, `/api/themes/current`, `POST /api/themes/apply`) for listing, querying and switching themes
+  - `ThemeManager` JS module loads theme config, injects CSS variable overrides and dynamically loads custom fonts
+  - `SoundEngine` JS module for per-theme sound effect support
+  - Theme grid UI in system-settings page with live preview cards and active indicator
+  - Theme storage: `data/themes/{themeId}/theme.json` with colors (dark/light mode), fonts and sounds sections
+  - Default theme (`data/themes/default/theme.json`) ships with the application
+  - Active theme persisted in `localStorage` and applied on every page load via `theme-manager.js`
+- Scraper media download resource isolation
+  - Media download threads now use an independent `Semaphore` (3 concurrent permits) instead of sharing `ThreadResourceManager` with game info threads
+  - Eliminates resource pool contention that caused scraping hangs and slow media downloads
+  - Applied to both `ScraperServiceImpl` (in-scrape media download) and `MediaDownloadServiceImpl` (standalone media download)
 - Template variables collection mechanism (v3 `variables` block)
   - Optional top-level `variables` block in v3 templates declares global variables the user sets before an import/export runs (e.g. a URL prefix, the ROM output folder)
   - `TemplateV3.TemplateVariable` model + `getValidVariables()`/`getDeclaredVariableNames()`/`buildEffectiveVariables()` helpers; names clashing with built-in variables are ignored (built-in wins)
@@ -55,6 +67,14 @@
 - Column sorting on platform-management and game-list tables (click header to sort, click again to reverse)
 
 ### Fixed
+- Scraper hang / deadlock caused by `ThreadResourceManager` counter corruption
+  - `MediaDownloadServiceImpl.finally` called `reset()` before `shutdownNow()`, but worker threads still called `releaseForMedia()` after reset, driving `mediaActive` to -6 and `availableThreads` to 12
+  - Subsequent scraping tasks inherited corrupted state (12 game info threads running instead of max 6)
+  - Fix: scraper now calls `reset()` at the start of each scraping task to ensure clean state
+- Media downloads extremely slow due to shared resource pool contention with game info threads
+  - Game info threads (high priority, 120s readTimeout) occupied all 6 resource slots, starving media download threads (low priority, 5s timeout)
+  - Fix: media downloads use independent `Semaphore` with 3 permits, completely decoupled from `ThreadResourceManager`
+- Media download throughput improved: buffer size increased from 8KB to 64KB in both `ScraperServiceImpl.downloadMediaFile` and `MediaDownloadServiceImpl.downloadMediaFileWithStatus`
 - Media download page causing system-wide slowdown (N+1 request storm → batch GROUP BY)
 - Platform details page freezing (full-table SUM CASE scan → single-platform query + index)
 - Browser spinner on page navigation (SSE zombie connections exhausting HTTP/1.1 6-connection limit)

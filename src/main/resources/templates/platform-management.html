@@ -3289,6 +3289,10 @@
             messageDiv.textContent = message;
             messageDiv.className = `message message-${type}`;
             messageDiv.style.display = 'block';
+            // 音效反馈（预存在元素，MutationObserver 无法捕获）
+            if (type === 'success') SoundEngine.play('success');
+            else if (type === 'error') SoundEngine.play('error');
+            else SoundEngine.play('notification');
             
             // 3秒后隐藏消息
             setTimeout(() => {

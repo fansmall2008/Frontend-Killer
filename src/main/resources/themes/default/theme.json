@@ -1,0 +1,75 @@
+{
+  "id": "default",
+  "name": "默认",
+  "nameEn": "Default",
+  "nameJa": "デフォルト",
+  "description": "简洁高效的默认主题，轻柔的合成音效",
+  "version": "1.0",
+  "author": "Frontend-Killer",
+  "sounds": {
+    "click": {
+      "type": "synth",
+      "freq": 880,
+      "freqEnd": 700,
+      "wave": "sine",
+      "duration": 0.05,
+      "volume": 0.25
+    },
+    "success": {
+      "type": "synth",
+      "freq": 523,
+      "freqEnd": 1047,
+      "wave": "sine",
+      "duration": 0.3,
+      "volume": 0.35
+    },
+    "error": {
+      "type": "synth",
+      "freq": 400,
+      "freqEnd": 200,
+      "wave": "sawtooth",
+      "duration": 0.3,
+      "volume": 0.25
+    },
+    "notification": {
+      "type": "synth",
+      "freq": 660,
+      "freqEnd": 880,
+      "wave": "sine",
+      "duration": 0.15,
+      "volume": 0.30
+    },
+    "task_complete": {
+      "type": "synth",
+      "freq": 440,
+      "freqEnd": 880,
+      "wave": "triangle",
+      "duration": 0.4,
+      "volume": 0.35
+    },
+    "task_fail": {
+      "type": "synth",
+      "freq": 350,
+      "freqEnd": 150,
+      "wave": "sawtooth",
+      "duration": 0.4,
+      "volume": 0.25
+    },
+    "warning": {
+      "type": "synth",
+      "freq": 600,
+      "freqEnd": 400,
+      "wave": "square",
+      "duration": 0.2,
+      "volume": 0.20
+    },
+    "theme_switch": {
+      "type": "synth",
+      "freq": 440,
+      "freqEnd": 880,
+      "wave": "sine",
+      "duration": 0.5,
+      "volume": 0.30
+    }
+  }
+}

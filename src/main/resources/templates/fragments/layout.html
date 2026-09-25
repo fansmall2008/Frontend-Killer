@@ -89,7 +89,50 @@
 
 <!-- ====== Common Scripts Fragment ====== -->
 <th:block th:fragment="common-scripts">
+    <!-- 音效引擎 & 主题管理器 -->
+    <script th:src="@{/js/sound-engine.js}"></script>
+    <script th:src="@{/js/theme-manager.js}"></script>
     <script>
+        // ---- 初始化音效引擎 + 主题 ----
+        (function() {
+            // 先用默认配置初始化 SoundEngine（主题数据异步加载后再覆盖）
+            SoundEngine.init({ sounds: {} });
+            // 异步加载当前主题（含音效配置）
+            ThemeManager.init();
+        })();
+
+        // ---- 全局通知音效拦截器（MutationObserver） ----
+        // 自动检测各页面动态插入的通知元素，根据类型播放对应音效
+        (function() {
+            var _notifSeen = new WeakSet();
+            function detectNotif(node) {
+                if (node.nodeType !== 1) return; // 只关注元素节点
+                if (_notifSeen.has(node)) return;
+                var cls = (node.className || '').toLowerCase();
+                if (cls.indexOf('notification') === -1 && cls.indexOf('toast') === -1) return;
+                _notifSeen.add(node);
+                if (cls.indexOf('success') !== -1)       SoundEngine.play('success');
+                else if (cls.indexOf('error') !== -1)    SoundEngine.play('error');
+                else if (cls.indexOf('warning') !== -1)  SoundEngine.play('warning');
+                else if (cls.indexOf('info') !== -1)     SoundEngine.play('notification');
+            }
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(m) {
+                    m.addedNodes.forEach(function(n) {
+                        detectNotif(n);
+                        if (n.querySelectorAll) n.querySelectorAll('.notification, .toast').forEach(detectNotif);
+                    });
+                });
+            });
+            observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+        })();
+
+        // ---- 全局按钮点击音效 ----
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('button, .btn, .toolbar-btn');
+            if (btn) SoundEngine.play('click');
+        });
+
         // Theme toggle
         function toggleTheme() {
             const html = document.documentElement;
@@ -98,6 +141,10 @@
             html.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             document.getElementById('themeIcon').textContent = next === 'dark' ? '☀️' : '🌙';
+            // 切换明暗后重新应用主题配色
+            if (ThemeManager.currentTheme) {
+                ThemeManager.applyTheme(ThemeManager.currentTheme);
+            }
         }
 
         // Restore saved theme
@@ -255,6 +302,7 @@
                     source.addEventListener('notification', function() {
                         refreshNotificationBadge();
                         if (window.notifPanelOpen) renderNotificationList();
+                        SoundEngine.play('notification');
                     });
                     source.addEventListener('error', function() {
                         // 服务端主动关闭或网络异常时不再自动重连，避免卡片卡住时反复握手

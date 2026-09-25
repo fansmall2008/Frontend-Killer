@@ -84,6 +84,12 @@ public class DataDirectoryInitializer implements ApplicationListener<Application
                 logger.info("日志目录创建成功: {}", logsDir.getAbsolutePath());
             }
 
+            File themesDir = new File("./data/themes");
+            if (!themesDir.exists()) {
+                themesDir.mkdirs();
+                logger.info("主题包目录创建成功: {}", themesDir.getAbsolutePath());
+            }
+
             logger.info("========== 数据目录初始化完成 ==========");
 
         } catch (Exception e) {
