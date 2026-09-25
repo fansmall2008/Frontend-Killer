@@ -8,6 +8,9 @@
 
 ## What's New in 1.2
 
+- **Theme Package System** - Customizable UI themes with `data/themes/{themeId}/theme.json` configuration; supports colors (dark/light mode), custom fonts, and per-theme sound effects; theme grid UI in system settings with live preview cards
+- **Scraper Stability Fix** - Fixed scraping hang/deadlock caused by `ThreadResourceManager` counter corruption; media downloads now use an independent `Semaphore` decoupled from the shared game-info thread pool
+- **Media Download Performance** - Media download throughput improved with 64KB buffer (was 8KB) and independent concurrency control (3 parallel downloads) that no longer competes with game info scraping threads
 - **Template Variables (v3 `variables` block)** - Optional global variables declared in templates, set by the user before import/export; shared across `{var}` placeholders and expressions
 - **Searchable Multi-Select Filters** - Developer, publisher and genre (two-level with sub-genres) filters in the game list now use searchable multi-select dropdowns; genre filtering now works correctly for multi-genre games and scrape-status filtering offers four states
 - **Notification Center** - Real-time task notifications via SSE push, with unread badge and auto-created alerts on task completion/failure
