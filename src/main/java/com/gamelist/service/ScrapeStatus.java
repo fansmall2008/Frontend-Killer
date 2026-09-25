@@ -6,6 +6,7 @@ import com.gamelist.model.ScrapeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -34,6 +35,7 @@ public class ScrapeStatus {
     // 线程池引用（延迟注入，避免循环依赖）
     private volatile ScrapeWorkerPool scrapeWorkerPool;
     
+    @Lazy
     @Autowired(required = false)
     public void setScrapeWorkerPool(ScrapeWorkerPool scrapeWorkerPool) {
         this.scrapeWorkerPool = scrapeWorkerPool;
