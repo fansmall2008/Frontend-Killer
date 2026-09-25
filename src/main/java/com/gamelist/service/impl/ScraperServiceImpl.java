@@ -36,6 +36,7 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -118,6 +119,7 @@ public class ScraperServiceImpl implements ScraperService {
     @Autowired
     private com.gamelist.service.SystemSettingsService systemSettingsService;
     
+    @Lazy
     @Autowired(required = false)
     private ScrapeWorkerPool scrapeWorkerPool;
     
