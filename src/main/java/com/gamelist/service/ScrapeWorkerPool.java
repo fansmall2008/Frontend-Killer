@@ -126,10 +126,13 @@ public class ScrapeWorkerPool {
     
     /**
      * 启动常驻监听线程（持续从任务池取活）
+     * 使用独立线程，不占用 worker pool 的线程配额
      */
     private void startListener() {
         running.set(true);
-        workerPool.submit(this::listenerLoop);
+        Thread listenerThread = new Thread(this::listenerLoop, "scrape-listener");
+        listenerThread.setDaemon(false);
+        listenerThread.start();
         logger.info("任务监听线程已启动");
     }
     
@@ -137,7 +140,7 @@ public class ScrapeWorkerPool {
      * 监听线程主循环
      */
     private void listenerLoop() {
-        Thread.currentThread().setName("scrape-listener");
+        logger.info("监听线程开始运行");
         
         while (running.get()) {
             try {
@@ -157,11 +160,16 @@ public class ScrapeWorkerPool {
                     continue;
                 }
                 
+                logger.debug("发现待处理任务: id={}, type={}, priority={}", task.getId(), task.getTaskType(), task.getPriority());
+                
                 // 乐观锁抢占
                 if (scrapeTaskMapper.tryClaimTask(task.getId()) == 0) {
                     // 被其他线程抢走了，继续取下一个
+                    logger.debug("任务 {} 被其他线程抢占", task.getId());
                     continue;
                 }
+                
+                logger.info("任务已认领: id={}, type={}, gameId={}, 分发到工作线程池执行", task.getId(), task.getTaskType(), task.getGameId());
                 
                 // 分发到线程池执行（异步，不阻塞监听线程）
                 workerPool.submit(() -> executeTask(task));
@@ -173,6 +181,8 @@ public class ScrapeWorkerPool {
                 logger.error("监听线程异常: {}", e.getMessage(), e);
             }
         }
+        
+        logger.info("监听线程已退出");
     }
     
     /**
