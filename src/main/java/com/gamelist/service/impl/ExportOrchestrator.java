@@ -390,6 +390,8 @@ public class ExportOrchestrator {
         }
 
         String targetFileName = evaluateFilenameTemplate(filenameTemplate, game, platform, gameVars, sourcePath);
+        logger.info("[DIAG] game={}, genre={}, filenameTemplate={}, targetFileName={}, romsDir={}",
+                game.getName(), game.getGenre(), filenameTemplate, targetFileName, romsDir);
 
         Path targetPath = Paths.get(romsDir, targetFileName);
         copyFile(sourcePath, targetPath);

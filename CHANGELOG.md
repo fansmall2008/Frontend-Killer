@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.2] - 2026-09-25
+
 ### Added
 - Template variables collection mechanism (v3 `variables` block)
   - Optional top-level `variables` block in v3 templates declares global variables the user sets before an import/export runs (e.g. a URL prefix, the ROM output folder)
@@ -12,10 +14,6 @@
   - `GET /api/export/rules` and `/api/import/templates` expose each template's `variables` declarations
   - Shared frontend modal `js/template-vars.js` (`tv-` prefixed, i18n keys `tv_*`) wired into `export.html` and `data-import.html`; multi-platform batch pops up once
   - Sample template `rules/export/retroarch-folder-v3.json` (`romSubdir` + `cdnBase`)
-
-## [1.2] - 2026-09-23
-
-### Added
 - Notification center with SSE real-time push
   - `notification` table + REST API (`/api/notifications`, `/unread-count`, `/read`, `/stream`)
   - `NotificationServiceImpl` with 5-minute timeout + 15-second heartbeat
@@ -58,6 +56,9 @@
 - platform-details JS null reference after banner removal
 - Genre filtering broken for multi-genre games (`genre IN` exact match vs comma-separated values; now matches `genreid` with comma-boundary LIKE)
 - Scrape-status filter not working (frontend sent `fully/partially/not` while SQL expected `scraped/original/poor_quality/raw`; search area now offers the same four statuses as platform management)
+- Export genre subdirectory fragmentation: `map()` returned all matching dialect combos producing directory names like `ACT-AVG` instead of a single folder; switched to `mapFirst()` for single-value result
+- Racing/Driving genre dialect mapping added to term_mapping for correct genre normalization
+- `poor_quality` scrape-status filter too broad: original SQL matched any scraped game missing a single media type (box_2d/ss/wheel all null for every scraped game), making it indistinguishable from `scraped`; redefined to check metadata completeness (desc/developer/publisher/genre/releasedate)
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.

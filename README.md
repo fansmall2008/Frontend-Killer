@@ -8,12 +8,14 @@
 
 ## What's New in 1.2
 
+- **Template Variables (v3 `variables` block)** - Optional global variables declared in templates, set by the user before import/export; shared across `{var}` placeholders and expressions
 - **Searchable Multi-Select Filters** - Developer, publisher and genre (two-level with sub-genres) filters in the game list now use searchable multi-select dropdowns; genre filtering now works correctly for multi-genre games and scrape-status filtering offers four states
 - **Notification Center** - Real-time task notifications via SSE push, with unread badge and auto-created alerts on task completion/failure
 - **Scraper Media Path Restructure** - New storage layout keyed by ScreenScraper system/game ID (`data/scraper/games/{ssSystemId}/{ssGameId}/`), with local-file reuse to skip already-downloaded media
 - **Batch Aggregation Endpoints** - Single GROUP BY queries replace N+1 COUNT/statistics calls for media-download summaries and platform stats
 - **Template Media-Type Preset** - Scrape modals can preset media types directly from an export template
 - **Thymeleaf Migration & UI Polish** - Unified server-side layout, icon-based action buttons, and row-click editing across pages
+- **Export & Filter Fixes** - Genre subdirectory export uses `mapFirst()` for single-value results; Racing/Driving dialect mapping added; `poor_quality` filter redefined to check metadata completeness instead of media presence
 - **Performance & Stability Fixes** - Fixed import performance, SSE zombie connections, missing xz dependency, and H2 summary bugs
 - **Internationalization** - Continued Chinese / English / Japanese coverage across pages
 

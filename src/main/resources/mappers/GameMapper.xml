@@ -230,16 +230,15 @@
                             OR figurine IS NOT NULL AND figurine != ''
                         )
                     </when>
-                    <!-- 刮削质量差 -->
+                    <!-- 刮削质量差：已刮削但关键元数据不完整（desc/developer/publisher/genre/releasedate 任一项缺失） -->
                     <when test="status == 'poor_quality'">
                         scraped = true
                         AND (
-                            (box_2d IS NULL OR box_2d = '')
-                            OR (ss IS NULL OR ss = '')
-                            OR (wheel IS NULL OR wheel = '')
-                            OR ((`desc` IS NULL OR `desc` = '' OR LENGTH(`desc`) &lt;= 20)
-                                AND (developer IS NULL OR developer = '' OR developer = 'unknown')
-                                AND (genre IS NULL OR genre = '' OR genre = 'unknown'))
+                            (`desc` IS NULL OR `desc` = '' OR LENGTH(`desc`) &lt;= 20)
+                            OR (developer IS NULL OR developer = '' OR developer = 'unknown')
+                            OR (publisher IS NULL OR publisher = '' OR publisher = 'unknown')
+                            OR (genre IS NULL OR genre = '' OR genre = 'unknown')
+                            OR (releasedate IS NULL OR releasedate = '')
                         )
                     </when>
                     <!-- 纯 ROM 文件 -->
@@ -359,16 +358,15 @@
                             OR figurine IS NOT NULL AND figurine != ''
                         )
                     </when>
-                    <!-- 刮削质量差：scraped = true 但缺少关键媒体或信息 -->
+                    <!-- 刮削质量差：已刮削但关键元数据不完整（desc/developer/publisher/genre/releasedate 任一项缺失） -->
                     <when test="status == 'poor_quality'">
                         scraped = true
                         AND (
-                            (box_2d IS NULL OR box_2d = '')
-                            OR (ss IS NULL OR ss = '')
-                            OR (wheel IS NULL OR wheel = '')
-                            OR ((`desc` IS NULL OR `desc` = '' OR LENGTH(`desc`) &lt;= 20)
-                                AND (developer IS NULL OR developer = '' OR developer = 'unknown')
-                                AND (genre IS NULL OR genre = '' OR genre = 'unknown'))
+                            (`desc` IS NULL OR `desc` = '' OR LENGTH(`desc`) &lt;= 20)
+                            OR (developer IS NULL OR developer = '' OR developer = 'unknown')
+                            OR (publisher IS NULL OR publisher = '' OR publisher = 'unknown')
+                            OR (genre IS NULL OR genre = '' OR genre = 'unknown')
+                            OR (releasedate IS NULL OR releasedate = '')
                         )
                     </when>
                     <!-- 纯 ROM 文件：无任何有效数据 -->
