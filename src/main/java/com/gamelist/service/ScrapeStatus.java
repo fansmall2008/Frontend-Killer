@@ -148,13 +148,21 @@ public class ScrapeStatus {
     public Map<String, Object> getStatusSnapshot() {
         Map<String, Object> data = new HashMap<>();
         
-        // 线程状态（简化版，不再区分 gameInfo/media 活跃数）
+        // 线程状态
+        int gameInfoRunning = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_RUNNING);
+        int mediaRunning = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_RUNNING);
+        int gameInfoPending = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_PENDING);
+        int mediaPending = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_PENDING);
+        
         data.put("maxThreads", maxThreads);
-        data.put("availableThreads", maxThreads);  // 简化：总是显示最大可用
-        data.put("gameInfoActive", scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_RUNNING));
-        data.put("mediaActive", scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_RUNNING));
-        data.put("gameInfoWaiting", 0);  // 新架构不再跟踪等待数
-        data.put("mediaWaiting", 0);
+        // 实际可用线程数 = max - 当前执行中的任务数
+        int activeTasks = gameInfoRunning + mediaRunning;
+        data.put("availableThreads", Math.max(0, maxThreads - activeTasks));
+        data.put("gameInfoActive", gameInfoRunning);
+        data.put("mediaActive", mediaRunning);
+        // 等待数 = DB 中 PENDING 状态的任务（还未被监听线程认领）
+        data.put("gameInfoWaiting", gameInfoPending);
+        data.put("mediaWaiting", mediaPending);
         data.put("cachedMaxThreads", maxThreads);
         
         // 配额信息
@@ -175,12 +183,12 @@ public class ScrapeStatus {
         }
         data.put("quota", quota);
         
-        // 任务池统计
+        // 任务池统计（复用已查询的变量）
         Map<String, Object> taskStats = new HashMap<>();
-        taskStats.put("pendingGameInfo", scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_PENDING));
-        taskStats.put("runningGameInfo", scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_RUNNING));
-        taskStats.put("pendingMedia", scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_PENDING));
-        taskStats.put("runningMedia", scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_RUNNING));
+        taskStats.put("pendingGameInfo", gameInfoPending);
+        taskStats.put("runningGameInfo", gameInfoRunning);
+        taskStats.put("pendingMedia", mediaPending);
+        taskStats.put("runningMedia", mediaRunning);
         data.put("taskStats", taskStats);
         
         return data;

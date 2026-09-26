@@ -137,7 +137,7 @@ public class ScrapeWorkerPool {
     }
     
     /**
-     * 监听线程主循环
+     * 监听线程主循环（带背压控制，避免瞬间 claim 所有任务）
      */
     private void listenerLoop() {
         logger.info("监听线程开始运行");
@@ -150,6 +150,18 @@ public class ScrapeWorkerPool {
                 }
                 
                 if (!running.get()) break;
+                
+                // 背压控制：仅在线程池有空闲容量时才认领新任务
+                int queueSize = workerPool.getQueue().size();
+                int activeCount = workerPool.getActiveCount();
+                int maxPoolSize = workerPool.getMaximumPoolSize();
+                int availableSlots = Math.max(0, maxPoolSize - activeCount - queueSize);
+                
+                if (availableSlots <= 0) {
+                    // 线程池已满，等待 1s 后重试
+                    Thread.sleep(1000);
+                    continue;
+                }
                 
                 // 取任务：ORDER BY priority ASC, order_index ASC
                 ScrapeTask task = scrapeTaskMapper.pickNextPendingTask();
@@ -271,6 +283,19 @@ public class ScrapeWorkerPool {
         // 重置所有 RUNNING 任务为 PENDING
         int resetCount = scrapeTaskMapper.resetRunningToPending();
         logger.info("刮削工作线程池已停止，重置 {} 个任务", resetCount);
+    }
+    
+    /**
+     * 用户主动停止刮削：暂停监听 + 清空队列 + 重置 RUNNING 任务
+     */
+    public void stopAll() {
+        paused.set(true);  // 暂停监听线程
+        // 取消线程池中排队等待的任务
+        int cancelled = workerPool.getQueue().size();
+        workerPool.getQueue().clear();
+        // 重置 RUNNING 任务为 PENDING
+        int resetCount = scrapeTaskMapper.resetRunningToPending();
+        logger.info("用户停止刮削：取消 {} 个排队任务，重置 {} 个运行中任务", cancelled, resetCount);
     }
     
     public boolean isPaused() {

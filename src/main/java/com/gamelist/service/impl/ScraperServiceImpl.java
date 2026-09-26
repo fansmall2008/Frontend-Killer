@@ -208,7 +208,11 @@ public class ScraperServiceImpl implements ScraperService {
             return Map.of("success", false, "message", "ScreenScraper 服务器返回线程配额为0，当前用户状态不允许刮削。请登录 ScreenScraper 账号后重试。");
         }
         
-        // 4. 创建后台任务
+        // 4. 重置控制标志
+        isScrapingStopped.set(false);
+        isScrapingPaused.set(false);
+        
+        // 5. 创建后台任务
         String taskType = switch (request.getType()) {
             case "platform" -> "SCRAPE_PLATFORM";
             case "batch" -> "SCRAPE_BATCH";
@@ -882,6 +886,10 @@ public class ScraperServiceImpl implements ScraperService {
      */
     public void pauseScraping() {
         isScrapingPaused.set(true);
+        // 暂停工作线程池
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.pause();
+        }
         logger.info("刮削任务已暂停");
     }
     
@@ -890,6 +898,11 @@ public class ScraperServiceImpl implements ScraperService {
      */
     public void resumeScraping() {
         isScrapingPaused.set(false);
+        isScrapingStopped.set(false);
+        // 恢复工作线程池
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.resume();
+        }
         
         // 将暂停期间添加的媒体任务从 STOPPED 状态恢复为 PENDING 状态
         if (currentScrapingTaskId != null) {
@@ -908,6 +921,10 @@ public class ScraperServiceImpl implements ScraperService {
     public void stopScraping() {
         isScrapingStopped.set(true);
         isScrapingPaused.set(false);
+        // 通知工作线程池停止
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.stopAll();
+        }
         logger.info("刮削任务已停止");
     }
     
@@ -1110,15 +1127,27 @@ public class ScraperServiceImpl implements ScraperService {
     @Override
     public Map<String, Object> getStatus() {
         Map<String, Object> status = new java.util.HashMap<>();
-        boolean running = currentScrapingTaskId != null;
-        status.put("isRunning", running);
+        
+        // 从 scrape_task 表读取实时数据（不再依赖可能过期的 AtomicInteger 计数器）
+        int pending = scrapeTaskMapper.countByStatus(ScrapeTask.STATUS_PENDING);
+        int running = scrapeTaskMapper.countByStatus(ScrapeTask.STATUS_RUNNING);
+        int completed = scrapeTaskMapper.countByStatus(ScrapeTask.STATUS_COMPLETED);
+        int failed = scrapeTaskMapper.countByStatus(ScrapeTask.STATUS_FAILED);
+        int stopped = scrapeTaskMapper.countByStatus(ScrapeTask.STATUS_STOPPED);
+        int total = pending + running + completed + failed + stopped;
+        int scraped = completed + failed + stopped;
+        
+        boolean hasActiveTasks = (pending + running) > 0;
+        boolean isRunning = hasActiveTasks && !isScrapingStopped.get();
+        
+        status.put("isRunning", isRunning);
         status.put("isPaused", isScrapingPaused.get());
-        status.put("scrapedCount", scrapedCount.get());
-        status.put("totalCount", totalCount.get());
-        status.put("pendingCount", pendingCount.get());
-        status.put("processingCount", processingCount.get());
-        status.put("failedCount", failedCount.get());
-        status.put("stoppedCount", stoppedCount.get());
+        status.put("scrapedCount", scraped);
+        status.put("totalCount", total);
+        status.put("pendingCount", pending);
+        status.put("processingCount", running);
+        status.put("failedCount", failed);
+        status.put("stoppedCount", stopped);
         return status;
     }
     

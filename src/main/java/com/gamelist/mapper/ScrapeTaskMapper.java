@@ -57,6 +57,11 @@ public interface ScrapeTaskMapper {
     int countByTypeAndStatus(@Param("type") String type, @Param("status") String status);
     
     /**
+     * 按状态统计任务数（不限类型）
+     */
+    int countByStatus(@Param("status") String status);
+    
+    /**
      * 按平台ID和状态统计任务数
      */
     int countByPlatformIdAndStatus(@Param("platformId") long platformId, @Param("status") String status);

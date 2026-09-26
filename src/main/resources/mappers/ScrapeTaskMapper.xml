@@ -83,8 +83,14 @@
 
     <!-- 按类型和状态统计 -->
     <select id="countByTypeAndStatus" resultType="int">
-        SELECT COUNT(*) FROM scrape_task 
+        SELECT COUNT(*) FROM scrape_task
         WHERE task_type = #{type} AND status = #{status}
+    </select>
+    
+    <!-- 按状态统计（不限类型） -->
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM scrape_task
+        WHERE status = #{status}
     </select>
 
     <!-- 按平台ID和状态统计 -->
