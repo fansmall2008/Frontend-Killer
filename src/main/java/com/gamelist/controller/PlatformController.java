@@ -63,11 +63,12 @@ public class PlatformController {
     }
 
     @DeleteMapping("/batch")
-    public ResponseEntity<Map<String, Object>> batchDeletePlatforms(@RequestBody Map<String, List<Long>> request) {
-        List<Long> ids = request.get("ids");
+    public ResponseEntity<Map<String, Object>> batchDeletePlatforms(@RequestBody Map<String, List<Number>> request) {
+        List<Number> ids = request.get("ids");
         int deleted = 0;
         if (ids != null) {
-            for (Long id : ids) {
+            for (Number idNum : ids) {
+                Long id = idNum.longValue();
                 try {
                     platformService.deletePlatform(id);
                     deleted++;

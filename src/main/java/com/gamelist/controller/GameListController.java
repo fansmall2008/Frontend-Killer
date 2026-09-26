@@ -576,7 +576,8 @@ public class GameListController {
     @PostMapping("/merge-discs")
     public ResponseEntity<java.util.Map<String, Object>> mergeDiscs(@RequestBody java.util.Map<String, Object> request) {
         @SuppressWarnings("unchecked")
-        java.util.List<Long> gameIds = (java.util.List<Long>) request.get("gameIds");
+        java.util.List<Number> rawIds = (java.util.List<Number>) request.get("gameIds");
+        java.util.List<Long> gameIds = rawIds != null ? rawIds.stream().map(Number::longValue).collect(java.util.stream.Collectors.toList()) : null;
         String mergeName = request.get("name") != null ? String.valueOf(request.get("name")) : null;
         java.util.Map<String, Object> result = gameService.mergeDiscs(gameIds, mergeName);
         if (result.containsKey("success") && (boolean) result.get("success")) {
@@ -610,9 +611,10 @@ public class GameListController {
      * 批量删除游戏
      */
     @DeleteMapping("/games/batch-delete")
-    public ResponseEntity<java.util.Map<String, Object>> batchDeleteGames(@RequestBody java.util.Map<String, java.util.List<Long>> request) {
+    public ResponseEntity<java.util.Map<String, Object>> batchDeleteGames(@RequestBody java.util.Map<String, java.util.List<Number>> request) {
         try {
-            java.util.List<Long> gameIds = request.get("gameIds");
+            java.util.List<Number> rawIds = request.get("gameIds");
+            java.util.List<Long> gameIds = rawIds != null ? rawIds.stream().map(Number::longValue).collect(java.util.stream.Collectors.toList()) : null;
             
             if (gameIds == null || gameIds.isEmpty()) {
                 return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空"));
