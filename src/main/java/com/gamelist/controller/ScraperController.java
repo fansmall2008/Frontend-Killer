@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gamelist.mapper.ScrapeTaskMapper;
 import com.gamelist.model.ScraperRequest;
 import com.gamelist.service.ScrapeStatus;
 import com.gamelist.service.ScraperService;
@@ -30,6 +31,9 @@ public class ScraperController {
     
     @Autowired
     private ScrapeStatus scrapeStatus;
+    
+    @Autowired
+    private ScrapeTaskMapper scrapeTaskMapper;
     
     /**
      * 启动刮削任务
@@ -102,6 +106,40 @@ public class ScraperController {
     public ResponseEntity<?> stopScraping() {
         scraperService.stopScraping();
         return ResponseEntity.ok(Map.of("success", true, "message", "刮削任务已停止"));
+    }
+    
+    /**
+     * 查询失败的任务列表
+     * @param taskType 可选，GAME_INFO / MEDIA_DOWNLOAD
+     */
+    @GetMapping("/failed-tasks")
+    public ResponseEntity<?> getFailedTasks(@RequestParam(required = false) String taskType) {
+        try {
+            List<Map<String, Object>> tasks = scrapeTaskMapper.selectFailedTasks(taskType, 100);
+            return ResponseEntity.ok(Map.of("success", true, "data", tasks));
+        } catch (Exception e) {
+            logger.error("查询失败任务失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "查询失败任务失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 重试失败的任务（重置为 PENDING）
+     */
+    @PostMapping("/retry-task")
+    public ResponseEntity<?> retryTask(@RequestBody Map<String, Object> request) {
+        try {
+            Long taskId = Long.valueOf(request.get("taskId").toString());
+            int updated = scrapeTaskMapper.retryFailedTask(taskId);
+            if (updated > 0) {
+                return ResponseEntity.ok(Map.of("success", true, "message", "任务已重新加入队列"));
+            } else {
+                return ResponseEntity.ok(Map.of("success", false, "message", "任务状态已变更，无法重试"));
+            }
+        } catch (Exception e) {
+            logger.error("重试任务失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "重试失败: " + e.getMessage()));
+        }
     }
     
     /**

@@ -1148,6 +1148,27 @@ public class ScraperServiceImpl implements ScraperService {
         status.put("processingCount", running);
         status.put("failedCount", failed);
         status.put("stoppedCount", stopped);
+        
+        // 分类统计：游戏信息 vs 媒体下载
+        int giPending = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_PENDING);
+        int giRunning = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_RUNNING);
+        int giCompleted = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_COMPLETED);
+        int giFailed = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_GAME_INFO, ScrapeTask.STATUS_FAILED);
+        
+        int mdPending = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_PENDING);
+        int mdRunning = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_RUNNING);
+        int mdCompleted = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_COMPLETED);
+        int mdFailed = scrapeTaskMapper.countByTypeAndStatus(ScrapeTask.TYPE_MEDIA_DOWNLOAD, ScrapeTask.STATUS_FAILED);
+        
+        status.put("gameInfoPending", giPending);
+        status.put("gameInfoRunning", giRunning);
+        status.put("gameInfoCompleted", giCompleted);
+        status.put("gameInfoFailed", giFailed);
+        status.put("mediaPending", mdPending);
+        status.put("mediaRunning", mdRunning);
+        status.put("mediaCompleted", mdCompleted);
+        status.put("mediaFailed", mdFailed);
+        
         return status;
     }
     
@@ -3194,6 +3215,14 @@ public class ScraperServiceImpl implements ScraperService {
             }
             task.setSystemId(systemId);
             task.setSsGameId(game.getSsGameId());
+            // 存储媒体偏好到任务中，以便 worker 执行时知道要下载哪些媒体
+            boolean scrapeAllMedia = Boolean.TRUE.equals(request.getScrapeAllMedia());
+            if (scrapeAllMedia) {
+                task.setMediaScope("*");
+            } else if (request.getMediaTypes() != null && !request.getMediaTypes().isEmpty()) {
+                task.setMediaScope(String.join(",", request.getMediaTypes()));
+            }
+            // else: mediaScope = null (不刮媒体)
             task.setStatus(ScrapeTask.STATUS_PENDING);
             task.setPriority(priority);
             task.setOrderIndex(orderIndex++);
@@ -3227,10 +3256,18 @@ public class ScraperServiceImpl implements ScraperService {
             GameFileInfo fileInfo = processGameFile(game, system);
             
             // 调用 ScreenScraper API 搜索游戏
-            // TODO: 需要从某处获取 request 参数，暂时使用空对象
             ScraperRequest request = new ScraperRequest();
             request.setPlatformId(task.getPlatformId());
             request.setType("single");
+            
+            // 从 mediaScope 恢复媒体偏好
+            if (task.getMediaScope() != null) {
+                if ("*".equals(task.getMediaScope())) {
+                    request.setScrapeAllMedia(true);
+                } else {
+                    request.setMediaTypes(java.util.Arrays.asList(task.getMediaScope().split(",")));
+                }
+            }
             
             Map<String, Object> searchResult = searchGameWithStatus(fileInfo, system.getSystemId(), request);
             

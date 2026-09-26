@@ -108,6 +108,8 @@
             function detectNotif(node) {
                 if (node.nodeType !== 1) return; // 只关注元素节点
                 if (_notifSeen.has(node)) return;
+                // 跳过通知面板内部的元素，避免打开面板时批量触发音效
+                if (node.closest && node.closest('#notificationModal')) return;
                 var cls = (node.className || '').toLowerCase();
                 if (cls.indexOf('notification') === -1 && cls.indexOf('toast') === -1) return;
                 _notifSeen.add(node);

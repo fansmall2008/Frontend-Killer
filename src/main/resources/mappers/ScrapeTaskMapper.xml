@@ -10,6 +10,7 @@
         <result column="rom_filename" property="romFilename"/>
         <result column="system_id" property="systemId"/>
         <result column="ss_game_id" property="ssGameId"/>
+        <result column="media_scope" property="mediaScope"/>
         <result column="media_type" property="mediaType"/>
         <result column="media_region" property="mediaRegion"/>
         <result column="download_url" property="downloadUrl"/>
@@ -26,20 +27,20 @@
 
     <!-- 插入单条任务 -->
     <insert id="insert" parameterType="com.gamelist.model.ScrapeTask" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id,
+        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id, media_scope,
             media_type, media_region, download_url, local_path, file_size, status, priority, order_index, retry_count, error_message)
-        VALUES (#{taskType}, #{gameId}, #{platformId}, #{romFilename}, #{systemId}, #{ssGameId},
+        VALUES (#{taskType}, #{gameId}, #{platformId}, #{romFilename}, #{systemId}, #{ssGameId}, #{mediaScope},
             #{mediaType}, #{mediaRegion}, #{downloadUrl}, #{localPath}, #{fileSize}, 
             COALESCE(#{status}, 'PENDING'), #{priority}, #{orderIndex}, 0, #{errorMessage})
     </insert>
 
     <!-- 批量插入任务 -->
     <insert id="batchInsert" parameterType="java.util.List">
-        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id,
+        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id, media_scope,
             media_type, media_region, download_url, local_path, file_size, status, priority, order_index)
         VALUES
         <foreach collection="list" item="task" separator=",">
-            (#{task.taskType}, #{task.gameId}, #{task.platformId}, #{task.romFilename}, #{task.systemId}, #{task.ssGameId},
+            (#{task.taskType}, #{task.gameId}, #{task.platformId}, #{task.romFilename}, #{task.systemId}, #{task.ssGameId}, #{task.mediaScope},
             #{task.mediaType}, #{task.mediaRegion}, #{task.downloadUrl}, #{task.localPath}, #{task.fileSize},
             COALESCE(#{task.status}, 'PENDING'), #{task.priority}, #{task.orderIndex})
         </foreach>
@@ -122,5 +123,29 @@
     <select id="getNextOrderIndex" resultType="java.lang.Long">
         SELECT COALESCE(MAX(order_index), 0) + 1 FROM scrape_task
     </select>
+
+    <!-- 查询失败的任务（关联游戏名称和平台名称） -->
+    <select id="selectFailedTasks" resultType="java.util.HashMap">
+        SELECT t.id AS "id", t.task_type AS "taskType", t.game_id AS "gameId", t.platform_id AS "platformId",
+               t.media_type AS "mediaType", t.error_message AS "errorMessage",
+               t.rom_filename AS "romFilename", t.updated_at AS "failedAt",
+               g.name AS "gameName",
+               p.name AS "platformName"
+        FROM scrape_task t
+        LEFT JOIN game g ON t.game_id = g.id
+        LEFT JOIN platform p ON t.platform_id = p.id
+        WHERE t.status = 'FAILED'
+        <if test="taskType != null and taskType != ''">
+            AND t.task_type = #{taskType}
+        </if>
+        ORDER BY t.updated_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 将失败的任务重置为 PENDING -->
+    <update id="retryFailedTask">
+        UPDATE scrape_task SET status = 'PENDING', error_message = NULL, updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id} AND status = 'FAILED'
+    </update>
 
 </mapper>

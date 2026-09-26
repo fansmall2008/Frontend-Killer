@@ -29,9 +29,24 @@
             <div style="margin-bottom: 20px;">
                 <button class="btn" onclick="openAddModal()" data-i18n="add_platform_btn">新增平台</button>
             </div>
+            <!-- 批量操作工具栏 -->
+            <div id="batchToolbar" class="pm-batch-toolbar">
+                <div class="pm-batch-info">
+                    <span id="batchInfoText" data-i18n="batch_hint">勾选平台后可进行批量操作</span>
+                    <a id="batchClearLink" href="javascript:void(0)" onclick="clearPlatformSelection()" style="display:none; margin-left:8px; font-size:12px; color:var(--text-tertiary);" data-i18n="batch_clear">取消选择</a>
+                </div>
+                <div class="pm-batch-actions">
+                    <button id="batchBtnScrape" class="btn batch-btn" onclick="batchScrape()" disabled data-i18n="batch_scrape">✨ 刮削</button>
+                    <button id="batchBtnTranslate" class="btn batch-btn" onclick="batchTranslate()" disabled data-i18n="batch_translate">🌐 翻译</button>
+                    <button id="batchBtnSwap" class="btn batch-btn" onclick="batchSwapTranslations()" disabled data-i18n="batch_swap">🔁 切换译文</button>
+                    <button id="batchBtnScan" class="btn batch-btn" onclick="batchScanStats()" disabled data-i18n="batch_scan">📦 扫描体量</button>
+                    <button id="batchBtnDelete" class="btn batch-btn batch-btn-danger" onclick="batchDelete()" disabled data-i18n="batch_delete">🗑️ 删除</button>
+                </div>
+            </div>
             <table id="platformTable">
                 <thead>
                     <tr>
+                        <th style="width:36px; text-align:center;"><input type="checkbox" id="batchSelectAll" onchange="toggleSelectAllPlatforms(this.checked)" title="全选"></th>
                         <th data-sort="id" class="sortable" data-i18n="platform_id">ID</th>
                         <th data-i18n="platform_logo">Logo</th>
                         <th data-sort="name" class="sortable" data-i18n="platform_name">平台名称</th>
@@ -1020,6 +1035,7 @@
                 const row = document.createElement('tr');
                 row.setAttribute('data-platform-id', platform.id);
                 row.innerHTML = `
+                    <td style="text-align:center;"><input type="checkbox" class="pm-batch-cb" value="${platform.id}" onchange="onPlatformCheckboxChange()"></td>
                     <td>${platform.id}</td>
                     <td>
                         ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
@@ -1073,15 +1089,9 @@
             const btn = (cls, icon, key, onclick) =>
                 `<button class="action-icon-btn ${cls}" onclick="${onclick}" data-i18n-title="${key}" title="${_pi18n(key, key)}">${icon}</button>`;
             return [
-                btn('scrape', '✨', 'scrape', `openScrapeModal('platform', ${id})`),
                 btn('info', '✏️', 'edit', `openEditModal(${id})`),
-                btn('danger', '🗑️', 'delete', `deletePlatform(${id})`),
-                btn('info', '🌐', 'translation', `openTranslationModal(${id})`),
-                btn('info', '🔁', 'swap_translations', `swapPlatformTranslations(${id}, '${pname}')`),
                 btn('info', '✂️', 'separation', `openSeparationModal(${id})`),
-                btn('info', '👁️', 'view', `viewGames(${id})`),
-                btn('info', '📊', 'statistics', `openStatisticsModal(${id})`),
-                btn('info', '📦', 'scan_stats', `openScanConfirmModal(${id}, '${pname}', ${totalGames})`)
+                btn('info', '📊', 'statistics', `openStatisticsModal(${id})`)
             ].join('');
         }
 
@@ -1089,6 +1099,156 @@
         function refreshActionTitles() {
             document.querySelectorAll('[data-i18n-title]').forEach(el => {
                 el.title = _pi18n(el.getAttribute('data-i18n-title'), el.title);
+            });
+        }
+
+        // ==================== 批量操作 ====================
+        var _batchPlatformIds = [];  // 当前选中的平台 ID 列表
+
+        function getSelectedPlatformIds() {
+            return Array.from(document.querySelectorAll('.pm-batch-cb:checked')).map(cb => parseInt(cb.value));
+        }
+
+        function onPlatformCheckboxChange() {
+            _batchPlatformIds = getSelectedPlatformIds();
+            updateBatchToolbar();
+            // 更新全选复选框状态
+            const allCbs = document.querySelectorAll('.pm-batch-cb');
+            const selectAll = document.getElementById('batchSelectAll');
+            if (selectAll) {
+                selectAll.checked = allCbs.length > 0 && _batchPlatformIds.length === allCbs.length;
+            }
+        }
+
+        function toggleSelectAllPlatforms(checked) {
+            document.querySelectorAll('.pm-batch-cb').forEach(cb => { cb.checked = checked; });
+            onPlatformCheckboxChange();
+        }
+
+        function clearPlatformSelection() {
+            document.querySelectorAll('.pm-batch-cb').forEach(cb => { cb.checked = false; });
+            const selectAll = document.getElementById('batchSelectAll');
+            if (selectAll) selectAll.checked = false;
+            onPlatformCheckboxChange();
+        }
+
+        function updateBatchToolbar() {
+            const infoText = document.getElementById('batchInfoText');
+            const clearLink = document.getElementById('batchClearLink');
+            const btns = ['batchBtnScrape', 'batchBtnTranslate', 'batchBtnSwap', 'batchBtnScan', 'batchBtnDelete'];
+            const hasSelection = _batchPlatformIds.length > 0;
+
+            if (infoText) {
+                if (hasSelection) {
+                    infoText.innerHTML = I18n.t('batch_selected', '已选') + ' <strong style="color:var(--accent-primary);font-size:16px;">' + _batchPlatformIds.length + '</strong> ' + I18n.t('batch_platforms_unit', '个平台');
+                } else {
+                    infoText.textContent = I18n.t('batch_hint', '勾选平台后可进行批量操作');
+                }
+            }
+            if (clearLink) clearLink.style.display = hasSelection ? '' : 'none';
+            btns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = !hasSelection;
+            });
+        }
+
+        // 批量刮削：打开刮削弹窗，确认后对所有选中平台执行
+        function batchScrape() {
+            if (_batchPlatformIds.length === 0) return;
+            scrapeModalType = 'platform';
+            scrapePlatformId = _batchPlatformIds[0]; // 先用第一个占位
+            scrapeGameIds = [];
+            // 标记为批量模式
+            window._batchScrapeIds = _batchPlatformIds.slice();
+            const names = _batchPlatformIds.map(id => {
+                const row = _platformRows.find(r => r.platform.id === id);
+                return row ? (row.platform.name || row.platform.system) : id;
+            });
+            document.getElementById('scrapeModalTitle').textContent = _pi18n('batch_scrape_title', '批量刮削') + ' (' + names.length + ')';
+            document.getElementById('scrapeModal').style.display = 'block';
+        }
+
+        // 批量翻译：打开翻译弹窗，确认后对所有选中平台执行
+        function batchTranslate() {
+            if (_batchPlatformIds.length === 0) return;
+            document.getElementById('translationPlatformId').value = _batchPlatformIds[0]; // 先用第一个占位
+            window._batchTranslateIds = _batchPlatformIds.slice();
+            document.getElementById('translationModal').style.display = 'block';
+        }
+
+        // 批量切换译文
+        function batchSwapTranslations() {
+            if (_batchPlatformIds.length === 0) return;
+            const names = _batchPlatformIds.map(id => {
+                const row = _platformRows.find(r => r.platform.id === id);
+                return row ? (row.platform.name || row.platform.system) : id;
+            });
+            if (!confirm(I18n.t('confirm_batch_swap', '确定要对选中的 ') + names.length + I18n.t('confirm_batch_swap_suffix', ' 个平台切换译文吗？\n\n这将交换每个平台下所有游戏的原文/译文。'))) return;
+
+            let totalSwapped = 0;
+            let pending = _batchPlatformIds.length;
+            _batchPlatformIds.forEach(pid => {
+                fetch('/api/gamelist/games/swap-translations-by-platform', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platformId: pid })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) totalSwapped += (data.swappedCount || 0);
+                })
+                .catch(() => {})
+                .finally(() => {
+                    pending--;
+                    if (pending === 0) {
+                        showNotification(I18n.t('batch_swap_done_prefix', '批量切换完成，共切换 ') + totalSwapped + I18n.t('batch_swap_done_suffix', ' 个游戏的译文'), 'success');
+                        loadPlatformStatistics();
+                    }
+                });
+            });
+        }
+
+        // 批量扫描体量
+        function batchScanStats() {
+            if (_batchPlatformIds.length === 0) return;
+            const names = _batchPlatformIds.map(id => {
+                const row = _platformRows.find(r => r.platform.id === id);
+                return row ? (row.platform.name || row.platform.system) : id;
+            });
+            if (!confirm(I18n.t('confirm_batch_scan', '确定要对选中的 ') + names.length + I18n.t('confirm_batch_scan_suffix', ' 个平台进行体量扫描吗？'))) return;
+
+            let triggered = 0;
+            _batchPlatformIds.forEach(pid => {
+                fetch('/api/statistics/scan/' + pid, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => { if (data.success || data.taskId) triggered++; })
+                    .catch(() => {});
+            });
+            showNotification(I18n.t('batch_scan_started', '已启动 ') + _batchPlatformIds.length + I18n.t('batch_scan_suffix', ' 个平台的体量扫描'), 'success');
+        }
+
+        // 批量删除
+        function batchDelete() {
+            if (_batchPlatformIds.length === 0) return;
+            const names = _batchPlatformIds.map(id => {
+                const row = _platformRows.find(r => r.platform.id === id);
+                return row ? (row.platform.name || row.platform.system) : id;
+            });
+            if (!confirm(I18n.t('confirm_batch_delete', '确定要删除选中的 ') + names.length + I18n.t('confirm_batch_delete_suffix', ' 个平台吗？\n\n此操作不可恢复，平台下的所有游戏和数据将被永久删除！'))) return;
+
+            fetch('/api/platforms/batch', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: _batchPlatformIds })
+            })
+            .then(r => r.json())
+            .then(data => {
+                showNotification(I18n.t('batch_delete_done', '批量删除完成，已删除 ') + (data.deletedCount || 0) + I18n.t('batch_delete_suffix', ' 个平台'), 'success');
+                clearPlatformSelection();
+                getPlatforms();
+            })
+            .catch(err => {
+                showNotification(I18n.t('batch_delete_error', '批量删除失败') + ': ' + err.message, 'error');
             });
         }
 
@@ -2326,6 +2486,32 @@
             
             // 立即关闭弹窗
             closeScrapeModal();
+
+            // 批量刮削模式
+            if (window._batchScrapeIds && window._batchScrapeIds.length > 1) {
+                const ids = window._batchScrapeIds;
+                window._batchScrapeIds = null;
+                let successCount = 0;
+                ids.forEach(pid => {
+                    const req = Object.assign({}, request, { platformId: pid });
+                    fetch('/api/scraper/scrape', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(req)
+                    })
+                    .then(r => r.json())
+                    .then(result => { if (result.success) successCount++; })
+                    .catch(() => {})
+                    .finally(() => {
+                        if (successCount + (ids.length - successCount) >= ids.length) {
+                            // 所有请求完成（简化处理：最后一个回调时通知）
+                        }
+                    });
+                });
+                showNotification(_pi18n('batch_scrape_started', '批量刮削已启动，共 ') + ids.length + _pi18n('batch_scrape_suffix', ' 个平台'), 'success');
+                return;
+            }
+            window._batchScrapeIds = null;
             
             // 异步发送请求（不等待响应）
             fetch('/api/scraper/scrape', {
@@ -2542,6 +2728,34 @@
             const targetLang = document.getElementById('translationTargetLang').value;
             const apiType = document.getElementById('translationApi').value;
             const translateType = document.getElementById('translationType').value;
+
+            // 批量翻译模式
+            if (window._batchTranslateIds && window._batchTranslateIds.length > 1) {
+                const ids = window._batchTranslateIds;
+                window._batchTranslateIds = null;
+                document.getElementById('translationModal').style.display = 'none';
+                let successCount = 0;
+                ids.forEach(pid => {
+                    fetch('/api/translation/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            platformId: pid,
+                            apiType: apiType,
+                            sourceLang: sourceLang,
+                            targetLang: targetLang,
+                            translateType: translateType,
+                            apiKey: localStorage.getItem(apiType + 'ApiKey') || ''
+                        }),
+                    })
+                    .then(r => r.json())
+                    .then(result => { if (result.success) successCount++; })
+                    .catch(() => {});
+                });
+                showNotification(I18n.t('batch_translate_started', '批量翻译已启动，共 ') + ids.length + I18n.t('batch_translate_suffix', ' 个平台'), 'success');
+                return;
+            }
+            window._batchTranslateIds = null;
             
             // 发送翻译请求
             fetch('/api/translation/translate', {

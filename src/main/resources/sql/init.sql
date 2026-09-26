@@ -431,6 +431,7 @@ CREATE TABLE IF NOT EXISTS scrape_task (
     rom_filename VARCHAR(500),
     system_id INT,
     ss_game_id BIGINT,
+    media_scope VARCHAR(512),
     media_type VARCHAR(50),
     media_region VARCHAR(10),
     download_url VARCHAR(1024),
@@ -664,3 +665,6 @@ CREATE TABLE IF NOT EXISTS term_mapping (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS uk_term_mapping_source_category ON term_mapping(source_term, category);
+
+-- V1.0.19 scrape_task 新增 media_scope 列
+ALTER TABLE scrape_task ADD COLUMN IF NOT EXISTS media_scope VARCHAR(512) DEFAULT NULL;

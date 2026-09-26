@@ -62,6 +62,26 @@ public class PlatformController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @DeleteMapping("/batch")
+    public ResponseEntity<Map<String, Object>> batchDeletePlatforms(@RequestBody Map<String, List<Long>> request) {
+        List<Long> ids = request.get("ids");
+        int deleted = 0;
+        if (ids != null) {
+            for (Long id : ids) {
+                try {
+                    platformService.deletePlatform(id);
+                    deleted++;
+                } catch (Exception e) {
+                    logger.warn("批量删除平台失败 id={}: {}", id, e.getMessage());
+                }
+            }
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("deletedCount", deleted);
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> addPlatform(@RequestBody Platform platform) {
         try {

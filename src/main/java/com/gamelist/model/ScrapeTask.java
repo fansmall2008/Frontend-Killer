@@ -17,6 +17,7 @@ public class ScrapeTask {
     private String romFilename;     // ROM 文件名（用于 SS API 搜索）
     private Integer systemId;       // SS 系统 ID
     private Long ssGameId;          // SS 游戏 ID（街机自动下载/导出缓存场景）
+    private String mediaScope;      // 媒体范围（GAME_INFO 任务用）："*"=全部, "ss,box-2D"=指定类型, null=不刮媒体
     
     // MEDIA_DOWNLOAD 专用字段
     private String mediaType;       // 媒体类型（nomcourt 值）
@@ -73,6 +74,9 @@ public class ScrapeTask {
 
     public Long getSsGameId() { return ssGameId; }
     public void setSsGameId(Long ssGameId) { this.ssGameId = ssGameId; }
+
+    public String getMediaScope() { return mediaScope; }
+    public void setMediaScope(String mediaScope) { this.mediaScope = mediaScope; }
 
     public String getMediaType() { return mediaType; }
     public void setMediaType(String mediaType) { this.mediaType = mediaType; }

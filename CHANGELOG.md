@@ -5,6 +5,24 @@
 ## [1.2] - 2026-09-26
 
 ### Added
+- Batch platform operations on platform-management page
+  - Checkbox column with select-all for each platform row
+  - Always-visible batch toolbar with 5 actions: Scrape, Translate, Swap Translations, Scan Stats, Delete
+  - Buttons disabled until platforms are selected; toolbar shows selected count
+  - Batch scrape/translate open existing modals and apply to all selected platforms
+  - Batch swap/scan fire API calls in parallel with confirmation dialog
+  - `DELETE /api/platforms/batch` endpoint for batch platform deletion
+- Failed task viewer modal
+  - Click failed count on media-download page opens a styled modal listing failed tasks
+  - Each row shows game name (clickable link to game-edit page), platform, error message, and retry button
+  - Separate views for game info failures and media download failures
+  - Full i18n support (zh-CN, en-US, ja-JP)
+- Separate game info / media download progress cards on media-download page
+  - `getStatus()` API returns categorized counts (gameInfoPending/Running/Completed/Failed + mediaPending/Running/Completed/Failed)
+  - Two independent progress cards: "🎮 游戏信息刮削" and "🖼️ 媒体文件下载"
+- `media_scope` field on `scrape_task` table persists media preferences so game info tasks produce media download tasks on completion
+  - Flyway migration `V1.0.19__scrape_task_media_scope.sql`
+  - `enqueueGameInfoTasks()` stores media scope; `executeGameInfoTask()` restores it
 - Unified scraping task pool with dynamic worker threads
   - New `scrape_task` database table replaces in-memory thread management with persistent task queue
   - `ScrapeWorkerPool` with `ThreadPoolExecutor` supports runtime dynamic thread resizing (no restart needed when SS maxThreads changes)
@@ -66,6 +84,8 @@
   - System alias `ss` → Sega Saturn (systemId 22) added for smart platform matching
 
 ### Changed
+- Platform management action column simplified: removed per-row scrape/translate/swap/delete/scan/view buttons, kept only edit/separation/statistics; all batch operations moved to toolbar
+- Failed task modal redesigned with card-style grid layout, backdrop blur, and CSS design tokens (replaced inline styles)
 - Full Thymeleaf migration: all 18 pages converted from static HTML to Thymeleaf templates with shared layout fragments
 - Unified purple design system across all pages (`--accent-primary: #8b5cf6`, `.pg-container`, normalized button classes)
 - Platform management action column: replaced text buttons with icon buttons (`action-icon-btn` + emoji + i18n tooltip)
@@ -76,6 +96,10 @@
 - Column sorting on platform-management and game-list tables (click header to sort, click again to reverse)
 
 ### Fixed
+- Circular dependency crash: `ScrapeWorkerPool → ScrapeStatus → ScraperServiceImpl → ScrapeWorkerPool` fixed with `@Lazy` on ScrapeWorkerPool fields
+- Media download tasks never created: `executeGameInfoTask()` sent empty `ScraperRequest` without `mediaScope`, so `enqueueMediaTasksFromGameInfo()` never produced tasks; fixed by persisting and restoring media preferences
+- Game edit URL in failed task modal: `/game-edit/{id}` → `/game-edit?id={id}` (page uses query parameter, not path variable)
+- Notification bell playing multiple sounds simultaneously: MutationObserver now skips elements inside `#notificationModal` to prevent batch audio triggers
 - Scraper hang / deadlock caused by `ThreadResourceManager` counter corruption
   - `MediaDownloadServiceImpl.finally` called `reset()` before `shutdownNow()`, but worker threads still called `releaseForMedia()` after reset, driving `mediaActive` to -6 and `availableThreads` to 12
   - Subsequent scraping tasks inherited corrupted state (12 game info threads running instead of max 6)

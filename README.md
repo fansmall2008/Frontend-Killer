@@ -23,6 +23,9 @@
 - **Export & Filter Fixes** - `poor_quality` scrape-status filter redefined to check metadata completeness (desc/developer/publisher/genre/releasedate) instead of media presence
 - **Performance & Stability Fixes** - Fixed import performance, SSE zombie connections, missing xz dependency, and H2 summary bugs
 - **Internationalization** - Continued Chinese / English / Japanese coverage across pages
+- **Batch Platform Operations** - Checkbox + always-visible toolbar on platform management page for batch scrape, translate, swap translations, scan stats, and delete across multiple platforms at once
+- **Failed Task Viewer** - Click failed count on the media-download page to open a styled modal showing failed tasks with game links (jump to game-edit), platform info, error messages, and one-click retry
+- **Separate Scrape Progress Tracking** - Game info and media download progress now displayed as two independent cards with categorized counts (pending/running/completed/failed)
 
 > Upgrading from 1.1-RC1? The scraper media directory structure changed, so previously scraped media files may not be reused directly and may require re-scraping.
 

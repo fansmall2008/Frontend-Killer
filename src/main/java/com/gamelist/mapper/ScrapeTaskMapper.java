@@ -85,4 +85,16 @@ public interface ScrapeTaskMapper {
      * 获取下一个 order_index 值（用于批量插入时排序）
      */
     Long getNextOrderIndex();
+    
+    /**
+     * 查询失败的任务（关联游戏名称和平台名称）
+     * 按 updated_at DESC 排序，最近的失败在前
+     */
+    List<java.util.Map<String, Object>> selectFailedTasks(
+        @Param("taskType") String taskType, @Param("limit") int limit);
+    
+    /**
+     * 将失败的任务重置为 PENDING（重试）
+     */
+    int retryFailedTask(@Param("id") long id);
 }

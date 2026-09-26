@@ -651,3 +651,92 @@ table#platformTable td.editable:hover {
 #platformTable th.sortable:hover {
     background: rgba(139, 92, 246, 0.08);
 }
+
+/* ---- Batch Toolbar ---- */
+.pm-batch-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4, 12px);
+    padding: var(--space-3, 10px) var(--space-4, 12px);
+    margin-bottom: var(--space-4, 12px);
+    background: var(--bg-surface);
+    border: 1px solid var(--accent-primary, #8b5cf6);
+    border-radius: var(--radius-md, 8px);
+    flex-wrap: wrap;
+    animation: pm-batch-slide-in 0.2s ease;
+}
+
+@keyframes pm-batch-slide-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.pm-batch-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pm-batch-info strong {
+    color: var(--accent-primary, #8b5cf6);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.pm-batch-actions {
+    display: flex;
+    gap: var(--space-2, 6px);
+    flex-wrap: wrap;
+}
+
+.batch-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    transition: all var(--transition, 0.2s);
+    font-family: var(--font-sans);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+}
+
+.batch-btn:hover:not(:disabled) {
+    border-color: var(--accent-primary, #8b5cf6);
+    color: var(--accent-primary, #8b5cf6);
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+}
+
+.batch-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.batch-btn-danger:hover:not(:disabled) {
+    border-color: var(--accent-danger, #ef4444);
+    color: var(--accent-danger, #ef4444);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Checkbox column styling */
+#platformTable th:first-child,
+#platformTable td:first-child {
+    width: 36px;
+    text-align: center;
+}
+
+.pm-batch-cb {
+    cursor: pointer;
+    accent-color: var(--accent-primary, #8b5cf6);
+}
+
+#batchSelectAll {
+    cursor: pointer;
+    accent-color: var(--accent-primary, #8b5cf6);
+}
