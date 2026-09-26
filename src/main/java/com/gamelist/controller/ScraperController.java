@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -142,6 +143,37 @@ public class ScraperController {
         }
     }
     
+    /**
+     * 删除单条失败任务
+     */
+    @DeleteMapping("/failed-tasks/{id}")
+    public ResponseEntity<?> deleteFailedTask(@PathVariable Long id) {
+        try {
+            int deleted = scrapeTaskMapper.deleteFailedTask(id);
+            if (deleted > 0) {
+                return ResponseEntity.ok(Map.of("success", true));
+            }
+            return ResponseEntity.ok(Map.of("success", false, "message", "任务不存在或状态已变更"));
+        } catch (Exception e) {
+            logger.error("删除失败任务失败 id={}", id, e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "删除失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 清除所有失败任务
+     */
+    @DeleteMapping("/failed-tasks")
+    public ResponseEntity<?> clearFailedTasks(@RequestParam(required = false) String taskType) {
+        try {
+            int deleted = scrapeTaskMapper.clearFailedTasks(taskType);
+            return ResponseEntity.ok(Map.of("success", true, "deletedCount", deleted));
+        } catch (Exception e) {
+            logger.error("清除失败任务失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "清除失败: " + e.getMessage()));
+        }
+    }
+
     /**
      * 搜索游戏（使用ScreenScraper的jeuRecherche接口）
      * @param platformId 平台ID

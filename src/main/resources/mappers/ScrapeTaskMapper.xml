@@ -54,6 +54,14 @@
         LIMIT 1
     </select>
 
+    <!-- 按优先级批量取待处理任务 -->
+    <select id="pickNextPendingTasks" resultMap="ScrapeTaskResultMap">
+        SELECT * FROM scrape_task 
+        WHERE status = 'PENDING' 
+        ORDER BY priority ASC, order_index ASC 
+        LIMIT #{limit}
+    </select>
+
     <!-- 乐观锁抢占：只有 PENDING 时才更新为 RUNNING -->
     <update id="tryClaimTask">
         UPDATE scrape_task 
@@ -147,5 +155,25 @@
         UPDATE scrape_task SET status = 'PENDING', error_message = NULL, updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id} AND status = 'FAILED'
     </update>
+
+    <!-- 删除单条失败任务 -->
+    <delete id="deleteFailedTask">
+        DELETE FROM scrape_task WHERE id = #{id} AND status = 'FAILED'
+    </delete>
+
+    <!-- 停止所有 PENDING 任务（用户主动停止时调用） -->
+    <update id="stopAllPendingTasks">
+        UPDATE scrape_task 
+        SET status = 'STOPPED', updated_at = CURRENT_TIMESTAMP 
+        WHERE status = 'PENDING'
+    </update>
+
+    <!-- 清除所有失败任务 -->
+    <delete id="clearFailedTasks">
+        DELETE FROM scrape_task WHERE status = 'FAILED'
+        <if test="taskType != null and taskType != ''">
+            AND task_type = #{taskType}
+        </if>
+    </delete>
 
 </mapper>

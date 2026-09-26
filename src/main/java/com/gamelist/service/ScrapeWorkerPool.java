@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -68,18 +69,20 @@ public class ScrapeWorkerPool {
             logger.info("启动时重置 {} 个残留的 RUNNING 任务为 PENDING", resetCount);
         }
         
-        // 创建可动态调整的线程池
-        // core=1（最少保持 1 个线程），max=默认6（SS API 返回后动态调整）
-        // 空闲 60s 的线程自动回收
+        // ★ 修复：corePoolSize 必须等于 maximumPoolSize
+        // ThreadPoolExecutor + LinkedBlockingQueue（无界）组合下，
+        // 若 corePoolSize < maximumPoolSize，线程池永远不会创建超过 core 数量的线程，
+        // 因为无界队列永远不会满，maximumPoolSize 形同虚设。
+        // 设计意图是 N 个线程并发执行，core=max=N 才能保证真正的多线程并行。
         workerPool = new ThreadPoolExecutor(
-            1, DEFAULT_MAX_THREADS, 60, TimeUnit.SECONDS,
+            DEFAULT_MAX_THREADS, DEFAULT_MAX_THREADS, 60, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(),
             new ScrapeWorkerThreadFactory()
         );
-        // 允许核心线程超时回收
+        // 允许核心线程超时回收（空闲时不占资源）
         workerPool.allowCoreThreadTimeOut(true);
         
-        logger.info("刮削工作线程池已创建，初始最大线程数: {}", DEFAULT_MAX_THREADS);
+        logger.info("刮削工作线程池已创建，线程数: {}", DEFAULT_MAX_THREADS);
         
         // 启动常驻监听线程
         startListener();
@@ -140,10 +143,13 @@ public class ScrapeWorkerPool {
     }
     
     /**
-     * 监听线程主循环（带背压控制，避免瞬间 claim 所有任务）
+     * 监听线程主循环（批量派发，充分利用所有 worker 线程）
+     * 
+     * 核心改进：每次循环按 availableSlots 批量 pick 任务并分发，
+     * 而非逐个 pick，确保 6 个 worker 线程都能同时工作。
      */
     private void listenerLoop() {
-        logger.info("监听线程开始运行");
+        logger.info("监听线程开始运行（批量派发模式）");
         
         while (running.get()) {
             try {
@@ -154,40 +160,45 @@ public class ScrapeWorkerPool {
                 
                 if (!running.get()) break;
                 
-                // 背压控制：仅在线程池有空闲容量时才认领新任务
-                int queueSize = workerPool.getQueue().size();
+                // 背压控制：计算线程池空闲槽位数
                 int activeCount = workerPool.getActiveCount();
                 int maxPoolSize = workerPool.getMaximumPoolSize();
+                int queueSize = workerPool.getQueue().size();
                 int availableSlots = Math.max(0, maxPoolSize - activeCount - queueSize);
                 
                 if (availableSlots <= 0) {
-                    // 线程池已满，等待 1s 后重试
-                    Thread.sleep(1000);
+                    // 线程池已满，等待 500ms 后重试（缩短等待以减少空闲）
+                    Thread.sleep(500);
                     continue;
                 }
                 
-                // 取任务：ORDER BY priority ASC, order_index ASC
-                ScrapeTask task = scrapeTaskMapper.pickNextPendingTask();
+                // ★ 批量取任务：一次取 availableSlots 个，填满所有空闲 worker
+                List<ScrapeTask> tasks = scrapeTaskMapper.pickNextPendingTasks(availableSlots);
                 
-                if (task == null) {
+                if (tasks == null || tasks.isEmpty()) {
                     // 任务池空，等待 2s 后重试
                     Thread.sleep(2000);
                     continue;
                 }
                 
-                logger.debug("发现待处理任务: id={}, type={}, priority={}", task.getId(), task.getTaskType(), task.getPriority());
-                
-                // 乐观锁抢占
-                if (scrapeTaskMapper.tryClaimTask(task.getId()) == 0) {
-                    // 被其他线程抢走了，继续取下一个
-                    logger.debug("任务 {} 被其他线程抢占", task.getId());
-                    continue;
+                // 批量乐观锁抢占 + 分发
+                int dispatched = 0;
+                for (ScrapeTask task : tasks) {
+                    if (scrapeTaskMapper.tryClaimTask(task.getId()) > 0) {
+                        logger.info("任务已认领: id={}, type={}, gameId={}, 分发到工作线程池执行", 
+                            task.getId(), task.getTaskType(), task.getGameId());
+                        workerPool.submit(() -> executeTask(task));
+                        dispatched++;
+                    } else {
+                        logger.debug("任务 {} 被其他线程抢占", task.getId());
+                    }
                 }
                 
-                logger.info("任务已认领: id={}, type={}, gameId={}, 分发到工作线程池执行", task.getId(), task.getTaskType(), task.getGameId());
-                
-                // 分发到线程池执行（异步，不阻塞监听线程）
-                workerPool.submit(() -> executeTask(task));
+                if (dispatched == 0 && !tasks.isEmpty()) {
+                    // 所有任务都被抢走，短暂等待避免空转
+                    Thread.sleep(100);
+                }
+                // 成功派发了任务则立即继续循环，不 sleep，尽快填满所有 worker
                 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -289,16 +300,19 @@ public class ScrapeWorkerPool {
     }
     
     /**
-     * 用户主动停止刮削：暂停监听 + 清空队列 + 重置 RUNNING 任务
+     * 用户主动停止刮削：暂停监听 + 清空队列 + 重置 RUNNING + 停止 PENDING
      */
     public void stopAll() {
         paused.set(true);  // 暂停监听线程
         // 取消线程池中排队等待的任务
         int cancelled = workerPool.getQueue().size();
         workerPool.getQueue().clear();
-        // 重置 RUNNING 任务为 PENDING
+        // ★ 将 PENDING 任务设为 STOPPED（防止重新刮削时这些任务被误认为“挂起”）
+        int stoppedCount = scrapeTaskMapper.stopAllPendingTasks();
+        // 重置 RUNNING 任务为 PENDING（这些是正在执行中被中断的，需要重新执行）
         int resetCount = scrapeTaskMapper.resetRunningToPending();
-        logger.info("用户停止刮削：取消 {} 个排队任务，重置 {} 个运行中任务", cancelled, resetCount);
+        logger.info("用户停止刮削：取消 {} 个排队任务，停止 {} 个待处理任务，重置 {} 个运行中任务", 
+            cancelled, stoppedCount, resetCount);
     }
     
     public boolean isPaused() {

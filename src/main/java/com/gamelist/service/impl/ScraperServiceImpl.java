@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -211,6 +212,11 @@ public class ScraperServiceImpl implements ScraperService {
         // 4. 重置控制标志
         isScrapingStopped.set(false);
         isScrapingPaused.set(false);
+        
+        // ★ 恢复工作线程池（防止上次停止后 listener 仍处于暂停状态）
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.resume();
+        }
         
         // 5. 创建后台任务
         String taskType = switch (request.getType()) {
@@ -3216,11 +3222,14 @@ public class ScraperServiceImpl implements ScraperService {
             task.setSystemId(systemId);
             task.setSsGameId(game.getSsGameId());
             // 存储媒体偏好到任务中，以便 worker 执行时知道要下载哪些媒体
+            // ★ overwrite 标志编码到 mediaScope 前缀 "overwrite|" 中，供 executeGameInfoTask 恢复
+            boolean overwriteMedia = Boolean.TRUE.equals(request.getOverwrite());
+            String prefix = overwriteMedia ? "overwrite|" : "";
             boolean scrapeAllMedia = Boolean.TRUE.equals(request.getScrapeAllMedia());
             if (scrapeAllMedia) {
-                task.setMediaScope("*");
+                task.setMediaScope(prefix + "*");
             } else if (request.getMediaTypes() != null && !request.getMediaTypes().isEmpty()) {
-                task.setMediaScope(String.join(",", request.getMediaTypes()));
+                task.setMediaScope(prefix + String.join(",", request.getMediaTypes()));
             }
             // else: mediaScope = null (不刮媒体)
             task.setStatus(ScrapeTask.STATUS_PENDING);
@@ -3245,6 +3254,52 @@ public class ScraperServiceImpl implements ScraperService {
                 return false;
             }
             
+            // ★ 缓存/已刮削检查：避免浪费 SS API 配额
+            boolean alreadyScraped = Boolean.TRUE.equals(game.getScraped());
+            boolean alreadyCached = Boolean.TRUE.equals(game.getCached());
+            
+            if (alreadyScraped || alreadyCached) {
+                if (alreadyCached) {
+                    // 已缓存：从缓存 manifest 创建媒体下载任务（0 次 SS API 调用）
+                    com.fasterxml.jackson.databind.JsonNode cachedManifest = 
+                        gameManifestService.getCachedGame(game.getSsGameId());
+                    if (cachedManifest != null && task.getMediaScope() != null) {
+                        ScraperRequest cachedRequest = new ScraperRequest();
+                        cachedRequest.setPlatformId(task.getPlatformId());
+                        cachedRequest.setType("single");
+                        // ★ 从 mediaScope 恢复 overwrite 标志和实际媒体范围
+                        String rawScope = task.getMediaScope();
+                        boolean overwriteMedia = rawScope.startsWith("overwrite|");
+                        if (overwriteMedia) {
+                            cachedRequest.setOverwrite(true);
+                            rawScope = rawScope.substring("overwrite|".length());
+                        }
+                        if ("*".equals(rawScope)) {
+                            cachedRequest.setScrapeAllMedia(true);
+                        } else {
+                            cachedRequest.setMediaTypes(java.util.Arrays.asList(rawScope.split(",")));
+                        }
+                        
+                        // 将 cached manifest 包装成 enqueueMediaTasksFromGameInfo 期望的 Map 格式
+                        Map<String, Object> cachedData = new HashMap<>();
+                        cachedData.put("medias", cachedManifest.get("medias"));
+                        cachedData.put("game", cachedManifest);
+                        
+                        ScraperSystem system = getSystemInfo(task.getSystemId());
+                        String platformName = system != null ? system.getName() : "unknown";
+                        enqueueMediaTasksFromGameInfo(game, cachedData, cachedRequest, 
+                            platformName, task.getPlatformId(), task.getSystemId());
+                        logger.info("游戏已缓存，从 manifest 创建媒体任务（跳过 SS API）: gameId={}", game.getId());
+                    } else {
+                        logger.info("游戏已缓存，无媒体需求，跳过: gameId={}", game.getId());
+                    }
+                } else {
+                    // 已刮削但未缓存：跳过 API 调用
+                    logger.info("游戏已刮削，跳过 SS API 调用: gameId={}", game.getId());
+                }
+                return true;
+            }
+            
             // 获取系统配置
             ScraperSystem system = getSystemInfo(task.getSystemId());
             if (system == null) {
@@ -3260,12 +3315,18 @@ public class ScraperServiceImpl implements ScraperService {
             request.setPlatformId(task.getPlatformId());
             request.setType("single");
             
-            // 从 mediaScope 恢复媒体偏好
+            // 从 mediaScope 恢复媒体偏好（含 overwrite 标志）
             if (task.getMediaScope() != null) {
-                if ("*".equals(task.getMediaScope())) {
+                String rawScope = task.getMediaScope();
+                boolean overwriteMedia = rawScope.startsWith("overwrite|");
+                if (overwriteMedia) {
+                    request.setOverwrite(true);
+                    rawScope = rawScope.substring("overwrite|".length());
+                }
+                if ("*".equals(rawScope)) {
                     request.setScrapeAllMedia(true);
                 } else {
-                    request.setMediaTypes(java.util.Arrays.asList(task.getMediaScope().split(",")));
+                    request.setMediaTypes(java.util.Arrays.asList(rawScope.split(",")));
                 }
             }
             
@@ -3304,6 +3365,24 @@ public class ScraperServiceImpl implements ScraperService {
                 return false;
             }
             
+            // ★ 文件已存在检查：避免重复下载浪费带宽
+            java.io.File targetFile = new java.io.File(task.getLocalPath());
+            if (targetFile.exists() && targetFile.length() > 0) {
+                logger.info("媒体文件已存在，跳过下载: taskId={}, path={}", task.getId(), task.getLocalPath());
+                updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
+                return true;
+            }
+            
+            // ★ 同类型文件检查：目录中已有该类型的其他媒体文件（不同扩展名）也视为已存在
+            java.nio.file.Path localFilePath = java.nio.file.Paths.get(task.getLocalPath());
+            java.nio.file.Path gameMediaDir = localFilePath.getParent();
+            java.nio.file.Path existingFile = PathResolver.findExistingMedia(gameMediaDir, task.getMediaType());
+            if (existingFile != null) {
+                logger.info("同类型媒体文件已存在，跳过下载: taskId={}, existingPath={}", task.getId(), existingFile);
+                updateGameMediaPath(task.getGameId(), task.getMediaType(), PathResolver.normalizeForDb(existingFile));
+                return true;
+            }
+            
             // 解密下载 URL
             String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
             
@@ -3323,6 +3402,8 @@ public class ScraperServiceImpl implements ScraperService {
     
     /**
      * 从游戏信息刮削结果创建媒体下载任务
+     * <p>路径规则对齐 MEMO 设计: {ssSystemId}/{ssGameId}/{type}.{ext}
+     * <p>每种媒体类型只保留一个文件（优先区域优先），与 createMediaTask 逻辑一致
      */
     private void enqueueMediaTasksFromGameInfo(Game game, Map<String, Object> searchResult, 
             ScraperRequest request, String platformName, Long platformId, Integer ssSystemId) {
@@ -3356,9 +3437,12 @@ public class ScraperServiceImpl implements ScraperService {
             List<ScrapeTask> mediaTasks = new ArrayList<>();
             long orderIndex = System.currentTimeMillis();
             
-            // 遍历媒体文件并创建任务
             boolean scrapeAllMedia = Boolean.TRUE.equals(request.getScrapeAllMedia());
             List<String> requestedTypes = request.getMediaTypes();
+            
+            // ★ 按类型去重：优先区域优先，与 saveMediaTasksToDb/createMediaTask 逻辑一致
+            Map<String, JsonNode> preferredMap = new LinkedHashMap<>();
+            Map<String, JsonNode> fallbackMap = new LinkedHashMap<>();
             
             for (JsonNode media : medias) {
                 if (!media.has("type") || !media.has("url")) continue;
@@ -3375,30 +3459,45 @@ public class ScraperServiceImpl implements ScraperService {
                     if (screenScraperType == null) screenScraperType = type;
                     shouldDownload = requestedTypes.contains(type) || requestedTypes.contains(screenScraperType);
                 }
-                
                 if (!shouldDownload) continue;
                 
-                // 优先区域优先
-                if (!region.equals(preferredRegion) && !scrapeAllMedia) {
-                    // 检查是否已有优先区域的同类型媒体
-                    boolean hasPreferred = false;
-                    for (JsonNode other : medias) {
-                        if (!other.has("type") || !other.has("url")) continue;
-                        if (other.get("type").asText().equals(type)) {
-                            String otherRegion = other.has("region") ? other.get("region").asText().toLowerCase() : "wor";
-                            if (otherRegion.equals(preferredRegion)) {
-                                hasPreferred = true;
-                                break;
-                            }
-                        }
+                // 按区域分组：优先区域进 preferredMap，其他区域仅在优先区域没有该类型时进 fallbackMap
+                if (region.equals(preferredRegion)) {
+                    preferredMap.put(type, media);
+                } else {
+                    if (!preferredMap.containsKey(type)) {
+                        fallbackMap.put(type, media);
                     }
-                    if (hasPreferred) continue;
+                }
+            }
+            
+            // 合并：优先区域优先，非优先区域补充
+            Map<String, JsonNode> selectedMedia = new LinkedHashMap<>(preferredMap);
+            for (Map.Entry<String, JsonNode> entry : fallbackMap.entrySet()) {
+                if (!selectedMedia.containsKey(entry.getKey())) {
+                    selectedMedia.put(entry.getKey(), entry.getValue());
+                }
+            }
+            
+            // 为选中的媒体创建下载任务
+            for (Map.Entry<String, JsonNode> entry : selectedMedia.entrySet()) {
+                String type = entry.getKey();
+                JsonNode media = entry.getValue();
+                
+                // ★ 文件已存在检查：overwrite=true 时跳过检查，强制重新下载
+                boolean overwriteMedia = Boolean.TRUE.equals(request.getOverwrite());
+                if (!overwriteMedia) {
+                    Path existingFile = PathResolver.findExistingMedia(gameMediaDir, type);
+                    if (existingFile != null) {
+                        logger.debug("媒体文件已存在，跳过创建下载任务: gameId={}, type={}", gameId, type);
+                        continue;
+                    }
                 }
                 
-                // 创建下载任务
+                // 文件名: {type}.{ext}（对齐 MEMO 设计）
+                String ext = media.has("format") ? media.get("format").asText() : "png";
+                String localPath = gameMediaDir.resolve(type + "." + ext).toString();
                 String encryptedUrl = EncryptionUtil.encrypt(media.get("url").asText());
-                String fileName = buildMediaFileName(type, region, media);
-                String localPath = gameMediaDir.resolve(fileName).toString();
                 
                 ScrapeTask mediaTask = new ScrapeTask();
                 mediaTask.setTaskType(ScrapeTask.TYPE_MEDIA_DOWNLOAD);
@@ -3407,7 +3506,6 @@ public class ScraperServiceImpl implements ScraperService {
                 mediaTask.setSystemId(ssSystemId);
                 mediaTask.setSsGameId(game.getSsGameId());
                 mediaTask.setMediaType(type);
-                mediaTask.setMediaRegion(region);
                 mediaTask.setDownloadUrl(encryptedUrl);
                 mediaTask.setLocalPath(localPath);
                 mediaTask.setStatus(ScrapeTask.STATUS_PENDING);
@@ -3423,16 +3521,5 @@ public class ScraperServiceImpl implements ScraperService {
         } catch (Exception e) {
             logger.error("创建媒体下载任务失败: gameId={}", game.getId(), e);
         }
-    }
-    
-    /**
-     * 构建媒体文件名
-     */
-    private String buildMediaFileName(String type, String region, JsonNode media) {
-        String ext = "png"; // 默认扩展名
-        if (media.has("format")) {
-            ext = media.get("format").asText();
-        }
-        return String.format("%s_%s.%s", type, region, ext);
     }
 }

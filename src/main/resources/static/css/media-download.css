@@ -622,6 +622,63 @@
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
+/* Header actions container */
+.ft-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Clear all button */
+.ft-clear-all-btn {
+    background: transparent;
+    color: var(--accent-danger, #ef4444);
+    border: 1px solid var(--accent-danger, #ef4444);
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.ft-clear-all-btn:hover {
+    background: var(--accent-danger, #ef4444);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+/* Per-row action buttons container */
+.ft-action-btns {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Per-row delete button */
+.ft-delete-btn {
+    background: transparent;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-default);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.ft-delete-btn:hover {
+    color: var(--accent-danger, #ef4444);
+    border-color: var(--accent-danger, #ef4444);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Row fade-out transition */
+.ft-task-row {
+    transition: opacity 0.2s ease;
+}
+
 .ft-error-msg {
     color: var(--accent-danger);
     text-align: center;

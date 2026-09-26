@@ -781,7 +781,10 @@
         <div class="ft-modal">
             <div class="ft-modal-header">
                 <h3 id="failedModalTitle">❗ 失败任务</h3>
-                <button class="ft-modal-close" onclick="closeFailedTaskModal()">&times;</button>
+                <div class="ft-header-actions">
+                    <button id="ftClearAllBtn" class="ft-clear-all-btn" onclick="clearAllFailedTasks()" style="display:none;" data-i18n="failed_clear_all">清除全部</button>
+                    <button class="ft-modal-close" onclick="closeFailedTaskModal()">&times;</button>
+                </div>
             </div>
             <div id="failedTaskList" class="ft-modal-body">
                 <p class="ft-loading" data-i18n="failed_loading">加载中...</p>
@@ -789,14 +792,19 @@
         </div>
     </div>
     <script>
+        let _currentFailedTaskType = null;
+
         async function showFailedTasks(taskType) {
+            _currentFailedTaskType = taskType;
             const modal = document.getElementById('failedTaskModal');
             const list = document.getElementById('failedTaskList');
             const title = document.getElementById('failedModalTitle');
+            const clearBtn = document.getElementById('ftClearAllBtn');
 
             const titleKey = taskType === 'GAME_INFO' ? 'failed_game_info' : 'failed_media_download';
             title.textContent = I18n.t(titleKey, taskType === 'GAME_INFO' ? '❗ 游戏信息刮削失败' : '❗ 媒体文件下载失败');
             list.innerHTML = '<p class="ft-loading">' + I18n.t('failed_loading', '加载中...') + '</p>';
+            clearBtn.style.display = 'none';
             modal.style.display = 'flex';
 
             try {
@@ -806,6 +814,9 @@
                     list.innerHTML = '<p class="ft-empty">' + I18n.t('failed_no_tasks', '暂无失败任务') + '</p>';
                     return;
                 }
+
+                // Show clear-all button when there are tasks
+                clearBtn.style.display = '';
 
                 // Table header
                 let html = '<div class="ft-table-head">';
@@ -824,7 +835,7 @@
                     const taskId = task.id;
                     const mediaType = task.mediaType;
 
-                    html += '<div class="ft-task-row">';
+                    html += '<div class="ft-task-row" id="ft-row-' + taskId + '">';
                     // Game name
                     html += '<div class="ft-game-name">';
                     if (gameId) {
@@ -841,9 +852,10 @@
                     html += '</div>';
                     // Error message
                     html += '<div class="ft-error" title="' + (task.errorMessage || '').replace(/"/g, '&quot;') + '">' + errorMsg + '</div>';
-                    // Retry button
-                    html += '<div style="text-align:center;">';
+                    // Action buttons
+                    html += '<div class="ft-action-btns">';
                     html += '<button class="ft-retry-btn" onclick="retryTask(' + taskId + ',\'' + taskType + '\')">' + I18n.t('failed_retry', '重试') + '</button>';
+                    html += '<button class="ft-delete-btn" onclick="deleteFailedTask(' + taskId + ',\'' + taskType + '\')">' + I18n.t('failed_delete', '删除') + '</button>';
                     html += '</div>';
                     html += '</div>';
                 }
@@ -873,6 +885,42 @@
                 }
             } catch (e) {
                 showToast(I18n.t('failed_retry_error', '重试请求失败') + ': ' + e.message, 'error');
+            }
+        }
+
+        async function deleteFailedTask(taskId, taskType) {
+            try {
+                const resp = await fetch(`/api/scraper/failed-tasks/${taskId}`, { method: 'DELETE' });
+                const result = await resp.json();
+                if (result.success) {
+                    const row = document.getElementById('ft-row-' + taskId);
+                    if (row) { row.style.opacity = '0'; setTimeout(() => row.remove(), 200); }
+                    // Check if no more rows
+                    const remaining = document.querySelectorAll('.ft-task-row');
+                    if (remaining.length <= 1) { showFailedTasks(taskType); refreshPlatforms(); }
+                } else {
+                    showToast(result.message || I18n.t('failed_delete_error', '删除失败'), 'error');
+                }
+            } catch (e) {
+                showToast(I18n.t('failed_delete_error', '删除失败') + ': ' + e.message, 'error');
+            }
+        }
+
+        async function clearAllFailedTasks() {
+            if (!_currentFailedTaskType) return;
+            if (!confirm(I18n.t('failed_clear_confirm', '确定清除所有失败任务？'))) return;
+            try {
+                const resp = await fetch(`/api/scraper/failed-tasks?taskType=${_currentFailedTaskType}`, { method: 'DELETE' });
+                const result = await resp.json();
+                if (result.success) {
+                    showToast(I18n.t('failed_cleared', '已清除') + ' ' + (result.deletedCount || 0) + ' ' + I18n.t('failed_cleared_unit', '条失败任务'), 'success');
+                    showFailedTasks(_currentFailedTaskType);
+                    refreshPlatforms();
+                } else {
+                    showToast(result.message || I18n.t('failed_clear_error', '清除失败'), 'error');
+                }
+            } catch (e) {
+                showToast(I18n.t('failed_clear_error', '清除失败') + ': ' + e.message, 'error');
             }
         }
 

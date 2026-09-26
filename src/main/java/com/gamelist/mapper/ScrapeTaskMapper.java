@@ -29,6 +29,12 @@ public interface ScrapeTaskMapper {
     ScrapeTask pickNextPendingTask();
     
     /**
+     * 按优先级批量取待处理任务（PENDING 状态）
+     * 用于监听线程一次性取多个任务分发，避免逐个 pick 的性能瓶颈
+     */
+    List<ScrapeTask> pickNextPendingTasks(@Param("limit") int limit);
+    
+    /**
      * 乐观锁抢占：只有 status='PENDING' 时才更新为 RUNNING
      * @return 成功返回 1，被其他线程抢走返回 0
      */
@@ -97,4 +103,19 @@ public interface ScrapeTaskMapper {
      * 将失败的任务重置为 PENDING（重试）
      */
     int retryFailedTask(@Param("id") long id);
+
+    /**
+     * 删除单条失败任务
+     */
+    int deleteFailedTask(@Param("id") long id);
+
+    /**
+     * 清除所有失败任务（按 taskType 可选过滤）
+     */
+    int clearFailedTasks(@Param("taskType") String taskType);
+
+    /**
+     * 停止所有 PENDING 任务（用户主动停止时调用）
+     */
+    int stopAllPendingTasks();
 }
