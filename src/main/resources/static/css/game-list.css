@@ -902,6 +902,42 @@
     color: var(--text-primary);
 }
 
+/* ---- 匹配弹窗区域选择 ---- */
+.match-region-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-default);
+}
+
+.match-region-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.match-region-select {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    cursor: pointer;
+    appearance: auto;
+}
+
+.match-region-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-primary-subtle);
+}
+
 /* ---- 列排序指示器 ---- */
 .game-table th.sortable {
     cursor: pointer;

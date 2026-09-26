@@ -3232,6 +3232,17 @@
                     </div>`;
             });
             html += `<button id="matchBindBtn" class="btn" data-i18n="match_bind_btn">绑定系统</button>`;
+            // 区域选择
+            html += `
+                <div class="match-region-row">
+                    <label class="match-region-label" data-i18n="match_region_label">媒体区域：</label>
+                    <select id="matchRegionSelect" class="match-region-select">
+                        <option value="wor" data-i18n="region_wor">世界 (wor)</option>
+                        <option value="us" data-i18n="region_us">美版 (us)</option>
+                        <option value="eu" data-i18n="region_eu">欧版 (eu)</option>
+                        <option value="jp" data-i18n="region_jp">日版 (jp)</option>
+                    </select>
+                </div>`;
             container.innerHTML = html;
             I18n.updatePage();
             
@@ -3255,6 +3266,8 @@
                 return;
             }
             const systemId = parseInt(selected.dataset.systemId, 10);
+            const regionSelect = document.getElementById('matchRegionSelect');
+            const selectedRegion = regionSelect ? regionSelect.value : 'wor';
             const btn = document.getElementById('matchBindBtn');
             if (!btn) return;
             btn.disabled = true;
@@ -3265,7 +3278,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ systemId: systemId })
+                body: JSON.stringify({ systemId: systemId, region: selectedRegion })
             })
             .then(response => response.json())
             .then(result => {

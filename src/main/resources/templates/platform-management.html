@@ -1038,7 +1038,7 @@
                     <td style="text-align:center;"><input type="checkbox" class="pm-batch-cb" value="${platform.id}" onchange="onPlatformCheckboxChange()"></td>
                     <td>${platform.id}</td>
                     <td>
-                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
+                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px; cursor: pointer;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" onmouseenter="showPlatformPreviewById(event, ${platform.id})" onmouseleave="hidePlatformPreview()"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
                     </td>
                     <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
                     <td>${stat.totalGames}</td>
@@ -1272,6 +1272,171 @@
             }
             
             return null;
+        }
+
+        // 获取系统视频URL
+        function getSystemVideoUrl(platform) {
+            if (!platform.systemId) {
+                return null;
+            }
+            const logoRegion = platform.logoRegion || 'wor';
+            return `/scraper/system/${platform.systemId}/${logoRegion}/video/video.mp4`;
+        }
+
+        // 显示平台预览弹窗（Logo + 系统视频）
+        function showPlatformPreview(event, platform) {
+            let preview = document.getElementById('platformPreview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'platformPreview';
+                preview.style.cssText = `
+                    position: fixed !important;
+                    z-index: 999999 !important;
+                    background: rgba(0, 0, 0, 0.95) !important;
+                    border: 2px solid #00ffff !important;
+                    border-radius: 10px !important;
+                    padding: 15px !important;
+                    width: 400px !important;
+                    min-height: 280px !important;
+                    pointer-events: none !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5) !important;
+                `;
+                
+                // Logo 区域
+                const logoDiv = document.createElement('div');
+                logoDiv.id = 'platformPreviewLogoDiv';
+                logoDiv.style.cssText = `
+                    width: 100%;
+                    height: 80px;
+                    background: #111;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                const logoImg = document.createElement('img');
+                logoImg.id = 'platformPreviewLogo';
+                logoImg.style.cssText = 'max-width: 100%; max-height: 80px; object-fit: contain;';
+                logoImg.alt = 'Logo';
+                logoDiv.appendChild(logoImg);
+                
+                // 视频区域
+                const videoDiv = document.createElement('div');
+                videoDiv.id = 'platformPreviewVideoDiv';
+                videoDiv.style.cssText = `
+                    width: 100%;
+                    height: 150px;
+                    background: #111;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                
+                // 平台名称
+                const nameDiv = document.createElement('div');
+                nameDiv.id = 'platformPreviewName';
+                nameDiv.style.cssText = `
+                    color: #00ffff;
+                    font-size: 16px;
+                    font-weight: bold;
+                    text-align: center;
+                    word-wrap: break-word;
+                `;
+                
+                preview.appendChild(logoDiv);
+                preview.appendChild(videoDiv);
+                preview.appendChild(nameDiv);
+                document.body.appendChild(preview);
+            }
+            
+            // 更新 Logo
+            const logoDiv = document.getElementById('platformPreviewLogoDiv');
+            const logoImg = document.getElementById('platformPreviewLogo');
+            const logoUrl = getPlatformLogoUrl(platform);
+            if (logoUrl) {
+                logoImg.src = logoUrl;
+                logoDiv.style.display = 'flex';
+            } else {
+                logoDiv.style.display = 'none';
+            }
+            
+            // 更新视频
+            const videoDiv = document.getElementById('platformPreviewVideoDiv');
+            // 清除旧视频
+            const oldVideo = videoDiv.querySelector('video');
+            if (oldVideo) {
+                oldVideo.pause();
+                oldVideo.src = '';
+                oldVideo.remove();
+            }
+            
+            const videoUrl = getSystemVideoUrl(platform);
+            if (videoUrl) {
+                const videoEl = document.createElement('video');
+                videoEl.style.cssText = 'max-width: 100%; max-height: 150px; object-fit: contain;';
+                videoEl.autoplay = true;
+                videoEl.muted = true;
+                videoEl.loop = true;
+                videoEl.controls = false;
+                videoEl.src = videoUrl;
+                videoEl.onerror = () => {
+                    videoDiv.innerHTML = '<span style="color: #666; font-size: 12px;">' + _pi18n('no_video', '无视频') + '</span>';
+                };
+                videoDiv.appendChild(videoEl);
+                videoDiv.style.display = 'flex';
+            } else {
+                videoDiv.innerHTML = '<span style="color: #666; font-size: 12px;">' + _pi18n('no_video', '无视频') + '</span>';
+            }
+            
+            // 更新名称
+            const nameDiv = document.getElementById('platformPreviewName');
+            nameDiv.textContent = platform.name || platform.system || '';
+            
+            preview.style.display = 'block';
+            
+            // 定位
+            let left = event.clientX + 15;
+            let top = event.clientY + 15;
+            
+            if (left + 400 > window.innerWidth) {
+                left = event.clientX - 415;
+            }
+            if (top + 280 > window.innerHeight) {
+                top = event.clientY - 295;
+            }
+            
+            preview.style.left = left + 'px';
+            preview.style.top = top + 'px';
+        }
+
+        // 隐藏平台预览弹窗
+        function hidePlatformPreview() {
+            const preview = document.getElementById('platformPreview');
+            if (preview) {
+                preview.style.display = 'none';
+                // 停止视频播放
+                const videoDiv = document.getElementById('platformPreviewVideoDiv');
+                const videoEl = videoDiv ? videoDiv.querySelector('video') : null;
+                if (videoEl) {
+                    videoEl.pause();
+                    videoEl.src = '';
+                }
+            }
+        }
+
+        // 通过平台ID显示预览（供HTML事件调用）
+        function showPlatformPreviewById(event, platformId) {
+            const row = _platformRows.find(r => r.platform.id === platformId);
+            if (row) {
+                showPlatformPreview(event, row.platform);
+            }
         }
 
         // 打开编辑模态框

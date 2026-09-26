@@ -18,6 +18,12 @@ public interface ScraperSystemService {
     Map<String, Object> scrapeSystemAllMedia(Integer systemId);
     
     /**
+     * 刮削系统媒体文件（指定区域）
+     * @param targetRegion 目标区域（如 wor/us/eu/jp），为 null 时下载所有区域
+     */
+    Map<String, Object> scrapeSystemAllMedia(Integer systemId, String targetRegion);
+    
+    /**
      * 标记系统媒体已刮削
      */
     void markAsScraped(Integer systemId);
@@ -31,4 +37,10 @@ public interface ScraperSystemService {
      * 同步下载系统 icon（wor 区域），用于导入时立即获取 logo
      */
     void scrapeSystemIcon(Integer systemId);
+
+    /**
+     * 同步下载系统 icon（指定区域）
+     * @param targetRegion 目标区域，为 null 时使用默认 fallback 链
+     */
+    void scrapeSystemIcon(Integer systemId, String targetRegion);
 }

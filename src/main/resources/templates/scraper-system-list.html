@@ -116,6 +116,17 @@
                             系统将自动获取所有可用的媒体文件并下载，包括不同地区的各种媒体类型。
                         </p>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="scrapeRegion" data-i18n="scrape_region_label">刮削区域：</label>
+                        <select id="scrapeRegion">
+                            <option value="wor" data-i18n="region_wor">世界 (wor)</option>
+                            <option value="us" data-i18n="region_us">美版 (us)</option>
+                            <option value="eu" data-i18n="region_eu">欧版 (eu)</option>
+                            <option value="jp" data-i18n="region_jp">日版 (jp)</option>
+                            <option value="" data-i18n="region_all">全部区域</option>
+                        </select>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -353,13 +364,18 @@
                 return;
             }
 
+            const selectedRegion = document.getElementById('scrapeRegion').value;
             const data = {
                 systemId: scrapeSystemId
             };
+            if (selectedRegion) {
+                data.region = selectedRegion;
+            }
 
             closeScrapeModal();
 
-            const scrapingMsg = I18n.t('scraping_system_name', '正在刮削系统') + ' ' + scrapeSystemName + '...';
+            const regionText = selectedRegion ? selectedRegion.toUpperCase() : 'ALL';
+            const scrapingMsg = I18n.t('scraping_system_name_region', '正在刮削系统') + ' ' + scrapeSystemName + ' (' + regionText + ')...';
             showStatus(scrapingMsg, 'success');
 
             fetch('/api/scraper-systems/scrape-all', {

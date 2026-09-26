@@ -515,7 +515,7 @@ public class PlatformServiceImpl implements PlatformService {
         Integer newSystemId = platform.getSystemId();
         if (newSystemId != null && !newSystemId.equals(oldSystemId)) {
             try {
-                scraperSystemService.scrapeSystemIcon(newSystemId);
+                scraperSystemService.scrapeSystemIcon(newSystemId, platform.getLogoRegion());
                 logger.info("systemId 变更 {} → {}，已自动下载系统 icon", oldSystemId, newSystemId);
             } catch (Exception e) {
                 logger.warn("自动下载系统 icon 失败，不影响保存: systemId={}, error={}", newSystemId, e.getMessage());
@@ -1242,6 +1242,11 @@ public class PlatformServiceImpl implements PlatformService {
 
     @Override
     public Map<String, Object> bindSystem(Long platformId, Integer systemId) {
+        return bindSystem(platformId, systemId, null);
+    }
+
+    @Override
+    public Map<String, Object> bindSystem(Long platformId, Integer systemId, String region) {
         Map<String, Object> result = new HashMap<>();
 
         try {
@@ -1260,6 +1265,12 @@ public class PlatformServiceImpl implements PlatformService {
             // 先记录该系统媒体是否已刮削：updatePlatform 会同步触发 icon 下载并可能置位 media_scraped，
             // 必须在绑定前读取原始状态，否则未刮削的系统会被误判为已刮削而跳过全量媒体刮削
             boolean wasScraped = scraperSystemService.isMediaScraped(systemId);
+
+            // 如果指定了区域，设置平台的 logoRegion
+            if (region != null && !region.isEmpty()) {
+                platform.setLogoRegion(region);
+                logger.info("设置平台 logoRegion: platformId={}, region={}", platformId, region);
+            }
 
             // 1. 绑定 systemId（updatePlatform 检测到 systemId 变更会自动下载系统 icon）
             platform.setSystemId(systemId);
@@ -1288,10 +1299,11 @@ public class PlatformServiceImpl implements PlatformService {
                 return result;
             }
 
-            Map<String, Object> scrapeResult = scraperSystemService.scrapeSystemAllMedia(systemId);
+            String targetRegion = platform.getLogoRegion() != null ? platform.getLogoRegion() : "wor";
+            Map<String, Object> scrapeResult = scraperSystemService.scrapeSystemAllMedia(systemId, targetRegion);
             result.put("scrapeStarted", Boolean.TRUE.equals(scrapeResult.get("success")));
             result.put("taskId", scrapeResult.get("taskId"));
-            result.put("message", "已绑定系统 " + scraperSystem.getName() + "，系统媒体刮削任务已启动");
+            result.put("message", "已绑定系统 " + scraperSystem.getName() + "（区域: " + targetRegion + "），系统媒体刮削任务已启动");
 
             return result;
         } catch (Exception e) {

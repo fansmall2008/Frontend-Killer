@@ -233,7 +233,8 @@ public class PlatformController {
                 // systemId 无效，交给 service 校验
             }
         }
-        Map<String, Object> result = platformService.bindSystem(id, systemId);
+        String region = (String) request.get("region");
+        Map<String, Object> result = platformService.bindSystem(id, systemId, region);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

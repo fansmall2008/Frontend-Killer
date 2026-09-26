@@ -43,4 +43,10 @@ public interface PlatformService {
      * @return {success, systemId, systemName, scraped, scrapeStarted, taskId?, message/errorMessage}
      */
     Map<String, Object> bindSystem(Long platformId, Integer systemId);
+
+    /**
+     * 将平台绑定到刮削系统，同时设置媒体区域。
+     * @param region 目标区域（wor/us/eu/jp），为 null 时使用平台已有的 logoRegion
+     */
+    Map<String, Object> bindSystem(Long platformId, Integer systemId, String region);
 }

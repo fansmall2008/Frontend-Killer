@@ -1,6 +1,13 @@
 # Compiled class files
 *.class
 
+# Extracted JAR contents
+BOOT-INF/
+META-INF/
+
+# Test screenshots
+test_*.png
+
 # Log files
 *.log
 

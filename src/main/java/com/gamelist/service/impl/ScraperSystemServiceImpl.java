@@ -285,6 +285,11 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     
     @Override
     public void scrapeSystemIcon(Integer systemId) {
+        scrapeSystemIcon(systemId, null);
+    }
+
+    @Override
+    public void scrapeSystemIcon(Integer systemId, String targetRegion) {
         if (systemId == null) {
             return;
         }
@@ -296,15 +301,18 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
         }
         
         try {
-            logger.info("开始自动下载系统 icon: systemId={}", systemId);
+            logger.info("开始自动下载系统 icon: systemId={}, targetRegion={}", systemId, targetRegion);
             Map<String, String> scraperSettings = scraperSettingsService.getSettings();
             String username = scraperSettings.get("username");
             String password = scraperSettings.get("password");
             
-            // 按优先级尝试多种媒体类型和区域
             // ScreenScraper 系统媒体类型: wheel, wheel-carbon, logo-svg, logo-monochrome 等
             String[] mediaTypes = {"wheel", "wheel-carbon", "logo-svg", "logo-monochrome"};
-            String[] regions = {"wor", "us", "eu", "jp"};
+            
+            // 如果指定了目标区域，只尝试该区域；否则按优先级 fallback
+            String[] regions = (targetRegion != null && !targetRegion.isEmpty())
+                    ? new String[]{targetRegion}
+                    : new String[]{"wor", "us", "eu", "jp"};
             
             boolean downloaded = false;
             for (String mediaType : mediaTypes) {
@@ -441,6 +449,11 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     
     @Override
     public Map<String, Object> scrapeSystemAllMedia(Integer systemId) {
+        return scrapeSystemAllMedia(systemId, null);
+    }
+    
+    @Override
+    public Map<String, Object> scrapeSystemAllMedia(Integer systemId, String targetRegion) {
         Map<String, Object> result = new HashMap<>();
         
         try {
@@ -453,10 +466,11 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             String username = scraperSettings.get("username");
             String password = scraperSettings.get("password");
             
-            String taskDescription = "刮削系统所有媒体: " + system.getName() + " (systemId: " + systemId + ")";
+            String regionDesc = targetRegion != null ? " (区域: " + targetRegion + ")" : " (所有区域)";
+            String taskDescription = "刮削系统媒体: " + system.getName() + regionDesc + " (systemId: " + systemId + ")";
             BackgroundTask task = taskService.createTask("SCRAPE", taskDescription);
             
-            self.scrapeSystemAllMediaAsync(task.getId(), systemId, username, password);
+            self.scrapeSystemAllMediaAsync(task.getId(), systemId, username, password, targetRegion);
             
             result.put("success", true);
             result.put("taskId", task.getId());
@@ -472,7 +486,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     }
     
     @Async
-    public void scrapeSystemAllMediaAsync(Long taskId, Integer systemId, String username, String password) {
+    public void scrapeSystemAllMediaAsync(Long taskId, Integer systemId, String username, String password, String targetRegion) {
         try {
             taskService.updateTaskProgress(taskId, 0, "正在获取系统信息...", 0, 0);
             
@@ -485,6 +499,20 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             
             @SuppressWarnings("unchecked")
             List<Map<String, String>> mediaList = (List<Map<String, String>>) details.get("mediaList");
+            
+            // 按目标区域过滤
+            if (targetRegion != null && !targetRegion.isEmpty()) {
+                List<Map<String, String>> filtered = new java.util.ArrayList<>();
+                for (Map<String, String> media : mediaList) {
+                    String region = media.get("region");
+                    if (targetRegion.equalsIgnoreCase(region)) {
+                        filtered.add(media);
+                    }
+                }
+                logger.info("区域过滤: {} -> {} (目标区域: {})", mediaList.size(), filtered.size(), targetRegion);
+                mediaList = filtered;
+            }
+            
             int totalTasks = mediaList.size();
             
             if (totalTasks == 0) {

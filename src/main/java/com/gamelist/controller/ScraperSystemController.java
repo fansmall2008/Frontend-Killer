@@ -176,8 +176,14 @@ public class ScraperSystemController {
         Map<String, Object> response = new HashMap<>();
         try {
             Integer systemId = (Integer) request.get("systemId");
+            String region = (String) request.get("region");
             
-            Map<String, Object> result = scraperSystemService.scrapeSystemAllMedia(systemId);
+            Map<String, Object> result;
+            if (region != null && !region.isEmpty()) {
+                result = scraperSystemService.scrapeSystemAllMedia(systemId, region);
+            } else {
+                result = scraperSystemService.scrapeSystemAllMedia(systemId);
+            }
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             logger.error("刮削系统所有媒体失败", e);
