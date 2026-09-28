@@ -151,6 +151,7 @@
 - Notification modal positioning broken on data-import page (missing `position: fixed` CSS; moved `#notificationModal` positioning to global `theme.css` so all pages share correct fixed overlay + centering)
 - `TermMappingInitializer` seed data bug: `hasSeedData()` checked total row count but `seedGenreMappings()` ran first inserting genre rows, causing `system_alias` seeds to be skipped; fixed by filtering on `category = 'system_alias'`
 - Game list search state lost after editing a game: second `loadGames` function definition (line 1975) overrode the first but didn't fall back to global `currentSearchTerm`/`currentSearchParams` when called without parameters; pagination and `restoreSearchState()` calls lost search conditions and showed all games
+- Empty field filter pagination causing 500 error: clicking "next page" re-requested server with `pageSize=99999`; added client-side cache (`window._emptyFieldCache`) so filtered results are fetched once and paginated locally
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.
