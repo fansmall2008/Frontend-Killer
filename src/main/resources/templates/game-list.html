@@ -128,6 +128,16 @@
                 <button id="migrateBtn" class="toolbar-btn" onclick="openMigrateModal()" disabled data-i18n="migrate">迁转</button>
                 <button id="swapTranslationBtn" class="toolbar-btn" onclick="swapTranslations()" disabled data-i18n="swap_translation">切换译文</button>
                 <button id="recheckExistsBtn" class="toolbar-btn" onclick="recheckExists()" data-i18n="recheck_exists">重新检测</button>
+                <label for="iconFieldSelect" data-i18n="icon-type" style="margin-left: 12px;">图标类型:</label>
+                <select id="iconFieldSelect" onchange="changeIconField()" style="background: var(--bg-input, #1a1a2e); color: var(--text-primary, #e0e0e0); border: 1px solid var(--border-default, #444); border-radius: 4px; padding: 4px 8px; font-size: 13px;">
+                    <option value="auto" data-i18n="icon_auto">自动（封面优先）</option>
+                    <option value="box2d" data-i18n="icon_box2d">封面（2D Box）</option>
+                    <option value="ss" data-i18n="icon_ss">截图（Screenshot）</option>
+                    <option value="wheelCarbon" data-i18n="icon_wheel">Logo（Wheel）</option>
+                    <option value="steamgrid" data-i18n="icon_steamgrid">Steam Grid</option>
+                    <option value="fanart" data-i18n="icon_fanart">同人画（Fanart）</option>
+                    <option value="image" data-i18n="icon_image">原始图片（Image）</option>
+                </select>
             </div>
             <div class="page-navigation">
                 <button class="toolbar-btn" onclick="previousPage()" id="prevBtn" data-i18n="prev-page">上一页</button>
@@ -784,10 +794,14 @@
                                 const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
                                                    game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
                                 
-                                const validIconFields = ['image', 'wheelCarbon', 'wheelcarbon', 'wheelSteel', 'wheelsteel', 'box2d', 'boxFront', 'ss', 'sstitle', 'fanart', 'poster', 'support2d', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
-                                const defaultIconChain = ['wheelCarbon', 'box2d', 'ss', 'image', 'fanart'];
-                                const savedIconField = localStorage.getItem('gameListIconField') || '';
-                                const iconField = savedIconField && validIconFields.includes(savedIconField) ? savedIconField : (defaultIconChain.find(f => game[f]) || '');
+                                const savedIconField = localStorage.getItem('gameListIconField') || 'auto';
+                                let iconField = '';
+                                if (savedIconField && savedIconField !== 'auto') {
+                                    iconField = game[savedIconField] ? savedIconField : '';
+                                } else {
+                                    const autoIconChain = ['box2d', 'steamgrid', 'image', 'boxFront', 'poster', 'ss', 'fanart'];
+                                    iconField = autoIconChain.find(f => game[f]) || '';
+                                }
                                 const iconPath = game[iconField] || '';
                                 const resolvedIconUrl = resolveMediaUrl(iconPath);
                                 const isWheel = iconField.startsWith('wheel');
@@ -1197,7 +1211,125 @@
         
         // 跳转到游戏编辑独立页面
         function openGameEditPage(gameId) {
+            // 保存当前搜索状态到 sessionStorage，以便返回时恢复
+            saveSearchState();
             window.location.href = '/game-edit?id=' + gameId + '&platformId=' + (platformId || '');
+        }
+        
+        // 保存搜索状态到 sessionStorage
+        function saveSearchState() {
+            const state = {
+                platformId: platformId,
+                subsetId: subsetId,
+                currentPage: window.currentPage || currentPage,
+                currentSearchTerm: currentSearchTerm,
+                currentSearchParams: currentSearchParams,
+                searchInputValue: document.getElementById('searchInput') ? document.getElementById('searchInput').value : '',
+                startYear: document.getElementById('startYear') ? document.getElementById('startYear').value : '',
+                endYear: document.getElementById('endYear') ? document.getElementById('endYear').value : '',
+                folderPath: document.getElementById('folderPath') ? document.getElementById('folderPath').value : '',
+                // 保存多选筛选器的选中项
+                developerSelected: msState.developer ? [...msState.developer.selected] : [],
+                publisherSelected: msState.publisher ? [...msState.publisher.selected] : [],
+                genreSelected: msState.genre ? [...msState.genre.selected] : [],
+                playersChecked: Array.from(document.querySelectorAll('#playersCheckboxes input:checked')).map(i => i.value),
+                scrapeStatusesChecked: Array.from(document.querySelectorAll('#scrapeStatusCheckboxes input:checked')).map(i => i.value),
+                fileStatusesChecked: Array.from(document.querySelectorAll('#fileStatusCheckboxes input:checked')).map(i => i.value),
+                searchAreaVisible: document.getElementById('searchArea') ? document.getElementById('searchArea').style.display : 'none'
+            };
+            const key = 'gameListState_' + (platformId || subsetId || 'all');
+            sessionStorage.setItem(key, JSON.stringify(state));
+        }
+        
+        // 从 sessionStorage 恢复搜索状态
+        function restoreSearchState() {
+            const key = 'gameListState_' + (platformId || subsetId || 'all');
+            const saved = sessionStorage.getItem(key);
+            if (!saved) return false;
+            
+            try {
+                const state = JSON.parse(saved);
+                // 验证 platformId 是否匹配
+                if (state.platformId !== platformId || state.subsetId !== subsetId) {
+                    sessionStorage.removeItem(key);
+                    return false;
+                }
+                
+                // 恢复搜索输入框
+                if (state.searchInputValue) {
+                    document.getElementById('searchInput').value = state.searchInputValue;
+                }
+                if (state.startYear) {
+                    document.getElementById('startYear').value = state.startYear;
+                }
+                if (state.endYear) {
+                    document.getElementById('endYear').value = state.endYear;
+                }
+                if (state.folderPath) {
+                    document.getElementById('folderPath').value = state.folderPath;
+                }
+                
+                // 恢复多选筛选器状态
+                if (state.developerSelected && state.developerSelected.length > 0 && msState.developer) {
+                    msState.developer.selected = new Set(state.developerSelected);
+                    renderMsOptions('developer');
+                    renderMsDisplay('developer');
+                }
+                if (state.publisherSelected && state.publisherSelected.length > 0 && msState.publisher) {
+                    msState.publisher.selected = new Set(state.publisherSelected);
+                    renderMsOptions('publisher');
+                    renderMsDisplay('publisher');
+                }
+                if (state.genreSelected && state.genreSelected.length > 0 && msState.genre) {
+                    msState.genre.selected = new Set(state.genreSelected);
+                    renderMsOptions('genre');
+                    renderMsDisplay('genre');
+                }
+                if (state.playersChecked && state.playersChecked.length > 0) {
+                    state.playersChecked.forEach(val => {
+                        const cb = document.querySelector('#playersCheckboxes input[value="' + val + '"]');
+                        if (cb) cb.checked = true;
+                    });
+                }
+                if (state.scrapeStatusesChecked && state.scrapeStatusesChecked.length > 0) {
+                    state.scrapeStatusesChecked.forEach(val => {
+                        const cb = document.querySelector('#scrapeStatusCheckboxes input[value="' + val + '"]');
+                        if (cb) cb.checked = true;
+                    });
+                }
+                if (state.fileStatusesChecked && state.fileStatusesChecked.length > 0) {
+                    state.fileStatusesChecked.forEach(val => {
+                        const cb = document.querySelector('#fileStatusCheckboxes input[value="' + val + '"]');
+                        if (cb) cb.checked = true;
+                    });
+                }
+                
+                // 恢复搜索区域可见性
+                if (state.searchAreaVisible === 'block') {
+                    document.getElementById('searchArea').style.display = 'block';
+                }
+                
+                // 恢复搜索变量并加载数据
+                currentSearchTerm = state.currentSearchTerm || '';
+                currentSearchParams = state.currentSearchParams || {};
+                loadGames(state.currentPage || 1, currentSearchTerm, currentSearchParams);
+                return true;
+            } catch (e) {
+                console.error('恢复搜索状态失败:', e);
+                sessionStorage.removeItem(key);
+                return false;
+            }
+        }
+        
+        // 切换图标类型
+        function changeIconField() {
+            const select = document.getElementById('iconFieldSelect');
+            const value = select.value;
+            localStorage.setItem('gameListIconField', value);
+            // 重新渲染当前页面
+            if (window.currentGames && window.currentGames.length) {
+                displayGames(window.currentGames, window.currentPage, window.totalPages, window.totalGames);
+            }
         }
         
         
@@ -1511,6 +1643,10 @@
             currentSearchTerm = '';
             currentSearchParams = {};
             currentPage = 1;
+            
+            // 清除 sessionStorage 中保存的搜索状态
+            const stateKey = 'gameListState_' + (platformId || subsetId || 'all');
+            sessionStorage.removeItem(stateKey);
             
             loadGames(1);
         }
@@ -1933,7 +2069,7 @@
         function changePageSize() {
             window.pageSize = parseInt(document.getElementById('pageSize').value);
             window.currentPage = 1;
-            loadGames(window.currentPage);
+            loadGames(window.currentPage, window.currentSearchTerm, window.currentSearchParams);
         }
         
         // 全选/取消全选
@@ -2100,10 +2236,16 @@
                         const existsStatus = game.exists === true ? '<span style="color: #00ff00;">存在</span>' : 
                                            game.exists === false ? '<span style="color: #ff4444;">不存在</span>' : '未知';
                         
-                        const validIconFields = ['image', 'wheelCarbon', 'wheelcarbon', 'wheelSteel', 'wheelsteel', 'box2d', 'boxFront', 'ss', 'sstitle', 'fanart', 'poster', 'cartridge', 'bezel', 'panel', 'background', 'steam', 'steamgrid'];
-                        const defaultIconChain = ['wheelCarbon', 'box2d', 'ss', 'image', 'fanart'];
-                        const savedIconField = localStorage.getItem('gameListIconField') || '';
-                        const iconField = savedIconField && validIconFields.includes(savedIconField) ? savedIconField : (defaultIconChain.find(f => game[f]) || '');
+                        const savedIconField = localStorage.getItem('gameListIconField') || 'auto';
+                        let iconField = '';
+                        if (savedIconField && savedIconField !== 'auto') {
+                            // 用户指定了图标类型，只使用该类型
+                            iconField = game[savedIconField] ? savedIconField : '';
+                        } else {
+                            // 自动模式：优先使用封面类媒体，避免混用 logo/截图
+                            const autoIconChain = ['box2d', 'steamgrid', 'image', 'boxFront', 'poster', 'ss', 'fanart'];
+                            iconField = autoIconChain.find(f => game[f]) || '';
+                        }
                         const iconPath = game[iconField] || '';
                         const resolvedIconUrl = resolveMediaUrl(iconPath);
                         const isWheel = iconField.startsWith('wheel');
@@ -2214,37 +2356,51 @@
             console.log('Initial platform ID:', platformId);
             console.log('Initial subset ID:', subsetId);
             
-            if (platformId) {
-                console.log('=== 加载平台游戏 ===');
-                getPlatformInfo();
-                loadGames();
-                // TODO #9：平台未绑定刮削系统时弹出匹配引导框
-                bindMatchModalEvents();
-                checkSystemBinding();
-            } else if (subsetId) {
-                console.log('=== 加载子集游戏 ===');
-                const headerLeft = document.querySelector('.header-left');
-                console.log('headerLeft:', headerLeft);
-                if (headerLeft) {
-                    headerLeft.innerHTML = '<button class="back-btn" onclick="goBack()">返回平台管理</button><div class="stats">子集: <span id="platformName">加载中...</span></div>';
-                    console.log('Header updated');
-                }
-                getSubsetInfo();
-                loadGames();
-            } else {
-                console.log('=== 加载全部游戏 ===');
-                // 既没有platformId也没有subsetId，加载所有游戏
-                const headerLeft = document.querySelector('.header-left');
-                if (headerLeft) {
-                    headerLeft.innerHTML = '<button class="back-btn" onclick="goBack()">返回平台管理</button><div class="stats">全部游戏</div>';
-                }
-                loadGames();
-            }
+            // 先初始化筛选组件和语言等基础功能
             initLanguage();
             initNotifications();
             loadScrapeTemplatePresets();
             initMsSelects();
-            loadFilterOptions();
+            
+            // 恢复图标类型选择器
+            const savedIconField = localStorage.getItem('gameListIconField') || 'auto';
+            const iconSelect = document.getElementById('iconFieldSelect');
+            if (iconSelect) {
+                iconSelect.value = savedIconField;
+            }
+            
+            if (platformId) {
+                console.log('=== 加载平台游戏 ===');
+                getPlatformInfo();
+                bindMatchModalEvents();
+                checkSystemBinding();
+                // 加载筛选选项后再恢复搜索状态
+                loadFilterOptions();
+                if (!restoreSearchState()) {
+                    loadGames();
+                }
+            } else if (subsetId) {
+                console.log('=== 加载子集游戏 ===');
+                const headerLeft = document.querySelector('.header-left');
+                if (headerLeft) {
+                    headerLeft.innerHTML = '<button class="back-btn" onclick="goBack()">返回平台管理</button><div class="stats">子集: <span id="platformName">加载中...</span></div>';
+                }
+                getSubsetInfo();
+                loadFilterOptions();
+                if (!restoreSearchState()) {
+                    loadGames();
+                }
+            } else {
+                console.log('=== 加载全部游戏 ===');
+                const headerLeft = document.querySelector('.header-left');
+                if (headerLeft) {
+                    headerLeft.innerHTML = '<button class="back-btn" onclick="goBack()">返回平台管理</button><div class="stats">全部游戏</div>';
+                }
+                loadFilterOptions();
+                if (!restoreSearchState()) {
+                    loadGames();
+                }
+            }
             console.log('=== 页面初始化结束 ===');
         };
         

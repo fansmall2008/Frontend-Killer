@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [1.2] - 2026-09-26
+## [1.2] - 2026-09-28
 
 ### Added
 - Batch platform operations on platform-management page
@@ -75,6 +75,15 @@
   - `GET /api/gamelist/filter-options` returns developers, publishers and a genre tree (top-level with children)
   - `publishers` filter parameter added to game list and platform game endpoints
   - Built-in `ss-genres.json` caches ScreenScraper's 159 genres with parent-child relations (zero runtime API calls)
+- Game list search state persistence
+  - `sessionStorage` saves search term, filter selections, page number before navigating to game-edit page
+  - `restoreSearchState()` auto-restores all search conditions on return (keyword, filters, pagination, search area visibility)
+  - State keyed by platformId so different platforms maintain independent search contexts
+  - User-initiated "Reset" clears saved state
+- Game list icon type selector
+  - Toolbar dropdown lets users choose icon display type: Auto (boxart priority), 2D Box, Screenshot, Logo (Wheel), Steam Grid, Fanart, Original Image
+  - Default "Auto" mode prioritizes consistent boxart media (`box2d > steamgrid > image > boxFront > poster > ss > fanart`) instead of mixing logos/screenshots
+  - Selection persisted in `localStorage` and applied instantly with re-render
 - Genre dialect mapping (term mapping system)
   - `term_mapping` table with many-to-one structure: multiple source terms → single normalized target, keyed by `(source_term, category)`
   - 261 seed entries across 2 categories (`genre` for genre normalization, `system_alias` for platform matching)
@@ -96,6 +105,7 @@
 - Column sorting on platform-management and game-list tables (click header to sort, click again to reverse)
 
 ### Fixed
+- `changePageSize()` losing search conditions when changing page size (now preserves search term and filters)
 - Circular dependency crash: `ScrapeWorkerPool → ScrapeStatus → ScraperServiceImpl → ScrapeWorkerPool` fixed with `@Lazy` on ScrapeWorkerPool fields
 - Media download tasks never created: `executeGameInfoTask()` sent empty `ScraperRequest` without `mediaScope`, so `enqueueMediaTasksFromGameInfo()` never produced tasks; fixed by persisting and restoring media preferences
 - Game edit URL in failed task modal: `/game-edit/{id}` → `/game-edit?id={id}` (page uses query parameter, not path variable)
