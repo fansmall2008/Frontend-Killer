@@ -98,3 +98,6 @@ distribution/exe/
 
 # fnOS build artifact
 *.fpk
+
+# 浏览器自动截图
+browser_screenshot_*.png

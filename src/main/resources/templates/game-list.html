@@ -1978,6 +1978,17 @@
             console.log('********************************');
             const pageSize = document.getElementById('pageSize').value;
             
+            // 回退到全局变量，保持搜索状态（与旧版 loadGames 行为一致）
+            if (searchTerm === null || searchTerm === undefined) {
+                searchTerm = currentSearchTerm || '';
+            }
+            if (searchParams === null || searchParams === undefined) {
+                searchParams = currentSearchParams || {};
+            }
+            // 保存搜索条件到全局变量，供分页等操作使用
+            currentSearchTerm = searchTerm;
+            currentSearchParams = searchParams;
+            
             // 如果有为空筛选条件，使用大 pageSize 获取全部数据后客户端过滤
             const emptyFields = (searchParams && searchParams.emptyFields && searchParams.emptyFields.length > 0) ? searchParams.emptyFields : null;
             const fetchPageSize = emptyFields ? 99999 : pageSize;

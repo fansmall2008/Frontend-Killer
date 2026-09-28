@@ -104,6 +104,11 @@
   - `map()` returns all matching targets (for multi-value scenarios); `mapFirst()` returns single value (for directory names)
   - Racing/Driving dialect mapping added to unify synonymous genre terms
   - System alias `ss` → Sega Saturn (systemId 22) added for smart platform matching
+- fnOS fpk v1.2.0 package
+  - Rebuilt fnpack with detailed Chinese description and app metadata
+  - Install wizard adds optional ROM directory 2 & 3 fields (`fk_roms2_path`, `fk_roms3_path`); leaving empty skips mounting
+  - Docker compose mounts additional ROM paths to `/tmp/fk-romsN` transit paths
+  - `entrypoint.sh` conditionally creates symlinks in `/data/roms/` only when mounted directories are non-empty
 
 ### Changed
 - Platform management action column simplified: removed per-row scrape/translate/swap/delete/scan/view buttons, kept only edit/separation/statistics; all batch operations moved to toolbar
@@ -145,6 +150,7 @@
 - `poor_quality` scrape-status filter too broad: original SQL matched any scraped game missing a single media type (box_2d/ss/wheel all null for every scraped game), making it indistinguishable from `scraped`; redefined to check metadata completeness (desc/developer/publisher/genre/releasedate)
 - Notification modal positioning broken on data-import page (missing `position: fixed` CSS; moved `#notificationModal` positioning to global `theme.css` so all pages share correct fixed overlay + centering)
 - `TermMappingInitializer` seed data bug: `hasSeedData()` checked total row count but `seedGenreMappings()` ran first inserting genre rows, causing `system_alias` seeds to be skipped; fixed by filtering on `category = 'system_alias'`
+- Game list search state lost after editing a game: second `loadGames` function definition (line 1975) overrode the first but didn't fall back to global `currentSearchTerm`/`currentSearchParams` when called without parameters; pagination and `restoreSearchState()` calls lost search conditions and showed all games
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.
