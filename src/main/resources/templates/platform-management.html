@@ -16,17 +16,16 @@
             <main class="content">
     <div class="pm-container">
         <!-- 导航选项卡 -->
-        <div style="margin: 30px 0;">
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="pm-header-section">
+            <div class="pm-tabs">
                 <button class="btn active" onclick="switchView('platforms')" data-i18n="platform_tab">平台</button>
                 <button class="btn" onclick="switchView('temp-subsets')" data-i18n="temp_subsets_tab">游戏子集</button>
-
             </div>
         </div>
         
         <!-- 平台管理选项卡内容 -->
-        <div id="platforms-tab" style="display: block;">
-            <div style="margin-bottom: 20px;">
+        <div id="platforms-tab" style="display: flex;">
+            <div class="pm-add-btn-wrap">
                 <button class="btn" onclick="openAddModal()" data-i18n="add_platform_btn">新增平台</button>
             </div>
             <!-- 批量操作工具栏 -->
@@ -43,6 +42,7 @@
                     <button id="batchBtnDelete" class="btn batch-btn batch-btn-danger" onclick="batchDelete()" disabled data-i18n="batch_delete">🗑️ 删除</button>
                 </div>
             </div>
+            <div class="pm-table-wrapper">
             <table id="platformTable">
                 <thead>
                     <tr>
@@ -63,10 +63,12 @@
                     <!-- 平台数据将通过 JavaScript 动态填充 -->
                 </tbody>
             </table>
+            </div>
         </div>
         
         <!-- 游戏子集选项卡内容 -->
         <div id="temp-subsets-tab" style="display: none;">
+            <div class="pm-table-wrapper">
             <table id="tempSubsetTable">
                 <thead>
                     <tr>
@@ -81,6 +83,7 @@
                     <!-- 游戏子集数据将通过 JavaScript 动态填充 -->
                 </tbody>
             </table>
+            </div>
         </div>
         
         <!-- 子集分离选项卡内容 -->
@@ -4124,7 +4127,7 @@
             });
             
             // 显示选中的视图内容
-            document.getElementById(viewId + '-tab').style.display = 'block';
+            document.getElementById(viewId + '-tab').style.display = 'flex';
             
             // 添加active类到选中的按钮
             event.target.classList.add('active');

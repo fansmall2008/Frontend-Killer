@@ -104,6 +104,17 @@
                     <input type="text" id="folderPath" placeholder="输入文件夹名称（支持任意层级）" data-i18n-placeholder="folder_path_placeholder">
                     <span style="color: #999; font-size: 12px; margin-left: 10px;" data-i18n="folder_path_example">例如: a 或 b 都能匹配 a/b/c/xxx.nes</span>
                 </div>
+                <div class="field-group full-width">
+                    <label data-i18n="empty_field_filter">为空筛选:</label>
+                    <div class="checkbox-group" id="emptyFieldCheckboxes" style="flex-wrap: wrap;">
+                        <label><input type="checkbox" value="name"> <span data-i18n="empty_name">游戏名为空</span></label>
+                        <label><input type="checkbox" value="desc"> <span data-i18n="empty_desc">游戏描述为空</span></label>
+                        <label><input type="checkbox" value="genre"> <span data-i18n="empty_genre">游戏类型为空</span></label>
+                        <label><input type="checkbox" value="players"> <span data-i18n="empty_players">玩家数为空</span></label>
+                        <label><input type="checkbox" value="publisher"> <span data-i18n="empty_publisher">发行商为空</span></label>
+                        <label><input type="checkbox" value="rating"> <span data-i18n="empty_rating">评分为空</span></label>
+                    </div>
+                </div>
                 <div class="field-group">
                     <button onclick="searchGames()" data-i18n="search">搜索</button>
                     <button onclick="resetSearch()" data-i18n="reset">重置</button>
@@ -146,7 +157,7 @@
             </div>
         </div>
         
-        <div style="display: flex; flex-direction: row; gap: 20px; padding: 10px 15px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; margin-bottom: 15px;">
+        <div class="status-legend" style="display: flex; flex-direction: row; gap: 20px; padding: 10px 15px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; margin-bottom: var(--space-2);">
             <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary);">
                 <span class="status-indicator status-red"></span>
                 <span data-i18n="status_no_info">无信息</span>
@@ -161,6 +172,7 @@
             </div>
         </div>
         
+        <div class="game-table-wrapper">
         <div class="game-table-container">
             <table class="game-table" id="gameTable">
                 <thead>
@@ -191,6 +203,7 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
         </div>
     </div>
     
@@ -1235,6 +1248,7 @@
                 playersChecked: Array.from(document.querySelectorAll('#playersCheckboxes input:checked')).map(i => i.value),
                 scrapeStatusesChecked: Array.from(document.querySelectorAll('#scrapeStatusCheckboxes input:checked')).map(i => i.value),
                 fileStatusesChecked: Array.from(document.querySelectorAll('#fileStatusCheckboxes input:checked')).map(i => i.value),
+                emptyFieldsChecked: Array.from(document.querySelectorAll('#emptyFieldCheckboxes input:checked')).map(i => i.value),
                 searchAreaVisible: document.getElementById('searchArea') ? document.getElementById('searchArea').style.display : 'none'
             };
             const key = 'gameListState_' + (platformId || subsetId || 'all');
@@ -1300,6 +1314,12 @@
                 if (state.fileStatusesChecked && state.fileStatusesChecked.length > 0) {
                     state.fileStatusesChecked.forEach(val => {
                         const cb = document.querySelector('#fileStatusCheckboxes input[value="' + val + '"]');
+                        if (cb) cb.checked = true;
+                    });
+                }
+                if (state.emptyFieldsChecked && state.emptyFieldsChecked.length > 0) {
+                    state.emptyFieldsChecked.forEach(val => {
+                        const cb = document.querySelector('#emptyFieldCheckboxes input[value="' + val + '"]');
                         if (cb) cb.checked = true;
                     });
                 }
@@ -1597,6 +1617,9 @@
             // 获取文件夹路径
             const folderPath = document.getElementById('folderPath').value.trim();
             
+            // 获取为空筛选字段
+            const emptyFields = Array.from(document.querySelectorAll('#emptyFieldCheckboxes input:checked')).map(input => input.value);
+            
             // 构建搜索参数
             const searchParams = {
                 startYear: startYear,
@@ -1607,7 +1630,8 @@
                 players: players,
                 scrapeStatuses: scrapeStatuses,
                 fileStatuses: fileStatuses,
-                folderPath: folderPath
+                folderPath: folderPath,
+                emptyFields: emptyFields
             };
             
             // 加载游戏列表并应用搜索参数
@@ -1638,6 +1662,9 @@
             
             // 重置文件状态复选框
             document.querySelectorAll('#fileStatusCheckboxes input').forEach(input => input.checked = false);
+            
+            // 重置为空筛选复选框
+            document.querySelectorAll('#emptyFieldCheckboxes input').forEach(input => input.checked = false);
             
             // 重置搜索参数
             currentSearchTerm = '';
@@ -1950,14 +1977,19 @@
             console.log('*** loadGames (新版) 开始 ***');
             console.log('********************************');
             const pageSize = document.getElementById('pageSize').value;
+            
+            // 如果有为空筛选条件，使用大 pageSize 获取全部数据后客户端过滤
+            const emptyFields = (searchParams && searchParams.emptyFields && searchParams.emptyFields.length > 0) ? searchParams.emptyFields : null;
+            const fetchPageSize = emptyFields ? 99999 : pageSize;
+            
             let url = '';
             
             if (platformId && platformId !== 0) {
-                url = `/api/gamelist/platforms/${platformId}/games?page=${page}&pageSize=${pageSize}`;
+                url = `/api/gamelist/platforms/${platformId}/games?page=${page}&pageSize=${fetchPageSize}`;
             } else if (subsetId && subsetId !== 0) {
-                url = `/api/temp-subsets/${subsetId}/games?page=${page}&pageSize=${pageSize}`;
+                url = `/api/temp-subsets/${subsetId}/games?page=${page}&pageSize=${fetchPageSize}`;
             } else {
-                url = `/api/gamelist/games?page=${page}&pageSize=${pageSize}`;
+                url = `/api/gamelist/games?page=${page}&pageSize=${fetchPageSize}`;
             }
             
             // 添加搜索参数
@@ -2018,24 +2050,47 @@
                     console.log('=== 搜索结果数据 ===');
                     console.log('Data:', data);
                     
-                    // 检查数据结构
+                    // 提取游戏列表
+                    let allGames = [];
+                    let serverTotalPages = 1;
+                    let serverTotalElements = 0;
+                    
                     if (Array.isArray(data)) {
-                        // 直接返回游戏数组的情况（如子集游戏）
-                        window.currentGames = data;
-                        populateDropdowns();
-                        displayGames(data, page, Math.ceil(data.length / pageSize), data.length);
+                        allGames = data;
+                        serverTotalPages = Math.ceil(data.length / fetchPageSize);
+                        serverTotalElements = data.length;
                     } else if (data && typeof data === 'object') {
-                        // 返回包含分页信息的对象的情况
-                        const games = data.games || [];
-                        window.currentGames = games;
-                        populateDropdowns();
-                        displayGames(games, page, data.totalPages || 1, data.totalElements || games.length);
+                        allGames = data.games || [];
+                        serverTotalPages = data.totalPages || 1;
+                        serverTotalElements = data.totalElements || allGames.length;
                     } else {
-                        // 其他情况
                         console.error('Unexpected data structure:', data);
                         window.currentGames = [];
                         populateDropdowns();
                         displayGames([], page, 1, 0);
+                        return;
+                    }
+                    
+                    populateDropdowns();
+                    
+                    // 如果有为空筛选条件，进行客户端过滤
+                    if (emptyFields) {
+                        allGames = allGames.filter(game => {
+                            return emptyFields.every(field => {
+                                const val = game[field];
+                                return val === null || val === undefined || String(val).trim() === '';
+                            });
+                        });
+                        // 客户端分页
+                        const filteredTotal = allGames.length;
+                        const filteredTotalPages = Math.ceil(filteredTotal / pageSize);
+                        const startIdx = (page - 1) * pageSize;
+                        const pagedGames = allGames.slice(startIdx, startIdx + parseInt(pageSize));
+                        window.currentGames = pagedGames;
+                        displayGames(pagedGames, page, filteredTotalPages, filteredTotal);
+                    } else {
+                        window.currentGames = allGames;
+                        displayGames(allGames, page, serverTotalPages, serverTotalElements);
                     }
                 })
                 .catch(error => {

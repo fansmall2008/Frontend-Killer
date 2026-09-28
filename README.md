@@ -26,6 +26,9 @@
 - **Batch Platform Operations** - Checkbox + always-visible toolbar on platform management page for batch scrape, translate, swap translations, scan stats, and delete across multiple platforms at once
 - **Failed Task Viewer** - Click failed count on the media-download page to open a styled modal showing failed tasks with game links (jump to game-edit), platform info, error messages, and one-click retry
 - **Separate Scrape Progress Tracking** - Game info and media download progress now displayed as two independent cards with categorized counts (pending/running/completed/failed)
+- **Fixed Table Scroll & Sticky Headers** - Game list and platform management tables scroll within fixed-height containers with sticky table headers, keeping toolbar and search area always visible
+- **Empty Field Filters** - Search for games with empty name, description, genre, players, publisher, or rating fields via new checkbox filters in the search area
+- **Search Auto-fill from Filename** - Game edit page search modal now pre-fills with the ROM filename (without extension) when the game name is empty
 
 > Upgrading from 1.1-RC1? The scraper media directory structure changed, so previously scraped media files may not be reused directly and may require re-scraping.
 
@@ -291,6 +294,14 @@ http://localhost:8080
 - [ ] Advanced game filtering options
 - [ ] Statistics dashboard for game collection analytics
 - [ ] Additional frontend templates: EmuDeck, Recalbox, Batocera
+
+---
+
+## 🔮 Coming in 1.3
+
+- **🆕 Brand New Onboarding Guide** - A completely redesigned feature walkthrough with interactive tutorials, helping new users get up to speed in minutes instead of hours
+- **⚡ Multi-Threading Further Optimization** - Deeper concurrency improvements across scraping, media download, and import/export pipelines for even better throughput and stability
+- **🐛 Bug Fixes from 1.2** - All known issues reported in 1.2 will be addressed, ensuring a smoother experience
 
 ---
 

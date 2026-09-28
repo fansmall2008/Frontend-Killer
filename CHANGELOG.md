@@ -84,6 +84,19 @@
   - Toolbar dropdown lets users choose icon display type: Auto (boxart priority), 2D Box, Screenshot, Logo (Wheel), Steam Grid, Fanart, Original Image
   - Default "Auto" mode prioritizes consistent boxart media (`box2d > steamgrid > image > boxFront > poster > ss > fanart`) instead of mixing logos/screenshots
   - Selection persisted in `localStorage` and applied instantly with re-render
+- Fixed table scroll layout with sticky headers
+  - Game list and platform management pages now scroll tables within fixed-height containers instead of whole-page scrolling
+  - Toolbar, search area, and pagination controls remain visible at all times
+  - Table headers (`th`) use `position: sticky` to stay visible when scrolling through data
+  - Viewport locked with `.app-layout { height: 100vh }` to prevent page-level scroll
+  - Search area has `max-height: 50vh` with internal scroll when expanded
+- Empty field filters in game list search
+  - New "Empty Field Filter" checkbox group in search area: game name, description, genre, players, publisher, rating
+  - When checked, fetches all data and filters client-side for fields that are null/empty
+  - Supports pagination on filtered results; state persisted in sessionStorage
+- Game edit page search auto-fill with filename
+  - "Search Game" modal now pre-fills search box with game filename (without extension) when game name is empty
+  - Extracts filename from game path, strips extension for better ScreenScraper matching
 - Genre dialect mapping (term mapping system)
   - `term_mapping` table with many-to-one structure: multiple source terms → single normalized target, keyed by `(source_term, category)`
   - 261 seed entries across 2 categories (`genre` for genre normalization, `system_alias` for platform matching)
@@ -105,6 +118,7 @@
 - Column sorting on platform-management and game-list tables (click header to sort, click again to reverse)
 
 ### Fixed
+- Sortable table headers not staying fixed during scroll (`.game-table th.sortable` and `#platformTable th.sortable` had `position: relative` overriding `position: sticky`; changed to `position: sticky`)
 - `changePageSize()` losing search conditions when changing page size (now preserves search term and filters)
 - Circular dependency crash: `ScrapeWorkerPool → ScrapeStatus → ScraperServiceImpl → ScrapeWorkerPool` fixed with `@Lazy` on ScrapeWorkerPool fields
 - Media download tasks never created: `executeGameInfoTask()` sent empty `ScraperRequest` without `mediaScope`, so `enqueueMediaTasksFromGameInfo()` never produced tasks; fixed by persisting and restoring media preferences

@@ -635,10 +635,22 @@
             showNotification(I18n.t('confirm_platform_id', '请先确认平台ID'), 'error');
             return;
         }
-        // 用当前游戏名预填搜索框
+        // 优先用游戏名预填搜索框，如果为空则用文件名（去扩展名）
         const currentName = document.getElementById('gameName').value;
         if (currentName) {
             document.getElementById('searchTermInput').value = currentName;
+        } else {
+            // 从游戏路径中提取文件名（去扩展名）
+            const gamePath = document.getElementById('gamePath').value || '';
+            const pathParts = gamePath.split(/[\/\\]/);
+            let filename = pathParts.length > 0 ? pathParts[pathParts.length - 1] : '';
+            const dotIdx = filename.lastIndexOf('.');
+            if (dotIdx > 0) {
+                filename = filename.substring(0, dotIdx);
+            }
+            if (filename) {
+                document.getElementById('searchTermInput').value = filename;
+            }
         }
         document.getElementById('searchResults').innerHTML = '<div class="search-empty">' + I18n.t('search_input_hint', '输入游戏名称后点击搜索') + '</div>';
         document.getElementById('searchModal').style.display = 'block';
