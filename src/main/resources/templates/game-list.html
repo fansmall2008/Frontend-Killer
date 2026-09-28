@@ -1991,7 +1991,25 @@
             
             // 如果有为空筛选条件，使用大 pageSize 获取全部数据后客户端过滤
             const emptyFields = (searchParams && searchParams.emptyFields && searchParams.emptyFields.length > 0) ? searchParams.emptyFields : null;
+            // 缓存 key：包含所有搜索参数，确保任何条件变化都会使缓存失效
+            const cacheKey = emptyFields ? (emptyFields.slice().sort().join(',') + '|' + searchTerm + '|' + JSON.stringify(searchParams || {})) : '';
             const fetchPageSize = emptyFields ? 99999 : pageSize;
+            
+            // 空字段筛选缓存：翻页时直接使用已缓存的全量数据，避免重复请求 pageSize=99999
+            if (emptyFields && window._emptyFieldCache
+                && window._emptyFieldCache.platformId === platformId
+                && window._emptyFieldCache.cacheKey === cacheKey) {
+                // 使用缓存数据进行客户端分页
+                const cachedAll = window._emptyFieldCache.filteredGames;
+                const filteredTotal = cachedAll.length;
+                const filteredTotalPages = Math.ceil(filteredTotal / pageSize) || 1;
+                const startIdx = (page - 1) * parseInt(pageSize);
+                const pagedGames = cachedAll.slice(startIdx, startIdx + parseInt(pageSize));
+                window.currentGames = pagedGames;
+                currentPage = page;
+                displayGames(pagedGames, page, filteredTotalPages, filteredTotal);
+                return;
+            }
             
             let url = '';
             
@@ -2092,10 +2110,16 @@
                                 return val === null || val === undefined || String(val).trim() === '';
                             });
                         });
+                        // 缓存过滤后的全量数据，翻页时直接使用
+                        window._emptyFieldCache = {
+                            platformId: platformId,
+                            cacheKey: cacheKey,
+                            filteredGames: allGames
+                        };
                         // 客户端分页
                         const filteredTotal = allGames.length;
-                        const filteredTotalPages = Math.ceil(filteredTotal / pageSize);
-                        const startIdx = (page - 1) * pageSize;
+                        const filteredTotalPages = Math.ceil(filteredTotal / pageSize) || 1;
+                        const startIdx = (page - 1) * parseInt(pageSize);
                         const pagedGames = allGames.slice(startIdx, startIdx + parseInt(pageSize));
                         window.currentGames = pagedGames;
                         displayGames(pagedGames, page, filteredTotalPages, filteredTotal);
