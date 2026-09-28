@@ -8,6 +8,8 @@ services:
     volumes:
       - ${fk_data_path:-/vol1/frontend-killer/data}:/data
       - ${fk_roms_path:-/vol1/frontend-killer/roms}:/data/roms
+      - ${fk_roms2_path:-/tmp/fk-unused-roms2}:/tmp/fk-roms2
+      - ${fk_roms3_path:-/tmp/fk-unused-roms3}:/tmp/fk-roms3
       - ${fk_output_path:-/vol1/frontend-killer/output}:/data/output
     environment:
       SPRING_PROFILES_ACTIVE: "default"

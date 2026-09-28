@@ -1,7 +1,7 @@
 appname               = frontend-killer
-version               = 1.1.0
+version               = 1.2.0
 display_name          = Frontend-Killer
-desc                  = Web 端游戏清单管理工具，一站式完成游戏导入、编辑、导出与元数据/媒体刮削；支持 Pegasus、ES-DE、RetroBat、EmuELEC、Lakka 等主流前端，全面对接 ScreenScraper。
+desc                  = Web 端游戏清单管理工具，一站式完成游戏元数据的导入、编辑、导出与刮削。支持 Pegasus、ES-DE、RetroBat、EmuELEC、Skraper 等主流模拟器前端格式；深度集成 ScreenScraper，支持无人值守多线程并行刮削游戏信息与媒体文件；内置可视化游戏编辑器、批量平台操作、失败任务重试、通知中心实时推送；模板引擎支持高度自定义的导入导出规则；主题换肤与多语言（中/英/日）支持。通过 Docker 部署，数据持久化落盘，开箱即用。如需 EXE / JAR 版本请访问项目主页 https://github.com/fansmall2008/Frontend-Killer
 arch                  = x86_64
 source                = thirdparty
 maintainer            = fansmall2008

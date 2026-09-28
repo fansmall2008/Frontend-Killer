@@ -30,6 +30,17 @@ fi
 
 mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR" "/data/backup" "/data/input" "/data/output" "/data/scraper/system" "/data/scraper/games" "/data/themes"
 
+# 条件性链接附加 ROM 目录（fnOS 等多 ROM 路径场景）
+# compose 将 roms2/roms3 挂载到 /tmp/fk-romsN；仅当目录非空时在 /data/roms 下创建符号链接
+for _rn in 2 3; do
+    _src="/tmp/fk-roms${_rn}"
+    _dst="/data/roms/roms${_rn}"
+    if [ -d "$_src" ] && [ "$(ls -A "$_src" 2>/dev/null)" ]; then
+        ln -sfn "$_src" "$_dst"
+        log "已链接附加 ROM 目录 roms${_rn} -> ${_src}"
+    fi
+done
+
 # 释放data文件夹到挂载目录（不覆盖已存在的数据库）
 if [ -d "/app/seed-data" ]; then
     log "检查并释放data文件夹到挂载目录..."
