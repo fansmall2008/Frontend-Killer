@@ -527,17 +527,21 @@
                 <div style="margin-bottom: 30px; padding: 20px; background: rgba(0, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 255, 0.2);">
                     <h3 style="color: #00ffff; margin-bottom: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="scrape_status">刮削状态</h3>
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 30px;">
-                            <input type="checkbox" id="scrapeFully" name="scrapeStatus" value="fully" style="margin-right: 10px; accent-color: #00ffff;">
-                            <span data-i18n="scrape_fully">已完全刮削</span>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 20px;">
+                            <input type="checkbox" name="scrapeStatus" value="scraped" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span data-i18n="status_scraped">已刮削</span>
                         </label>
-                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 30px;">
-                            <input type="checkbox" id="scrapePartially" name="scrapeStatus" value="partially" style="margin-right: 10px; accent-color: #00ffff;">
-                            <span data-i18n="scrape_partially">已部分刮削</span>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 20px;">
+                            <input type="checkbox" name="scrapeStatus" value="original" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span data-i18n="status_original">有原始数据</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer; margin-right: 20px;">
+                            <input type="checkbox" name="scrapeStatus" value="poor_quality" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span data-i18n="status_poor_quality">质量差</span>
                         </label>
                         <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
-                            <input type="checkbox" id="scrapeNot" name="scrapeStatus" value="not" style="margin-right: 10px; accent-color: #00ffff;">
-                            <span data-i18n="scrape_not">未刮削</span>
+                            <input type="checkbox" name="scrapeStatus" value="raw" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span data-i18n="status_raw_rom">纯ROM</span>
                         </label>
                     </div>
                 </div>
@@ -587,41 +591,86 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="developerSelect" data-i18n="developer">开发商</label>
-                            <select id="developerSelect" multiple style="height: 120px;">
-                                <!-- 动态填充开发商列表 -->
+                            <label for="developerSelect" data-i18n="developer">开发商 <small style="color:#888">(Ctrl+点击多选)</small></label>
+                            <input type="text" id="developerSearch" placeholder="搜索开发商..." data-placeholder-i18n="search_developer" style="margin-bottom:4px; padding:4px 8px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(0,255,255,0.2); border-radius:4px; color:#ccc;">
+                            <select id="developerSelect" multiple style="height: 100px;">
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="publisherSelect" data-i18n="publisher">发行商</label>
-                            <select id="publisherSelect" multiple style="height: 120px;">
-                                <!-- 动态填充发行商列表 -->
+                            <label for="publisherSelect" data-i18n="publisher">发行商 <small style="color:#888">(Ctrl+点击多选)</small></label>
+                            <input type="text" id="publisherSearch" placeholder="搜索发行商..." data-placeholder-i18n="search_publisher" style="margin-bottom:4px; padding:4px 8px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(0,255,255,0.2); border-radius:4px; color:#ccc;">
+                            <select id="publisherSelect" multiple style="height: 100px;">
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="genreSelect" data-i18n="genre">游戏类型</label>
-                            <select id="genreSelect" multiple style="height: 120px;">
-                                <!-- 动态填充游戏类型列表 -->
+                            <label for="genreSelect" data-i18n="genre">游戏类型 <small style="color:#888">(Ctrl+点击多选)</small></label>
+                            <input type="text" id="genreSearch" placeholder="搜索类型..." data-placeholder-i18n="search_genre" style="margin-bottom:4px; padding:4px 8px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(0,255,255,0.2); border-radius:4px; color:#ccc;">
+                            <select id="genreSelect" multiple style="height: 100px;">
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="playersSelect" data-i18n="min_players">玩家数量</label>
-                            <select id="playersSelect" multiple style="height: 120px;">
-                                <!-- 动态填充玩家数量列表 -->
+                            <label for="playersSelect" data-i18n="players">玩家数量 <small style="color:#888">(Ctrl+点击多选)</small></label>
+                            <select id="playersSelect" multiple style="height: 100px;">
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="language" data-i18n="language">语言</label>
                             <select id="language">
                                 <option value="" data-i18n="no_limit">不限制</option>
-                                <option value="en" data-i18n="lang_en_short">英文</option>
-                                <option value="zh" data-i18n="lang_zh_short">中文</option>
+                                <option value="en">English</option>
+                                <option value="zh">中文</option>
+                                <option value="ja">日本語</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="es">Español</option>
+                                <option value="it">Italiano</option>
+                                <option value="pt">Português</option>
+                                <option value="ko">한국어</option>
+                                <option value="ar">العربية</option>
+                                <option value="nl">Nederlands</option>
+                                <option value="ru">Русский</option>
                             </select>
                         </div>
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label for="gameNameRegex" data-i18n="game_name_regex">游戏名正则表达式</label>
                             <input type="text" id="gameNameRegex" placeholder="如：^Super.*Mario$" data-placeholder-i18n="game_name_regex_placeholder">
                         </div>
+                    </div>
+                </div>
+                
+                <!-- 空字段筛选 -->
+                <div style="margin-bottom: 30px; padding: 20px; background: rgba(255, 107, 157, 0.05); border-radius: 8px; border: 1px solid rgba(255, 107, 157, 0.2);">
+                    <h3 style="color: #ff6b9d; margin-bottom: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="empty_field_filter">空字段筛选</h3>
+                    <p style="color: #888; font-size: 12px; margin-bottom: 10px;" data-i18n="empty_field_desc">勾选后按该字段过滤游戏</p>
+                    <div id="emptyFieldsModeToggle" style="display: inline-flex; margin-bottom: 15px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(255, 107, 157, 0.3);">
+                        <button type="button" class="empty-mode-btn active" data-mode="empty" onclick="setEmptyFieldsMode('empty')" style="padding: 4px 14px; font-size: 12px; background: rgba(255, 107, 157, 0.3); color: #ff6b9d; border: none; cursor: pointer; font-weight: bold;" data-i18n="mode_empty">为空</button>
+                        <button type="button" class="empty-mode-btn" data-mode="not_empty" onclick="setEmptyFieldsMode('not_empty')" style="padding: 4px 14px; font-size: 12px; background: rgba(0,0,0,0.2); color: #888; border: none; cursor: pointer;" data-i18n="mode_not_empty">不为空</button>
+                    </div>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;" id="emptyFieldCheckboxes">
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" value="name" style="margin-right: 6px; accent-color: #ff6b9d;">
+                            <span data-i18n="field_name">游戏名</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" value="desc" style="margin-right: 6px; accent-color: #ff6b9d;">
+                            <span data-i18n="field_desc">描述</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" value="genre" style="margin-right: 6px; accent-color: #ff6b9d;">
+                            <span data-i18n="field_genre">类型</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" value="players" style="margin-right: 6px; accent-color: #ff6b9d;">
+                            <span data-i18n="field_players">玩家</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" value="publisher" style="margin-right: 6px; accent-color: #ff6b9d;">
+                            <span data-i18n="field_publisher">发行商</span>
+                        </label>
+                        <label style="display: flex; align-items: center; color: #ccc; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" value="rating" style="margin-right: 6px; accent-color: #ff6b9d;">
+                            <span data-i18n="field_rating">评分</span>
+                        </label>
                     </div>
                 </div>
                 
@@ -2836,6 +2885,11 @@
             
             // 加载唯一值到下拉框
             loadUniqueValues();
+            
+            // 初始化搜索过滤
+            _initSeparationSearchFilter('developerSearch', 'developerSelect');
+            _initSeparationSearchFilter('publisherSearch', 'publisherSelect');
+            _initSeparationSearchFilter('genreSearch', 'genreSelect');
         }
         
         // 加载唯一值到下拉框
@@ -2847,7 +2901,7 @@
                 // 填充开发商下拉框
                 const developerSelect = document.getElementById('developerSelect');
                 developerSelect.innerHTML = '';
-                data.developers.forEach(developer => {
+                (data.developers || []).forEach(developer => {
                     const option = document.createElement('option');
                     option.value = developer;
                     option.textContent = developer;
@@ -2857,7 +2911,7 @@
                 // 填充发行商下拉框
                 const publisherSelect = document.getElementById('publisherSelect');
                 publisherSelect.innerHTML = '';
-                data.publishers.forEach(publisher => {
+                (data.publishers || []).forEach(publisher => {
                     const option = document.createElement('option');
                     option.value = publisher;
                     option.textContent = publisher;
@@ -2867,7 +2921,7 @@
                 // 填充游戏类型下拉框
                 const genreSelect = document.getElementById('genreSelect');
                 genreSelect.innerHTML = '';
-                data.genres.forEach(genre => {
+                (data.genres || []).forEach(genre => {
                     const option = document.createElement('option');
                     option.value = genre;
                     option.textContent = genre;
@@ -2877,7 +2931,7 @@
                 // 填充玩家数量下拉框
                 const playersSelect = document.getElementById('playersSelect');
                 playersSelect.innerHTML = '';
-                data.players.forEach(player => {
+                (data.players || []).forEach(player => {
                     const option = document.createElement('option');
                     option.value = player;
                     option.textContent = player;
@@ -2885,6 +2939,36 @@
                 });
             })
             .catch(error => console.error('Error loading unique values:', error));
+        }
+        
+        // 空字段筛选模式切换（为空/不为空）
+        function setEmptyFieldsMode(mode) {
+            document.querySelectorAll('#emptyFieldsModeToggle .empty-mode-btn').forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                    btn.style.background = 'rgba(255, 107, 157, 0.3)';
+                    btn.style.color = '#ff6b9d';
+                    btn.style.fontWeight = 'bold';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = 'rgba(0,0,0,0.2)';
+                    btn.style.color = '#888';
+                    btn.style.fontWeight = 'normal';
+                }
+            });
+        }
+
+        // 下拉框搜索过滤
+        function _initSeparationSearchFilter(searchInputId, selectId) {
+            const input = document.getElementById(searchInputId);
+            const select = document.getElementById(selectId);
+            if (!input || !select) return;
+            input.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                Array.from(select.options).forEach(opt => {
+                    opt.style.display = opt.textContent.toLowerCase().includes(term) ? '' : 'none';
+                });
+            });
         }
 
         // 提交翻译表单
@@ -3185,42 +3269,41 @@
                 return;
             }
             
+            // 收集多选下拉值
+            const selectedDevelopers = Array.from(document.getElementById('developerSelect').selectedOptions).map(o => o.value);
+            const selectedPublishers = Array.from(document.getElementById('publisherSelect').selectedOptions).map(o => o.value);
+            const selectedGenres = Array.from(document.getElementById('genreSelect').selectedOptions).map(o => o.value);
+            const selectedPlayers = Array.from(document.getElementById('playersSelect').selectedOptions).map(o => o.value);
+            
+            // 收集刮削状态
+            const scrapeStatusValues = Array.from(document.querySelectorAll('#separationModal input[name="scrapeStatus"]:checked')).map(cb => cb.value);
+            
+            // 收集文件状态
+            const fileStatusValues = Array.from(document.querySelectorAll('#separationModal input[name="fileStatus"]:checked')).map(cb => cb.value);
+            
+            // 收集空字段筛选
+            const emptyFieldValues = Array.from(document.querySelectorAll('#emptyFieldCheckboxes input:checked')).map(cb => cb.value);
+            const emptyFieldsMode = document.querySelector('#emptyFieldsModeToggle .active')?.dataset.mode || 'empty';
+            
             // 构建请求参数
             const requestData = {
                 filter: {
                     platformIds: [parseInt(platformId)],
-                    scrapeStatus: [],
-                    fileStatus: [],
+                    scrapeStatus: scrapeStatusValues,
+                    fileStatus: fileStatusValues,
                     ratingMin: document.getElementById('ratingMin').value,
-                    yearMin: document.getElementById('yearMin').value,
-                    yearMax: document.getElementById('yearMax').value,
-                    developer: document.getElementById('developer').value,
-                    publisher: document.getElementById('publisher').value,
-                    genre: document.getElementById('genre').value,
-                    minPlayers: document.getElementById('minPlayers').value,
+                    yearMin: document.getElementById('startDate').value,
+                    yearMax: document.getElementById('endDate').value,
+                    developers: selectedDevelopers,
+                    publishers: selectedPublishers,
+                    genres: selectedGenres,
+                    players: selectedPlayers,
                     language: document.getElementById('language').value,
-                    gameNameRegex: document.getElementById('gameNameRegex').value
+                    gameNameRegex: document.getElementById('gameNameRegex').value,
+                    emptyFields: emptyFieldValues,
+                    emptyFieldsMode: emptyFieldsMode
                 }
             };
-            
-            // 收集刮削状态
-            if (document.getElementById('scrapeFully').checked) {
-                requestData.filter.scrapeStatus.push('fully');
-            }
-            if (document.getElementById('scrapePartially').checked) {
-                requestData.filter.scrapeStatus.push('partially');
-            }
-            if (document.getElementById('scrapeNot').checked) {
-                requestData.filter.scrapeStatus.push('not');
-            }
-            
-            // 收集文件状态
-            if (document.getElementById('fileExists').checked) {
-                requestData.filter.fileStatus.push('exists');
-            }
-            if (document.getElementById('fileNotExists').checked) {
-                requestData.filter.fileStatus.push('not_exists');
-            }
             
             let fetchUrl, fetchBody;
             
@@ -3259,7 +3342,6 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    // 模拟任务完成通知
                     setTimeout(() => {
                         showNotification(_pi18n('separation_task_completed', '分离任务已完成'), 'success');
                     }, 3000);

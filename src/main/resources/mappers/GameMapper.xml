@@ -1020,29 +1020,116 @@
             AND (g.releasedate IS NULL OR g.releasedate LIKE CONCAT(#{yearMax}, '%') OR CAST(SUBSTRING(g.releasedate, 1, 4) AS INTEGER) &lt;= CAST(#{yearMax} AS INTEGER))
         </if>
         
-        <!-- 开发商筛选 -->
+        <!-- 开发商筛选（单值兼容 + 多选） -->
         <if test="developer != null and developer != ''">
             AND (g.developer LIKE CONCAT('%', #{developer}, '%'))
         </if>
+        <if test="developers != null and !developers.isEmpty()">
+            AND (
+                <foreach collection="developers" item="dev" separator="OR">
+                    g.developer LIKE CONCAT('%', #{dev}, '%')
+                </foreach>
+            )
+        </if>
         
-        <!-- 发行商筛选 -->
+        <!-- 发行商筛选（单值兼容 + 多选） -->
         <if test="publisher != null and publisher != ''">
             AND (g.publisher LIKE CONCAT('%', #{publisher}, '%'))
         </if>
+        <if test="publishers != null and !publishers.isEmpty()">
+            AND (
+                <foreach collection="publishers" item="pub" separator="OR">
+                    g.publisher LIKE CONCAT('%', #{pub}, '%')
+                </foreach>
+            )
+        </if>
         
-        <!-- 游戏类型筛选 -->
+        <!-- 游戏类型筛选（单值兼容 + 多选） -->
         <if test="genre != null and genre != ''">
             AND (g.genre LIKE CONCAT('%', #{genre}, '%'))
         </if>
+        <if test="genres != null and !genres.isEmpty()">
+            AND (
+                <foreach collection="genres" item="gn" separator="OR">
+                    g.genre LIKE CONCAT('%', #{gn}, '%')
+                </foreach>
+            )
+        </if>
         
-        <!-- 最低玩家数筛选 -->
+        <!-- 最低玩家数筛选（单值兼容 + 多选） -->
         <if test="minPlayers != null and minPlayers != ''">
             AND (g.players IS NULL OR g.players &gt;= #{minPlayers} OR g.players LIKE CONCAT(#{minPlayers}, '-%') OR g.players LIKE CONCAT('%', #{minPlayers}, '+'))
+        </if>
+        <if test="players != null and !players.isEmpty()">
+            AND (
+                <foreach collection="players" item="pl" separator="OR">
+                    g.players = #{pl}
+                </foreach>
+            )
         </if>
         
         <!-- 语言筛选 -->
         <if test="language != null and language != ''">
             AND (g.lang LIKE CONCAT('%', #{language}, '%'))
+        </if>
+        
+        <!-- 游戏名正则表达式筛选 -->
+        <if test="gameNameRegex != null and gameNameRegex != ''">
+            AND g.name REGEXP #{gameNameRegex}
+        </if>
+        
+        <!-- 空字段筛选（支持为空/不为空双模式） -->
+        <if test="emptyFields != null and !emptyFields.isEmpty()">
+            <choose>
+                <when test="emptyFieldsMode == 'not_empty'">
+                    <foreach collection="emptyFields" item="field">
+                        <choose>
+                            <when test="field == 'name'">
+                                AND (g.name IS NOT NULL AND g.name != '' AND TRIM(g.name) != '')
+                            </when>
+                            <when test="field == 'desc'">
+                                AND (g.`desc` IS NOT NULL AND g.`desc` != '' AND TRIM(g.`desc`) != '')
+                            </when>
+                            <when test="field == 'genre'">
+                                AND (g.genre IS NOT NULL AND g.genre != '' AND TRIM(g.genre) != '')
+                            </when>
+                            <when test="field == 'players'">
+                                AND (g.players IS NOT NULL AND g.players != '' AND TRIM(g.players) != '')
+                            </when>
+                            <when test="field == 'publisher'">
+                                AND (g.publisher IS NOT NULL AND g.publisher != '' AND TRIM(g.publisher) != '')
+                            </when>
+                            <when test="field == 'rating'">
+                                AND (g.rating IS NOT NULL)
+                            </when>
+                        </choose>
+                    </foreach>
+                </when>
+                <otherwise>
+                    <foreach collection="emptyFields" item="field">
+                        <choose>
+                            <when test="field == 'name'">
+                                AND (g.name IS NULL OR g.name = '' OR TRIM(g.name) = '')
+                            </when>
+                            <when test="field == 'desc'">
+                                AND (g.`desc` IS NULL OR g.`desc` = '' OR TRIM(g.`desc`) = '')
+                            </when>
+                            <when test="field == 'genre'">
+                                AND (g.genre IS NULL OR g.genre = '' OR TRIM(g.genre) = '')
+                            </when>
+                            <when test="field == 'players'">
+                                AND (g.players IS NULL OR g.players = '' OR TRIM(g.players) = '')
+                            </when>
+                            <when test="field == 'publisher'">
+                                AND (g.publisher IS NULL OR g.publisher = '' OR TRIM(g.publisher) = '')
+                            </when>
+                            <when test="field == 'rating'">
+                                AND (g.rating IS NULL)
+                            </when>
+                        </choose>
+                    </foreach>
+                </otherwise>
+            </choose>
         </if>
         
         <!-- 刮削状态筛选 -->
@@ -1248,6 +1335,60 @@
         <!-- 游戏名正则表达式筛选 -->
         <if test="gameNameRegex != null and gameNameRegex != ''">
             AND g.name REGEXP #{gameNameRegex}
+        </if>
+        
+        <!-- 空字段筛选（支持为空/不为空双模式） -->
+        <if test="emptyFields != null and !emptyFields.isEmpty()">
+            <choose>
+                <when test="emptyFieldsMode == 'not_empty'">
+                    <foreach collection="emptyFields" item="field">
+                        <choose>
+                            <when test="field == 'name'">
+                                AND (g.name IS NOT NULL AND g.name != '' AND TRIM(g.name) != '')
+                            </when>
+                            <when test="field == 'desc'">
+                                AND (g.`desc` IS NOT NULL AND g.`desc` != '' AND TRIM(g.`desc`) != '')
+                            </when>
+                            <when test="field == 'genre'">
+                                AND (g.genre IS NOT NULL AND g.genre != '' AND TRIM(g.genre) != '')
+                            </when>
+                            <when test="field == 'players'">
+                                AND (g.players IS NOT NULL AND g.players != '' AND TRIM(g.players) != '')
+                            </when>
+                            <when test="field == 'publisher'">
+                                AND (g.publisher IS NOT NULL AND g.publisher != '' AND TRIM(g.publisher) != '')
+                            </when>
+                            <when test="field == 'rating'">
+                                AND (g.rating IS NOT NULL)
+                            </when>
+                        </choose>
+                    </foreach>
+                </when>
+                <otherwise>
+                    <foreach collection="emptyFields" item="field">
+                        <choose>
+                            <when test="field == 'name'">
+                                AND (g.name IS NULL OR g.name = '' OR TRIM(g.name) = '')
+                            </when>
+                            <when test="field == 'desc'">
+                                AND (g.`desc` IS NULL OR g.`desc` = '' OR TRIM(g.`desc`) = '')
+                            </when>
+                            <when test="field == 'genre'">
+                                AND (g.genre IS NULL OR g.genre = '' OR TRIM(g.genre) = '')
+                            </when>
+                            <when test="field == 'players'">
+                                AND (g.players IS NULL OR g.players = '' OR TRIM(g.players) = '')
+                            </when>
+                            <when test="field == 'publisher'">
+                                AND (g.publisher IS NULL OR g.publisher = '' OR TRIM(g.publisher) = '')
+                            </when>
+                            <when test="field == 'rating'">
+                                AND (g.rating IS NULL)
+                            </when>
+                        </choose>
+                    </foreach>
+                </otherwise>
+            </choose>
         </if>
         
         <!-- 刮削状态筛选 -->

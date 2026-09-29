@@ -94,6 +94,17 @@
   - New "Empty Field Filter" checkbox group in search area: game name, description, genre, players, publisher, rating
   - When checked, fetches all data and filters client-side for fields that are null/empty
   - Supports pagination on filtered results; state persisted in sessionStorage
+- Empty/not-empty global toggle for field filters
+  - Both game-list and platform-management pages now offer a global toggle: "为空" (empty) / "不为空" (not empty)
+  - When "not empty" is selected, checked fields filter for games that HAVE values (IS NOT NULL AND not blank)
+  - Client-side cache key includes the mode, so switching modes invalidates cached results
+  - Session storage persists the selected mode across page navigations
+- Separation modal filter UI restructure
+  - Developer/publisher/genre dropdowns now have search input boxes for quick filtering
+  - Language dropdown expanded to 12 languages (en/zh/ja/fr/de/es/it/pt/ko/ar/nl/ru)
+  - New empty field filter section in separation modal (6 checkboxes: name/desc/genre/players/publisher/rating)
+  - Scrape status checkboxes aligned to four-tier values: scraped/original/poor_quality/raw
+  - Multi-select support for developers, publishers, genres, and players in backend SQL (OR LIKE matching)
 - Game edit page search auto-fill with filename
   - "Search Game" modal now pre-fills search box with game filename (without extension) when game name is empty
   - Extracts filename from game path, strips extension for better ScreenScraper matching
@@ -152,6 +163,9 @@
 - `TermMappingInitializer` seed data bug: `hasSeedData()` checked total row count but `seedGenreMappings()` ran first inserting genre rows, causing `system_alias` seeds to be skipped; fixed by filtering on `category = 'system_alias'`
 - Game list search state lost after editing a game: second `loadGames` function definition (line 1975) overrode the first but didn't fall back to global `currentSearchTerm`/`currentSearchParams` when called without parameters; pagination and `restoreSearchState()` calls lost search conditions and showed all games
 - Empty field filter pagination causing 500 error: clicking "next page" re-requested server with `pageSize=99999`; added client-side cache (`window._emptyFieldCache`) so filtered results are fetched once and paginated locally
+- Separation modal TypeError crash: JS referenced 6 non-existent element IDs (`yearMin/yearMax/developer/publisher/genre/minPlayers` instead of `startDate/endDate/developerSelect/publisherSelect/genreSelect/playersSelect`), causing null.value TypeError on submit
+- Separation modal scrape status values mismatch: form sent `fully/partially/not` but SQL expected `scraped/original/poor_quality/raw`; now uses correct four-tier values
+- `gameNameRegex` filter missing from `selectGamesByFilter` SQL (only existed in `countGamesByFilter`), causing regex filter to have no effect on separation results
 
 ### Breaking Changes
 - ⚠️ Scraper media directory structure changed from `{platformName}/{localId}/{region}/` to `{ssSystemId}/{ssGameId}/`. Previously scraped media files are not directly reusable; users need to re-scrape or wait for a future compatibility migration.

@@ -106,6 +106,10 @@
                 </div>
                 <div class="field-group full-width">
                     <label data-i18n="empty_field_filter">为空筛选:</label>
+                    <div id="emptyFieldsModeToggle" style="display: inline-flex; margin-left: 8px; margin-bottom: 6px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(0, 255, 255, 0.3);">
+                        <button type="button" class="empty-mode-btn active" data-mode="empty" onclick="setEmptyFieldsMode('empty')" style="padding: 3px 12px; font-size: 12px; background: rgba(0, 255, 255, 0.2); color: #00ffff; border: none; cursor: pointer; font-weight: bold;">为空</button>
+                        <button type="button" class="empty-mode-btn" data-mode="not_empty" onclick="setEmptyFieldsMode('not_empty')" style="padding: 3px 12px; font-size: 12px; background: rgba(0,0,0,0.2); color: #888; border: none; cursor: pointer;">不为空</button>
+                    </div>
                     <div class="checkbox-group" id="emptyFieldCheckboxes" style="flex-wrap: wrap;">
                         <label><input type="checkbox" value="name"> <span data-i18n="empty_name">游戏名为空</span></label>
                         <label><input type="checkbox" value="desc"> <span data-i18n="empty_desc">游戏描述为空</span></label>
@@ -1249,6 +1253,7 @@
                 scrapeStatusesChecked: Array.from(document.querySelectorAll('#scrapeStatusCheckboxes input:checked')).map(i => i.value),
                 fileStatusesChecked: Array.from(document.querySelectorAll('#fileStatusCheckboxes input:checked')).map(i => i.value),
                 emptyFieldsChecked: Array.from(document.querySelectorAll('#emptyFieldCheckboxes input:checked')).map(i => i.value),
+                emptyFieldsMode: document.querySelector('#emptyFieldsModeToggle .active')?.dataset.mode || 'empty',
                 searchAreaVisible: document.getElementById('searchArea') ? document.getElementById('searchArea').style.display : 'none'
             };
             const key = 'gameListState_' + (platformId || subsetId || 'all');
@@ -1322,6 +1327,10 @@
                         const cb = document.querySelector('#emptyFieldCheckboxes input[value="' + val + '"]');
                         if (cb) cb.checked = true;
                     });
+                }
+                // 恢复为空/不为空模式
+                if (state.emptyFieldsMode) {
+                    setEmptyFieldsMode(state.emptyFieldsMode);
                 }
                 
                 // 恢复搜索区域可见性
@@ -1619,6 +1628,7 @@
             
             // 获取为空筛选字段
             const emptyFields = Array.from(document.querySelectorAll('#emptyFieldCheckboxes input:checked')).map(input => input.value);
+            const emptyFieldsMode = document.querySelector('#emptyFieldsModeToggle .active')?.dataset.mode || 'empty';
             
             // 构建搜索参数
             const searchParams = {
@@ -1631,11 +1641,29 @@
                 scrapeStatuses: scrapeStatuses,
                 fileStatuses: fileStatuses,
                 folderPath: folderPath,
-                emptyFields: emptyFields
+                emptyFields: emptyFields,
+                emptyFieldsMode: emptyFieldsMode
             };
             
             // 加载游戏列表并应用搜索参数
             loadGames(1, searchTerm, searchParams);
+        }
+        
+        // 空字段筛选模式切换（为空/不为空）
+        function setEmptyFieldsMode(mode) {
+            document.querySelectorAll('#emptyFieldsModeToggle .empty-mode-btn').forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                    btn.style.background = 'rgba(0, 255, 255, 0.2)';
+                    btn.style.color = '#00ffff';
+                    btn.style.fontWeight = 'bold';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = 'rgba(0,0,0,0.2)';
+                    btn.style.color = '#888';
+                    btn.style.fontWeight = 'normal';
+                }
+            });
         }
         
         // 重置搜索
@@ -1665,6 +1693,8 @@
             
             // 重置为空筛选复选框
             document.querySelectorAll('#emptyFieldCheckboxes input').forEach(input => input.checked = false);
+            // 重置为空/不为空模式
+            setEmptyFieldsMode('empty');
             
             // 重置搜索参数
             currentSearchTerm = '';
@@ -1991,8 +2021,9 @@
             
             // 如果有为空筛选条件，使用大 pageSize 获取全部数据后客户端过滤
             const emptyFields = (searchParams && searchParams.emptyFields && searchParams.emptyFields.length > 0) ? searchParams.emptyFields : null;
-            // 缓存 key：包含所有搜索参数，确保任何条件变化都会使缓存失效
-            const cacheKey = emptyFields ? (emptyFields.slice().sort().join(',') + '|' + searchTerm + '|' + JSON.stringify(searchParams || {})) : '';
+            const emptyFieldsMode = (searchParams && searchParams.emptyFieldsMode) || 'empty';
+            // 缓存 key：包含所有搜索参数（含模式），确保任何条件变化都会使缓存失效
+            const cacheKey = emptyFields ? (emptyFields.slice().sort().join(',') + '|' + emptyFieldsMode + '|' + searchTerm + '|' + JSON.stringify(searchParams || {})) : '';
             const fetchPageSize = emptyFields ? 99999 : pageSize;
             
             // 空字段筛选缓存：翻页时直接使用已缓存的全量数据，避免重复请求 pageSize=99999
@@ -2107,7 +2138,8 @@
                         allGames = allGames.filter(game => {
                             return emptyFields.every(field => {
                                 const val = game[field];
-                                return val === null || val === undefined || String(val).trim() === '';
+                                const isEmpty = val === null || val === undefined || String(val).trim() === '';
+                                return emptyFieldsMode === 'not_empty' ? !isEmpty : isEmpty;
                             });
                         });
                         // 缓存过滤后的全量数据，翻页时直接使用
