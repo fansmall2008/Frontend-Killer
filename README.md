@@ -299,9 +299,15 @@ http://localhost:8080
 
 ## 🔮 Coming in 1.3
 
+- **💿 Disc-Based Platform Scraping Overhaul** - Smarter game identification for ISO/CHD/BIN disc images (PS1, PS2, Saturn, Dreamcast, PCE-CD, MD-CD, etc.): instead of relying on fragile whole-file CRC32 (which changes with even a single byte), the scraper will now extract stable identifiers — volume labels (ISO9660 PVD) and game serial numbers (e.g. SLUS-00001) — via a layered strategy: filename regex → ISO9660 sector read → system-specific parsing (SYSTEM.CNF, IP header) → CRC fallback. Supports `.iso`, `.bin+.cue`, `.chd` (filename-only), and raw `.bin`
 - **🆕 Brand New Onboarding Guide** - A completely redesigned feature walkthrough with interactive tutorials, helping new users get up to speed in minutes instead of hours
 - **⚡ Multi-Threading Further Optimization** - Deeper concurrency improvements across scraping, media download, and import/export pipelines for even better throughput and stability
 - **🐛 Bug Fixes from 1.2** - All known issues reported in 1.2 will be addressed, ensuring a smoother experience
+
+## 🔮 Coming in 1.4
+
+- **🧭 Smart System Matching & Auto-Binding** - When a platform has no scraper system bound, the app will automatically detect and suggest matching systems via fuzzy matching (Levenshtein + alias pool + extension analysis). Users can confirm, manually select, or skip — with a "remember this mapping" option that builds a self-learning alias dictionary over time. After binding, auto-scrape kicks in if the platform has unscraped games
+- **📂 Multi-File Game Support** - Treat entire game folders as single entries (DOS games, multi-disc titles), with folder-level CRC/media strategies
 
 ---
 
