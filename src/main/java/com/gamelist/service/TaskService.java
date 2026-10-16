@@ -14,6 +14,15 @@ public interface TaskService {
     BackgroundTask createTask(String type, String description);
     
     /**
+     * 创建可取消的任务
+     * @param type 任务类型
+     * @param description 任务描述
+     * @param cancellable 是否支持用户取消
+     * @return 创建的任务
+     */
+    BackgroundTask createTask(String type, String description, boolean cancellable);
+    
+    /**
      * 更新任务进度
      * @param taskId 任务ID
      * @param progress 进度百分比
@@ -53,10 +62,25 @@ public interface TaskService {
     BackgroundTask getTaskById(Long taskId);
     
     /**
-     * 删除任务
+     * 删除任务（仅允许删除非运行中任务）
      * @param taskId 任务ID
+     * @throws IllegalStateException 如果任务正在运行
      */
     void deleteTask(Long taskId);
+    
+    /**
+     * 批量删除任务
+     * @param taskIds 任务ID列表
+     * @return 成功删除的数量
+     */
+    int deleteTasks(List<Long> taskIds);
+    
+    /**
+     * 取消任务（将 RUNNING 任务标记为 CANCELLED）
+     * @param taskId 任务ID
+     * @return 是否成功取消
+     */
+    boolean cancelTask(Long taskId);
     
     /**
      * 清空所有任务

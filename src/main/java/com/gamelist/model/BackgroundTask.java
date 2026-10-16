@@ -16,6 +16,7 @@ public class BackgroundTask {
     private String description;
     private String result;
     private String log; // 详细任务日志
+    private boolean cancellable; // 是否支持用户取消
     private Date createdAt;
     private Date updatedAt;
 
@@ -109,5 +110,13 @@ public class BackgroundTask {
     }
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isCancellable() {
+        return cancellable;
+    }
+
+    public void setCancellable(boolean cancellable) {
+        this.cancellable = cancellable;
     }
 }

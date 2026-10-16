@@ -40,11 +40,6 @@ public class ExportServiceImpl implements ExportService {
     @Autowired
     private ExportOrchestrator exportOrchestrator;
 
-    // 默认线程池大小 - 根据CPU核心数设置
-    private static final int DEFAULT_THREAD_POOL_SIZE = Math.max(4, Runtime.getRuntime().availableProcessors());
-    // 最大线程池大小
-    private static final int MAX_THREAD_POOL_SIZE = Math.max(10, Runtime.getRuntime().availableProcessors() * 2);
-
     @Override
     public Map<String, Object> exportPlatform(ExportRequest request) {
         Map<String, Object> result = new HashMap<>();
@@ -55,17 +50,9 @@ public class ExportServiceImpl implements ExportService {
             String outputPath = request.getOutputPath() != null ? request.getOutputPath() : "/data/output";
             Long platformId = request.getPlatformId();
             String frontend = request.getFrontend();
-            final int threadCount;
-            {
-                int tempThreadCount = request.getThreadCount() > 0 ? request.getThreadCount() : DEFAULT_THREAD_POOL_SIZE;
-                // 确保线程数在合理范围内
-                tempThreadCount = Math.min(tempThreadCount, MAX_THREAD_POOL_SIZE);
-                tempThreadCount = Math.max(tempThreadCount, 1);
-                threadCount = tempThreadCount;
-            }
 
-            logger.info("Export parameters - platformId: {}, frontend: {}, outputPath: {}, threadCount: {}", 
-                platformId, frontend, outputPath, threadCount);
+            logger.info("Export parameters - platformId: {}, frontend: {}, outputPath: {}", 
+                platformId, frontend, outputPath);
             logger.info("Export options - copyRoms: {}, copyMedia: {}, generateDataFile: {}", 
                 request.isCopyRoms(), request.isCopyMedia(), request.isGenerateDataFile());
 
@@ -105,7 +92,7 @@ public class ExportServiceImpl implements ExportService {
             }
 
             String taskDescription = "导出平台(v3): " + platformName + " (" + frontend + ")";
-            final com.gamelist.model.BackgroundTask task = taskService.createTask("export", taskDescription);
+            final com.gamelist.model.BackgroundTask task = taskService.createTask("export", taskDescription, true);
             logger.info("Created v3 export task with ID: {}", task.getId());
 
             ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -137,7 +124,6 @@ public class ExportServiceImpl implements ExportService {
         try {
             String frontend = request.getFrontend();
             String baseOutputPath = request.getOutputPath() != null ? request.getOutputPath() : "/data/output";
-            final int threadCount = request.getThreadCount() > 0 ? request.getThreadCount() : DEFAULT_THREAD_POOL_SIZE;
 
             // 验证所有平台 ID
             List<Platform> platforms = new ArrayList<>();
@@ -158,7 +144,7 @@ public class ExportServiceImpl implements ExportService {
 
             // 创建单个后台任务，顺序处理所有平台
             String taskDescription = "批量导出: " + platforms.size() + " 个平台 (" + frontend + ")";
-            final com.gamelist.model.BackgroundTask task = taskService.createTask("export", taskDescription);
+            final com.gamelist.model.BackgroundTask task = taskService.createTask("export", taskDescription, true);
             logger.info("Batch export: {} platforms, single task ID: {}", platforms.size(), task.getId());
 
             ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -185,7 +171,6 @@ public class ExportServiceImpl implements ExportService {
                             individualRequest.setCopyRoms(request.isCopyRoms());
                             individualRequest.setCopyMedia(request.isCopyMedia());
                             individualRequest.setGenerateDataFile(request.isGenerateDataFile());
-                            individualRequest.setThreadCount(threadCount);
 
                             // v3 模板分发
                             TemplateV3 v3Template = exportRuleService.getV3RuleByFrontend(frontend);

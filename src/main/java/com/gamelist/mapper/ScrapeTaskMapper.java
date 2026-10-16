@@ -58,6 +58,13 @@ public interface ScrapeTaskMapper {
     int resetRunningToPending();
     
     /**
+     * 僵尸自愈：把指定类型中、updated_at 超过 seconds 秒仍处于 RUNNING 的任务重置为 PENDING。
+     * 用于兜住工作线程抛 Error 后遗留、无人处理的卡死任务。
+     * @return 被重置的任务数
+     */
+    int resetStaleRunningToPending(@Param("type") String type, @Param("seconds") int seconds);
+    
+    /**
      * 按类型和状态统计任务数
      */
     int countByTypeAndStatus(@Param("type") String type, @Param("status") String status);
@@ -118,4 +125,9 @@ public interface ScrapeTaskMapper {
      * 停止所有 PENDING 任务（用户主动停止时调用）
      */
     int stopAllPendingTasks();
+
+    /**
+     * 按后台任务ID删除所有关联的 scrape_task 记录
+     */
+    int deleteByTaskId(@Param("taskId") long taskId);
 }

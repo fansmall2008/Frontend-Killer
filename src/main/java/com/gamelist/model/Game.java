@@ -163,6 +163,10 @@ public class Game {
     // ========== 游戏信息缓存（SS manifest） ==========
     private Boolean cached;            // 是否已缓存完整 jeuInfos manifest（按 ssGameId）
     private String parentRom;          // 父 rom 文件名（从 cloneof 投影，仅街机类，导出时 copy-if-missing）
+    // ========== 光盘标识（v1.3 光盘刮削标识符重构） ==========
+    private String discSerial;         // 光盘编号（从文件名/ISO PVD/SYSTEM.CNF 提取，可追溯可手动修正）
+    // ========== 匹配状态 ==========
+    private Boolean matched;           // 游戏身份是否已通过权威数据源确认（SS批量刮削/rom_db精确匹配 = true）
     
     // Getters and Setters
     public Long getId() {
@@ -747,6 +751,22 @@ public class Game {
 
     public void setParentRom(String parentRom) {
         this.parentRom = parentRom;
+    }
+
+    public String getDiscSerial() {
+        return discSerial;
+    }
+
+    public void setDiscSerial(String discSerial) {
+        this.discSerial = discSerial;
+    }
+
+    public Boolean getMatched() {
+        return matched;
+    }
+
+    public void setMatched(Boolean matched) {
+        this.matched = matched;
     }
 
 

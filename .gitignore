@@ -99,5 +99,22 @@ distribution/exe/
 # fnOS build artifact
 *.fpk
 
+# Root-level debug scratch files
+/0
+/-w
+/api_response.bin
+/Debug*.java
+/Test*.java
+/Check*.java
+/Explore*.java
+/Export*.java
+/Query*.java
+/Scrape*.java
+/Convert*.java
+/github_*.png
+/diag_encoding.ps1
+/fix_paths.ps1
+/trigger_match.ps1
+
 # 浏览器自动截图
 browser_screenshot_*.png

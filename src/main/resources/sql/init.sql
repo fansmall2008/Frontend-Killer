@@ -177,6 +177,8 @@ INSERT INTO system_settings (setting_key, setting_value, description)
 SELECT 'deepseek_api_key', '', 'DeepSeek API Key' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'deepseek_api_key');
 INSERT INTO system_settings (setting_key, setting_value, description)
 SELECT 'auto_cache_game_info', 'false', 'Auto cache game manifest (arcade only, speeds up scraping but uses SS quota)' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'auto_cache_game_info');
+INSERT INTO system_settings (setting_key, setting_value, description)
+SELECT 'ss_fuzzy_name_fallback', 'true', 'v1.3: 当 jeuInfos 严格匹配未命中时，回退到 jeuRecherche + 归一化精确相等挑候选，命中后元数据落库但 matched=false (疑似)。关闭可省配额，代价：命中率回退到 v1.2 水平。' WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE setting_key = 'ss_fuzzy_name_fallback');
 
 -- 创建临时子集表
 CREATE TABLE IF NOT EXISTS temp_subset (
@@ -394,6 +396,7 @@ CREATE TABLE IF NOT EXISTS background_task (
     description VARCHAR(500),
     result TEXT,
     `log` TEXT,
+    cancellable BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -668,3 +671,61 @@ CREATE UNIQUE INDEX IF NOT EXISTS uk_term_mapping_source_category ON term_mappin
 
 -- V1.0.19 scrape_task 新增 media_scope 列
 ALTER TABLE scrape_task ADD COLUMN IF NOT EXISTS media_scope VARCHAR(512) DEFAULT NULL;
+
+-- ============================================================
+-- V1.0.21 游戏光盘编号字段 + 后台任务可取消标记
+-- ============================================================
+ALTER TABLE game ADD COLUMN IF NOT EXISTS disc_serial VARCHAR(100);
+ALTER TABLE background_task ADD COLUMN IF NOT EXISTS cancellable BOOLEAN DEFAULT FALSE;
+
+-- ============================================================
+-- ROM 识别数据库（统一匹配库，替代已废弃的 disc_serial_cache）
+-- 数据来源：libretro-database (No-Intro + Redump 合并)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS rom_db (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    system_id    INT NOT NULL DEFAULT 0,
+    platform     VARCHAR(100) NOT NULL,
+    crc32        VARCHAR(8),
+    serial       VARCHAR(50),
+    md5          VARCHAR(32),
+    sha1         VARCHAR(40),
+    game_name    VARCHAR(500) NOT NULL,
+    game_name_jp VARCHAR(500),
+    game_name_cn VARCHAR(500),
+    region       VARCHAR(50),
+    source       VARCHAR(20),
+    developer    VARCHAR(200),
+    publisher    VARCHAR(200),
+    releaseyear  VARCHAR(10),
+    genre        VARCHAR(100),
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_rom_db_crc ON rom_db(system_id, crc32);
+CREATE INDEX IF NOT EXISTS idx_rom_db_serial ON rom_db(system_id, serial);
+CREATE INDEX IF NOT EXISTS idx_rom_db_platform ON rom_db(platform);
+CREATE INDEX IF NOT EXISTS idx_rom_db_name ON rom_db(game_name);
+CREATE INDEX IF NOT EXISTS idx_rom_db_source ON rom_db(source);
+-- 兼容旧数据库：补充 V1.0.24 新增的元数据列
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS developer VARCHAR(200);
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS publisher VARCHAR(200);
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS releaseyear VARCHAR(10);
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS genre VARCHAR(100);
+-- 兼容旧数据库：补充 V1.0.25 新增的哈希列
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS md5 VARCHAR(32);
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS sha1 VARCHAR(40);
+-- 兼容旧数据库：补充 V1.0.26 新增的多语言名称列
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS game_name_jp VARCHAR(500);
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS game_name_cn VARCHAR(500);
+
+-- ============================================================
+-- V1.0.23 游戏匹配状态字段
+-- ============================================================
+ALTER TABLE game ADD COLUMN IF NOT EXISTS matched BOOLEAN DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_game_matched ON game(matched);
+
+-- ============================================================
+-- V1.0.27 scrape_task 新增 task_id 列（关联 background_task.id）
+-- ============================================================
+ALTER TABLE scrape_task ADD COLUMN IF NOT EXISTS task_id BIGINT DEFAULT NULL;
+CREATE INDEX IF NOT EXISTS idx_scrape_task_task_id ON scrape_task(task_id);

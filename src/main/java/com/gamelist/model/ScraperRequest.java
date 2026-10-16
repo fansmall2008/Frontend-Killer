@@ -15,6 +15,18 @@ public class ScraperRequest {
     private String searchMode;              // crc | filename | name
     private Boolean overwrite;              // 是否覆盖已存在文件
     private Boolean onlyMissing;            // 是否仅刮削缺失内容
+    private Boolean preserveLocalData;      // 保留本地已有数据（不覆盖开发商/发行商/年份等）
+    
+    // ========== “应用于所有搜索结果”模式：筛选参数 ==========
+    private String search;                   // 搜索关键词
+    private List<String> scrapeStatuses;     // 刮削状态筛选
+    private List<String> fileStatuses;       // 文件状态筛选
+    private List<String> matchedStatuses;     // 匹配状态筛选 (matched/suspect/unmatched 多选；空=不过滤)
+    private List<String> developers;         // 开发商筛选
+    private List<String> publishers;         // 发行商筛选
+    private List<String> genres;             // 类型筛选
+    private List<String> players;            // 玩家数筛选
+    private String folderPath;               // 文件夹路径筛选
     
     // Getters and Setters
     public String getType() {
@@ -103,5 +115,56 @@ public class ScraperRequest {
 
     public void setOnlyMissing(Boolean onlyMissing) {
         this.onlyMissing = onlyMissing;
+    }
+
+    public Boolean getPreserveLocalData() {
+        return preserveLocalData;
+    }
+
+    public void setPreserveLocalData(Boolean preserveLocalData) {
+        this.preserveLocalData = preserveLocalData;
+    }
+
+    // 筛选参数 Getters and Setters
+    public String getSearch() { return search; }
+    public void setSearch(String search) { this.search = search; }
+
+    public List<String> getScrapeStatuses() { return scrapeStatuses; }
+    public void setScrapeStatuses(List<String> scrapeStatuses) { this.scrapeStatuses = scrapeStatuses; }
+
+    public List<String> getFileStatuses() { return fileStatuses; }
+    public void setFileStatuses(List<String> fileStatuses) { this.fileStatuses = fileStatuses; }
+
+    public List<String> getMatchedStatuses() { return matchedStatuses; }
+    public void setMatchedStatuses(List<String> matchedStatuses) { this.matchedStatuses = matchedStatuses; }
+
+    public List<String> getDevelopers() { return developers; }
+    public void setDevelopers(List<String> developers) { this.developers = developers; }
+
+    public List<String> getPublishers() { return publishers; }
+    public void setPublishers(List<String> publishers) { this.publishers = publishers; }
+
+    public List<String> getGenres() { return genres; }
+    public void setGenres(List<String> genres) { this.genres = genres; }
+
+    public List<String> getPlayers() { return players; }
+    public void setPlayers(List<String> players) { this.players = players; }
+
+    public String getFolderPath() { return folderPath; }
+    public void setFolderPath(String folderPath) { this.folderPath = folderPath; }
+
+    /**
+     * 判断是否携带筛选参数（“应用于所有搜索结果”模式）
+     */
+    public boolean hasFilters() {
+        return (search != null && !search.isEmpty())
+                || (scrapeStatuses != null && !scrapeStatuses.isEmpty())
+                || (fileStatuses != null && !fileStatuses.isEmpty())
+                || (matchedStatuses != null && !matchedStatuses.isEmpty())
+                || (developers != null && !developers.isEmpty())
+                || (publishers != null && !publishers.isEmpty())
+                || (genres != null && !genres.isEmpty())
+                || (players != null && !players.isEmpty())
+                || (folderPath != null && !folderPath.isEmpty());
     }
 }

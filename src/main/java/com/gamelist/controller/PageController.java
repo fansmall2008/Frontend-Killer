@@ -173,4 +173,13 @@ public class PageController {
         model.addAttribute("pageTitle", "TEMP_SUBSET_EDIT");
         return "temp-subset-edit";
     }
+
+    /**
+     * 数据库管理工具页面
+     */
+    @GetMapping("/database-manager")
+    public String databaseManager(Model model) {
+        model.addAttribute("pageTitle", "DATABASE_MANAGER");
+        return "database-manager";
+    }
 }

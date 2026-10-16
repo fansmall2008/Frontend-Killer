@@ -608,7 +608,7 @@
     accent-color: var(--accent-primary);
 }
 
-/* ---- Status Indicator (game info completeness) ---- */
+/* ---- Status Indicator (triple: match / info / media) ---- */
 .status-indicator {
     width: 12px;
     height: 12px;
@@ -629,6 +629,44 @@
 .status-green {
     background-color: var(--accent-success);
     box-shadow: 0 0 8px var(--accent-success);
+}
+
+/* ---- Triple status indicators (new: match ●, info ■, media ▲) ---- */
+.status-triple {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+}
+
+.status-triple .ind {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.status-triple .ind-circle { border-radius: 50%; }
+.status-triple .ind-square { border-radius: 2px; }
+.status-triple .ind-triangle {
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 12px solid currentColor;
+    background: transparent !important;
+}
+
+.ind-green  { background: #44ff44; box-shadow: 0 0 6px rgba(68,255,68,0.6); }
+.ind-yellow { background: #ffaa00; box-shadow: 0 0 6px rgba(255,170,0,0.6); cursor: pointer; }
+.ind-blue   { background: #4488ff; box-shadow: 0 0 6px rgba(68,136,255,0.6); }
+.ind-purple { color: #bb66ff; border-bottom-color: #bb66ff !important; filter: drop-shadow(0 0 4px rgba(187,102,255,0.6)); }
+.ind-gray   { background: #555; }
+
+/* Suspect row highlight */
+tr.row-suspect {
+    background: rgba(255, 170, 0, 0.06);
 }
 
 /* ---- Loading Spinner ---- */

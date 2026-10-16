@@ -298,7 +298,7 @@ public class ScanController {
             ));
         }
 
-        BackgroundTask task = taskService.createTask("IMPORT", "导入游戏数据");
+        BackgroundTask task = taskService.createTask("IMPORT", "导入游戏数据", true);
 
         int threadCount = request.getThreadCount();
         if (threadCount <= 0) {

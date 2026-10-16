@@ -8,9 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +74,6 @@ public class ExportOrchestrator {
         }
 
         Long platformId = request.getPlatformId();
-        final int threadCount = Math.max(1, Math.min(request.getThreadCount(), 10));
 
         // 构建基础变量
         Map<String, String> vars = buildBaseVariables(request.getOutputPath(), platform);
@@ -86,7 +82,7 @@ public class ExportOrchestrator {
 
         // 获取游戏列表
         List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
-        logger.info("v3 导出: 平台={}, 游戏数={}, 线程数={}", platform.getName(), games.size(), threadCount);
+        logger.info("v3 导出: 平台={}, 游戏数={}", platform.getName(), games.size());
 
         try {
             int progress = 0;
@@ -105,7 +101,7 @@ public class ExportOrchestrator {
                     copyWholeDirectory(platform, romsDir, task.getId());
                 } else {
                     taskService.updateTaskProgress(task.getId(), 10, "开始复制游戏文件", 0, 100);
-                    missingParents = copyGameFiles(games, output.getRoms(), platform, vars, threadCount, task.getId());
+                    missingParents = copyGameFiles(games, output.getRoms(), platform, vars, task.getId());
                 }
                 progress = 40;
                 taskService.updateTaskProgress(task.getId(), progress, "游戏文件复制完成", 0, 100);
@@ -116,7 +112,7 @@ public class ExportOrchestrator {
             // 3. 复制媒体文件
             if (request.isCopyMedia() && output.getMedia() != null && output.getMedia().getRules() != null) {
                 taskService.updateTaskProgress(task.getId(), progress, "开始复制媒体文件", 0, 100);
-                copyMediaFiles(games, output.getMedia(), platform, vars, threadCount, task.getId());
+                copyMediaFiles(games, output.getMedia(), platform, vars, task.getId());
                 progress = 70;
                 taskService.updateTaskProgress(task.getId(), progress, "媒体文件复制完成", 0, 100);
             } else {
@@ -186,7 +182,7 @@ public class ExportOrchestrator {
      */
     private List<String> copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
                                 Platform platform, Map<String, String> vars,
-                                int threadCount, Long taskId) {
+                                Long taskId) {
         // roms.directory 可能含 per-game 表达式（如 if(genre,...)），在 createDirectories 中已创建基础路径
         // 此处为每个游戏重新求值，确保 genre 等字段正确参与计算
         String rawDirTemplate = romsConfig.getDirectory();
@@ -197,33 +193,20 @@ public class ExportOrchestrator {
 
         logger.info("复制 ROM 文件: {} 个游戏 → {}, 文件名模板: {}", games.size(), baseRomsDir, filenameTemplate);
 
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         boolean enableM3U = romsConfig.getM3u() != null && romsConfig.getM3u().isEnabled();
         // 窄口径缺件报告：仅收集"父 rom 在源目录找不到"的游戏（线程安全）
         final List<String> missingParents = java.util.Collections.synchronizedList(new ArrayList<>());
 
         for (Game game : games) {
-            executor.submit(() -> {
-                try {
-                    // 为当前游戏重新求值 roms.directory（支持 genre 等 per-game 字段）
-                    String romsDirForGame = resolveRomDirForGame(rawDirTemplate, game, platform, vars);
-                    copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId);
-                    // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
-                    copyParentRomIfMissing(game, romsDirForGame, taskId, missingParents);
-                } catch (Exception e) {
-                    logger.error("复制 ROM 文件失败: {}", game.getName(), e);
-                }
-            });
-        }
-
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(60, TimeUnit.MINUTES)) {
-                executor.shutdownNow();
+            try {
+                // 为当前游戏重新求值 roms.directory（支持 genre 等 per-game 字段）
+                String romsDirForGame = resolveRomDirForGame(rawDirTemplate, game, platform, vars);
+                copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId);
+                // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
+                copyParentRomIfMissing(game, romsDirForGame, taskId, missingParents);
+            } catch (Exception e) {
+                logger.error("复制 ROM 文件失败: {}", game.getName(), e);
             }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
         }
         return missingParents;
     }
@@ -473,84 +456,70 @@ public class ExportOrchestrator {
      */
     private void copyMediaFiles(List<Game> games, TemplateV3.MediaOutput mediaConfig,
                                  Platform platform, Map<String, String> vars,
-                                 int threadCount, Long taskId) {
+                                 Long taskId) {
         String mediaDir = resolveTemplateString(mediaConfig.getDirectory(), platform, vars);
         Map<String, TemplateV3.MediaOutputRule> rules = mediaConfig.getRules();
 
         logger.info("复制媒体文件: {} 个游戏, {} 种媒体类型 → {}", games.size(), rules.size(), mediaDir);
 
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-
         for (Game game : games) {
-            executor.submit(() -> {
-                try {
-                    Map<String, String> gameVars = buildGameVariables(game, vars);
+            try {
+                Map<String, String> gameVars = buildGameVariables(game, vars);
 
-                    for (Map.Entry<String, TemplateV3.MediaOutputRule> entry : rules.entrySet()) {
-                        String nomcourt = entry.getKey();
-                        TemplateV3.MediaOutputRule rule = entry.getValue();
+                for (Map.Entry<String, TemplateV3.MediaOutputRule> entry : rules.entrySet()) {
+                    String nomcourt = entry.getKey();
+                    TemplateV3.MediaOutputRule rule = entry.getValue();
 
-                        // 从 Game 对象获取媒体相对路径
-                        String mediaRelativePath = GameFieldAccessor.getValue(game, nomcourt);
-                        if (mediaRelativePath == null || mediaRelativePath.isEmpty()) continue;
+                    // 从 Game 对象获取媒体相对路径
+                    String mediaRelativePath = GameFieldAccessor.getValue(game, nomcourt);
+                    if (mediaRelativePath == null || mediaRelativePath.isEmpty()) continue;
 
-                        // 清理路径：统一分隔符，去掉 ./ 前缀
-                        String cleanMediaPath = mediaRelativePath.replace("\\", "/");
-                        if (cleanMediaPath.startsWith("./")) {
-                            cleanMediaPath = cleanMediaPath.substring(2);
-                        }
+                    // 清理路径：统一分隔符，去掉 ./ 前缀
+                    String cleanMediaPath = mediaRelativePath.replace("\\", "/");
+                    if (cleanMediaPath.startsWith("./")) {
+                        cleanMediaPath = cleanMediaPath.substring(2);
+                    }
 
-                        // 存在性检测解析源文件路径（与 MediaController.resolveMediaPath 一致）
-                        Path sourcePath = null;
-                        // 策略1: 工作目录 + 路径（刮削/上传媒体，如 data/scraper/games/...）
-                        Path workDirPath = Paths.get(cleanMediaPath).toAbsolutePath().normalize();
-                        if (Files.exists(workDirPath)) {
-                            sourcePath = workDirPath;
-                        }
-                        // 策略2: platformPath + 路径（导入媒体，如 media/xxx/...）
-                        if (sourcePath == null) {
-                            String platformPath = game.getPlatformPath();
-                            if (platformPath != null && !platformPath.isEmpty()) {
-                                Path platformRelativePath = Paths.get(platformPath, cleanMediaPath).normalize();
-                                if (Files.exists(platformRelativePath)) {
-                                    sourcePath = platformRelativePath;
-                                }
+                    // 存在性检测解析源文件路径（与 MediaController.resolveMediaPath 一致）
+                    Path sourcePath = null;
+                    // 策略1: 工作目录 + 路径（刮削/上传媒体，如 data/scraper/games/...）
+                    Path workDirPath = Paths.get(cleanMediaPath).toAbsolutePath().normalize();
+                    if (Files.exists(workDirPath)) {
+                        sourcePath = workDirPath;
+                    }
+                    // 策略2: platformPath + 路径（导入媒体，如 media/xxx/...）
+                    if (sourcePath == null) {
+                        String platformPath = game.getPlatformPath();
+                        if (platformPath != null && !platformPath.isEmpty()) {
+                            Path platformRelativePath = Paths.get(platformPath, cleanMediaPath).normalize();
+                            if (Files.exists(platformRelativePath)) {
+                                sourcePath = platformRelativePath;
                             }
                         }
-                        if (sourcePath == null) {
-                            logger.debug("媒体文件不存在（双基准均未命中）: {}", mediaRelativePath);
-                            continue;
-                        }
-
-                        // 目标路径 = mediaDirectory + resolvedTarget
-                        // target 支持表达式引擎（如 sanitize(name, charset)），失败回退到变量替换
-                        String targetTemplate = rule.getTarget();
-                        if (targetTemplate == null || targetTemplate.isEmpty()) continue;
-                        String resolvedTarget = evaluateFilenameTemplate(targetTemplate, game, platform, gameVars, sourcePath);
-                        if (resolvedTarget == null || resolvedTarget.isEmpty()) continue;
-
-                        Path targetPath = Paths.get(mediaDir, resolvedTarget);
-                        copyFile(sourcePath, targetPath);
-
-                        if (taskId != null) {
-                            taskService.updateTaskLog(taskId,
-                                "复制媒体: " + nomcourt + " " + sourcePath.getFileName() + " → " + resolvedTarget);
-                        }
                     }
-                } catch (Exception e) {
-                    logger.error("复制媒体文件失败: {}", game.getName(), e);
-                }
-            });
-        }
+                    if (sourcePath == null) {
+                        logger.debug("媒体文件不存在（双基准均未命中）: {}", mediaRelativePath);
+                        continue;
+                    }
 
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(60, TimeUnit.MINUTES)) {
-                executor.shutdownNow();
+                    // 目标路径 = mediaDirectory + resolvedTarget
+                    // target 支持表达式引擎（如 sanitize(name, charset)），失败回退到变量替换
+                    String targetTemplate = rule.getTarget();
+                    if (targetTemplate == null || targetTemplate.isEmpty()) continue;
+                    String resolvedTarget = evaluateFilenameTemplate(targetTemplate, game, platform, gameVars, sourcePath);
+                    if (resolvedTarget == null || resolvedTarget.isEmpty()) continue;
+
+                    Path targetPath = Paths.get(mediaDir, resolvedTarget);
+                    copyFile(sourcePath, targetPath);
+
+                    if (taskId != null) {
+                        taskService.updateTaskLog(taskId,
+                            "复制媒体: " + nomcourt + " " + sourcePath.getFileName() + " → " + resolvedTarget);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("复制媒体文件失败: {}", game.getName(), e);
             }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
         }
     }
 

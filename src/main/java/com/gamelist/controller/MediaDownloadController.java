@@ -1,6 +1,7 @@
 package com.gamelist.controller;
 
 import com.gamelist.mapper.MediaDownloadTaskMapper;
+import com.gamelist.mapper.ScrapeTaskMapper;
 import com.gamelist.model.MediaDownloadTask;
 import com.gamelist.service.MediaDownloadService;
 import org.slf4j.Logger;
@@ -21,6 +22,9 @@ public class MediaDownloadController {
 
     @Autowired
     private MediaDownloadTaskMapper mediaDownloadTaskMapper;
+
+    @Autowired
+    private ScrapeTaskMapper scrapeTaskMapper;
 
     @Autowired
     private MediaDownloadService mediaDownloadService;
@@ -517,14 +521,18 @@ public class MediaDownloadController {
             mediaDownloadService.stopPlatformDownload(platformId);
             
             // 删除该平台的所有媒体下载任务
-            long count = mediaDownloadTaskMapper.countByPlatformId(platformId);
-            if (count > 0) {
+            long mediaCount = mediaDownloadTaskMapper.countByPlatformId(platformId);
+            if (mediaCount > 0) {
                 mediaDownloadTaskMapper.deleteByPlatformId(platformId);
             }
             
+            // ★ 同时删除该平台的 scrape_task 记录，释放 ScrapeWorkerPool 工作线程
+            int scrapeDeleted = scrapeTaskMapper.deleteByPlatformId(platformId);
+            
+            long totalCount = mediaCount + scrapeDeleted;
             response.put("success", true);
-            response.put("message", "成功删除该平台的 " + count + " 个刮削任务");
-            response.put("deletedCount", count);
+            response.put("message", "成功删除该平台的 " + totalCount + " 个刮削任务（媒体任务: " + mediaCount + ", 刮削队列: " + scrapeDeleted + "）");
+            response.put("deletedCount", totalCount);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("删除平台刮削任务失败: {}", e.getMessage());

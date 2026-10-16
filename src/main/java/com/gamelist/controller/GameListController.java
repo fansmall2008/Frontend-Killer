@@ -144,9 +144,10 @@ public class GameListController {
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) List<String> players,
             @RequestParam(required = false) List<String> scrapeStatuses,
-            @RequestParam(required = false) String folderPath) {
+            @RequestParam(required = false) String folderPath,
+            @RequestParam(required = false) List<String> matchedStatuses) {
         try {
-            List<Game> games = gameService.getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses, folderPath, publishers);
+            List<Game> games = gameService.getAllGames(search, startDate, endDate, developers, genres, players, scrapeStatuses, folderPath, publishers, matchedStatuses);
             
             // 处理分页
             int totalElements = games.size();
@@ -184,9 +185,10 @@ public class GameListController {
             @RequestParam(required = false) List<String> players,
             @RequestParam(required = false) List<String> scrapeStatuses,
             @RequestParam(required = false) List<String> fileStatuses,
-            @RequestParam(required = false) String folderPath) {
+            @RequestParam(required = false) String folderPath,
+            @RequestParam(required = false) List<String> matchedStatuses) {
         try {
-            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, folderPath, publishers);
+            List<Game> games = gameService.getGamesByPlatformId(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, folderPath, publishers, matchedStatuses);
             
             // 处理分页
             int totalElements = games.size();
@@ -342,33 +344,23 @@ public class GameListController {
             @SuppressWarnings("unchecked")
             java.util.Map<String, Object> updates = (java.util.Map<String, Object>) request.get("updates");
             
-            if (gameIdsObj == null || gameIdsObj.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空"));
-            }
             if (updates == null || updates.isEmpty()) {
                 return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "更新内容不能为空"));
             }
-            
-            // 转换gameIds为Long类型
+
+            // 解析 gameIds（支持直接指定或从 filters 解析）
             java.util.List<Long> gameIds = new java.util.ArrayList<>();
-            for (Object obj : gameIdsObj) {
-                if (obj != null) {
-                    if (obj instanceof Integer) {
-                        gameIds.add(((Integer) obj).longValue());
-                    } else if (obj instanceof Long) {
-                        gameIds.add((Long) obj);
-                    } else if (obj instanceof String) {
-                        try {
-                            gameIds.add(Long.parseLong((String) obj));
-                        } catch (NumberFormatException e) {
-                            // 忽略无效的ID
-                        }
-                    }
+            if (gameIdsObj != null && !gameIdsObj.isEmpty()) {
+                for (Object obj : gameIdsObj) {
+                    if (obj instanceof Number) gameIds.add(((Number) obj).longValue());
+                    else if (obj instanceof String) { try { gameIds.add(Long.parseLong((String) obj)); } catch (NumberFormatException e) { /* skip */ } }
                 }
             }
-            
             if (gameIds.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表为空或包含无效ID"));
+                gameIds = resolveGameIdsFromFilters(request);
+            }
+            if (gameIds == null || gameIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空且未提供有效筛选条件"));
             }
             
             int updatedCount = gameService.batchUpdateGames(gameIds, updates);
@@ -396,33 +388,23 @@ public class GameListController {
             java.util.List<Object> gameIdsObj = (java.util.List<Object>) request.get("gameIds");
             Object targetPlatformIdObj = request.get("targetPlatformId");
             
-            if (gameIdsObj == null || gameIdsObj.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空"));
-            }
             if (targetPlatformIdObj == null) {
                 return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "目标平台ID不能为空"));
             }
-            
-            // 转换gameIds为Long类型
+
+            // 解析 gameIds（支持直接指定或从 filters 解析）
             java.util.List<Long> gameIds = new java.util.ArrayList<>();
-            for (Object obj : gameIdsObj) {
-                if (obj != null) {
-                    if (obj instanceof Integer) {
-                        gameIds.add(((Integer) obj).longValue());
-                    } else if (obj instanceof Long) {
-                        gameIds.add((Long) obj);
-                    } else if (obj instanceof String) {
-                        try {
-                            gameIds.add(Long.parseLong((String) obj));
-                        } catch (NumberFormatException e) {
-                            // 忽略无效的ID
-                        }
-                    }
+            if (gameIdsObj != null && !gameIdsObj.isEmpty()) {
+                for (Object obj : gameIdsObj) {
+                    if (obj instanceof Number) gameIds.add(((Number) obj).longValue());
+                    else if (obj instanceof String) { try { gameIds.add(Long.parseLong((String) obj)); } catch (NumberFormatException e) { /* skip */ } }
                 }
             }
-            
             if (gameIds.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表为空或包含无效ID"));
+                gameIds = resolveGameIdsFromFilters(request);
+            }
+            if (gameIds == null || gameIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空且未提供有效筛选条件"));
             }
             
             // 转换targetPlatformId为Long类型
@@ -467,26 +449,19 @@ public class GameListController {
             @SuppressWarnings("unchecked")
             java.util.List<Object> gameIdsObj = (java.util.List<Object>) request.get("gameIds");
             
-            if (gameIdsObj == null || gameIdsObj.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空"));
-            }
-            
-            // 转换为 Long 类型
+            // 解析 gameIds（支持直接指定或从 filters 解析）
             java.util.List<Long> gameIds = new java.util.ArrayList<>();
-            for (Object obj : gameIdsObj) {
-                if (obj instanceof Number) {
-                    gameIds.add(((Number) obj).longValue());
-                } else if (obj instanceof String) {
-                    try {
-                        gameIds.add(Long.parseLong((String) obj));
-                    } catch (NumberFormatException e) {
-                        // 忽略无效 ID
-                    }
+            if (gameIdsObj != null && !gameIdsObj.isEmpty()) {
+                for (Object obj : gameIdsObj) {
+                    if (obj instanceof Number) gameIds.add(((Number) obj).longValue());
+                    else if (obj instanceof String) { try { gameIds.add(Long.parseLong((String) obj)); } catch (NumberFormatException e) { /* skip */ } }
                 }
             }
-            
             if (gameIds.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表为空或包含无效ID"));
+                gameIds = resolveGameIdsFromFilters(request);
+            }
+            if (gameIds == null || gameIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空且未提供有效筛选条件"));
             }
             
             int swappedCount = gameService.swapTranslations(gameIds);
@@ -535,6 +510,50 @@ public class GameListController {
             errorResult.put("success", false);
             errorResult.put("error", "切换译文失败：" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+        }
+    }
+
+    /**
+     * 确认当前已抓的 SS 信息对应同一游戏（将 matched 置 true，不改动其它字段）
+     */
+    @PostMapping("/games/{id}/confirm-match")
+    public ResponseEntity<Object> confirmMatch(@PathVariable Long id) {
+        try {
+            Game game = gameService.getGameById(id);
+            if (game == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of(
+                        "success", false, "message", "游戏不存在: " + id));
+            }
+            game.setMatched(true);
+            gameService.updateGame(game);
+            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "匹配已确认"));
+        } catch (Exception e) {
+            logger.error("确认匹配失败 id={}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of(
+                    "success", false, "message", e.getMessage() == null ? "未知错误" : e.getMessage()));
+        }
+    }
+
+    /**
+     * 将当前游戏标为“以上都不是”： scraped=false, matched=false, ssGameId 清空.
+     */
+    @PostMapping("/games/{id}/reject-match")
+    public ResponseEntity<Object> rejectMatch(@PathVariable Long id) {
+        try {
+            Game game = gameService.getGameById(id);
+            if (game == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of(
+                        "success", false, "message", "游戏不存在: " + id));
+            }
+            game.setMatched(false);
+            game.setScraped(false);
+            game.setSsGameId(null);
+            gameService.updateGame(game);
+            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "已标为待人工处理"));
+        } catch (Exception e) {
+            logger.error("拒绝匹配失败 id={}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of(
+                    "success", false, "message", e.getMessage() == null ? "未知错误" : e.getMessage()));
         }
     }
 
@@ -611,13 +630,19 @@ public class GameListController {
      * 批量删除游戏
      */
     @DeleteMapping("/games/batch-delete")
-    public ResponseEntity<java.util.Map<String, Object>> batchDeleteGames(@RequestBody java.util.Map<String, java.util.List<Number>> request) {
+    public ResponseEntity<java.util.Map<String, Object>> batchDeleteGames(@RequestBody java.util.Map<String, Object> request) {
         try {
-            java.util.List<Number> rawIds = request.get("gameIds");
-            java.util.List<Long> gameIds = rawIds != null ? rawIds.stream().map(Number::longValue).collect(java.util.stream.Collectors.toList()) : null;
-            
+            java.util.List<Long> gameIds = new java.util.ArrayList<>();
+            @SuppressWarnings("unchecked")
+            java.util.List<Number> rawIds = (java.util.List<Number>) request.get("gameIds");
+            if (rawIds != null && !rawIds.isEmpty()) {
+                gameIds = rawIds.stream().map(Number::longValue).collect(java.util.stream.Collectors.toList());
+            }
+            if (gameIds.isEmpty()) {
+                gameIds = resolveGameIdsFromFilters(request);
+            }
             if (gameIds == null || gameIds.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空"));
+                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空且未提供有效筛选条件"));
             }
             
             int deletedCount = gameService.batchDeleteGames(gameIds);
@@ -817,5 +842,60 @@ public class GameListController {
             error.put("message", "检测失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+    }
+
+    /**
+     * 从请求体中的 filters 对象解析出匹配的游戏ID列表（"应用于所有搜索结果"模式）。
+     * 返回 null 表示没有 filters 或无匹配。
+     */
+    @SuppressWarnings("unchecked")
+    private List<Long> resolveGameIdsFromFilters(Map<String, Object> request) {
+        Map<String, Object> filters = (Map<String, Object>) request.get("filters");
+        if (filters == null) return null;
+
+        Number platformIdNum = (Number) filters.get("platformId");
+        Long platformId = platformIdNum != null ? platformIdNum.longValue() : null;
+        if (platformId == null) return null;
+
+        String search = (String) filters.get("search");
+        String startDate = (String) filters.get("startDate");
+        String endDate = (String) filters.get("endDate");
+        List<String> developers = (List<String>) filters.get("developers");
+        List<String> genres = (List<String>) filters.get("genres");
+        List<String> players = (List<String>) filters.get("players");
+        List<String> scrapeStatuses = (List<String>) filters.get("scrapeStatuses");
+        List<String> fileStatuses = (List<String>) filters.get("fileStatuses");
+        String folderPath = (String) filters.get("folderPath");
+        List<String> publishers = (List<String>) filters.get("publishers");
+        @SuppressWarnings("unchecked")
+        List<String> matchedStatuses = (List<String>) filters.get("matchedStatuses");
+
+        boolean hasAnyFilter = (search != null && !search.isEmpty())
+                || (scrapeStatuses != null && !scrapeStatuses.isEmpty())
+                || (fileStatuses != null && !fileStatuses.isEmpty())
+                || (matchedStatuses != null && !matchedStatuses.isEmpty())
+                || (developers != null && !developers.isEmpty())
+                || (publishers != null && !publishers.isEmpty())
+                || (genres != null && !genres.isEmpty())
+                || (players != null && !players.isEmpty())
+                || (folderPath != null && !folderPath.isEmpty());
+
+        if (!hasAnyFilter) {
+            // 没有任何筛选条件 = 操作整个平台
+            List<Game> allGames = gameService.getGamesByPlatformId(platformId);
+            List<Long> ids = new ArrayList<>();
+            for (Game g : allGames) ids.add(g.getId());
+            return ids;
+        }
+
+        List<Game> games = gameService.getGamesByPlatformId(
+            platformId, search, startDate, endDate,
+            developers, genres, players,
+            scrapeStatuses, fileStatuses,
+            folderPath, publishers, matchedStatuses);
+        List<Long> ids = new ArrayList<>();
+        for (Game g : games) ids.add(g.getId());
+        logger.info("筛选模式解析: 匹配到 {} 个游戏", ids.size());
+        return ids;
     }
 }

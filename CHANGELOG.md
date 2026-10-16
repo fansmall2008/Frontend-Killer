@@ -2,9 +2,80 @@
 
 ## [Unreleased]
 
+## [1.3] - In Development
+
+> Headline theme: **Local ROM matching** — import libretro-database (DAT/RDB) and ClrMamePro data to identify ROMs offline, speeding up scraping and improving match accuracy before ever hitting the ScreenScraper API.
+
+### Added
+- **rom_db local matching database** (`V1.0.22__rom_db.sql`, `V1.0.24__rom_db_metadata.sql`, `V1.0.25__rom_db_md5_sha1.sql`, `V1.0.26__romdb_multilang_name.sql`)
+  - Single `rom_db` table unifying cartridge platforms (CRC32) and disc platforms (serial), with standard EN/JP/CN game names, region, developer, publisher, release year, genre, MD5/SHA1
+  - Data sources: libretro-database No-Intro + Redump DAT + RDB, and ClrMamePro DAT (`ClrMameProDatParser`)
+  - Two-phase in-memory merge import: recursive DAT scan (auto-detects redump/no-intro/serial sub-dirs) deduped by `systemId:CRC` with complementary field fill, then RDB supplement for richer metadata
+  - **Incremental merge mode** — same CRC only fills empty fields, never overwrites existing data; safe to import multiple sources repeatedly
+- **Manual data-import UI in system settings**
+  - Copy `.dat` files to `data/rom-db/metadat/` and `.rdb` files to `data/rom-db/rdb/`, then trigger import with a live progress bar (percent/count/detail)
+  - Separate DAT and RDB import actions plus a “clear match database” (清零匹配库) destructive reset with confirmation
+- **Unified multi-tier matching pipeline** (`RomDbServiceImpl`)
+  - L0 filename serial regex → L1 CRC32 (all platforms) → L2 disc serial extraction (whitelist systems) → L3 cartridge header ID → name fallback for hacked/modified ROMs
+  - Disc identifier extraction via `DiscSerialExtractor`: SYSTEM.CNF (PS1/PS2), PARAM.SFO (PS3), IP.BIN (Saturn/MegaCD/Dreamcast), NGC 6-byte game ID
+  - Cartridge header reader via `CartridgeHeaderReader`: GB/GBC/GBA/N64/etc. millisecond-level header ID lookup (far faster than full-file CRC32)
+  - ZIP/7z handling computes the **inner ROM entry CRC** (No-Intro convention) rather than the container CRC
+- **Special (non-CRC) identifier matching — supported systems & formats**
+  Local matching extracts an in-ROM identifier (serial / header ID) instead of whole-file CRC32 for the systems below; all other systems fall back to CRC32 (and blacklist systems are blocked).
+
+  | System (id) | Identifier source | Supported image formats |
+  |---|---|---|
+  | PlayStation (57) | SYSTEM.CNF boot line | `.iso` `.bin` `.img` `.cso` `.pbp` |
+  | PlayStation 2 (58) | SYSTEM.CNF boot2 line | `.iso` `.bin` `.img` `.cso` `.pbp` |
+  | PlayStation 3 (59) | PARAM.SFO TITLE_ID | `.iso` `.bin` `.img` |
+  | GameCube (13) | header 6-byte game ID | `.iso` `.gcm` `.bin` |
+  | Sega Saturn (22) | IP.BIN `SEGA SEGASATURN` → +0x20 | `.bin` `.cue` `.iso` |
+  | Sega Mega-CD (20) | IP.BIN `SEGA SEGAMEGADRIVE` → +0x20 | `.bin` `.cue` `.iso` |
+  | Sega Dreamcast (23) | IP.BIN `SEGA SEGAKATANA` → +0x40 | `.bin` `.cue` `.iso` `.cdi` `.gdi` |
+  | Game Boy (9) | header 0x0134 title | raw `.gb/.gbc` + `.zip` (inner entry) |
+  | Game Boy Color (10) | header 0x0134 title | raw `.gb/.gbc` + `.zip` |
+  | Game Boy Advance (12) | header 0xAC game code | raw `.gba` + `.zip` |
+  | Nintendo 64 (14) | header 0x3C cart ID | raw `.z64/.n64/.v64` + `.zip` |
+  | Genesis / Mega Drive (1) | header 0x180 domestic serial | raw `.bin/.md/.gen/.smd` + `.zip` |
+  | SNES / SFC (4) | LoROM 0x7FC0 / HiROM 0xFFC0 internal title | raw `.smc/.sfc` + `.zip` |
+  | Nintendo DS (15) | header 0x0C game code (4 bytes) | raw `.nds` + `.zip` (inner entry) |
+  | Nintendo 3DS (17) | NCSD header product code (e.g. `CTR-P-A3RP`, scanned in first 64 KB) | `.3ds` `.cci` |
+  | Nintendo Wii (16) | disc header game ID → 4-byte code (`.iso` @0x00 / `.wbfs` @0x200) | `.iso` `.gcm` `.wbfs` |
+
+  - Cartridge platforms additionally read headers from inside `.zip` (inner ROM entry); Sega disc platforms do not unwrap `.zip`.
+  - **New in 1.3:** Dreamcast `.cdi` (DiscJuggler images are uncompressed but IP.BIN sits at an arbitrary depth up to hundreds of MB → full-file magic scan) and `.gdi` (GD-ROM text index parsed, every data-track `.bin` scanned for the magic); Dreamcast serial offset corrected to `magic+0x40` (Saturn/MegaCD remain `+0x20`). Nintendo handheld/disc **NDS (15)** / **3DS (17)** / **Wii (16)** added: NDS reads the 4-byte game code at 0x0C, 3DS scans the first 64 KB for the NCSD product code, Wii reads the disc-header game ID (raw `.iso` at 0x00, or `.wbfs` at 0x200 behind the 512-byte WBFS header) and matches on the 4-byte code — verified against real NAS libraries (NDS 15/15, Wii-WBFS 15/15 matched; 3DS misses only where the title is absent from the local rom_db, not an extraction failure). Wii (16) moved from blacklist to whitelist.
+  - **Not yet supported:** `.chd` disc images — planned (needs a Java CHD hunk reader; see roadmap). Blacklist (still blocked from local matching): PC-FX (72), PCE-CD (114), Neo Geo CD (70), 3DO (29), PSP (61).
+- **Blacklist / whitelist matching configuration** (`RomDbMatchingConfig`)
+  - Whitelist: systems with reliable in-ROM identifiers (SYSTEM.CNF/PARAM.SFO) go the serial path; blacklist: disc systems without reliable serial extraction are blocked from local matching (avoids costly whole-file CRC32); default: cartridge/arcade use CRC32
+- **Platform mapping layer** (`RomDbPlatformMapping`): normalizes libretro-database platform names to ScreenScraper `systemId`
+- **REST API** (`RomDbController`): `/api/rom-db/lookup` (unified serial→CRC with 5-level fallback), `/lookup/serial`, `/search`, `/check/{systemId}` (support/blacklist/whitelist status), `/import-dat`, and async batch match by platform
+- **Front-end “本地匹配” (Local Match) action** on game-list: per-system support check, button tooltip distinguishes serial vs CRC matching; batch match runs as a background task (`ROM_DB_MATCH`, viewable in task management)
+- `matched` flag on game (`V1.0.23__game_matched.sql`) records local-match results; `scrape_task.task_id` (`V1.0.27__scrape_task_add_task_id.sql`) links match tasks to the background task queue
+- **Per-operation matching-method selection** for local match (game-list + platform-management modals)
+  - Three checkboxes: serial extraction / CRC / filename match; unchecked methods are skipped entirely (no I/O at all)
+  - Fixed execution order serial → CRC → filename applies only among checked methods; filename serial regex extraction moved into the filename branch
+  - Modal explains the trade-off up front: serial is millisecond-fast but does not verify ROM integrity; CRC is exact but requires a slow full-file hash; filename only extracts a serial or does fuzzy name search
+  - Serial checkbox auto-disabled and greyed out for non-whitelisted systems; API accepts a `methods` array (legacy `fileNameExtract` still supported)
+
+### Changed
+- Scraping pipeline now queries rom_db first and substitutes the authoritative CRC/serial before calling ScreenScraper (`ScraperServiceImpl`, “v1.3 ROM 数据库匹配 + CRC 管线”), improving SS hit rate and cutting wasted API calls
+
+### Fixed
+- `SsNameNormalizer` regex typo caused `ExceptionInInitializerError`, hanging ScreenScraper scraping for ~2 weeks; fixed the character-class pattern so class initialization succeeds again
+
+### Planned for 1.3 (from roadmap — fill in as completed)
+- [ ] Brand-new onboarding / interactive guide
+- [ ] Further multi-threading optimization across scrape / media download / import-export
+- [ ] Bug fixes carried over from 1.2
+
 ## [1.2] - 2026-09-28
 
 ### Added
+- Removed export multi-threading option
+  - Thread count selector removed from export page UI (no performance benefit on single-disk I/O)
+  - ROM and media file copying now runs in single-threaded mode for simplicity and correctness
+  - `ExportRequest.threadCount` field and related constants removed from backend
+  - Eliminates misleading UI that suggested parallel speedup where none exists
 - Batch platform operations on platform-management page
   - Checkbox column with select-all for each platform row
   - Always-visible batch toolbar with 5 actions: Scrape, Translate, Swap Translations, Scan Stats, Delete

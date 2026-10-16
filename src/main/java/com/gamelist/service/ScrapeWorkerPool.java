@@ -58,6 +58,12 @@ public class ScrapeWorkerPool {
     // 媒体任务计数器（每 100 个刷新一次配额）
     private final AtomicLong mediaTaskCounter = new AtomicLong(0);
     
+    // ★ 僵尸 RUNNING 自愈看门狗：仅针对 GAME_INFO（媒体下载单条可能 legitimately 超过阈值，不纳入）
+    //   阈值 600s 远大于游戏信息刮削最坏耗时（含 fuzzy 兜底 2 次 SS 调用 × 120s 读超时），避免误伤在途任务。
+    private static final int STALE_RUNNING_SECONDS = 600;
+    private static final long WATCHDOG_INTERVAL_MS = 30_000L;
+    private volatile long lastWatchdogAtMs = 0L;
+    
     // 默认线程数
     private static final int DEFAULT_MAX_THREADS = 6;
     
@@ -160,6 +166,22 @@ public class ScrapeWorkerPool {
                 
                 if (!running.get()) break;
                 
+                // ★ 僵尸 RUNNING 自愈：定期回收因工作线程抛 Error/被硬杀而遗留、无人处理的卡死任务
+                long _now = System.currentTimeMillis();
+                if (_now - lastWatchdogAtMs >= WATCHDOG_INTERVAL_MS) {
+                    lastWatchdogAtMs = _now;
+                    try {
+                        int recovered = scrapeTaskMapper.resetStaleRunningToPending(
+                            ScrapeTask.TYPE_GAME_INFO, STALE_RUNNING_SECONDS);
+                        if (recovered > 0) {
+                            logger.warn("僵尸自愈：重置 {} 个卡死超过 {} 秒的 RUNNING 游戏信息任务为 PENDING 重试",
+                                recovered, STALE_RUNNING_SECONDS);
+                        }
+                    } catch (Exception e) {
+                        logger.error("僵尸自愈执行异常: {}", e.getMessage(), e);
+                    }
+                }
+                
                 // 背压控制：计算线程池空闲槽位数
                 int activeCount = workerPool.getActiveCount();
                 int maxPoolSize = workerPool.getMaximumPoolSize();
@@ -232,6 +254,20 @@ public class ScrapeWorkerPool {
             logger.error("任务执行异常: task={}, error={}", task.getId(), e.getMessage(), e);
             scrapeTaskMapper.updateStatusWithError(task.getId(), 
                 ScrapeTask.STATUS_RUNNING, ScrapeTask.STATUS_FAILED, e.getMessage());
+        } catch (Throwable t) {
+            // 关键兜底：Error（OOM / StackOverflowError / 底层库断言失败等）不是 Exception，
+            // 若只 catch(Exception) 会越过它、被 workerPool.submit() 的 Future 静默吞掉，
+            // 线程随即死亡且无人复位状态，任务永久卡在 RUNNING 成为僵尸（监听线程只捡 PENDING，
+            // 永不重跑）——即“某条一直刮不完”的根因。这里对 Throwable 也置 FAILED 并记录。
+            logger.error("任务执行遇到 Error/Throwable: task={}, type={}, error={}",
+                task.getId(), task.getTaskType(), String.valueOf(t), t);
+            try {
+                scrapeTaskMapper.updateStatusWithError(task.getId(),
+                    ScrapeTask.STATUS_RUNNING, ScrapeTask.STATUS_FAILED,
+                    t.getClass().getName() + ": " + t.getMessage());
+            } catch (Exception inner) {
+                logger.error("置任务 FAILED 失败: task={}", task.getId(), inner);
+            }
         }
     }
     

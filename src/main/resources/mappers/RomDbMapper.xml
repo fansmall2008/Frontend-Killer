@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.RomDbMapper">
+
+    <resultMap id="RomDbResultMap" type="com.gamelist.model.RomDb">
+        <id column="id" property="id"/>
+        <result column="system_id" property="systemId"/>
+        <result column="platform" property="platform"/>
+        <result column="crc32" property="crc32"/>
+        <result column="serial" property="serial"/>
+        <result column="md5" property="md5"/>
+        <result column="sha1" property="sha1"/>
+        <result column="game_name" property="gameName"/>
+        <result column="game_name_jp" property="gameNameJp"/>
+        <result column="game_name_cn" property="gameNameCn"/>
+        <result column="region" property="region"/>
+        <result column="source" property="source"/>
+        <result column="developer" property="developer"/>
+        <result column="publisher" property="publisher"/>
+        <result column="releaseyear" property="releaseyear"/>
+        <result column="genre" property="genre"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <!-- 按 systemId + serial 精确查找（光盘平台） -->
+    <select id="findBySystemAndSerial" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId} AND serial = #{serial}
+        LIMIT 1
+    </select>
+
+    <!-- 按 systemId + serial 查找，忽略双方连字符差异（Genesis/T-xxx 等格式回退） -->
+    <select id="findBySystemAndSerialNormalized" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId}
+          AND REPLACE(serial, '-', '') = REPLACE(#{serial}, '-', '')
+        LIMIT 1
+    </select>
+
+    <!-- 按 systemId + serial 前缀匹配（GB/GBC: 提取 "VP9E" → 匹配 "CGB-VP9E-USA" 等） -->
+    <select id="findBySystemAndSerialPrefix" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId}
+          AND (serial = #{prefix}
+               OR serial LIKE CONCAT(#{prefix}, '-%')
+               OR serial LIKE CONCAT('%-', #{prefix}, '-%')
+               OR serial LIKE CONCAT('%-', #{prefix}))
+        LIMIT 1
+    </select>
+
+    <!-- 按 systemId + game code 前缀匹配（Genesis: 提取 "MK1054" → 匹配 "MK-1054-00"） -->
+    <select id="findBySystemAndGameCode" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId}
+          AND (REPLACE(serial, '-', '') = #{gameCode}
+               OR REPLACE(serial, '-', '') LIKE CONCAT(#{gameCode}, '0%')
+               OR REPLACE(serial, '-', '') LIKE CONCAT(#{gameCode}, ',%'))
+        LIMIT 1
+    </select>
+
+    <!-- 按 ID 查找 -->
+    <select id="findById" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <!-- 按 systemId + crc32 精确查找（卡带平台） -->
+    <select id="findBySystemAndCrc32" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId} AND crc32 = #{crc32}
+        LIMIT 1
+    </select>
+
+    <!-- 按 platform + serial 查找（未映射平台） -->
+    <select id="findByPlatformAndSerial" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE platform = #{platform} AND serial = #{serial}
+        LIMIT 1
+    </select>
+
+    <!-- 按 platform + crc32 查找（未映射平台） -->
+    <select id="findByPlatformAndCrc32" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE platform = #{platform} AND crc32 = #{crc32}
+        LIMIT 1
+    </select>
+
+    <!-- 插入单条（简单 INSERT，去重由 Service 层控制） -->
+    <insert id="insertIgnore" parameterType="com.gamelist.model.RomDb" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rom_db (system_id, platform, crc32, serial, md5, sha1, game_name, game_name_jp, game_name_cn, region, source, developer, publisher, releaseyear, genre)
+        VALUES (#{systemId}, #{platform}, #{crc32}, #{serial}, #{md5}, #{sha1}, #{gameName}, #{gameNameJp}, #{gameNameCn}, #{region}, #{source}, #{developer}, #{publisher}, #{releaseyear}, #{genre})
+    </insert>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO rom_db (system_id, platform, crc32, serial, md5, sha1, game_name, game_name_jp, game_name_cn, region, source, developer, publisher, releaseyear, genre)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.systemId}, #{item.platform}, #{item.crc32}, #{item.serial}, #{item.md5}, #{item.sha1},
+             #{item.gameName}, #{item.gameNameJp}, #{item.gameNameCn}, #{item.region}, #{item.source}, #{item.developer}, #{item.publisher}, #{item.releaseyear}, #{item.genre})
+        </foreach>
+    </insert>
+
+    <!-- 按平台统计数据量 -->
+    <select id="countByPlatform" resultType="java.util.Map">
+        SELECT platform, system_id AS systemId, COUNT(*) AS count
+        FROM rom_db
+        GROUP BY platform, system_id
+        ORDER BY count DESC
+    </select>
+
+    <!-- 按 systemId 统计数据量 -->
+    <select id="countBySystem" resultType="java.util.Map">
+        SELECT system_id AS systemId, COUNT(*) AS count
+        FROM rom_db
+        WHERE system_id > 0
+        GROUP BY system_id
+        ORDER BY count DESC
+    </select>
+
+    <!-- 按来源统计数据量 -->
+    <select id="countBySource" resultType="java.util.Map">
+        SELECT source, COUNT(*) AS count
+        FROM rom_db
+        GROUP BY source
+        ORDER BY count DESC
+    </select>
+
+    <!-- 查询指定平台的记录数 -->
+    <select id="countByPlatformName" resultType="int">
+        SELECT COUNT(*) FROM rom_db WHERE platform = #{platform}
+    </select>
+
+    <select id="countByPlatformAndSource" resultType="int">
+        SELECT COUNT(*) FROM rom_db WHERE platform = #{platform} AND source = #{source}
+    </select>
+
+    <!-- 删除指定平台的所有数据 -->
+    <delete id="deleteByPlatform">
+        DELETE FROM rom_db WHERE platform = #{platform}
+    </delete>
+
+    <!-- 删除指定 systemId 的所有数据 -->
+    <delete id="deleteBySystemId">
+        DELETE FROM rom_db WHERE system_id = #{systemId}
+    </delete>
+
+    <!-- 清空全表（TRUNCATE 为 DDL 操作，不走行级锁，避免大表 DELETE 超时） -->
+    <delete id="deleteAll">
+        TRUNCATE TABLE rom_db
+    </delete>
+
+    <!-- 总记录数 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM rom_db
+    </select>
+
+    <!-- 查询全部记录（用于增量合并导入） -->
+    <select id="findAll" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+    </select>
+
+    <!-- 查询指定 systemId 的记录数 -->
+    <select id="countBySystemId" resultType="int">
+        SELECT COUNT(*) FROM rom_db WHERE system_id = #{systemId}
+    </select>
+
+    <!-- 按 systemId 批量查询全部记录（用于内存预加载） -->
+    <select id="findBySystemId" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db WHERE system_id = #{systemId}
+    </select>
+
+    <!-- 模糊搜索游戏名 -->
+    <select id="searchByName" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE LOWER(game_name) LIKE LOWER('%' || #{keyword} || '%')
+        ORDER BY system_id DESC, game_name
+        LIMIT #{limit}
+    </select>
+
+    <!-- 按 systemId 模糊搜索 -->
+    <select id="searchBySystemAndName" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId}
+          AND LOWER(game_name) LIKE LOWER('%' || #{keyword} || '%')
+        ORDER BY game_name
+        LIMIT #{limit}
+    </select>
+
+</mapper>

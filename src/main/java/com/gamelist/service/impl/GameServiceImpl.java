@@ -2124,6 +2124,47 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public List<Game> getAllGames(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, String folderPath, List<String> publishers, List<String> matchedStatuses) {
+        List<Game> games = gameMapper.selectAllGamesWithFilter(search, startDate, endDate, developers, genres, players, scrapeStatuses, publishers, matchedStatuses);
+        
+        // 按文件夹路径过滤
+        if (folderPath != null && !folderPath.isEmpty()) {
+            games = games.stream().filter(game -> {
+                String path = game.getPath();
+                if (path == null) return false;
+                String normalizedPath = path.replace("\\", "/");
+                String[] parts = normalizedPath.split("/");
+                for (String part : parts) {
+                    if (part.equalsIgnoreCase(folderPath.trim())) {
+                        return true;
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }
+        
+        // 为每个游戏设置platformPath
+        Map<Long, String> platformPathMap = new HashMap<>();
+        for (Game game : games) {
+            Long platformId = game.getPlatformId();
+            if (platformId != null) {
+                String platformPath = platformPathMap.get(platformId);
+                if (platformPath == null) {
+                    Platform platform = platformService.getPlatformById(platformId);
+                    if (platform != null) {
+                        platformPath = platform.getFolderPath();
+                        platformPathMap.put(platformId, platformPath);
+                    }
+                }
+                if (platformPath != null) {
+                    game.setPlatformPath(platformPath);
+                }
+            }
+        }
+        return games;
+    }
+
+    @Override
     public Map<String, Object> getFilterOptions(Long platformId) {
         List<String> developers;
         List<String> publishers;
@@ -2299,6 +2340,37 @@ public class GameServiceImpl implements GameService {
                 String path = game.getPath();
                 if (path == null) return false;
                 // 支持匹配路径中的任意层级
+                String normalizedPath = path.replace("\\", "/");
+                String[] parts = normalizedPath.split("/");
+                for (String part : parts) {
+                    if (part.equalsIgnoreCase(folderPath.trim())) {
+                        return true;
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }
+        
+        // 为每个游戏设置platformPath
+        Platform platform = platformService.getPlatformById(platformId);
+        if (platform != null) {
+            String platformPath = platform.getFolderPath();
+            for (Game game : games) {
+                game.setPlatformPath(platformPath);
+            }
+        }
+        return games;
+    }
+
+    @Override
+    public List<Game> getGamesByPlatformId(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, String folderPath, List<String> publishers, List<String> matchedStatuses) {
+        List<Game> games = gameMapper.selectGamesByPlatformIdWithFilter(platformId, search, startDate, endDate, developers, genres, players, scrapeStatuses, fileStatuses, publishers, matchedStatuses);
+        
+        // 按文件夹路径过滤
+        if (folderPath != null && !folderPath.isEmpty()) {
+            games = games.stream().filter(game -> {
+                String path = game.getPath();
+                if (path == null) return false;
                 String normalizedPath = path.replace("\\", "/");
                 String[] parts = normalizedPath.split("/");
                 for (String part : parts) {

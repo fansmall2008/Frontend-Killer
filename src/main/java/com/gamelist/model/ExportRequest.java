@@ -11,7 +11,6 @@ public class ExportRequest {
     private boolean copyRoms;
     private boolean copyMedia;
     private boolean generateDataFile;
-    private int threadCount;
     // 整目录拷贝模式：存在未刮削游戏时，用户选择直接把平台源 ROM 目录全量拷贝（不依赖刮削关联性）
     private boolean wholeDirectoryCopy;
     // 模板声明变量的用户填写值（key=变量名, value=用户输入），执行前注入表达式与路径占位符
@@ -71,14 +70,6 @@ public class ExportRequest {
 
     public void setGenerateDataFile(boolean generateDataFile) {
         this.generateDataFile = generateDataFile;
-    }
-
-    public int getThreadCount() {
-        return threadCount;
-    }
-
-    public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
     }
 
     public boolean isWholeDirectoryCopy() {

@@ -45,6 +45,7 @@
                         <th data-i18n="col_type">类型</th>
                         <th data-i18n="col_release_year">发行年份</th>
                         <th data-i18n="col_media_status">媒体状态</th>
+                        <th data-i18n="col_disc_serial_count">光盘编号库</th>
                         <th data-i18n="col_actions">操作</th>
                     </tr>
                 </thead>
@@ -141,6 +142,7 @@
         let deleteId = null;
         let currentPage = 1;
         const pageSize = 20;
+        let discSerialStats = {}; // systemId → count
 
         function loadSystems() {
             fetch('/api/scraper-systems')
@@ -156,6 +158,23 @@
                 .catch(error => {
                     showStatus('加载系统列表失败: ' + error.message, 'error');
                 });
+            // v1.3: 加载光盘编号库统计
+            loadDiscSerialStats();
+        }
+
+        function loadDiscSerialStats() {
+            fetch('/api/rom-db/stats/platforms')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        discSerialStats = {};
+                        data.data.forEach(item => {
+                            discSerialStats[item.systemId] = item.count;
+                        });
+                        renderTable(); // 重新渲染以显示统计
+                    }
+                })
+                .catch(err => console.debug('rom_db stats load failed:', err));
         }
 
         function renderTable() {
@@ -193,6 +212,11 @@
                         ${system.mediaScraped ? 
                             '<span class="media-badge scraped" data-i18n="media_scraped">已刮削</span>' : 
                             '<span class="media-badge not-scraped" data-i18n="media_not_scraped">未刮削</span>'}
+                    </td>
+                    <td>
+                        ${discSerialStats[system.systemId] ? 
+                            '<span class="media-badge scraped" title="光盘编号库数据量">' + discSerialStats[system.systemId] + ' 条</span>' : 
+                            '<span style="color: #666;">-</span>'}
                     </td>
                     <td>
                         <button class="btn btn-primary btn-small" onclick="editSystem(${system.id})" data-i18n="btn_edit">编辑</button>

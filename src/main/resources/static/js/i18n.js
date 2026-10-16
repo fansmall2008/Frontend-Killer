@@ -66,6 +66,15 @@ const I18n = {
       }
     });
 
+    // Support data-i18n-title for tooltips (native title attribute)
+    document.querySelectorAll('[data-i18n-title]').forEach(element => {
+      const key = element.getAttribute('data-i18n-title');
+      const translation = this.t(key);
+      if (translation && translation !== key) {
+        element.setAttribute('title', translation);
+      }
+    });
+
     const titleKey = document.querySelector('[data-i18n="page_title"]')?.getAttribute('data-i18n');
     const subtitleKey = document.querySelector('[data-i18n="page_subtitle"]')?.getAttribute('data-i18n');
     

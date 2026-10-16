@@ -5,15 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gamelist.mapper.BackgroundTaskMapper;
 import com.gamelist.mapper.MediaDownloadTaskMapper;
+import com.gamelist.mapper.ScrapeTaskMapper;
 import com.gamelist.model.BackgroundTask;
 import com.gamelist.service.MediaDownloadService;
 import com.gamelist.service.ScraperService;
@@ -33,6 +36,9 @@ public class TaskController {
     private MediaDownloadTaskMapper mediaDownloadTaskMapper;
 
     @Autowired
+    private ScrapeTaskMapper scrapeTaskMapper;
+
+    @Autowired
     private MediaDownloadService mediaDownloadService;
 
     @Autowired
@@ -49,9 +55,61 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable Long id) {
-        taskService.deleteTask(id);
-        mediaDownloadTaskMapper.deleteByTaskId(id);
+    public ResponseEntity<Map<String, Object>> deleteTask(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            taskService.deleteTask(id);
+            mediaDownloadTaskMapper.deleteByTaskId(id);
+            // ★ 同步清理 scrape_task 记录，释放 ScrapeWorkerPool 工作线程
+            scrapeTaskMapper.deleteByTaskId(id);
+            response.put("success", true);
+            response.put("message", "任务已删除");
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "删除失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @DeleteMapping("/batch")
+    public ResponseEntity<Map<String, Object>> deleteTasks(@RequestBody List<Long> taskIds) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int deletedCount = taskService.deleteTasks(taskIds);
+            response.put("success", true);
+            response.put("deletedCount", deletedCount);
+            response.put("message", "成功删除 " + deletedCount + " 个任务");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "批量删除失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Map<String, Object>> cancelTask(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean cancelled = taskService.cancelTask(id);
+            if (cancelled) {
+                response.put("success", true);
+                response.put("message", "任务已取消");
+            } else {
+                response.put("success", false);
+                response.put("message", "任务无法取消（可能已完成或不可取消）");
+            }
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "取消失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 
     @DeleteMapping("/clear")

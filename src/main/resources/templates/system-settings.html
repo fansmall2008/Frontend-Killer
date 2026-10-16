@@ -139,6 +139,37 @@
                 <button class="btn" id="saveGameListSettingsBtn" data-i18n="save_settings">保存设置</button>
             </div>
         </div>
+
+        <!-- ROM 识别数据库导入 -->
+        <div class="settings-section">
+            <h2>🗄️ <span data-i18n="rom_db_import_title">ROM 识别数据库导入</span></h2>
+            <div class="setting-item">
+                <label data-i18n="rom_db_current_stats">当前数据量</label>
+                <div id="romDbStats" style="color:var(--text-secondary);font-size:13px;padding:4px 0;">
+                    <span data-i18n="loading">加载中...</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn" id="importDatBtn" data-i18n="import_dat_btn">导入 DAT</button>
+                <button class="btn" id="importRdbBtn" data-i18n="import_rdb_btn">导入 RDB (libretro-database)</button>
+                <button class="btn btn-danger" id="clearRomDbBtn" style="background:#c0392b;color:#fff;" data-i18n="clear_romdb_btn">清零匹配库</button>
+            </div>
+            <div id="romDbImportStatus" class="status" style="margin-top:10px;display:none;">
+                <div id="romDbProgressBar" style="background:#333;border-radius:6px;height:22px;overflow:hidden;margin-bottom:6px;display:none;">
+                    <div id="romDbProgressFill" style="background:linear-gradient(90deg,#2ecc71,#27ae60);height:100%;width:0%;transition:width 0.4s ease;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;min-width:30px;"></div>
+                </div>
+                <div id="romDbProgressText" style="font-size:13px;"></div>
+                <div id="romDbProgressDetail" style="font-size:12px;color:#888;margin-top:3px;"></div>
+            </div>
+            <p class="section-tip" data-i18n="rom_db_import_tip">
+                将 libretro-database 的数据文件复制到对应目录后，点击上方按钮手动导入。<br/>
+                <b>DAT</b>：将 metadat/ 下所有 .dat 文件复制到 <code>data/rom-db/metadat/</code>（自动识别 redump/no-intro/serial 格式，递归扫描子目录）<br/>
+                <b>RDB</b>：将 rdb/ 下的 .rdb 文件复制到 <code>data/rom-db/rdb/</code>（含开发商/发行商/年份等额外元数据）<br/>
+                <b>ℹ 导入为增量合并模式</b>：同 CRC 只补充空字段，不覆盖已有数据。可多次导入不同来源的数据。<br/>
+                <b>清零匹配库</b>：手动清空所有 rom_db 数据，操作不可逆，请谨慎使用。<br/>
+                数据来源：<a href="https://github.com/libretro/libretro-database" target="_blank">libretro-database</a> (CC BY-SA 4.0)
+            </p>
+        </div>
         
         <!-- 数据库备份 -->
         <div class="settings-section">
@@ -703,6 +734,148 @@
                 list.appendChild(row);
             });
         }
+
+        // ==================== ROM 数据库导入 ====================
+
+        function loadRomDbStats() {
+            fetch('/api/rom-db/stats')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const d = data.data;
+                        const statsDiv = document.getElementById('romDbStats');
+                        let html = `总记录: <b>${d.totalRecords}</b> | 平台数: <b>${d.platforms}</b>`;
+                        // 显示各来源数据量
+                        for (const key of Object.keys(d)) {
+                            if (key.startsWith('source_') && d[key] != null) {
+                                const src = key.replace('source_', '');
+                                html += ` | ${src}: <b>${d[key]}</b>`;
+                            }
+                        }
+                        statsDiv.innerHTML = html;
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('romDbStats').textContent = '无法获取统计';
+                });
+        }
+
+        let romDbPollTimer = null;
+
+        function pollImportStatus() {
+            fetch('/api/rom-db/import-status')
+                .then(r => r.json())
+                .then(resp => {
+                    if (!resp.success) return;
+                    const d = resp.data;
+                    const statusDiv = document.getElementById('romDbImportStatus');
+                    const progressBar = document.getElementById('romDbProgressBar');
+                    const progressFill = document.getElementById('romDbProgressFill');
+                    const progressText = document.getElementById('romDbProgressText');
+                    const progressDetail = document.getElementById('romDbProgressDetail');
+                    statusDiv.style.display = 'block';
+
+                    // 阶段中文标签
+                    const phaseLabels = {
+                        'SCANNING': '📂 扫描文件...',
+                        'LOADING': '📥 加载现有数据...',
+                        'MERGING': '🔀 合并数据',
+                        'WRITING': '💾 写回数据库...'
+                    };
+                    const phaseLabel = phaseLabels[d.phase] || d.phase || '';
+
+                    if (d.running) {
+                        statusDiv.className = 'status info';
+
+                        // 文件级进度条
+                        if (d.totalFiles > 0 && d.phase === 'MERGING') {
+                            progressBar.style.display = 'block';
+                            const pct = Math.round((d.currentFileIndex / d.totalFiles) * 100);
+                            progressFill.style.width = pct + '%';
+                            progressFill.textContent = pct + '%';
+                        } else if (d.phase === 'WRITING') {
+                            progressBar.style.display = 'block';
+                            progressFill.style.width = '100%';
+                            progressFill.textContent = '✍';
+                            progressFill.style.background = 'linear-gradient(90deg,#f39c12,#e67e22)';
+                        } else {
+                            progressBar.style.display = 'none';
+                            progressFill.style.background = 'linear-gradient(90deg,#2ecc71,#27ae60)';
+                        }
+
+                        // 主文本
+                        let mainText = phaseLabel;
+                        if (d.totalFiles > 0 && d.phase === 'MERGING') {
+                            mainText += ` (${d.currentFileIndex}/${d.totalFiles})`;
+                        }
+                        progressText.textContent = mainText;
+
+                        // 详细文本
+                        let detail = '';
+                        if (d.currentFileName) detail += `当前: ${d.currentFileName}  |  `;
+                        detail += `已合并: ${d.totalImported.toLocaleString()} 条  |  内存总计: ${d.currentMerged.toLocaleString()} 条`;
+                        progressDetail.textContent = detail;
+                    } else if (d.lastResult) {
+                        // 导入完成
+                        progressBar.style.display = 'none';
+                        const isSuccess = !d.lastResult.includes('失败');
+                        statusDiv.className = isSuccess ? 'status success' : 'status error';
+                        progressText.textContent = '✅ ' + d.lastResult;
+                        progressDetail.textContent = '';
+                        // 刷新统计
+                        loadRomDbStats();
+                        // 停止轮询
+                        if (romDbPollTimer) {
+                            clearInterval(romDbPollTimer);
+                            romDbPollTimer = null;
+                        }
+                    } else {
+                        statusDiv.style.display = 'none';
+                        if (romDbPollTimer) {
+                            clearInterval(romDbPollTimer);
+                            romDbPollTimer = null;
+                        }
+                    }
+                });
+        }
+
+        function triggerImport(endpoint, label) {
+            const warnMsg = `${label}将以增量合并模式导入（同 CRC 只补空字段，不覆盖已有数据），确认继续？`;
+            if (!confirm(warnMsg)) return;
+            fetch(endpoint, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage(data.message, true);
+                        // 开始轮询状态
+                        if (!romDbPollTimer) {
+                            romDbPollTimer = setInterval(pollImportStatus, 1500);
+                        }
+                    } else {
+                        showMessage(data.message, false);
+                    }
+                })
+                .catch(err => showMessage(label + ' 失败: ' + err.message, false));
+        }
+
+        function triggerDatImport() {
+            triggerImport('/api/rom-db/import-dat', 'DAT 导入');
+        }
+
+        function triggerRdbImport() {
+            triggerImport('/api/rom-db/import-rdb', 'RDB 导入');
+        }
+
+        function triggerClearRomDb() {
+            if (!confirm('⚠ 确定要清空整个匹配库吗？此操作不可逆！\n\n清空后需要重新导入 DAT/RDB 数据。')) return;
+            fetch('/api/rom-db/clear', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    showMessage(data.message, data.success);
+                    if (data.success) loadRomDbStats();
+                })
+                .catch(err => showMessage('清空失败: ' + err.message, false));
+        }
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -750,18 +923,32 @@
             });
 
             // 通知模态框关闭按钮
-            document.querySelector('.modal .close').addEventListener('click', closeNotificationPanel);
+            const modalCloseBtn = document.querySelector('.modal .close');
+            if (modalCloseBtn && typeof closeNotificationPanel === 'function') {
+                modalCloseBtn.addEventListener('click', closeNotificationPanel);
+            }
             
             // 点击模态框外部关闭
             window.onclick = function(event) {
                 const modal = document.getElementById('notificationModal');
-                if (event.target == modal) {
+                if (event.target == modal && typeof closeNotificationPanel === 'function') {
                     closeNotificationPanel();
                 }
             };
             
             // 初始化通知系统
-            updateNotificationBell();
+            if (typeof refreshNotificationBadge === 'function') {
+                refreshNotificationBadge();
+            }
+
+            // ROM 数据库导入
+            loadRomDbStats();
+            const importDatBtn = document.getElementById('importDatBtn');
+            const importRdbBtn = document.getElementById('importRdbBtn');
+            if (importDatBtn) importDatBtn.addEventListener('click', triggerDatImport);
+            if (importRdbBtn) importRdbBtn.addEventListener('click', triggerRdbImport);
+            const clearRomDbBtn = document.getElementById('clearRomDbBtn');
+            if (clearRomDbBtn) clearRomDbBtn.addEventListener('click', triggerClearRomDb);
         });
     </script>
 

@@ -117,6 +117,8 @@
         <result column="multi_file_content" property="multiFileContent"/>
         <result column="cached" property="cached"/>
         <result column="parent_rom" property="parentRom"/>
+        <result column="disc_serial" property="discSerial"/>
+        <result column="matched" property="matched"/>
     </resultMap>
     
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
@@ -124,12 +126,12 @@
             game_id, ss_game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
-            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content, cached, parent_rom
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content, cached, parent_rom, disc_serial, matched
         ) VALUES (
             #{gameId}, #{ssGameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
             #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel}, #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper}, #{platformType}, #{hash},
             #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan}, #{support2d}, #{supportTexture}, #{supportScan}, #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee}, #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps}, #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail}, #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs}, #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper}, #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios},
-            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}, #{cached, jdbcType=BOOLEAN}, #{parentRom}
+            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}, #{cached, jdbcType=BOOLEAN}, #{parentRom}, #{discSerial}, #{matched, jdbcType=BOOLEAN}
         )
     </insert>
     
@@ -275,6 +277,18 @@
                 </choose>
             </foreach>
         </if>
+        <if test="matchedStatuses != null and matchedStatuses.size() &gt; 0">
+            AND (
+            <foreach item="ms" collection="matchedStatuses" separator=" OR ">
+                <choose>
+                    <when test="ms == 'matched'">matched = true</when>
+                    <when test="ms == 'suspect'">(matched = false OR matched IS NULL) AND scraped = true</when>
+                    <when test="ms == 'unmatched'">(matched = false OR matched IS NULL) AND (scraped = false OR scraped IS NULL)</when>
+                    <otherwise>1=1</otherwise>
+                </choose>
+            </foreach>
+            )
+        </if>
         ORDER BY name
     </select>
 
@@ -415,6 +429,18 @@
                     <otherwise>1=1</otherwise>
                 </choose>
             </foreach>
+        </if>
+        <if test="matchedStatuses != null and matchedStatuses.size() &gt; 0">
+            AND (
+            <foreach item="ms" collection="matchedStatuses" separator=" OR ">
+                <choose>
+                    <when test="ms == 'matched'">matched = true</when>
+                    <when test="ms == 'suspect'">(matched = false OR matched IS NULL) AND scraped = true</when>
+                    <when test="ms == 'unmatched'">(matched = false OR matched IS NULL) AND (scraped = false OR scraped IS NULL)</when>
+                    <otherwise>1=1</otherwise>
+                </choose>
+            </foreach>
+            )
         </if>
         ORDER BY name
     </select>
@@ -925,7 +951,9 @@
             multi_file = #{multiFile, jdbcType=BOOLEAN},
             multi_file_content = #{multiFileContent},
             cached = #{cached, jdbcType=BOOLEAN},
-            parent_rom = #{parentRom}
+            parent_rom = #{parentRom},
+            disc_serial = #{discSerial},
+            matched = #{matched, jdbcType=BOOLEAN}
         WHERE id = #{id}
     </update>
     

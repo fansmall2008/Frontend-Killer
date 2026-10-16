@@ -4,6 +4,7 @@
 
     <resultMap id="ScrapeTaskResultMap" type="com.gamelist.model.ScrapeTask">
         <id column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
         <result column="task_type" property="taskType"/>
         <result column="game_id" property="gameId"/>
         <result column="platform_id" property="platformId"/>
@@ -27,20 +28,20 @@
 
     <!-- 插入单条任务 -->
     <insert id="insert" parameterType="com.gamelist.model.ScrapeTask" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id, media_scope,
+        INSERT INTO scrape_task (task_id, task_type, game_id, platform_id, rom_filename, system_id, ss_game_id, media_scope,
             media_type, media_region, download_url, local_path, file_size, status, priority, order_index, retry_count, error_message)
-        VALUES (#{taskType}, #{gameId}, #{platformId}, #{romFilename}, #{systemId}, #{ssGameId}, #{mediaScope},
+        VALUES (#{taskId}, #{taskType}, #{gameId}, #{platformId}, #{romFilename}, #{systemId}, #{ssGameId}, #{mediaScope},
             #{mediaType}, #{mediaRegion}, #{downloadUrl}, #{localPath}, #{fileSize}, 
             COALESCE(#{status}, 'PENDING'), #{priority}, #{orderIndex}, 0, #{errorMessage})
     </insert>
 
     <!-- 批量插入任务 -->
     <insert id="batchInsert" parameterType="java.util.List">
-        INSERT INTO scrape_task (task_type, game_id, platform_id, rom_filename, system_id, ss_game_id, media_scope,
+        INSERT INTO scrape_task (task_id, task_type, game_id, platform_id, rom_filename, system_id, ss_game_id, media_scope,
             media_type, media_region, download_url, local_path, file_size, status, priority, order_index)
         VALUES
         <foreach collection="list" item="task" separator=",">
-            (#{task.taskType}, #{task.gameId}, #{task.platformId}, #{task.romFilename}, #{task.systemId}, #{task.ssGameId}, #{task.mediaScope},
+            (#{task.taskId}, #{task.taskType}, #{task.gameId}, #{task.platformId}, #{task.romFilename}, #{task.systemId}, #{task.ssGameId}, #{task.mediaScope},
             #{task.mediaType}, #{task.mediaRegion}, #{task.downloadUrl}, #{task.localPath}, #{task.fileSize},
             COALESCE(#{task.status}, 'PENDING'), #{task.priority}, #{task.orderIndex})
         </foreach>
@@ -88,6 +89,15 @@
         UPDATE scrape_task 
         SET status = 'PENDING', updated_at = CURRENT_TIMESTAMP 
         WHERE status = 'RUNNING'
+    </update>
+
+    <!-- 僵尸自愈：把指定类型中、updated_at 超时仍 RUNNING 的任务重置为 PENDING -->
+    <update id="resetStaleRunningToPending">
+        UPDATE scrape_task
+        SET status = 'PENDING', updated_at = CURRENT_TIMESTAMP
+        WHERE status = 'RUNNING'
+          AND task_type = #{type}
+          AND updated_at &lt; DATEADD('SECOND', -#{seconds}, CURRENT_TIMESTAMP)
     </update>
 
     <!-- 按类型和状态统计 -->
@@ -174,6 +184,11 @@
         <if test="taskType != null and taskType != ''">
             AND task_type = #{taskType}
         </if>
+    </delete>
+
+    <!-- 按后台任务ID删除所有关联的 scrape_task 记录 -->
+    <delete id="deleteByTaskId">
+        DELETE FROM scrape_task WHERE task_id = #{taskId}
     </delete>
 
 </mapper>

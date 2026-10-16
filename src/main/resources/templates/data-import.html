@@ -433,18 +433,27 @@
                 if (result.success) {
                     dirItems.innerHTML = '';
                     // Parent dir
-                    if (path && path !== '/' && !/^[A-Za-z]:\\?$/.test(path)) {
+                    if (path && path !== '/' && !/^[A-Za-z]:\\?$/.test(path) && path !== '\\\\') {
                         var parentEl = document.createElement('div');
                         parentEl.className = 'dir-item parent-dir';
                         parentEl.innerHTML = '<span class="dir-icon">📁</span> .. (' + getI18nText('back_to_parent_directory', '返回上级') + ')';
                         parentEl.addEventListener('click', function() {
+                            var isUnc = path.startsWith('\\\\');
+                            var isUnix = !isUnc && path.startsWith('/');
+                            var isDrive = !isUnc && !isUnix && /^[A-Za-z]:/.test(path);
+                            var sep = (isUnc || isDrive) ? '\\' : '/';
                             var parts = path.split(/[\\/]/).filter(Boolean);
                             parts.pop();
                             var parentPath = '';
-                            if (parts.length > 0) {
-                                parentPath = path.startsWith('/') ? '/' + parts.join('/') : (path.match(/^[A-Za-z]:/) ? parts[0] + (parts.length > 1 ? '/' : '') + parts.slice(1).join('/') : parts.join('/'));
+                            if (isUnc) {
+                                // UNC: \\server\share\dir → \\server\share\dir (保留 \\)
+                                parentPath = parts.length > 0 ? '\\\\' + parts.join('\\') : '\\\\';
+                            } else if (isUnix) {
+                                parentPath = parts.length > 0 ? '/' + parts.join('/') : '/';
+                            } else if (isDrive) {
+                                parentPath = parts.length > 0 ? parts[0] + (parts.length > 1 ? '\\' + parts.slice(1).join('\\') : '\\') : parts[0] + '\\';
                             } else {
-                                parentPath = path.startsWith('/') ? '/' : (path.match(/^[A-Za-z]:/) ? path.split(/[\\/]/)[0] + '\\' : '');
+                                parentPath = parts.join('/');
                             }
                             document.getElementById('path').value = parentPath;
                             browseDirectories();

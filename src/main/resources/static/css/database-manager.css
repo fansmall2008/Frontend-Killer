@@ -1,0 +1,455 @@
+/* ============================================
+   Database Manager Page Styles
+   Aligned with Frontend-Killer Design System
+   ============================================ */
+
+/* ---- Page Container ---- */
+.pg-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+.pg-container .btn {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+}
+
+.pg-container .btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+/* ---- Stats Bar ---- */
+.db-stats-bar {
+    display: flex;
+    gap: var(--space-6);
+    margin-bottom: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+}
+
+.db-stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.db-stat-item .stat-value {
+    font-weight: 700;
+    color: var(--accent-primary);
+    font-size: 16px;
+    font-family: var(--font-mono);
+}
+
+/* ---- Layout: sidebar + main ---- */
+.db-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: var(--space-5);
+    min-height: 600px;
+}
+
+/* ---- Table List Sidebar ---- */
+.db-table-list {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.db-table-list-header {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-default);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.db-table-search {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.db-table-search input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 12px;
+    outline: none;
+}
+
+.db-table-search input:focus {
+    border-color: var(--accent-primary);
+}
+
+.db-table-items {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.db-table-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) var(--space-4);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s;
+}
+
+.db-table-item:hover {
+    background: var(--bg-elevated);
+}
+
+.db-table-item.active {
+    background: var(--accent-primary-bg, rgba(139, 92, 246, 0.1));
+    border-left: 3px solid var(--accent-primary);
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.db-table-item .row-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+/* ---- Main Panel ---- */
+.db-main-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- Tabs ---- */
+.db-tabs {
+    display: flex;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.db-tab {
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.db-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-surface);
+}
+
+.db-tab.active {
+    color: var(--accent-primary);
+    border-bottom-color: var(--accent-primary);
+}
+
+/* ---- Tab Content ---- */
+.db-tab-content {
+    flex: 1;
+    overflow: auto;
+    padding: var(--space-4);
+}
+
+.db-tab-content[style*="display: none"] {
+    display: none !important;
+}
+
+/* ---- Data Table ---- */
+.db-data-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) 0;
+}
+
+.db-data-toolbar .pagination {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.db-data-toolbar .pagination button {
+    padding: var(--space-1) var(--space-3);
+    font-size: 12px;
+}
+
+.db-data-table-wrapper {
+    overflow: auto;
+    max-height: 450px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+}
+
+.db-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-family: var(--font-mono);
+}
+
+.db-data-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-elevated);
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-default);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.db-data-table td {
+    padding: var(--space-1) var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.db-data-table tr:hover td {
+    background: var(--bg-elevated);
+}
+
+.db-data-table td.null-value {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ---- Structure Table ---- */
+.db-struct-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.db-struct-table th {
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.db-struct-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.db-struct-table .col-name {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--accent-primary);
+}
+
+.db-struct-table .col-type {
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+}
+
+.db-struct-table .badge-pk {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--accent-primary-bg, rgba(139, 92, 246, 0.15));
+    color: var(--accent-primary);
+    border-radius: 3px;
+}
+
+/* ---- SQL Editor ---- */
+.db-sql-section {
+    margin-top: var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.db-sql-section::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: var(--gradient-hero);
+}
+
+.db-sql-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) var(--space-5);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.db-sql-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.db-sql-editor-wrapper {
+    padding: var(--space-4);
+}
+
+.db-sql-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: var(--space-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+}
+
+.db-sql-textarea:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-primary-glow);
+}
+
+.db-sql-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    align-items: center;
+}
+
+.db-sql-actions .btn-primary {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.db-sql-actions .btn-primary:hover {
+    filter: brightness(1.15);
+    box-shadow: 0 0 16px var(--accent-primary-glow);
+}
+
+.db-sql-actions .sql-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ---- SQL Results ---- */
+.db-sql-results {
+    padding: 0 var(--space-4) var(--space-4);
+}
+
+.db-sql-results-info {
+    display: flex;
+    gap: var(--space-4);
+    margin-bottom: var(--space-3);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.db-sql-results-info .info-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.db-sql-results-info .info-value {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+}
+
+.db-sql-error {
+    padding: var(--space-3);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-sm);
+    color: #ef4444;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    margin-bottom: var(--space-3);
+}
+
+/* ---- Empty State ---- */
+.db-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-10) var(--space-6);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.db-empty-state .empty-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+}
+
+.db-empty-state p {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* ---- Scrollbar ---- */
+.db-table-items::-webkit-scrollbar,
+.db-data-table-wrapper::-webkit-scrollbar,
+.db-tab-content::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.db-table-items::-webkit-scrollbar-thumb,
+.db-data-table-wrapper::-webkit-scrollbar-thumb,
+.db-tab-content::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 3px;
+}
+
+.db-table-items::-webkit-scrollbar-thumb:hover,
+.db-data-table-wrapper::-webkit-scrollbar-thumb:hover,
+.db-tab-content::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
+}

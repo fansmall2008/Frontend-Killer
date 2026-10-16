@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="db_manager_title">数据库管理 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/database-manager.css}">
+    <script src="/js/i18n.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('database')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('DATABASE_MANAGER')}"></div>
+            <main class="content">
+
+    <div class="pg-container">
+        <!-- 统计概览 -->
+        <div class="db-stats-bar" id="dbStatsBar">
+            <div class="db-stat-item">
+                <span data-i18n="db_tables">数据表:</span>
+                <span class="stat-value" id="statTableCount">-</span>
+            </div>
+            <div class="db-stat-item">
+                <span data-i18n="db_total_rows">总行数:</span>
+                <span class="stat-value" id="statTotalRows">-</span>
+            </div>
+            <div class="db-stat-item">
+                <span data-i18n="db_engine">引擎:</span>
+                <span class="stat-value">H2</span>
+            </div>
+        </div>
+
+        <!-- 主布局：表列表 + 详情 -->
+        <div class="db-layout">
+            <!-- 左侧表列表 -->
+            <div class="db-table-list">
+                <div class="db-table-list-header" data-i18n="db_table_list">数据表</div>
+                <div class="db-table-search">
+                    <input type="text" id="tableSearch" placeholder="搜索表名..." data-i18n-placeholder="db_search_table">
+                </div>
+                <div class="db-table-items" id="tableItems">
+                    <div class="db-empty-state" style="padding: 20px;">
+                        <p data-i18n="db_loading_tables">加载中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧详情面板 -->
+            <div class="db-main-panel">
+                <div class="db-tabs" id="dbTabs">
+                    <div class="db-tab active" data-tab="data" data-i18n="db_tab_data">数据</div>
+                    <div class="db-tab" data-tab="structure" data-i18n="db_tab_structure">结构</div>
+                </div>
+
+                <!-- 数据 Tab -->
+                <div class="db-tab-content" id="tabData">
+                    <div class="db-empty-state" id="dataEmptyState">
+                        <div class="empty-icon">📊</div>
+                        <p data-i18n="db_select_table">请从左侧选择一个数据表</p>
+                    </div>
+                    <div id="dataContent" style="display:none;">
+                        <div class="db-data-toolbar">
+                            <div class="pagination">
+                                <button class="btn btn-sm" id="prevPageBtn" disabled data-i18n="db_prev">上一页</button>
+                                <span id="pageInfo">-</span>
+                                <button class="btn btn-sm" id="nextPageBtn" disabled data-i18n="db_next">下一页</button>
+                            </div>
+                            <div style="font-size:12px; color:var(--text-secondary);">
+                                <span data-i18n="db_total">总计:</span> <span id="dataTotalCount" style="font-family:var(--font-mono); color:var(--accent-primary);">0</span>
+                            </div>
+                        </div>
+                        <div class="db-data-table-wrapper">
+                            <table class="db-data-table" id="dataTable">
+                                <thead id="dataTableHead"></thead>
+                                <tbody id="dataTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 结构 Tab -->
+                <div class="db-tab-content" id="tabStructure" style="display:none;">
+                    <div class="db-empty-state" id="structEmptyState">
+                        <div class="empty-icon">🏗️</div>
+                        <p data-i18n="db_select_table_struct">请从左侧选择一个数据表查看结构</p>
+                    </div>
+                    <div id="structContent" style="display:none;">
+                        <table class="db-struct-table" id="structTable">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="db_col_name">列名</th>
+                                    <th data-i18n="db_col_type">类型</th>
+                                    <th data-i18n="db_col_length">长度</th>
+                                    <th data-i18n="db_col_nullable">可空</th>
+                                    <th data-i18n="db_col_default">默认值</th>
+                                </tr>
+                            </thead>
+                            <tbody id="structTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SQL 查询编辑器 -->
+        <div class="db-sql-section">
+            <div class="db-sql-header">
+                <h3 data-i18n="db_sql_editor">SQL 查询</h3>
+                <button class="btn btn-sm" id="clearSqlBtn" data-i18n="db_clear">清空</button>
+            </div>
+            <div class="db-sql-editor-wrapper">
+                <textarea class="db-sql-textarea" id="sqlEditor"
+                    placeholder="SELECT * FROM game LIMIT 10;"
+                    data-i18n-placeholder="db_sql_placeholder"></textarea>
+                <div class="db-sql-actions">
+                    <button class="btn-primary" id="executeSqlBtn" data-i18n="db_execute">执行查询</button>
+                    <span class="sql-hint" data-i18n="db_sql_hint">仅支持 SELECT / SHOW / EXPLAIN / WITH 查询，最多返回 500 行</span>
+                </div>
+            </div>
+            <div class="db-sql-results" id="sqlResults" style="display:none;">
+                <div id="sqlError" class="db-sql-error" style="display:none;"></div>
+                <div class="db-sql-results-info" id="sqlResultsInfo">
+                    <div class="info-item">
+                        <span data-i18n="db_rows_returned">返回行数:</span>
+                        <span class="info-value" id="sqlRowCount">0</span>
+                    </div>
+                    <div class="info-item" id="sqlTruncatedWarn" style="display:none; color:#f59e0b;">
+                        ⚠ <span data-i18n="db_truncated">结果已截断</span>
+                    </div>
+                </div>
+                <div class="db-data-table-wrapper">
+                    <table class="db-data-table" id="sqlResultTable">
+                        <thead id="sqlResultHead"></thead>
+                        <tbody id="sqlResultBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== State =====
+        let currentTable = null;
+        let currentOffset = 0;
+        const PAGE_SIZE = 50;
+        let allTables = [];
+
+        // ===== i18n =====
+        function initLanguage() {
+            const lang = localStorage.getItem('language') || 'zh-CN';
+            if (I18n.setLanguage) I18n.setLanguage(lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const t = I18n.t(key);
+                if (t && t !== key) el.textContent = t;
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                const t = I18n.t(key);
+                if (t && t !== key) el.placeholder = t;
+            });
+            document.title = I18n.t('db_manager_title') + ' - ' + I18n.t('app_name', '前端杀手');
+        }
+
+        // ===== API =====
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/database/stats');
+                const stats = await res.json();
+                document.getElementById('statTableCount').textContent = stats.tableCount;
+                document.getElementById('statTotalRows').textContent = stats.totalRows.toLocaleString();
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+            }
+        }
+
+        async function loadTables() {
+            try {
+                const res = await fetch('/api/database/tables');
+                allTables = await res.json();
+                renderTableList(allTables);
+            } catch (e) {
+                console.error('Failed to load tables:', e);
+                document.getElementById('tableItems').innerHTML =
+                    '<div class="db-empty-state" style="padding:20px;color:#ef4444;"><p>加载失败</p></div>';
+            }
+        }
+
+        function renderTableList(tables) {
+            const container = document.getElementById('tableItems');
+            if (!tables || tables.length === 0) {
+                container.innerHTML = '<div class="db-empty-state" style="padding:20px;"><p>无数据表</p></div>';
+                return;
+            }
+            container.innerHTML = tables.map(t => `
+                <div class="db-table-item ${t.TABLE_NAME === currentTable ? 'active' : ''}"
+                     onclick="selectTable('${t.TABLE_NAME}')">
+                    <span>${t.TABLE_NAME}</span>
+                    <span class="row-count">${t.ROW_COUNT >= 0 ? t.ROW_COUNT.toLocaleString() : '?'}</span>
+                </div>
+            `).join('');
+        }
+
+        // ===== Table Selection =====
+        async function selectTable(tableName) {
+            currentTable = tableName;
+            currentOffset = 0;
+
+            // 更新左侧高亮
+            document.querySelectorAll('.db-table-item').forEach(el => {
+                el.classList.toggle('active', el.textContent.trim().startsWith(tableName));
+            });
+
+            // 加载当前 tab 内容
+            const activeTab = document.querySelector('.db-tab.active').dataset.tab;
+            if (activeTab === 'data') {
+                await loadTableData();
+            } else {
+                await loadTableStructure();
+            }
+        }
+
+        async function loadTableData() {
+            if (!currentTable) return;
+            document.getElementById('dataEmptyState').style.display = 'none';
+            document.getElementById('dataContent').style.display = '';
+
+            try {
+                const res = await fetch(`/api/database/table/${encodeURIComponent(currentTable)}/data?offset=${currentOffset}&limit=${PAGE_SIZE}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    document.getElementById('dataTableBody').innerHTML =
+                        `<tr><td colspan="99" style="color:#ef4444;">${data.error}</td></tr>`;
+                    return;
+                }
+
+                document.getElementById('dataTotalCount').textContent = data.total.toLocaleString();
+
+                // 渲染表头
+                if (data.rows.length > 0) {
+                    const cols = Object.keys(data.rows[0]);
+                    document.getElementById('dataTableHead').innerHTML =
+                        '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+
+                    // 渲染行
+                    document.getElementById('dataTableBody').innerHTML = data.rows.map(row =>
+                        '<tr>' + cols.map(c => {
+                            const val = row[c];
+                            if (val === null || val === undefined) {
+                                return `<td class="null-value">NULL</td>`;
+                            }
+                            const display = String(val).length > 80 ? String(val).substring(0, 80) + '...' : String(val);
+                            return `<td title="${escapeHtml(String(val))}">${escapeHtml(display)}</td>`;
+                        }).join('') + '</tr>'
+                    ).join('');
+                } else {
+                    document.getElementById('dataTableHead').innerHTML = '';
+                    document.getElementById('dataTableBody').innerHTML =
+                        '<tr><td colspan="99" style="text-align:center;color:var(--text-muted);">无数据</td></tr>';
+                }
+
+                // 分页
+                updatePagination(data.total);
+            } catch (e) {
+                console.error('Failed to load table data:', e);
+            }
+        }
+
+        function updatePagination(total) {
+            const totalPages = Math.ceil(total / PAGE_SIZE);
+            const currentPage = Math.floor(currentOffset / PAGE_SIZE) + 1;
+            document.getElementById('pageInfo').textContent = `${currentPage} / ${totalPages || 1}`;
+            document.getElementById('prevPageBtn').disabled = currentOffset <= 0;
+            document.getElementById('nextPageBtn').disabled = currentOffset + PAGE_SIZE >= total;
+        }
+
+        async function loadTableStructure() {
+            if (!currentTable) return;
+            document.getElementById('structEmptyState').style.display = 'none';
+            document.getElementById('structContent').style.display = '';
+
+            try {
+                const res = await fetch(`/api/database/table/${encodeURIComponent(currentTable)}/columns`);
+                const columns = await res.json();
+
+                document.getElementById('structTableBody').innerHTML = columns.map(col => `
+                    <tr>
+                        <td class="col-name">${col.COLUMN_NAME}</td>
+                        <td class="col-type">${col.TYPE_NAME}${col.CHARACTER_MAXIMUM_LENGTH ? '(' + col.CHARACTER_MAXIMUM_LENGTH + ')' : ''}</td>
+                        <td>${col.CHARACTER_MAXIMUM_LENGTH || '-'}</td>
+                        <td>${col.IS_NULLABLE === 'YES' ? '✓' : '✗'}</td>
+                        <td>${col.COLUMN_DEFAULT || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Failed to load structure:', e);
+            }
+        }
+
+        // ===== Tabs =====
+        document.getElementById('dbTabs').addEventListener('click', async (e) => {
+            const tab = e.target.closest('.db-tab');
+            if (!tab) return;
+
+            document.querySelectorAll('.db-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const tabName = tab.dataset.tab;
+            document.getElementById('tabData').style.display = tabName === 'data' ? '' : 'none';
+            document.getElementById('tabStructure').style.display = tabName === 'structure' ? '' : 'none';
+
+            if (currentTable) {
+                if (tabName === 'data') await loadTableData();
+                else await loadTableStructure();
+            }
+        });
+
+        // ===== Pagination =====
+        document.getElementById('prevPageBtn').addEventListener('click', () => {
+            if (currentOffset > 0) {
+                currentOffset -= PAGE_SIZE;
+                loadTableData();
+            }
+        });
+        document.getElementById('nextPageBtn').addEventListener('click', () => {
+            currentOffset += PAGE_SIZE;
+            loadTableData();
+        });
+
+        // ===== Table Search =====
+        document.getElementById('tableSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allTables.filter(t => t.TABLE_NAME.toLowerCase().includes(query));
+            renderTableList(filtered);
+        });
+
+        // ===== SQL Editor =====
+        document.getElementById('executeSqlBtn').addEventListener('click', executeSql);
+        document.getElementById('clearSqlBtn').addEventListener('click', () => {
+            document.getElementById('sqlEditor').value = '';
+            document.getElementById('sqlResults').style.display = 'none';
+        });
+
+        // Ctrl+Enter 快捷键
+        document.getElementById('sqlEditor').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                executeSql();
+            }
+        });
+
+        async function executeSql() {
+            const sql = document.getElementById('sqlEditor').value.trim();
+            if (!sql) return;
+
+            const resultsDiv = document.getElementById('sqlResults');
+            const errorDiv = document.getElementById('sqlError');
+            resultsDiv.style.display = '';
+            errorDiv.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/database/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    errorDiv.textContent = data.error;
+                    errorDiv.style.display = '';
+                    document.getElementById('sqlResultHead').innerHTML = '';
+                    document.getElementById('sqlResultBody').innerHTML = '';
+                    document.getElementById('sqlRowCount').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('sqlRowCount').textContent = data.rowCount;
+                document.getElementById('sqlTruncatedWarn').style.display = data.truncated ? '' : 'none';
+
+                // 渲染结果
+                if (data.columns && data.columns.length > 0) {
+                    document.getElementById('sqlResultHead').innerHTML =
+                        '<tr>' + data.columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
+                    document.getElementById('sqlResultBody').innerHTML = data.rows.map(row =>
+                        '<tr>' + data.columns.map(c => {
+                            const val = row[c];
+                            if (val === null || val === undefined) {
+                                return `<td class="null-value">NULL</td>`;
+                            }
+                            const display = String(val).length > 80 ? String(val).substring(0, 80) + '...' : String(val);
+                            return `<td title="${escapeHtml(String(val))}">${escapeHtml(display)}</td>`;
+                        }).join('') + '</tr>'
+                    ).join('');
+                } else {
+                    document.getElementById('sqlResultHead').innerHTML = '';
+                    document.getElementById('sqlResultBody').innerHTML =
+                        '<tr><td style="text-align:center;color:var(--text-muted);">无结果</td></tr>';
+                }
+            } catch (e) {
+                errorDiv.textContent = '请求失败: ' + e.message;
+                errorDiv.style.display = '';
+            }
+        }
+
+        // ===== Utils =====
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        // ===== Init =====
+        document.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            loadStats();
+            loadTables();
+        });
+    </script>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

@@ -240,7 +240,9 @@
             };
             
             // 初始化通知系统
-            updateNotificationBell();
+            if (typeof refreshNotificationBadge === 'function') {
+                refreshNotificationBadge();
+            }
         });
     </script>
 

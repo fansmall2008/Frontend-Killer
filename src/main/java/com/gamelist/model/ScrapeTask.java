@@ -9,6 +9,7 @@ import java.util.Date;
  */
 public class ScrapeTask {
     private Long id;
+    private Long taskId;           // 关联 background_task.id
     private String taskType;        // 'GAME_INFO' | 'MEDIA_DOWNLOAD'
     private Long gameId;
     private Long platformId;
@@ -56,6 +57,9 @@ public class ScrapeTask {
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getTaskId() { return taskId; }
+    public void setTaskId(Long taskId) { this.taskId = taskId; }
 
     public String getTaskType() { return taskType; }
     public void setTaskType(String taskType) { this.taskType = taskType; }

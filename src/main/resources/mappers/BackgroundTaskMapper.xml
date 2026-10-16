@@ -16,13 +16,14 @@
         <result column="description" property="description"/>
         <result column="result" property="result"/>
         <result column="log" property="log"/>
+        <result column="cancellable" property="cancellable"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
     <insert id="insert" parameterType="com.gamelist.model.BackgroundTask" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO background_task (type, status, progress, message, total_items, processed_items, start_time, end_time, error_message, description, result, `log`)
-        VALUES (#{type}, #{status}, #{progress}, #{message}, #{totalItems}, #{processedItems}, #{startTime}, #{endTime}, #{errorMessage}, #{description}, #{result}, #{log})
+        INSERT INTO background_task (type, status, progress, message, total_items, processed_items, start_time, end_time, error_message, description, result, `log`, cancellable)
+        VALUES (#{type}, #{status}, #{progress}, #{message}, #{totalItems}, #{processedItems}, #{startTime}, #{endTime}, #{errorMessage}, #{description}, #{result}, #{log}, #{cancellable})
     </insert>
 
     <update id="update" parameterType="com.gamelist.model.BackgroundTask">
@@ -37,7 +38,8 @@
             error_message = #{errorMessage},
             description = #{description},
             result = #{result},
-            `log` = #{log}
+            `log` = #{log},
+            cancellable = #{cancellable}
         WHERE id = #{id}
     </update>
 

@@ -71,6 +71,7 @@ import com.gamelist.util.ScreenScraperApiException;
 import com.gamelist.util.ScreenScraperStatusHandler;
 import com.gamelist.util.EncryptionUtil;
 import com.gamelist.util.PathResolver;
+import com.gamelist.util.SsNameNormalizer;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -119,6 +120,12 @@ public class ScraperServiceImpl implements ScraperService {
 
     @Autowired
     private com.gamelist.service.SystemSettingsService systemSettingsService;
+
+    @Autowired(required = false)
+    private com.gamelist.service.RomDbService romDbService;
+
+    @Autowired(required = false)
+    private com.gamelist.config.RomDbMatchingConfig romDbMatchingConfig;
     
     @Lazy
     @Autowired(required = false)
@@ -412,6 +419,11 @@ public class ScraperServiceImpl implements ScraperService {
                             Map<String, Object> data = (Map<String, Object>) searchResult.get("data");
                             
                             if (scrapeGameInfo) {
+                                // v1.3: 光盘编号写回 game 记录
+                                String discSerial = (String) searchResult.get("discSerial");
+                                if (discSerial != null) {
+                                    game.setDiscSerial(discSerial);
+                                }
                                 updateGameRecord(game, data, request);
                             }
 
@@ -1207,27 +1219,101 @@ public class ScraperServiceImpl implements ScraperService {
             // 系统ID
             urlBuilder.addQueryParameter("systemeid", systemId.toString());
             
-            // 游戏名称或CRC - 同时添加crc和romnom以提高匹配成功率
-            if (fileInfo.getCrc32() != null && !fileInfo.getCrc32().isEmpty()) {
-                urlBuilder.addQueryParameter("crc", fileInfo.getCrc32());
-            }
-            
-            // 始终添加romnom作为备用匹配条件
-            String romName = fileInfo.getGameName();
-            if (romName == null || romName.isEmpty()) {
-                // 如果gameName为空，从文件路径中提取
-                String filePath = fileInfo.getFilePath();
-                if (filePath != null && !filePath.isEmpty()) {
-                    File file = new File(filePath);
-                    romName = file.getName();
-                    int lastDot = romName.lastIndexOf('.');
-                    if (lastDot > 0) {
-                        romName = romName.substring(0, lastDot);
+            // ========== v1.3 ROM 数据库匹配 + CRC 管线 ==========
+            // 先查 rom_db，用权威 CRC 替代文件 CRC 提高 SS 匹配精度
+            // 匹配顺序：CRC（所有平台）→ serial（白名单系统，委托 RomDbMatchingConfig）
+            String discSerialGameName = null;
+            String extractedSerial = null;
+            String filePath = fileInfo.getFilePath();
+            com.gamelist.model.RomDb romDbMatch = null; // rom_db 匹配结果（用于 CRC 管线）
+            if (filePath != null && !filePath.isEmpty() && systemId != null) {
+                if (romDbService != null && romDbService.isReady()) {
+                    // L1: 先 CRC（所有平台）
+                    if (fileInfo.getCrc32() != null) {
+                        romDbMatch = romDbService.matchByCrc32(fileInfo.getCrc32(), systemId);
+                    }
+
+                    // L2: CRC 未命中 → 尝试 serial 提取（白名单系统走完整光盘路径）
+                    if (romDbMatch == null && isSerialMatchSystem(systemId)) {
+                        // L2a: 光盘系统 → matchByDiscFile（SYSTEM.CNF/PARAM.SFO/IP.BIN/NGC头部）
+                        if (com.gamelist.util.DiscSerialExtractor.isSupported(systemId)) {
+                            romDbMatch = romDbService.matchByDiscFile(filePath, systemId);
+                        }
+                    }
+
+                    // L3: 卡带头部 ID 提取（毫秒级，对所有支持的系统都尝试，不受白名单限制）
+                    if (romDbMatch == null && com.gamelist.util.CartridgeHeaderReader.isSupported(systemId)) {
+                        try {
+                            String headerSerial = com.gamelist.util.CartridgeHeaderReader.extractSerial(filePath, systemId);
+                            if (headerSerial != null) {
+                                romDbMatch = romDbService.matchBySerial(headerSerial, systemId);
+                                if (romDbMatch != null) {
+                                    logger.info("rom_db 卡带头部匹配: systemId={}, serial={}, file={}",
+                                        systemId, headerSerial, new File(filePath).getName());
+                                } else {
+                                    // SNES 等平台的头部提取得到的是内部标题（非 serial），回退到名称模糊匹配
+                                    java.util.List<com.gamelist.model.RomDb> nameCandidates = romDbService.searchBySystemAndName(systemId, headerSerial, 1);
+                                    if (!nameCandidates.isEmpty()) {
+                                        romDbMatch = nameCandidates.get(0);
+                                        logger.info("rom_db 卡带头部名称匹配: systemId={}, title={}, file={}, matchedName={}",
+                                            systemId, headerSerial, new File(filePath).getName(), romDbMatch.getGameName());
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            logger.debug("rom_db 卡带头部提取失败: systemId={}, error={}", systemId, e.getMessage());
+                        }
+                    }
+
+                    if (romDbMatch != null) {
+                        extractedSerial = romDbMatch.getSerial();
+                        discSerialGameName = romDbMatch.getGameName();
+                        logger.info("rom_db 匹配: platform={}, serial={}, crc={}, gameName={}, file={}",
+                            romDbMatch.getPlatform(), romDbMatch.getSerial(), romDbMatch.getCrc32(),
+                            discSerialGameName, new File(filePath).getName());
                     }
                 }
             }
+            
+            // CRC 管线：优先用 rom_db 权威 CRC，其次文件 CRC
+            String crcForSS = fileInfo.getCrc32(); // 文件 CRC
+            if (romDbMatch != null && romDbMatch.getCrc32() != null && !romDbMatch.getCrc32().isEmpty()) {
+                crcForSS = romDbMatch.getCrc32(); // 权威 CRC（来自 No-Intro/Redump）
+                if (!crcForSS.equals(fileInfo.getCrc32())) {
+                    logger.info("CRC 管线: 使用 rom_db 权威 CRC {} 替代文件 CRC {} (file={})",
+                            crcForSS, fileInfo.getCrc32(), filePath != null ? new File(filePath).getName() : "?");
+                }
+            }
+            if (crcForSS != null && !crcForSS.isEmpty()) {
+                urlBuilder.addQueryParameter("crc", crcForSS);
+            }
+            
+            // 始终添加romnom作为备用匹配条件；SS 端对 No-Intro/Redump 标签不敏感，先剥一层提高首次命中率
+            String romName;
+            if (discSerialGameName != null) {
+                // 光盘编号缓存命中 → 用标准游戏名作为 romnom（比原始文件名准确得多）
+                romName = discSerialGameName;
+            } else {
+                romName = fileInfo.getGameName();
+                if (romName == null || romName.isEmpty()) {
+                    // 如果gameName为空，从文件路径中提取
+                    if (filePath != null && !filePath.isEmpty()) {
+                        File file = new File(filePath);
+                        romName = file.getName();
+                        int lastDot = romName.lastIndexOf('.');
+                        if (lastDot > 0) {
+                            romName = romName.substring(0, lastDot);
+                        }
+                    }
+                }
+            }
+            // romName 保留原样作为 fuzzy 兜底查询基准；发给 SS 的 romnom 走清洗后的版本
             if (romName != null && !romName.isEmpty()) {
-                urlBuilder.addQueryParameter("romnom", romName);
+                String romnomForSS = SsNameNormalizer.stripDumpTags(romName);
+                if (romnomForSS == null || romnomForSS.isEmpty()) {
+                    romnomForSS = romName; // 极端情况：整串都是标签，回退原值
+                }
+                urlBuilder.addQueryParameter("romnom", romnomForSS);
             }
             
             // 文件大小
@@ -1296,6 +1382,11 @@ public class ScraperServiceImpl implements ScraperService {
                     result.put("found", true);
                     result.put("game", jeu);
                     
+                    // v1.3: 传递提取到的光盘编号给调用方（用于写回 game 记录）
+                    if (extractedSerial != null) {
+                        result.put("discSerial", extractedSerial);
+                    }
+                    
                     // 提取媒体信息
                     logger.info("jeu.has(\"medias\"): {}", jeu.has("medias"));
                     if (jeu.has("medias")) {
@@ -1310,7 +1401,31 @@ public class ScraperServiceImpl implements ScraperService {
                     
                     logger.info("找到游戏: {}", jeu.has("nom") ? jeu.get("nom").asText() : "未知");
                 } else {
-                    logger.info("未找到游戏: {}", fileInfo.getGameName());
+                    logger.info("jeuInfos 严格匹配未命中: query='{}'，尝试 fuzzy 名字兜底", romName);
+                    // v1.3: fuzzy 名字兜底 —— jeuRecherche 拉候选 + 归一化精确相等才要（不做 Top1 猜）。
+                    //         命中后元数据完整落库但 matched 由 updateGameRecord 根据 fuzzyHit 保持 false（疑似）。
+                    if (systemSettingsService.getBoolean("ss_fuzzy_name_fallback", true)
+                            && romName != null && !romName.isEmpty()) {
+                        JsonNode fuzzyJeu = tryFuzzyFallbackBySearch(romName, systemId);
+                        if (fuzzyJeu != null) {
+                            result.put("found", true);
+                            result.put("game", fuzzyJeu);
+                            result.put("fuzzyHit", true);
+                            result.put("fuzzyQuery", romName);
+                            if (extractedSerial != null) {
+                                result.put("discSerial", extractedSerial);
+                            }
+                            if (fuzzyJeu.has("medias")) {
+                                result.put("medias", fuzzyJeu.get("medias"));
+                            }
+                            logger.info("SS fuzzy 兜底命中: query='{}' → ssNom='{}' (gameid={})",
+                                romName,
+                                fuzzyJeu.path("nom").asText(""),
+                                fuzzyJeu.path("id").asText(""));
+                        } else {
+                            logger.debug("SS fuzzy 兜底未命中: query='{}' → 归一化无相等候选，保守放弃", romName);
+                        }
+                    }
                 }
                 } // end if (root.has("response"))
             
@@ -1319,6 +1434,141 @@ public class ScraperServiceImpl implements ScraperService {
         }
         
         return result;
+    }
+
+    // ==================== v1.3 fuzzy 名字兜底 ====================
+
+    /**
+     * fuzzy 兜底入口：先调 jeuRecherche.php 拉同系统候选，对候选 nom 做归一化与查询名
+     * 精确相等比较；命中则拿 gameid 再调一次 jeuInfos.php 拿完整元数据。任何环节
+     * 失败都返回 null，绝不猜 Top1。
+     *
+     * @param queryName 本地查询名（可为 rom_db 标准名或清洗前的文件名）
+     * @param systemId  SS 系统 ID（限定同系统内搜索，避免跨平台串）
+     * @return 完整 jeu 节点，或 null
+     */
+    private JsonNode tryFuzzyFallbackBySearch(String queryName, Integer systemId) {
+        try {
+            String searchTerm = SsNameNormalizer.stripDumpTags(queryName);
+            if (searchTerm == null || searchTerm.isEmpty()) searchTerm = queryName;
+            List<Map<String, Object>> candidates = callJeuRecherche(systemId, searchTerm);
+            if (candidates == null || candidates.isEmpty()) {
+                logger.debug("SS fuzzy: jeuRecherche 无候选 query='{}'", searchTerm);
+                return null;
+            }
+            String normQuery = SsNameNormalizer.normalize(searchTerm);
+            Map<String, Object> chosen = null;
+            for (Map<String, Object> c : candidates) {
+                String nom = (String) c.get("nom");
+                if (nom == null || nom.isEmpty()) continue;
+                if (SsNameNormalizer.normalize(nom).equals(normQuery)) {
+                    chosen = c;
+                    break;
+                }
+            }
+            if (chosen == null) {
+                logger.debug("SS fuzzy: 候选 {} 条但无归一化相等项 query='{}'", candidates.size(), searchTerm);
+                return null;
+            }
+            String chosenId = (String) chosen.get("id");
+            if (chosenId == null || chosenId.isEmpty()) return null;
+            logger.info("SS fuzzy 归一化命中: query='{}' 归一化='{}' 候选 nom='{}' (gameid={})",
+                searchTerm, normQuery, chosen.get("nom"), chosenId);
+            return callJeuInfosById(chosenId, systemId);
+        } catch (Exception e) {
+            logger.warn("SS fuzzy 兜底异常(忽略): {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 调用 ScreenScraper jeuRecherche.php（同系统模糊搜索），返回候选列表。
+     * 每项 map 包含：id、nom（优先 ss/eu 区域名）。失败或空结果返回空列表。
+     */
+    private List<Map<String, Object>> callJeuRecherche(Integer systemId, String searchTerm) {
+        String baseUrl = scraperConfig.getBaseUrl();
+        okhttp3.HttpUrl.Builder ub = okhttp3.HttpUrl.parse(baseUrl + "/api2/jeuRecherche.php").newBuilder();
+        ub.addQueryParameter("devid", scraperConfig.getDevPseudo());
+        ub.addQueryParameter("devpassword", scraperConfig.getDevPassword());
+        ub.addQueryParameter("softname", "FrontendKiller");
+        ub.addQueryParameter("output", "json");
+        Map<String, String> settings = scraperSettingsService.getSettings();
+        if (settings.containsKey("username") && !settings.get("username").isEmpty()) {
+            ub.addQueryParameter("ssid", settings.get("username"));
+        }
+        if (settings.containsKey("password") && !settings.get("password").isEmpty()) {
+            ub.addQueryParameter("sspassword", settings.get("password"));
+        }
+        ub.addQueryParameter("systemeid", systemId.toString());
+        ub.addQueryParameter("recherche", searchTerm);
+        String url = ub.build().toString();
+        logger.debug("SS fuzzy jeuRecherche URL: {}", url);
+        try {
+            String response = executeRequest(url);
+            if (response == null || response.isEmpty()) return java.util.Collections.emptyList();
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode jeuxNode = root.path("response").path("jeux");
+            if (!jeuxNode.isArray()) return java.util.Collections.emptyList();
+            List<Map<String, Object>> out = new ArrayList<>();
+            for (JsonNode jn : jeuxNode) {
+                Map<String, Object> m = new HashMap<>();
+                if (jn.has("id")) m.put("id", jn.get("id").asText());
+                String nom = null;
+                JsonNode nomsNode = jn.path("noms");
+                if (nomsNode.isArray()) {
+                    for (JsonNode nn : nomsNode) {
+                        String region = nn.path("region").asText("");
+                        String text = nn.path("text").asText("");
+                        if (text.isEmpty()) continue;
+                        if ("ss".equals(region) || "eu".equals(region)) { nom = text; break; }
+                        if (nom == null) nom = text;
+                    }
+                }
+                if (nom == null && jn.has("nom")) nom = jn.get("nom").asText("");
+                m.put("nom", nom);
+                out.add(m);
+            }
+            return out;
+        } catch (ScreenScraperApiException e) {
+            logger.warn("SS fuzzy jeuRecherche 失败: HTTP {}", e.getStatusCode());
+            return java.util.Collections.emptyList();
+        } catch (Exception e) {
+            logger.warn("SS fuzzy jeuRecherche 异常: {}", e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    /**
+     * 以 gameid 主键拉完整 jeu 节点（同系统，无 crc/romnom 参与），供 fuzzy 兜底回提元数据使用。
+     */
+    private JsonNode callJeuInfosById(String gameId, Integer systemId) {
+        String baseUrl = scraperConfig.getBaseUrl();
+        okhttp3.HttpUrl.Builder ub = okhttp3.HttpUrl.parse(baseUrl + "/api2/jeuInfos.php").newBuilder();
+        ub.addQueryParameter("devid", scraperConfig.getDevPseudo());
+        ub.addQueryParameter("devpassword", scraperConfig.getDevPassword());
+        ub.addQueryParameter("softname", "FrontendKiller");
+        ub.addQueryParameter("output", "json");
+        Map<String, String> settings = scraperSettingsService.getSettings();
+        if (settings.containsKey("username") && !settings.get("username").isEmpty()) {
+            ub.addQueryParameter("ssid", settings.get("username"));
+        }
+        if (settings.containsKey("password") && !settings.get("password").isEmpty()) {
+            ub.addQueryParameter("sspassword", settings.get("password"));
+        }
+        ub.addQueryParameter("systemeid", systemId.toString());
+        ub.addQueryParameter("gameid", gameId);
+        String url = ub.build().toString();
+        logger.debug("SS fuzzy jeuInfos-by-gameid URL: {}", url);
+        try {
+            String response = executeRequest(url);
+            if (response == null || response.isEmpty()) return null;
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode jeu = root.path("response").path("jeu");
+            return jeu.isMissingNode() || jeu.isNull() ? null : jeu;
+        } catch (Exception e) {
+            logger.warn("SS fuzzy jeuInfos-by-gameid 异常: {}", e.getMessage());
+            return null;
+        }
     }
     
     private String executeRequest(String url) throws ScreenScraperApiException {
@@ -1576,6 +1826,83 @@ public class ScraperServiceImpl implements ScraperService {
         }
         
         return results;
+    }
+
+    /**
+     * 将 SS 候选中的指定游戏元数据落库，并强制 matched=true。
+     * 任何环节失败都返回 success=false，不会修改本地数据。
+     */
+    @Override
+    public Map<String, Object> applySsCandidate(Long gameId, String ssGameId) {
+        Map<String, Object> out = new HashMap<>();
+        try {
+            if (gameId == null || ssGameId == null || ssGameId.isEmpty()) {
+                out.put("success", false);
+                out.put("message", "gameId / ssGameId 不能为空");
+                return out;
+            }
+            Game game = gameService.getGameById(gameId);
+            if (game == null) {
+                out.put("success", false);
+                out.put("message", "游戏不存在: " + gameId);
+                return out;
+            }
+            Long platformId = game.getPlatformId();
+            if (platformId == null) {
+                out.put("success", false);
+                out.put("message", "游戏未归属任何平台，无法定位 SS 系统 ID");
+                return out;
+            }
+            Platform platform = platformService.getPlatformById(platformId);
+            if (platform == null || platform.getSystemId() == null || platform.getSystemId() == 0) {
+                out.put("success", false);
+                out.put("message", "平台未绑定 SS 系统，请先在平台管理页配置");
+                return out;
+            }
+            Integer systemId = platform.getSystemId();
+            JsonNode jeu = callJeuInfosById(ssGameId, systemId);
+            if (jeu == null) {
+                out.put("success", false);
+                out.put("message", "jeuInfos.php 未返回该游戏元数据 (gameid=" + ssGameId + ")");
+                return out;
+            }
+
+            // 构造一个最小 ScraperRequest（单条手动刮削），保留区域/语种使用默认
+            ScraperRequest req = new ScraperRequest();
+            req.setType("single");
+            req.setPlatformId(platformId);
+            req.setGameIds(java.util.Collections.singletonList(gameId));
+            String lang = "en";
+            try {
+                Map<String, String> settings = scraperSettingsService.getSettings();
+                if (settings.containsKey("language") && !settings.get("language").isEmpty()) {
+                    lang = settings.get("language");
+                }
+            } catch (Exception ignore) {}
+            req.setLanguage(lang);
+            req.setRegion("wor");
+            req.setPreserveLocalData(false);
+
+            Map<String, Object> searchResult = new HashMap<>();
+            searchResult.put("found", true);
+            searchResult.put("game", jeu);
+            // 不置 fuzzyHit，下面会手动写 matched=true
+            updateGameRecord(game, searchResult, req);
+            // 强制确认匹配
+            game.setMatched(true);
+            gameService.updateGame(game);
+
+            out.put("success", true);
+            out.put("message", "已应用 SS 候选 gameid=" + ssGameId);
+            out.put("ssGameId", game.getSsGameId());
+            out.put("name", game.getName());
+            return out;
+        } catch (Exception e) {
+            logger.error("applySsCandidate 异常 gameId={}, ssGameId={}", gameId, ssGameId, e);
+            out.put("success", false);
+            out.put("message", e.getMessage() == null ? "未知错误" : e.getMessage());
+            return out;
+        }
     }
 
     @Override
@@ -1856,6 +2183,22 @@ public class ScraperServiceImpl implements ScraperService {
                         .map(gameService::getGameById)
                         .filter(g -> g != null)
                         .collect(Collectors.toList());
+                } else if (request.hasFilters()) {
+                    // “应用于所有搜索结果”模式：按筛选条件查询全量游戏
+                    games = gameService.getGamesByPlatformId(
+                        request.getPlatformId(),
+                        request.getSearch(),
+                        null, null, // startDate, endDate
+                        request.getDevelopers(),
+                        request.getGenres(),
+                        request.getPlayers(),
+                        request.getScrapeStatuses(),
+                        request.getFileStatuses(),
+                        request.getFolderPath(),
+                        request.getPublishers(),
+                        request.getMatchedStatuses()
+                    );
+                    logger.info("筛选模式刮削: 匹配到 {} 个游戏", games.size());
                 } else {
                     games = new ArrayList<>();
                 }
@@ -2170,10 +2513,32 @@ public class ScraperServiceImpl implements ScraperService {
      * 适用于非标准编码（如 GBK）的 ZIP 文件，Commons Compress 对 CEN header 更宽容。
      */
     private int countRomFilesInArchiveFallback(File file) {
-        try (org.apache.commons.compress.archivers.zip.ZipFile zipFile =
-                new org.apache.commons.compress.archivers.zip.ZipFile(file)) {
+        // 尝试多种编码打开 ZIP（cp437=ZIP 原始规范, GBK=Windows 中文, UTF-8=标准）
+        java.nio.charset.Charset[] charsets = {
+            java.nio.charset.Charset.forName("cp437"),
+            java.nio.charset.Charset.forName("GBK"),
+            java.nio.charset.StandardCharsets.UTF_8
+        };
+        org.apache.commons.compress.archivers.zip.ZipFile zipFile = null;
+        Exception lastError = null;
+        for (java.nio.charset.Charset cs : charsets) {
+            try {
+                zipFile = new org.apache.commons.compress.archivers.zip.ZipFile.Builder()
+                    .setFile(file).setCharset(cs).get();
+                break;
+            } catch (Exception e) {
+                lastError = e;
+            }
+        }
+        if (zipFile == null) {
+            logger.error("Commons Compress 也无法读取ZIP文件（所有编码均失败）: {}, lastError={}",
+                file.getName(), lastError != null ? lastError.getMessage() : "unknown");
+            return 1;
+        }
+        final org.apache.commons.compress.archivers.zip.ZipFile finalZip = zipFile;
+        try (finalZip) {
             int count = 0;
-            var entries = zipFile.getEntries();
+            var entries = finalZip.getEntries();
             while (entries.hasMoreElements()) {
                 org.apache.commons.compress.archivers.zip.ZipArchiveEntry entry = entries.nextElement();
                 if (!entry.isDirectory() && !entry.getName().startsWith("__")) {
@@ -2183,7 +2548,7 @@ public class ScraperServiceImpl implements ScraperService {
             logger.info("Commons Compress 回退计数: {} 内含 {} 个 ROM", file.getName(), count);
             return count;
         } catch (IOException e) {
-            logger.error("Commons Compress 也无法读取ZIP文件: {}", e.getMessage());
+            logger.error("Commons Compress 读取ZIP失败: {}", e.getMessage());
             return 1;
         }
     }
@@ -2192,8 +2557,30 @@ public class ScraperServiceImpl implements ScraperService {
      * 使用 Apache Commons Compress 计算 ZIP 内 ROM 的 CRC（回退方案）
      */
     private String calculateZipCRCFallback(File zipFile) {
-        try (org.apache.commons.compress.archivers.zip.ZipFile zip =
-                new org.apache.commons.compress.archivers.zip.ZipFile(zipFile)) {
+        // 尝试多种编码打开 ZIP（cp437=ZIP 原始规范, GBK=Windows 中文, UTF-8=标准）
+        java.nio.charset.Charset[] charsets = {
+            java.nio.charset.Charset.forName("cp437"),
+            java.nio.charset.Charset.forName("GBK"),
+            java.nio.charset.StandardCharsets.UTF_8
+        };
+        org.apache.commons.compress.archivers.zip.ZipFile zip = null;
+        Exception lastError = null;
+        for (java.nio.charset.Charset cs : charsets) {
+            try {
+                zip = new org.apache.commons.compress.archivers.zip.ZipFile.Builder()
+                    .setFile(zipFile).setCharset(cs).get();
+                break;
+            } catch (Exception e) {
+                lastError = e;
+            }
+        }
+        if (zip == null) {
+            logger.error("Commons Compress 也无法读取ZIP文件（所有编码均失败）: {}, lastError={}",
+                zipFile.getName(), lastError != null ? lastError.getMessage() : "unknown");
+            return null;
+        }
+        final org.apache.commons.compress.archivers.zip.ZipFile finalZip = zip;
+        try (finalZip) {
             String archiveBaseName = zipFile.getName();
             int lastDot = archiveBaseName.lastIndexOf('.');
             if (lastDot > 0) {
@@ -2204,7 +2591,7 @@ public class ScraperServiceImpl implements ScraperService {
             long largestSize = 0;
             String bestEntryName = null;
             
-            var entries = zip.getEntries();
+            var entries = finalZip.getEntries();
             while (entries.hasMoreElements()) {
                 org.apache.commons.compress.archivers.zip.ZipArchiveEntry entry = entries.nextElement();
                 
@@ -2398,12 +2785,20 @@ public class ScraperServiceImpl implements ScraperService {
             
             // 发行商
             if (jeu.has("editeur")) {
-                game.setPublisher(getTextValue(jeu.get("editeur")));
+                String ssPublisher = getTextValue(jeu.get("editeur"));
+                boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
+                if (!preserve || game.getPublisher() == null || game.getPublisher().isBlank()) {
+                    game.setPublisher(ssPublisher);
+                }
             }
             
             // 开发商
             if (jeu.has("developpeur")) {
-                game.setDeveloper(getTextValue(jeu.get("developpeur")));
+                String ssDeveloper = getTextValue(jeu.get("developpeur"));
+                boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
+                if (!preserve || game.getDeveloper() == null || game.getDeveloper().isBlank()) {
+                    game.setDeveloper(ssDeveloper);
+                }
             }
             
             // 玩家数量
@@ -2421,7 +2816,7 @@ public class ScraperServiceImpl implements ScraperService {
                 }
             }
             
-            // 类型 - 从 genres 数组中提取（SS 结构: [{id, noms:[{langue,text}]}]
+            // 类型 - 从 genres 数组中提取（SS 结构: [{id, noms:[{langue,text}]}]）
             if (jeu.has("genres") && jeu.get("genres").isArray()) {
                 StringBuilder genreBuilder = new StringBuilder();
                 StringBuilder genreIdBuilder = new StringBuilder();
@@ -2431,14 +2826,17 @@ public class ScraperServiceImpl implements ScraperService {
                     String genreText = extractTextFromRegionArray(genreNode.get("noms"), preferredLang);
                     if (genreText == null || genreText.isEmpty()) continue;
                     String genreId = genreNode.has("id") ? genreNode.get("id").asText() : "";
-                    
+                                
                     if (genreBuilder.length() > 0) genreBuilder.append(", ");
                     if (genreIdBuilder.length() > 0) genreIdBuilder.append(", ");
                     genreBuilder.append(genreText);
                     genreIdBuilder.append(isInvalidText(genreId) ? "" : genreId);
                 }
-                game.setGenre(genreBuilder.toString());
-                game.setGenreid(genreIdBuilder.toString());
+                boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
+                if (!preserve || game.getGenre() == null || game.getGenre().isBlank()) {
+                    game.setGenre(genreBuilder.toString());
+                    game.setGenreid(genreIdBuilder.toString());
+                }
             }
             
             // 简介 - 从 synopsis 数组中提取，优先使用用户选择的语种
@@ -2466,7 +2864,12 @@ public class ScraperServiceImpl implements ScraperService {
             if (jeu.has("dates") && jeu.get("dates").isArray()) {
                 String releaseDate = extractDateFromRegionArray(jeu.get("dates"), "wor");
                 if (releaseDate != null && !releaseDate.isEmpty()) {
-                    game.setReleasedate(releaseDate);
+                    boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
+                    // 保留本地数据时：只有当本地只有年份（≤4字符）时才允许 SS 覆盖为完整日期
+                    if (!preserve || game.getReleasedate() == null || game.getReleasedate().isBlank()
+                            || game.getReleasedate().length() <= 4) {
+                        game.setReleasedate(releaseDate);
+                    }
                 }
             }
             
@@ -2474,6 +2877,13 @@ public class ScraperServiceImpl implements ScraperService {
             game.setScraped(true);
             // 设置数据来源
             game.setSource("ScreenScraper");
+            // 平台全量刮削 = 权威数据源自动匹配，标记 matched=true
+            // batch/single = 用户手动触发，不自动标记，需用户在编辑页确认
+            // v1.3 fuzzy 兜底命中时保持 matched=false（"疑似"），需用户从候选弹窗确认后手动置 true
+            boolean fuzzyHit = Boolean.TRUE.equals(searchResult.get("fuzzyHit"));
+            if ("platform".equals(request.getType()) && !fuzzyHit) {
+                game.setMatched(true);
+            }
 
             // 方案C：手动刮削(single/batch=用户显式操作)无条件落缓存（不限平台）；
             //        平台全量刮削保持"街机 + 自动缓存开关"门。
@@ -3234,6 +3644,7 @@ public class ScraperServiceImpl implements ScraperService {
             // else: mediaScope = null (不刮媒体)
             task.setStatus(ScrapeTask.STATUS_PENDING);
             task.setPriority(priority);
+            task.setTaskId(taskId);
             task.setOrderIndex(orderIndex++);
             tasks.add(task);
         }
@@ -3287,8 +3698,8 @@ public class ScraperServiceImpl implements ScraperService {
                         
                         ScraperSystem system = getSystemInfo(task.getSystemId());
                         String platformName = system != null ? system.getName() : "unknown";
-                        enqueueMediaTasksFromGameInfo(game, cachedData, cachedRequest, 
-                            platformName, task.getPlatformId(), task.getSystemId());
+                        enqueueMediaTasksFromGameInfo(game, cachedData, cachedRequest,
+                            platformName, task.getPlatformId(), task.getSystemId(), task.getTaskId());
                         logger.info("游戏已缓存，从 manifest 创建媒体任务（跳过 SS API）: gameId={}", game.getId());
                     } else {
                         logger.info("游戏已缓存，无媒体需求，跳过: gameId={}", game.getId());
@@ -3339,8 +3750,8 @@ public class ScraperServiceImpl implements ScraperService {
                 updateGameRecord(game, data, request);
                 
                 // 创建媒体下载任务
-                enqueueMediaTasksFromGameInfo(game, data, request, system.getName(), task.getPlatformId(), 
-                    task.getSystemId());
+                enqueueMediaTasksFromGameInfo(game, data, request, system.getName(), task.getPlatformId(),
+                    task.getSystemId(), task.getTaskId());
                 
                 logger.info("游戏信息刮削完成: gameId={}, gameName={}", game.getId(), game.getName());
                 return true;
@@ -3406,7 +3817,7 @@ public class ScraperServiceImpl implements ScraperService {
      * <p>每种媒体类型只保留一个文件（优先区域优先），与 createMediaTask 逻辑一致
      */
     private void enqueueMediaTasksFromGameInfo(Game game, Map<String, Object> searchResult, 
-            ScraperRequest request, String platformName, Long platformId, Integer ssSystemId) {
+            ScraperRequest request, String platformName, Long platformId, Integer ssSystemId, Long taskId) {
         try {
             JsonNode medias = (JsonNode) searchResult.get("medias");
             if (medias == null || !medias.isArray() || medias.size() == 0) {
@@ -3510,6 +3921,7 @@ public class ScraperServiceImpl implements ScraperService {
                 mediaTask.setLocalPath(localPath);
                 mediaTask.setStatus(ScrapeTask.STATUS_PENDING);
                 mediaTask.setPriority(ScrapeTask.PRIORITY_MEDIA_DOWNLOAD);
+                mediaTask.setTaskId(taskId);
                 mediaTask.setOrderIndex(orderIndex++);
                 mediaTasks.add(mediaTask);
             }
@@ -3521,5 +3933,17 @@ public class ScraperServiceImpl implements ScraperService {
         } catch (Exception e) {
             logger.error("创建媒体下载任务失败: gameId={}", game.getId(), e);
         }
+    }
+
+    // ==================== rom_db serial 匹配白名单 ====================
+
+    /**
+     * 判断该系统是否支持 serial 匹配路径。
+     * 委托给 RomDbMatchingConfig 白名单，覆盖所有能从 ROM 内部可靠提取标识符的系统：
+     * 光盘：PS1(57)/PS2(58)/PS3(59)/NGC(13)/Saturn(22)/MegaCD(20)/Dreamcast(23)
+     * 卡带：GB(9)/GBC(10)/GBA(12)/N64(14)/Genesis(1)
+     */
+    private boolean isSerialMatchSystem(int systemId) {
+        return romDbMatchingConfig != null && romDbMatchingConfig.isWhitelisted(systemId);
     }
 }

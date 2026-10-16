@@ -16,11 +16,13 @@ public interface GameMapper {
     List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players);
     List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> publishers);
+    List<Game> selectAllGamesWithFilter(String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> publishers, List<String> matchedStatuses);
     List<Game> selectGamesByPlatformId(Long platformId);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses);
     List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, List<String> publishers);
+    List<Game> selectGamesByPlatformIdWithFilter(Long platformId, String search, String startDate, String endDate, List<String> developers, List<String> genres, List<String> players, List<String> scrapeStatuses, List<String> fileStatuses, List<String> publishers, List<String> matchedStatuses);
     Game selectGameById(Long id);
     int deleteAllGames();
     

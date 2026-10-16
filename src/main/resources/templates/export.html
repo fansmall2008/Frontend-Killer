@@ -177,20 +177,6 @@
                     <small data-i18n="default_path_tip">默认路径: /data/output</small>
                 </div>
                 
-                <div class="form-group">
-                    <label for="threadCount" data-i18n="thread_count">线程数</label>
-                    <select id="threadCount" required>
-                        <option value="4" selected>4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                    </select>
-                    <small data-i18n="thread_count_tip">默认4线程，最高10线程</small>
-                </div>
-                
                 <div class="button-group">
                     <button type="submit" class="btn btn-primary" id="exportBtn">
                         <span data-i18n="export">导出</span>
@@ -376,8 +362,7 @@
                 outputPath: document.getElementById('outputPath').value,
                 copyRoms: document.getElementById('copyRoms').checked,
                 copyMedia: document.getElementById('copyMedia').checked,
-                generateDataFile: document.getElementById('generateDataFile').checked,
-                threadCount: parseInt(document.getElementById('threadCount').value)
+                generateDataFile: document.getElementById('generateDataFile').checked
             };
 
             // 模板若声明了执行前变量，先弹窗收集用户设定，再继续导出流程（多平台共享一份全局变量）

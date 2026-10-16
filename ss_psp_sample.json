@@ -1,0 +1,3140 @@
+﻿{
+    "id":  "27863",
+    "romid":  "1508490",
+    "notgame":  "false",
+    "noms":  [
+                 {
+                     "region":  "ss",
+                     "text":  "God Of War - Chains Of Olympus"
+                 },
+                 {
+                     "region":  "us",
+                     "text":  "God of War : Chains of Olympus"
+                 },
+                 {
+                     "region":  "jp",
+                     "text":  "God of War : Rakujitsu no Hisoukyoku"
+                 },
+                 {
+                     "region":  "eu",
+                     "text":  "God of War : Chains of Olympus"
+                 },
+                 {
+                     "region":  "kr",
+                     "text":  "God of War : Chains of Olympus"
+                 },
+                 {
+                     "region":  "asi",
+                     "text":  "God of War : Chains of Olympus"
+                 }
+             ],
+    "cloneof":  "0",
+    "systeme":  {
+                    "id":  "61",
+                    "text":  "PSP"
+                },
+    "editeur":  {
+                    "id":  "30303",
+                    "text":  "Sony Computer Entertainment"
+                },
+    "developpeur":  {
+                        "id":  "1601",
+                        "text":  "Ready At Dawn"
+                    },
+    "joueurs":  {
+                    "text":  "1"
+                },
+    "note":  {
+                 "text":  "17"
+             },
+    "topstaff":  "1",
+    "rotation":  "0",
+    "synopsis":  [
+                     {
+                         "langue":  "en",
+                         "text":  "Unleash the power of the Gods and embark on a merciless quest as Kratos, an ex-Spartan warrior driven to destroy Ares, the God of War. Armed with lethal double chainblades, Kratos must carve through mythology\u0027s darkest creatures including Medusa, Cyclops, the Hydra and more, while solving intricate puzzles in breathtaking environments. Driven by pure revenge, nothing can stop Kratos from achieving absolution."
+                     },
+                     {
+                         "langue":  "fr",
+                         "text":  "Premier du nom sur PSP, God Of War : Chains Of Olympus vous met à nouveau dans la peau de Kratos. Le mythique guerrier grec part en croisade contre une Morphée bien décidée à quitter le royaume des rêves pour la Terre, après avoir endormi tous les autres Dieux. C\u0027est à Kratos de le remettre à sa place dans ce beat\u0027em all sanglant et impressionnant."
+                     },
+                     {
+                         "langue":  "de",
+                         "text":  "Mit Chains of Olympus kann der Spieler Kratos tragische Vergangenheit in der Zeit seiner zehnjährigen Dienerschaft nachspielen und mit ihm durch die Schattenlande reisen. Sein Weg führt ihn unter anderem zu den Pforten des Hades und in die Tiefen des Tartarus, wo er den gefürchtetsten Kreaturen der griechischen Mythologie gegenübertritt ... und die grausame Entscheidung treffen muss, ob er das Leben seiner Tochter oder die ganze Welt vor den Taten des Atlas retten will.\r\n"
+                     },
+                     {
+                         "langue":  "es",
+                         "text":  "El Fantasma de Esparta en la palma de tu mano con una aventura más grande que nunca.\r\nChains of Olympus permite a los jugadores explorar el trágico pasado de Kratos durante sus diez años de servidumbre, viajar a tierras oscuras como a las Puertas de Hades y a las profundidades de Tártaro, enfrentarse a las criaturas más temidas de la mitología griega... y tomar la dolorosa decisión de elegir entre la vida de su hija y salvar el mundo de Atlas."
+                     },
+                     {
+                         "langue":  "it",
+                         "text":  "Il guerriero spartano Kratos debutta su PSP con un\u0027avventura completamente nuova. Ambientato prima della furia vendicativa del guerriero che aveva pervaso il primo episodio di God of War, Chains of Olympus narra il periodo oscuro di Kratos dopo che, ingannato e spinto a uccidere moglie e figlia, ripudia il Dio greco della guerra, Ares. Per redimersi dai suoi peccati, il fantasma di Sparta offre i suoi servigi agli Dei dell\u0027Olimpo. Chains of Olympus permette ai giocatori di esplorare il tragico passato di Kratos, nei dieci anni trascorsi a servizio degli Dei viaggiando in terre misteriose, tra cui le porte dell\u0027Ade e gli abissi del Tartaro, affrontando le più temute creature della mitologia greca... e dovendo scegliere con sofferenza tra la vita della propria figlia e salvare il mondo dalle azioni di Atlante."
+                     },
+                     {
+                         "langue":  "pt",
+                         "text":  "Liberte o poder dos deuses e embarque em uma busca implacável como Kratos, um ex-guerreiro espartano determinado a destruir Ares, o Deus da Guerra. Armado com letais lâminas duplas em correntes, Kratos precisa abrir caminho através das mais sombrias criaturas da mitologia, incluindo Medusa, o Ciclope, a Hidra e muitas outras, enquanto resolve enigmas complexos em cenários deslumbrantes. Movido por pura vingança, nada poderá impedir Kratos de alcançar sua redenção."
+                     }
+                 ],
+    "classifications":  [
+                            {
+                                "type":  "BBFC",
+                                "text":  "18"
+                            },
+                            {
+                                "type":  "PEGI",
+                                "text":  "18"
+                            },
+                            {
+                                "type":  "CERO",
+                                "text":  "D"
+                            },
+                            {
+                                "type":  "JV",
+                                "text":  "+16 ans"
+                            },
+                            {
+                                "type":  "ACB",
+                                "text":  "MA15+"
+                            }
+                        ],
+    "dates":  [
+                  {
+                      "region":  "fr",
+                      "text":  "2008-03-28"
+                  },
+                  {
+                      "region":  "us",
+                      "text":  "2008-03-04"
+                  },
+                  {
+                      "region":  "jp",
+                      "text":  "2008-07-10"
+                  }
+              ],
+    "genres":  [
+                   {
+                       "id":  "1",
+                       "nomcourt":  "0107",
+                       "principale":  "1",
+                       "parentid":  "0",
+                       "noms":  [
+                                    {
+                                        "langue":  "en",
+                                        "text":  "Beat\u0027em Up"
+                                    },
+                                    {
+                                        "langue":  "fr",
+                                        "text":  "Beat\u0027em All"
+                                    },
+                                    {
+                                        "langue":  "de",
+                                        "text":  "Beat\u0027em Up"
+                                    },
+                                    {
+                                        "langue":  "es",
+                                        "text":  "Beat\u0027em Up"
+                                    },
+                                    {
+                                        "langue":  "it",
+                                        "text":  "Beat\u0027em All"
+                                    },
+                                    {
+                                        "langue":  "pt",
+                                        "text":  "Briga de rua"
+                                    }
+                                ]
+                   }
+               ],
+    "modes":  [
+                  {
+                      "id":  "4",
+                      "nomcourt":  "",
+                      "principale":  "1",
+                      "parentid":  "0",
+                      "noms":  [
+                                   {
+                                       "langue":  "en",
+                                       "text":  "Single-player"
+                                   },
+                                   {
+                                       "langue":  "fr",
+                                       "text":  "Jouable en solo"
+                                   },
+                                   {
+                                       "langue":  "de",
+                                       "text":  "Einzelspieler"
+                                   },
+                                   {
+                                       "langue":  "es",
+                                       "text":  "Jugador individual"
+                                   },
+                                   {
+                                       "langue":  "it",
+                                       "text":  "Giocatore singolo"
+                                   },
+                                   {
+                                       "langue":  "pt",
+                                       "text":  "Jogador individual"
+                                   }
+                               ]
+                  }
+              ],
+    "familles":  [
+                     {
+                         "id":  "20314",
+                         "nomcourt":  "",
+                         "principale":  "0",
+                         "parentid":  "0",
+                         "noms":  [
+                                      {
+                                          "langue":  "fr",
+                                          "text":  "God Of War"
+                                      }
+                                  ]
+                     }
+                 ],
+    "medias":  [
+                   {
+                       "type":  "sstitle",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=sstitle(de)",
+                       "region":  "de",
+                       "crc":  "4b09bd99",
+                       "md5":  "fa8e990ec9ccb54d6fc363aab6761208",
+                       "sha1":  "38b0330193215dd146fb0eedf599d3e2ceb2d922",
+                       "size":  "37559",
+                       "format":  "jpg"
+                   },
+                   {
+                       "type":  "sstitle",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=sstitle(jp)",
+                       "region":  "jp",
+                       "crc":  "796d952f",
+                       "md5":  "83a5b2681e4ca3da59374047ac32ec34",
+                       "sha1":  "4f52d7f6cea57b681da75aa9dde08c42a45618b0",
+                       "size":  "185272",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "sstitle",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=sstitle(wor)",
+                       "region":  "wor",
+                       "crc":  "e0ea7d29",
+                       "md5":  "023b7e879d7e76e36a7014d503fc81bc",
+                       "sha1":  "f581a5f08af298602ae452849d96dfcce7fbd8e2",
+                       "size":  "186943",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "ss",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=ss(wor)",
+                       "region":  "wor",
+                       "crc":  "55b23c6e",
+                       "md5":  "0c0e2f3314aef4ad2d272d7ecde04de6",
+                       "sha1":  "7a04dae84b91ac1bc3c1bf9a6a21fcd0cf100760",
+                       "size":  "75568",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "fanart",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=fanart",
+                       "crc":  "e4a111b9",
+                       "md5":  "71842cf6e4a4339abf3cce83f7ab2ec1",
+                       "sha1":  "6a1fa89a79786628622e51c2934d4629b318e8c0",
+                       "size":  "780503",
+                       "format":  "jpg"
+                   },
+                   {
+                       "type":  "video",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaVideoJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=video",
+                       "crc":  "6687c7d0",
+                       "md5":  "8df5e85f95e4c3f945836aa13a0cf1a0",
+                       "sha1":  "4c59f5de3fd6949267b0af7d03feafb13a40e1c9",
+                       "size":  "22189179",
+                       "format":  "mp4"
+                   },
+                   {
+                       "type":  "video-normalized",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaVideoJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=video-normalized",
+                       "crc":  "84e010cb",
+                       "md5":  "b3694401f29884e4a15a9cdcd5ffc52f",
+                       "sha1":  "d2528e5f565741ca50bee950a50851b6b1c47664",
+                       "size":  "3510793",
+                       "format":  "mp4"
+                   },
+                   {
+                       "type":  "steamgrid",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=steamgrid",
+                       "crc":  "3dc19287",
+                       "md5":  "07df685e5b8133d83e1a64d6876d9f37",
+                       "sha1":  "98788d6994660dd493022fa6829360a20b859850",
+                       "size":  "23566",
+                       "format":  "jpg"
+                   },
+                   {
+                       "type":  "wheel",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=wheel(wor)",
+                       "region":  "wor",
+                       "crc":  "82b78fe3",
+                       "md5":  "e95a8c6d06a6c9b699111c5f4aed03a3",
+                       "sha1":  "02cbf492c925b16795764eba6821e728bf54aea5",
+                       "size":  "135242",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "wheel-carbon",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=wheel-carbon(wor)",
+                       "region":  "wor",
+                       "crc":  "aafc8788",
+                       "md5":  "468f5f79a548effc66659c87c1f7ed6c",
+                       "sha1":  "1bebcb9da61533688a65e519024b820fdab03c65",
+                       "size":  "161849",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "wheel-steel",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=wheel-steel(wor)",
+                       "region":  "wor",
+                       "crc":  "9ecdb6cd",
+                       "md5":  "79e30328eccb031be5c3e22972a70c09",
+                       "sha1":  "56954b4d1f19003b9254bed2907864c5ff517e6c",
+                       "size":  "156935",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "screenmarquee",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=screenmarquee(wor)",
+                       "region":  "wor",
+                       "crc":  "79d5d7c0",
+                       "md5":  "f7bef6777a6ed9afa094eacc957684a9",
+                       "sha1":  "cfebdc788fbda348031524d76ce066ab2a2c6fd0",
+                       "size":  "604867",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "screenmarqueesmall",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=screenmarqueesmall(wor)",
+                       "region":  "wor",
+                       "crc":  "abccb1a8",
+                       "md5":  "eec171f900df495e313272d601befa6c",
+                       "sha1":  "a6b7f35cf1e63b6f5877ba1285a0852ffcae090c",
+                       "size":  "95171",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(au)",
+                       "region":  "au",
+                       "crc":  "fe6c4e35",
+                       "md5":  "d06ad553bc40cd4cd53d4b0093bd4e09",
+                       "sha1":  "0e2f17d846fbea8fe6010a59cb2917855f4dc430",
+                       "size":  "484027",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(eu)",
+                       "region":  "eu",
+                       "crc":  "f257153c",
+                       "md5":  "fd8be5c8936e483f4432b76d90dfef7a",
+                       "sha1":  "2b59004d14778b975ac36acbaee69b10953739d0",
+                       "size":  "557857",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(fr)",
+                       "region":  "fr",
+                       "crc":  "e53df49a",
+                       "md5":  "7a0eda334acc49deaaffe498a5fe7fba",
+                       "sha1":  "eb6bd71319fde5bd8b587c9222fc9149da6f63b5",
+                       "size":  "458956",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(it)",
+                       "region":  "it",
+                       "crc":  "2a1f6a16",
+                       "md5":  "3882b30d1d29a4aae7d9b965f45cf7b8",
+                       "sha1":  "a6e5ebc18d57a1f903892a1464d37af025a38674",
+                       "size":  "466675",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(jp)",
+                       "region":  "jp",
+                       "crc":  "fb3644d6",
+                       "md5":  "bdfbcbf586512127e95d7471d165e1eb",
+                       "sha1":  "a3480d274722d1e8816d0c06b79e4061a32ccfb0",
+                       "size":  "506778",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(kr)",
+                       "region":  "kr",
+                       "crc":  "b395ae6e",
+                       "md5":  "1ff806239dafe7a471f917698d4b7f05",
+                       "sha1":  "81606b21b3a750c71499a1df05086ec1307093d9",
+                       "size":  "502022",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(pt)",
+                       "region":  "pt",
+                       "crc":  "9c3a82f4",
+                       "md5":  "e94161d5035470ed7e9b81d65576bf1b",
+                       "sha1":  "505da7411ed1140f583cf02f473dcee7ad8fd2bb",
+                       "size":  "481320",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(sp)",
+                       "region":  "sp",
+                       "crc":  "dc07927a",
+                       "md5":  "f0ee0b0ef43cb0ae54d7751363f78590",
+                       "sha1":  "437765a38e2bb6c92943c518ce2d66aaceae52cd",
+                       "size":  "512957",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(ss)",
+                       "region":  "ss",
+                       "crc":  "7ed9bc0c",
+                       "md5":  "ded668dbec6f8a90f77f036367ea577f",
+                       "sha1":  "66423cc6216f21bb90df9b1cd0b97095c49e67f6",
+                       "size":  "286544",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(uk)",
+                       "region":  "uk",
+                       "crc":  "2c7f3f85",
+                       "md5":  "d5e5ac299e8bf1e545efc8392ec9482a",
+                       "sha1":  "0fd65f4bb82bc9d26616271c3c1520a714599f56",
+                       "size":  "533306",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D(us)",
+                       "region":  "us",
+                       "crc":  "343c744f",
+                       "md5":  "cdb269e3d25a1eda56274ff4606a3b07",
+                       "sha1":  "d33bbf11c83fcb962ac980839558882d7d521f90",
+                       "size":  "610324",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(au)",
+                       "region":  "au",
+                       "crc":  "941fdbbc",
+                       "md5":  "6dbf94f50165f2651e8e8e1d50c5f828",
+                       "sha1":  "634df3ecce24c1829ab2c44127f4b0c969eaa929",
+                       "size":  "74992",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(eu)",
+                       "region":  "eu",
+                       "crc":  "1c2ef71a",
+                       "md5":  "4fca9ef3cfe69d6984c7771770246410",
+                       "sha1":  "c404d5c0d47b5f76f921929849af367cfa93dee6",
+                       "size":  "39191",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(fr)",
+                       "region":  "fr",
+                       "crc":  "14a008ac",
+                       "md5":  "1a16418b5e2fa1f55a7a25a0a2e62bda",
+                       "sha1":  "72de91bfa48a1d691c3348dfab8514b03501295d",
+                       "size":  "14239",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(it)",
+                       "region":  "it",
+                       "crc":  "bdcf3d39",
+                       "md5":  "8723587abc16671788d997a15f6649d9",
+                       "sha1":  "542e8066addd870ecfacfd6bc04e4a812859c216",
+                       "size":  "61932",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(jp)",
+                       "region":  "jp",
+                       "crc":  "b3790c68",
+                       "md5":  "5999e797c650cb7b00dd980a2d3b546e",
+                       "sha1":  "d5dc196bd5181cdb89d3ff5fcd881849bb616c7f",
+                       "size":  "85601",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(kr)",
+                       "region":  "kr",
+                       "crc":  "eb40df75",
+                       "md5":  "84a37202c8275a6b0aabe27cb1ff6959",
+                       "sha1":  "0fba1735ece2d32d0cc723182e20987069b7d2a2",
+                       "size":  "39734",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(pt)",
+                       "region":  "pt",
+                       "crc":  "0f2be70d",
+                       "md5":  "c323ddefdc13ec60b1ee0ba5574ff5d0",
+                       "sha1":  "82e9b7ad8dd2ef983a641a9190ef3f7e71a597bf",
+                       "size":  "64043",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(sp)",
+                       "region":  "sp",
+                       "crc":  "3766d554",
+                       "md5":  "6c836758ef37f712f96bd3cc8f027da2",
+                       "sha1":  "d335e05e82d94e43d2491947164f9b8e1f1ae8a0",
+                       "size":  "59695",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(ss)",
+                       "region":  "ss",
+                       "crc":  "9c29904c",
+                       "md5":  "cb18bc4c24aa4c22c28e05c9c107ce5b",
+                       "sha1":  "6615a9f69d95dea5e36019af696139f3109d3055",
+                       "size":  "12719",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(uk)",
+                       "region":  "uk",
+                       "crc":  "7e8fa8ce",
+                       "md5":  "deed25c23e0529ff04dc90ecccf49281",
+                       "sha1":  "90910dc24ab9ee8de9e63c75859cc1b7f73164c8",
+                       "size":  "68741",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-side",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-side(us)",
+                       "region":  "us",
+                       "crc":  "9e07fb20",
+                       "md5":  "b306ff22e7ea697354f02e911f8246c5",
+                       "sha1":  "1c9051556af726d9d7163c488f72631ff6d8a9e8",
+                       "size":  "51198",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(au)",
+                       "region":  "au",
+                       "crc":  "a4da8a2f",
+                       "md5":  "d593c4f2fb834ce9805fc7ddca2fcebd",
+                       "sha1":  "2ed84cc01d809dfd1a9baa8094ed1f63733ef7d3",
+                       "size":  "532034",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(eu)",
+                       "region":  "eu",
+                       "crc":  "5d336e6e",
+                       "md5":  "8cfc239f5834c1dc7639d1b0db8abaf1",
+                       "sha1":  "cfbf94960a056d7db19c0e3ac33071059cb8351f",
+                       "size":  "395836",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(fr)",
+                       "region":  "fr",
+                       "crc":  "5f232254",
+                       "md5":  "e573c0a74a641921b9815815e837393e",
+                       "sha1":  "8f19e7542ebd2adcb8fdb59fd5c08d433106fcf8",
+                       "size":  "589747",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(it)",
+                       "region":  "it",
+                       "crc":  "9030e75b",
+                       "md5":  "9b0a7c266825a95d892b6a908daecd94",
+                       "sha1":  "15b96a4fd6bd58a5a6b794b1f5b7de5cfd6bf71e",
+                       "size":  "502238",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(jp)",
+                       "region":  "jp",
+                       "crc":  "bf97f69d",
+                       "md5":  "d6cbb78391cbdefa59852d326854a948",
+                       "sha1":  "84ef192339d26a04dc2242b3826ac794906bf248",
+                       "size":  "548984",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(kr)",
+                       "region":  "kr",
+                       "crc":  "29d8f015",
+                       "md5":  "6e8bd0b9d1291a1bf402d1e4e5a75a92",
+                       "sha1":  "2d89ab6ae7c88767b548228522ac9d952f170c20",
+                       "size":  "2405",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(pt)",
+                       "region":  "pt",
+                       "crc":  "d5980456",
+                       "md5":  "ffeb156dd3e50e7926072241c883e203",
+                       "sha1":  "b3c9994e768f45fb5421c8d1119ef764ddd0401b",
+                       "size":  "519609",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(sp)",
+                       "region":  "sp",
+                       "crc":  "84f6a90e",
+                       "md5":  "85cde9da32bc62b34ae373b4f5bbe64d",
+                       "sha1":  "a0a28adce2f3463ecbf843d98f67802fbce92428",
+                       "size":  "563787",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(ss)",
+                       "region":  "ss",
+                       "crc":  "d51faccc",
+                       "md5":  "e89f4c1b3c9a5aa61ced0e4ea031e61c",
+                       "sha1":  "418fed7362480df5baa8f2e84ac7c905b87cd91e",
+                       "size":  "427625",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(uk)",
+                       "region":  "uk",
+                       "crc":  "c9643298",
+                       "md5":  "9e04c00ff62d8bb70a78ef6cf491ca83",
+                       "sha1":  "d4a9ab4cb371ea9f5354f943e95dd32690779bc2",
+                       "size":  "517723",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-2D-back",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-2D-back(us)",
+                       "region":  "us",
+                       "crc":  "cc78ec98",
+                       "md5":  "fe42b9fe01499f6a6007fc8bb41e8f7d",
+                       "sha1":  "cd4269a8dad2a6e70a518a69de81d1d81ed48847",
+                       "size":  "588451",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(au)",
+                       "region":  "au",
+                       "crc":  "2a442edb",
+                       "md5":  "5c815ed9d09662008adf4734ea016a8b",
+                       "sha1":  "1cb02e62e9e1448597d6e94f0275d10af9ee876e",
+                       "size":  "1111046",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(eu)",
+                       "region":  "eu",
+                       "crc":  "62935e4d",
+                       "md5":  "b4f14a5ae73b874cca4b65d2c8b45a94",
+                       "sha1":  "4ee18d52b6670586e4e3dffe3965d1a38b72ebe0",
+                       "size":  "958711",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(fr)",
+                       "region":  "fr",
+                       "crc":  "c29e2cfe",
+                       "md5":  "a842670f7f7d512739f9695398db1f34",
+                       "sha1":  "f0133ab5e3995daf132056beb54daba45fd61f1b",
+                       "size":  "946004",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(it)",
+                       "region":  "it",
+                       "crc":  "660ae41d",
+                       "md5":  "64a76dcdf9451554185eccacef40273d",
+                       "sha1":  "cdf1c6f0961523257bf11f3880df58e6f1d34c61",
+                       "size":  "1047411",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(jp)",
+                       "region":  "jp",
+                       "crc":  "cd7b9480",
+                       "md5":  "6fdaf6f1a43393b524420f3897a5d097",
+                       "sha1":  "d7a4992ca2555dfc6f78f3989a196ec1fe392580",
+                       "size":  "1140532",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(kr)",
+                       "region":  "kr",
+                       "crc":  "bb601e12",
+                       "md5":  "c114b50b1d9ac5b9efef175144f96b25",
+                       "sha1":  "8d90ff80e3e01092c746b339dfa07f485af03892",
+                       "size":  "621494",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(pt)",
+                       "region":  "pt",
+                       "crc":  "595f2692",
+                       "md5":  "0baaff962a1274552f3dcb643c55e402",
+                       "sha1":  "c830be959732de6775205a0c9e1e1ea9144555e6",
+                       "size":  "1077230",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(sp)",
+                       "region":  "sp",
+                       "crc":  "a49514b0",
+                       "md5":  "a683d7e865a27c875fea2b9dc502ffd8",
+                       "sha1":  "541842356d9ade3ba27d60ebc1b7f682853419c2",
+                       "size":  "1141228",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(ss)",
+                       "region":  "ss",
+                       "crc":  "ea0eda56",
+                       "md5":  "d86e25aea38a4342187270bd568548da",
+                       "sha1":  "c22d55e4497511bde7ce078926c31ed0343d81d9",
+                       "size":  "750880",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(uk)",
+                       "region":  "uk",
+                       "crc":  "628b1db3",
+                       "md5":  "90c36a329eb170940403d9edfd854815",
+                       "sha1":  "e27988ebef78c471aae3410c11aa89051bbf5cb5",
+                       "size":  "996257",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-texture(us)",
+                       "region":  "us",
+                       "crc":  "295b62c9",
+                       "md5":  "c4be02c805bed3e98fa5b03ce60a88ae",
+                       "sha1":  "23a8f4317e604c87e8ecfd4f7c1b0040db1036ea",
+                       "size":  "1267603",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(au)",
+                       "region":  "au",
+                       "crc":  "bc8d10b0",
+                       "md5":  "497877141763dcfc6d157c3f22abdbd7",
+                       "sha1":  "8939c43bdbc586e74df8635f977b71c6ec10fae7",
+                       "size":  "249891",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(eu)",
+                       "region":  "eu",
+                       "crc":  "bde0ba0a",
+                       "md5":  "eef51c3bbad374349c7736a3d44c6f6b",
+                       "sha1":  "c77fb54c2846902804725adfac4b042c895e43d6",
+                       "size":  "231924",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(fr)",
+                       "region":  "fr",
+                       "crc":  "8d685310",
+                       "md5":  "85763b8e8d968ed90ca8eb5af9d7e456",
+                       "sha1":  "81378f8222d2a96b1ae2195fe2aab04df1f46815",
+                       "size":  "225990",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(it)",
+                       "region":  "it",
+                       "crc":  "358f92da",
+                       "md5":  "08b42937feffc868c3be4a5daae8de11",
+                       "sha1":  "983862a7ba293b359b93f7abbe7ebbc3fe1322bd",
+                       "size":  "238351",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(jp)",
+                       "region":  "jp",
+                       "crc":  "4be54864",
+                       "md5":  "71860cfe38061b8994fed1d5785e64b4",
+                       "sha1":  "e1b3f7c107075f304dc2592dd4ab31edfc4cf99b",
+                       "size":  "261237",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(kr)",
+                       "region":  "kr",
+                       "crc":  "ea8fcdaa",
+                       "md5":  "f1c54d739163ebf20f85d93c6cd9cb96",
+                       "sha1":  "d14e4d928f69541594105c8cd81c1f9ba524e830",
+                       "size":  "262502",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(pt)",
+                       "region":  "pt",
+                       "crc":  "6a791815",
+                       "md5":  "e2c4ff6245fefe9bb0ca82e67f00c4bb",
+                       "sha1":  "6ff92a1b8509ccdda9c122c8f2a5b4426fc19ac0",
+                       "size":  "239656",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(sp)",
+                       "region":  "sp",
+                       "crc":  "3581653c",
+                       "md5":  "2cf5ede3079a74810f816e27de9ccd1d",
+                       "sha1":  "58dc2d4792a18b02fe04719e3fee96344d24483b",
+                       "size":  "248610",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(ss)",
+                       "region":  "ss",
+                       "crc":  "036dd0dd",
+                       "md5":  "462c5e84eaf3928a9cefb25c399df770",
+                       "sha1":  "7812ae720b2f79deaf4eeba9deb38a0782ea5935",
+                       "size":  "201403",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(uk)",
+                       "region":  "uk",
+                       "crc":  "6503d093",
+                       "md5":  "ddfcdea66164f7289b34d778eab7dd1c",
+                       "sha1":  "fd1aad6283409fb3e74297c15ab60f0ef117d7a0",
+                       "size":  "240787",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "box-3D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=box-3D(us)",
+                       "region":  "us",
+                       "crc":  "1b33e8b2",
+                       "md5":  "4c7b2689f920904233381585648ded0c",
+                       "sha1":  "fa45d8a9b675bf78bcb7e52eacaa55984e7f6380",
+                       "size":  "276468",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "manuel",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaManuelJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=manuel(eu)",
+                       "region":  "eu",
+                       "crc":  "2c6fb5d5",
+                       "md5":  "e35a935b93bdefbfe5bcb855adc3a4e0",
+                       "sha1":  "432688cf866babbab8a3a59672e4f45184568eb0",
+                       "size":  "5335897",
+                       "format":  "pdf"
+                   },
+                   {
+                       "type":  "manuel",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaManuelJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=manuel(us)",
+                       "region":  "us",
+                       "crc":  "59c28a16",
+                       "md5":  "1ee2e7c0bb7ec88e7ebbe65fa88aff5c",
+                       "sha1":  "b30094053d5be1fd2ff07c4e07f66d5f6f34feb3",
+                       "size":  "1272645",
+                       "format":  "pdf"
+                   },
+                   {
+                       "type":  "support-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-texture(eu)",
+                       "region":  "eu",
+                       "crc":  "f1e2e91f",
+                       "md5":  "3391dc0c8f35f92c707f8fad921d8fe2",
+                       "sha1":  "bc3a73a840cbdeda152f8cd6c2db5cd0250e8e93",
+                       "size":  "337348",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "support-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-texture(eu)",
+                       "region":  "uk",
+                       "crc":  "f1e2e91f",
+                       "md5":  "3391dc0c8f35f92c707f8fad921d8fe2",
+                       "sha1":  "bc3a73a840cbdeda152f8cd6c2db5cd0250e8e93",
+                       "size":  "337348",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "support-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-texture(us)",
+                       "region":  "us",
+                       "crc":  "0d7150e1",
+                       "md5":  "4bbf463f318e7516153fe2a8fc816355",
+                       "sha1":  "1d9d88cd8ceac0b1e4da0ebc6b9bf6f392b9f066",
+                       "size":  "405400",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "support-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-texture(us)",
+                       "region":  "br",
+                       "crc":  "0d7150e1",
+                       "md5":  "4bbf463f318e7516153fe2a8fc816355",
+                       "sha1":  "1d9d88cd8ceac0b1e4da0ebc6b9bf6f392b9f066",
+                       "size":  "405400",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "support-texture",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-texture(us)",
+                       "region":  "ca",
+                       "crc":  "0d7150e1",
+                       "md5":  "4bbf463f318e7516153fe2a8fc816355",
+                       "sha1":  "1d9d88cd8ceac0b1e4da0ebc6b9bf6f392b9f066",
+                       "size":  "405400",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "support-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-2D(eu)",
+                       "region":  "eu",
+                       "crc":  "ba3a699c",
+                       "md5":  "73d66b8f50ad2cc9b5c4725e80374d00",
+                       "sha1":  "cded15049aebf4fbff0c58e6127b2595d268d4bc",
+                       "size":  "360346",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "support-2D",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=support-2D(us)",
+                       "region":  "us",
+                       "crc":  "99d7efd1",
+                       "md5":  "52192927a24e22f69d0284e7f4326c33",
+                       "sha1":  "8d5bab20dcfca26d6f1b6afd6faf2298e6946d82",
+                       "size":  "353764",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(au)",
+                       "region":  "au",
+                       "crc":  "0c979bf4",
+                       "md5":  "35e6c41a4a8052a154db2ce785e07db6",
+                       "sha1":  "c4ef4541f700277969b6851f6f6bc75118fd2f70",
+                       "size":  "626540",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(eu)",
+                       "region":  "eu",
+                       "crc":  "9f6a1d23",
+                       "md5":  "9cbe5aa527dd490978c2d0542c39fc4b",
+                       "sha1":  "d984f897413e1897fba145fc76b56baff70f98f7",
+                       "size":  "618423",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(fr)",
+                       "region":  "fr",
+                       "crc":  "891a3e8e",
+                       "md5":  "f86a5477983d50507b28adf6e80c8611",
+                       "sha1":  "7e68e91c738bfbb3d57d89044ae742a2e5fd3aaf",
+                       "size":  "618291",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(it)",
+                       "region":  "it",
+                       "crc":  "9bf33948",
+                       "md5":  "31861378597d0fce8e616786128ac0d3",
+                       "sha1":  "d770f60b0c490847afe3eb6a4ede32358bf2eb88",
+                       "size":  "620917",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(jp)",
+                       "region":  "jp",
+                       "crc":  "22438780",
+                       "md5":  "61ca44e76f0215c78363178beb22f318",
+                       "sha1":  "46351f79f0a3590051542ce7415eb70b274bbfb6",
+                       "size":  "632610",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(kr)",
+                       "region":  "kr",
+                       "crc":  "8b24df8c",
+                       "md5":  "1ed20e97bf57481d2158d4a2aabefdfc",
+                       "sha1":  "ff7c5a8d8c8a4a3522ee2de24e710c8b234a087a",
+                       "size":  "632729",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(pt)",
+                       "region":  "pt",
+                       "crc":  "d315a322",
+                       "md5":  "13884b9532b82d3437cfc134ae9a2d9a",
+                       "sha1":  "cc3f56ba4b9d055de7c7a9135019d614eff77fa2",
+                       "size":  "621217",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(sp)",
+                       "region":  "sp",
+                       "crc":  "4cae54ef",
+                       "md5":  "220aee43aa7d7ce968d8827596b2fc9f",
+                       "sha1":  "30b8e304ceb560106652e94475a8ff76008ac922",
+                       "size":  "624860",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(ss)",
+                       "region":  "ss",
+                       "crc":  "137892b4",
+                       "md5":  "aff417fe22261b473eabe17fb7f3158d",
+                       "sha1":  "dfecb944993744e497e6e95dc8a5bced7c191cd3",
+                       "size":  "604319",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(uk)",
+                       "region":  "uk",
+                       "crc":  "6534b40c",
+                       "md5":  "95500f25ce4cf1392c9e9aa506ab276a",
+                       "sha1":  "ff2e5d4b66a1ab9b50ae071a67230655260898db",
+                       "size":  "621346",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(us)",
+                       "region":  "us",
+                       "crc":  "ca216d1c",
+                       "md5":  "6cf2dce9aee26d0fae374516c8a25785",
+                       "sha1":  "5a0c068cf4f36205364d198eba84d87c8be5e430",
+                       "size":  "637153",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv1",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv1(wor)",
+                       "region":  "wor",
+                       "crc":  "9f6a1d23",
+                       "md5":  "9cbe5aa527dd490978c2d0542c39fc4b",
+                       "sha1":  "d984f897413e1897fba145fc76b56baff70f98f7",
+                       "size":  "618423",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(asi)",
+                       "region":  "asi",
+                       "crc":  "038bbb6d",
+                       "md5":  "7dd3e7ed0417f28c8586c28b0c2b6bf1",
+                       "sha1":  "dae148d4b3c23dfef88564251566173b429234c7",
+                       "size":  "645545",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(au)",
+                       "region":  "au",
+                       "crc":  "f40ab583",
+                       "md5":  "49abc6174f0ea507aedfe70e41b9b78a",
+                       "sha1":  "7d5819b9256b2457df1f2fdc89a96ea65ac262e1",
+                       "size":  "653650",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(eu)",
+                       "region":  "eu",
+                       "crc":  "038bbb6d",
+                       "md5":  "7dd3e7ed0417f28c8586c28b0c2b6bf1",
+                       "sha1":  "dae148d4b3c23dfef88564251566173b429234c7",
+                       "size":  "645545",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(fr)",
+                       "region":  "fr",
+                       "crc":  "7a7d8de7",
+                       "md5":  "5564a7e0ebb96507f2d64c4195cfaabf",
+                       "sha1":  "207d82261253ceb81a9f128ba429d954f2f6190a",
+                       "size":  "645032",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(it)",
+                       "region":  "it",
+                       "crc":  "c02d790e",
+                       "md5":  "3ed8724ba37e8c68f0ef5f5e77dbde53",
+                       "sha1":  "be0d43c1b4870687470c3dde7bf0b1bfd13d1ea1",
+                       "size":  "648178",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(jp)",
+                       "region":  "jp",
+                       "crc":  "6334211f",
+                       "md5":  "1a77ee89651ddb22616d26509efa7789",
+                       "sha1":  "068394f96c0ea12e0c96ec4b2e78f5c3f49a47e2",
+                       "size":  "660048",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(kr)",
+                       "region":  "kr",
+                       "crc":  "b64a7c29",
+                       "md5":  "9da4b116f18c5decab66971f96e01a68",
+                       "sha1":  "288c3baeaf021124be6d0809cc7936dda8465ac1",
+                       "size":  "660174",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(pt)",
+                       "region":  "pt",
+                       "crc":  "d71f26bb",
+                       "md5":  "645e752faec515c402ce4a22035caab0",
+                       "sha1":  "74b9c2a1268d19cfdf95076d5ad1f28ccd73396e",
+                       "size":  "648331",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(sp)",
+                       "region":  "sp",
+                       "crc":  "8969ade0",
+                       "md5":  "b6b9674d7b2db8039699bec7e4eebc6e",
+                       "sha1":  "3b5fdd9bb0454c57c31430eaa4343b3c90ddd0ef",
+                       "size":  "651790",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(ss)",
+                       "region":  "ss",
+                       "crc":  "6c78d231",
+                       "md5":  "1969dbc4329ce7456be1a6dd2df97a61",
+                       "sha1":  "9fe9723cbd49927a8c18413dfb9a9133b064e676",
+                       "size":  "631167",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(uk)",
+                       "region":  "uk",
+                       "crc":  "42c7fac9",
+                       "md5":  "c3e807e32afffb9598f06bfa72303e5e",
+                       "sha1":  "226666749533451021ca24eb2392e16ace95ad47",
+                       "size":  "648736",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(us)",
+                       "region":  "us",
+                       "crc":  "34304478",
+                       "md5":  "a6fa6bde9703295ba592a13d21d302fe",
+                       "sha1":  "c23a01aa0be02877a82e108d57aeea35ce96e1d5",
+                       "size":  "661652",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "mixrbv2",
+                       "parent":  "jeu",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaJeu.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026systemeid=61\u0026jeuid=27863\u0026media=mixrbv2(wor)",
+                       "region":  "wor",
+                       "crc":  "038bbb6d",
+                       "md5":  "7dd3e7ed0417f28c8586c28b0c2b6bf1",
+                       "sha1":  "dae148d4b3c23dfef88564251566173b429234c7",
+                       "size":  "645545",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "region",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=48\u0026media=pictoliste",
+                       "crc":  "da72fff7",
+                       "md5":  "37997a0c8b1bb1d05f5659e5ca6f8f5f",
+                       "sha1":  "f965ebb4edace1a6b0b63175a2697b7164438a22",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictomonochrome",
+                       "parent":  "editeur",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaCompagnie.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026companyid=30303\u0026media=logo-monochrome",
+                       "crc":  "8b5826b1",
+                       "md5":  "a72f2a0ddc2fda447a2ef0826322e581",
+                       "sha1":  "c79f876456d85c77cce1c5bbe28cbe9ab9c6b6e1",
+                       "size":  "46734",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictocouleur",
+                       "parent":  "editeur",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaCompagnie.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026companyid=30303\u0026media=wheel",
+                       "crc":  "cea10bc5",
+                       "md5":  "f147464334c9c4585f9e7b61873f5ca7",
+                       "sha1":  "23bd19365136ff072e883a7785c90ab2c7c292c6",
+                       "size":  "43540",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictomonochrome",
+                       "parent":  "developpeur",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaCompagnie.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026companyid=1601\u0026media=logo-monochrome",
+                       "crc":  "7b4ed85a",
+                       "md5":  "26efa60876c026fcd0c227290834aa86",
+                       "sha1":  "10dadc5876a3ea24fbc782b45d3bf44b68eb42f0",
+                       "size":  "9468",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictocouleur",
+                       "parent":  "developpeur",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaCompagnie.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026companyid=1601\u0026media=wheel",
+                       "crc":  "15b2418f",
+                       "md5":  "e019042bbc21c619c15a373fe0deb553",
+                       "sha1":  "18c03e6f131f8200a4c1f7a4d1a393e7b66c6427",
+                       "size":  "11846",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "joueurs",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3309\u0026media=pictoliste",
+                       "crc":  "78f736ef",
+                       "md5":  "1251549320ccb8c3e7e977b775df9eb4",
+                       "sha1":  "5a1adbf62ecb2271d239bbc8fbd17532996de31c",
+                       "size":  "316",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "note",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3556\u0026media=pictoliste",
+                       "crc":  "a212d9b1",
+                       "md5":  "90c82cea4441419832745531d2b09244",
+                       "sha1":  "5ac4a7cf782bb40db54d9f49b0baa3d7f4447af7",
+                       "size":  "1341",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "classification",
+                       "subparent":  "BBFC",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3620\u0026media=pictoliste",
+                       "crc":  "5701c836",
+                       "md5":  "1f2e2b41956f3e92976bc736cbfa53ce",
+                       "sha1":  "4ca8e35dc463902cd7138161460b23dce7c4bcf7",
+                       "size":  "3922",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "classification",
+                       "subparent":  "PEGI",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3714\u0026media=pictoliste",
+                       "crc":  "23c1b71b",
+                       "md5":  "cc9bb36e81efa0dca5ff53aaa31d54f5",
+                       "sha1":  "bdaec410afc86d447cc344e96e4c544e7ba2ecb8",
+                       "size":  "531",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "classification",
+                       "subparent":  "CERO",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3624\u0026media=pictoliste",
+                       "crc":  "51f5430b",
+                       "md5":  "501a112bd6f82c7ca564eb14376a65aa",
+                       "sha1":  "d064ab9e612bf2463ee7a31ca181731aeae89f2b",
+                       "size":  "1270",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictomonochrome",
+                       "parent":  "classification",
+                       "subparent":  "CERO",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3624\u0026media=logo-monochrome",
+                       "crc":  "cd391cd6",
+                       "md5":  "f30675f61338c65302d66d3ce649dc3f",
+                       "sha1":  "3728f0bac424fbf276e19c0a01219f6cd0079934",
+                       "size":  "21626",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "classification",
+                       "subparent":  "JV",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3431\u0026media=pictoliste",
+                       "crc":  "7e373540",
+                       "md5":  "f8f7491f297784b33e610ce91dba0303",
+                       "sha1":  "bbb414bd349d48ab4bd8a8d16b46a8ffb19b64c7",
+                       "size":  "514",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictoliste",
+                       "parent":  "classification",
+                       "subparent":  "ACB",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3613\u0026media=pictoliste",
+                       "crc":  "0730d30b",
+                       "md5":  "43317461e1e5b4198f5d561d9701203f",
+                       "sha1":  "30fdb076a8ec9e4b4a4bcf63022ae7d32dd38b98",
+                       "size":  "4309",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictomonochrome",
+                       "parent":  "classification",
+                       "subparent":  "ACB",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3613\u0026media=logo-monochrome",
+                       "crc":  "f7446e26",
+                       "md5":  "1a37a34e805b263bb9c5816b7bb6fdff",
+                       "sha1":  "bb5ac61b165151c6dda52b8ffbe66c5f977f9dd6",
+                       "size":  "75806",
+                       "format":  "png"
+                   },
+                   {
+                       "type":  "pictocouleur",
+                       "parent":  "classification",
+                       "subparent":  "ACB",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=3613\u0026media=wheel",
+                       "crc":  "a5d5f953",
+                       "md5":  "df9259225d8060f1f877fc9e8418e36e",
+                       "sha1":  "d151135f17e24a809e7c1fc17acbb0fb501a26fe",
+                       "size":  "49957",
+                       "format":  "png"
+                   },
+                   {
+                       "id":  "1",
+                       "parent":  "genre",
+                       "subparent":  "Beat\u0027em All",
+                       "type":  "pictoliste",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=1\u0026media=pictoliste",
+                       "crc":  "151e4161",
+                       "md5":  "00cb0cb4842e9aba77214ca54b713d0b",
+                       "sha1":  "95b8ef111b7e5be0c1750123da620e76523dec62",
+                       "size":  "1126",
+                       "format":  "png"
+                   },
+                   {
+                       "id":  "1",
+                       "parent":  "genre",
+                       "subparent":  "Beat\u0027em All",
+                       "type":  "pictomonochrome",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=1\u0026media=logo-monochrome",
+                       "crc":  "3974c2c4",
+                       "md5":  "19fa1571415cc4d60d321d1c42dd45b5",
+                       "sha1":  "27a372f24bbf11f0a7050bfea0bbcab612935244",
+                       "size":  "9003",
+                       "format":  "png"
+                   },
+                   {
+                       "id":  "1",
+                       "parent":  "genre",
+                       "subparent":  "Beat\u0027em All",
+                       "type":  "pictomonochrome",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=1\u0026media=logo-monochrome-svg",
+                       "crc":  "ccb72604",
+                       "md5":  "a3cce15fcad1ab4329a718a6b0d27d7e",
+                       "sha1":  "1de1e8426d307e4cc56b909ffe353813822278e3",
+                       "size":  "2918",
+                       "format":  "svg"
+                   },
+                   {
+                       "id":  "1",
+                       "parent":  "genre",
+                       "subparent":  "Beat\u0027em All",
+                       "type":  "background",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=1\u0026media=background",
+                       "crc":  "76efc81b",
+                       "md5":  "c110398f549f2cc0e3203275655943e1",
+                       "sha1":  "e11e67f962b414d3bdfcc1afe285bab4135c6d1b",
+                       "size":  "161306",
+                       "format":  "jpg"
+                   },
+                   {
+                       "id":  "20314",
+                       "parent":  "famille",
+                       "subparent":  "God Of War",
+                       "type":  "figurine",
+                       "url":  "https://neoclone.screenscraper.fr/api2/mediaGroup.php?devid=fansmall\u0026devpassword=5YyX6PiHn7S\u0026softname=FrontendKiller\u0026ssid=\u0026sspassword=\u0026groupid=20314\u0026media=figurine",
+                       "crc":  "392d2660",
+                       "md5":  "85acf8d781c0718ffd30e29d7e14837c",
+                       "sha1":  "eb57b08be56c48d42a9ca58cf971dfe63c66f1d5",
+                       "size":  "323649",
+                       "format":  "png"
+                   }
+               ],
+    "roms":  [
+                 {
+                     "id":  "121657",
+                     "romsize":  "1087568197",
+                     "romfilename":  "God of War  Chains of Olympus.iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "88DDD811",
+                     "rommd5":  "7C574C61D2830D018BBFF8F33091433B",
+                     "romsha1":  "",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "172975",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "72",
+                                                        "71",
+                                                        "70",
+                                                        "69",
+                                                        "68",
+                                                        "76",
+                                                        "75",
+                                                        "74",
+                                                        "113",
+                                                        "3893",
+                                                        "120"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "it",
+                                                               "es",
+                                                               "de",
+                                                               "fr",
+                                                               "en",
+                                                               "nl",
+                                                               "pt",
+                                                               "sv",
+                                                               "no",
+                                                               "da",
+                                                               "fi"
+                                                           ],
+                                     "langues_en":  [
+                                                        "Italian",
+                                                        "Spanish",
+                                                        "German",
+                                                        "French",
+                                                        "English",
+                                                        "Dutch",
+                                                        "Portuguese",
+                                                        "Swedish",
+                                                        "Norwegian",
+                                                        "Danish",
+                                                        "Finnish"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Italien",
+                                                        "Espagnol",
+                                                        "Allemand",
+                                                        "Français",
+                                                        "Anglais",
+                                                        "Néerlandais",
+                                                        "Portugais",
+                                                        "Suédois",
+                                                        "Norvégien",
+                                                        "Danois",
+                                                        "Finlandais"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Italienisch",
+                                                        "Spanisch",
+                                                        "Deutsch",
+                                                        "Französisch",
+                                                        "Englisch",
+                                                        "Holländisch",
+                                                        "Portugiesisch",
+                                                        "Schwedisch",
+                                                        "Norwegisch",
+                                                        "Dänisch",
+                                                        "Finnisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Italiano",
+                                                        "Español",
+                                                        "Alemán",
+                                                        "Francés",
+                                                        "Inglés",
+                                                        "Holandés",
+                                                        "Portugués",
+                                                        "Sueco",
+                                                        "Noruego",
+                                                        "Danés",
+                                                        "Finlandés"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Italiano",
+                                                        "Spagnolo",
+                                                        "Tedesco",
+                                                        "Francese",
+                                                        "Inglese",
+                                                        "Olandese",
+                                                        "Portoghese",
+                                                        "Svedese",
+                                                        "Norvegese",
+                                                        "Danese",
+                                                        "Finlandese"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Italiano",
+                                                        "Espanhol",
+                                                        "Alemão",
+                                                        "Francês",
+                                                        "Inglês",
+                                                        "Holandês",
+                                                        "Português",
+                                                        "Sueco",
+                                                        "Norueguês",
+                                                        "Dinamarquês",
+                                                        "Finlandês"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "48"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "eu"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Europa"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605496",
+                     "romsize":  "1605664768",
+                     "romfilename":  "God of War - Chains of Olympus (USA).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "B9B62AB0",
+                     "rommd5":  "4C2E65EDC45205EC0F0FA3998C7E1A25",
+                     "romsha1":  "EE976A5DE0F205297166A622BC9BFD42FA3822F8",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "67454",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "2620"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "zh"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "Chinese"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Chinois"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Chinesisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Chino"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Cinese"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Chinês"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "470093",
+                     "romsize":  "1651015680",
+                     "romfilename":  "God of War - Chains of Olympus (Europe).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "4704D399",
+                     "rommd5":  "0E72AC4FF25BBC3481141671FD59B7BA",
+                     "romsha1":  "9AD18AB173658B79BC73A346ED1AEA2C87573B59",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "32443",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46",
+                                                        "48"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us",
+                                                               "eu"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA",
+                                                        "Europe"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA",
+                                                        "Europe"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA",
+                                                        "Europa"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA",
+                                                        "Europa"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA",
+                                                        "Europa"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA",
+                                                        "Europa"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "652759",
+                     "romsize":  "1605662720",
+                     "romfilename":  "God of War - Chains of Olympus.iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "36A976C2",
+                     "rommd5":  "72781B467F793438E7200F70A2AF0DD3",
+                     "romsha1":  "9F2970B3C006B83693487C2ECEADE5338A2DD458",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "24915"
+                 },
+                 {
+                     "id":  "533597",
+                     "romsize":  "1319537493",
+                     "romfilename":  "God-of-War.cso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "9955BB1A",
+                     "rommd5":  "EF68A9B5E5CDCBE84B8ED947D5985F11",
+                     "romsha1":  "2CC4F815A15B08F334D2F2306752A9D0731B07A4",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "12886"
+                 },
+                 {
+                     "id":  "608458",
+                     "romsize":  "1562017792",
+                     "romfilename":  "God of War - Chains of Olympus (Europe) (En,Fr,De,Es,It) (PSN).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "C8C8BD8C",
+                     "rommd5":  "2421C685E0740445344B4A21FDF8C5BE",
+                     "romsha1":  "930AF42DAD23E8712BBE0CDAD6D4D98BCBF1D26F",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "11584",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "69",
+                                                        "70",
+                                                        "71",
+                                                        "72"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "fr",
+                                                               "de",
+                                                               "es",
+                                                               "it"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "French",
+                                                        "German",
+                                                        "Spanish",
+                                                        "Italian"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Français",
+                                                        "Allemand",
+                                                        "Espagnol",
+                                                        "Italien"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Französisch",
+                                                        "Deutsch",
+                                                        "Spanisch",
+                                                        "Italienisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Francés",
+                                                        "Alemán",
+                                                        "Español",
+                                                        "Italiano"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Francese",
+                                                        "Tedesco",
+                                                        "Spagnolo",
+                                                        "Italiano"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Francês",
+                                                        "Alemão",
+                                                        "Espanhol",
+                                                        "Italiano"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "48"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "eu"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Europa"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "462884",
+                     "romsize":  "1357088350",
+                     "romfilename":  "God of War - Chains of Olympus (Europe) (En,Fr,De,Es,It).iso.cso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "024A530D",
+                     "rommd5":  "9894B0DE6185D67C0A7E3DDF003117F7",
+                     "romsha1":  "13AC7BE7BD1C80D02A1C0C451AB838A6EB5A5279",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "8500",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "69",
+                                                        "70",
+                                                        "71",
+                                                        "72"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "fr",
+                                                               "de",
+                                                               "es",
+                                                               "it"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "French",
+                                                        "German",
+                                                        "Spanish",
+                                                        "Italian"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Français",
+                                                        "Allemand",
+                                                        "Espagnol",
+                                                        "Italien"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Französisch",
+                                                        "Deutsch",
+                                                        "Spanisch",
+                                                        "Italienisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Francés",
+                                                        "Alemán",
+                                                        "Español",
+                                                        "Italiano"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Francese",
+                                                        "Tedesco",
+                                                        "Spagnolo",
+                                                        "Italiano"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Francês",
+                                                        "Alemão",
+                                                        "Espanhol",
+                                                        "Italiano"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "48"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "eu"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Europa"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605497",
+                     "romsize":  "1641084928",
+                     "romfilename":  "God Of War Chains Of Olympus.iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "B211EA8B",
+                     "rommd5":  "F9CD7600F2D92D7EBE4E4824B189AD39",
+                     "romsha1":  "2C0B3962AA59AA6926E7CF5448013EEC9F9253F8",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "6733",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "48"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "eu"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Europa"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "593390",
+                     "romsize":  "1319757369",
+                     "romfilename":  "God of War Chains of Olympus.cso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "3DB7D497",
+                     "rommd5":  "1EEEF279CFAC1DB17914246D58D40560",
+                     "romsha1":  "",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "4566"
+                 },
+                 {
+                     "id":  "608459",
+                     "romsize":  "1487929344",
+                     "romfilename":  "God_of_War_Chains_of_Olympus_USA_PSN_PSP-PLAYASiA.iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "FBE73188",
+                     "rommd5":  "A4B5BF022CC15FC180D44E13B689A985",
+                     "romsha1":  "15CCCD13D667E12F5AAF824408AF0B06438BDB90",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "4253",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605494",
+                     "romsize":  "1613168640",
+                     "romfilename":  "God of War - Chains of Olympus (Asia) (En,Zh).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "02599B61",
+                     "rommd5":  "545AC8236BFBBAB321C17A3D517EC595",
+                     "romsha1":  "80A10AF59DE60978C1DE4C883B0AC18DD1B76F5D",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "3682",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "2620"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "zh"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "Chinese"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Chinois"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Chinesisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Chino"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Cinese"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Chinês"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "114"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "asi"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Asia"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Asie"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Asien"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Asia"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Asia"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Ásia"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605505",
+                     "romsize":  "1596293120",
+                     "romfilename":  "God of War - Koutan no Kokuin (Japan).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "D98C52E6",
+                     "rommd5":  "F5AB60A74BA7D644325E3F7EF6C0E9F7",
+                     "romsha1":  "BF0F1943B3E1A5934835105B446AB87ABB2C8200",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "3555",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "2619",
+                                                        "3224"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "pl",
+                                                               "ru"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "Polish",
+                                                        "Russian"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Polonais",
+                                                        "Russe"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Polnisch",
+                                                        "Russisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Polaco",
+                                                        "Ruso"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Polacco",
+                                                        "Russo"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Polonês",
+                                                        "Russo"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "47"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "jp"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Japan"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Japon"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Japan"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Japón"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Giappone"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Japão"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605506",
+                     "romsize":  "1558183936",
+                     "romfilename":  "God of War - Rakujitsu no Hisoukyoku (Japan).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "79C5B544",
+                     "rommd5":  "363914A2ACB13064E01D746968EC3ED5",
+                     "romsha1":  "4E9798B0B686154C7AF44EFB0A51FB7D49B2973E",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "2858",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "47"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "jp"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Japan"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Japon"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Japan"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Japón"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Giappone"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Japão"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "121658",
+                     "romsize":  "284492203",
+                     "romfilename":  "God of War - Chains of Olympus - Special Edition - Battle of Attica (USA) (Demo).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "ABFC2DFF",
+                     "rommd5":  "2FE2CA1EECD2461DF7CC8FBED64C527A",
+                     "romsha1":  "",
+                     "beta":  "0",
+                     "demo":  "1",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "1251",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605500",
+                     "romsize":  "256999424",
+                     "romfilename":  "God of War - Chains of Olympus - Battle of Attica (USA) (Demo).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "80593953",
+                     "rommd5":  "BE8190FCD84F60B724CF1C8CCF54938A",
+                     "romsha1":  "CDB993E248AE6861C57E074D6A7DE0CBE582A611",
+                     "beta":  "0",
+                     "demo":  "1",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "1196",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605495",
+                     "romsize":  "1612611584",
+                     "romfilename":  "God of War - Chains of Olympus (Korea).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "F53EF08B",
+                     "rommd5":  "9AC44F7FD51C4F48815811FA2459BC28",
+                     "romsha1":  "D84357642017AD36E629FC57DF4CE9C8843434A6",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "613",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "2620"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "zh"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "Chinese"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Chinois"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Chinesisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Chino"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Cinese"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Chinês"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "58"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "kr"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Korea"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Corée"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Korea"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Corea"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Corea"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Coreia"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "608460",
+                     "romsize":  "1489502208",
+                     "romfilename":  "God of War - Chains of Olympus (Asia) (En,Zh) (PSN).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "17791E67",
+                     "rommd5":  "3C9430ABC18B2D14646656F214F9BAEA",
+                     "romsha1":  "2345C88820F2725644CF207DA315F2B4562FA146",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "587",
+                     "langues":  {
+                                     "langues_id":  [
+                                                        "68",
+                                                        "2620"
+                                                    ],
+                                     "langues_shortname":  [
+                                                               "en",
+                                                               "zh"
+                                                           ],
+                                     "langues_en":  [
+                                                        "English",
+                                                        "Chinese"
+                                                    ],
+                                     "langues_fr":  [
+                                                        "Anglais",
+                                                        "Chinois"
+                                                    ],
+                                     "langues_de":  [
+                                                        "Englisch",
+                                                        "Chinesisch"
+                                                    ],
+                                     "langues_es":  [
+                                                        "Inglés",
+                                                        "Chino"
+                                                    ],
+                                     "langues_it":  [
+                                                        "Inglese",
+                                                        "Cinese"
+                                                    ],
+                                     "langues_pt":  [
+                                                        "Inglês",
+                                                        "Chinês"
+                                                    ]
+                                 },
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "114"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "asi"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Asia"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Asie"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Asien"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Asia"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Asia"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Ásia"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "608465",
+                     "romsize":  "1468071936",
+                     "romfilename":  "God of War - Rakujitsu no Hisoukyoku (Japan) (PSN).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "03F28E03",
+                     "rommd5":  "F8F5EF50FAA08C3128DEE53F56F68876",
+                     "romsha1":  "ADC13EF50D5ED7022201FECDF470CCBCCD156C87",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "571",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "47"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "jp"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Japan"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Japon"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Japan"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Japón"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Giappone"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Japão"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605498",
+                     "romsize":  "373948416",
+                     "romfilename":  "God of War - Chains of Olympus (Europe) (Demo).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "0FF20CA2",
+                     "rommd5":  "AEBB1874C15AA1571E09C6732C096807",
+                     "romsha1":  "978F959A196D40C8963569C6A3145B14E5D0B326",
+                     "beta":  "0",
+                     "demo":  "1",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "273",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "48"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "eu"
+                                                           ],
+                                     "regions_en":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "Europe"
+                                                    ],
+                                     "regions_de":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_es":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_it":  [
+                                                        "Europa"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "Europa"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605501",
+                     "romsize":  "371490816",
+                     "romfilename":  "God of War - Chains of Olympus - Special Edition - Battle of Attica (USA) (Demo).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "7AFD2F24",
+                     "rommd5":  "81FAD960CE5DDB9A68911A7596665039",
+                     "romsha1":  "AC9F9487F4C3A54DACB29F3ABD9125543E13B0FD",
+                     "beta":  "0",
+                     "demo":  "1",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "249",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "605499",
+                     "romsize":  "1605664768",
+                     "romfilename":  "God of War - Chains of Olympus (USA) (v0.01) (Beta).iso",
+                     "romnumsupport":  "1",
+                     "romtotalsupport":  "1",
+                     "romcloneof":  "0",
+                     "romcrc":  "6955BBB8",
+                     "rommd5":  "42E1953CB2C6DEC0FE3F5E0E658A77B0",
+                     "romsha1":  "F2FCEFE5B710C23A391B011CD7D13FF348791EF7",
+                     "beta":  "1",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "171",
+                     "regions":  {
+                                     "regions_id":  [
+                                                        "46"
+                                                    ],
+                                     "regions_shortname":  [
+                                                               "us"
+                                                           ],
+                                     "regions_en":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_fr":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_de":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_es":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_it":  [
+                                                        "USA"
+                                                    ],
+                                     "regions_pt":  [
+                                                        "EUA"
+                                                    ]
+                                 }
+                 },
+                 {
+                     "id":  "1443743",
+                     "romsize":  "1562195968",
+                     "romfilename":  "God of War Chains of Olympus Barik Rus 4.96.ISO",
+                     "romnumsupport":  "0",
+                     "romtotalsupport":  "0",
+                     "romcloneof":  "0",
+                     "romcrc":  "4c20f92e",
+                     "rommd5":  "7511ad1b517bec115d1131949eedc7d9",
+                     "romsha1":  "77eac15572f463207b62f62a8e8724238733af0e",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "67"
+                 },
+                 {
+                     "id":  "1485591",
+                     "romsize":  "1294691178",
+                     "romfilename":  "God Of War Chains Of Olympus PTBR.cso",
+                     "romnumsupport":  "0",
+                     "romtotalsupport":  "0",
+                     "romcloneof":  "0",
+                     "romcrc":  "9E472B45",
+                     "rommd5":  "EA8376372AB5245C8E2F8A894AAFE5DB",
+                     "romsha1":  "B7E39F2B8C33F321106B0323AF436DE1FE9B8E9F",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "48"
+                 },
+                 {
+                     "id":  "1432007",
+                     "romsize":  "686605262",
+                     "romfilename":  "God_Of_War_Chains_Of_Olympus_PSP.cso",
+                     "romnumsupport":  "0",
+                     "romtotalsupport":  "0",
+                     "romcloneof":  "0",
+                     "romcrc":  "6bb8df3b",
+                     "rommd5":  "1cc3079881ec2cbdca14390af7cc6c1b",
+                     "romsha1":  "ab9090c938fcd2d87841b54378562b73862fb76e",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "40"
+                 },
+                 {
+                     "id":  "1508001",
+                     "romsize":  "1481093120",
+                     "romfilename":  "GodofWar-ChainsofOlympus_VIE_UCUS98653_7F746677.iso",
+                     "romnumsupport":  "0",
+                     "romtotalsupport":  "0",
+                     "romcloneof":  "0",
+                     "romcrc":  "7F746677",
+                     "rommd5":  "06928F320DD05AE0479E38F94C7511BE",
+                     "romsha1":  "B68BB3872286564A0995F33909649999CB684702",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "17"
+                 },
+                 {
+                     "id":  "1508490",
+                     "romsize":  "1612609536",
+                     "romfilename":  "God Of War-Chaos Of Olympus.iso",
+                     "romnumsupport":  "0",
+                     "romtotalsupport":  "0",
+                     "romcloneof":  "0",
+                     "romcrc":  "A6E4880E",
+                     "rommd5":  "79224DA0A2DD6FF9633C249CBCF6F83B",
+                     "romsha1":  "BC6590BC2DAF3EC56F8D9FA429AD3A6CD72A6F10",
+                     "beta":  "0",
+                     "demo":  "0",
+                     "proto":  "0",
+                     "trad":  "0",
+                     "hack":  "0",
+                     "unl":  "0",
+                     "alt":  "0",
+                     "best":  "0",
+                     "retroachievement":  "0",
+                     "gamelink":  "0",
+                     "nbscrap":  "7"
+                 }
+             ],
+    "rom":  {
+                "id":  "121657",
+                "romnumsupport":  "1",
+                "romtotalsupport":  "1",
+                "romfilename":  "God of War  Chains of Olympus.iso",
+                "romregions":  "eu",
+                "romlangues":  "it,es,de,fr,en,nl,pt,sv,no,da,fi",
+                "romtype":  "rom",
+                "romsupporttype":  "cartouche",
+                "romsize":  "1087568197",
+                "romcrc":  "88DDD811",
+                "rommd5":  "7C574C61D2830D018BBFF8F33091433B",
+                "romcloneof":  "0",
+                "beta":  "0",
+                "demo":  "0",
+                "proto":  "0",
+                "trad":  "0",
+                "hack":  "0",
+                "unl":  "0",
+                "alt":  "0",
+                "best":  "0",
+                "retroachievement":  "0",
+                "gamelink":  "0",
+                "nbscrap":  "172975",
+                "langues":  {
+                                "langues_id":  [
+                                                   "72",
+                                                   "71",
+                                                   "70",
+                                                   "69",
+                                                   "68",
+                                                   "76",
+                                                   "75",
+                                                   "74",
+                                                   "113",
+                                                   "3893",
+                                                   "120"
+                                               ],
+                                "langues_shortname":  [
+                                                          "it",
+                                                          "es",
+                                                          "de",
+                                                          "fr",
+                                                          "en",
+                                                          "nl",
+                                                          "pt",
+                                                          "sv",
+                                                          "no",
+                                                          "da",
+                                                          "fi"
+                                                      ],
+                                "langues_en":  [
+                                                   "Italian",
+                                                   "Spanish",
+                                                   "German",
+                                                   "French",
+                                                   "English",
+                                                   "Dutch",
+                                                   "Portuguese",
+                                                   "Swedish",
+                                                   "Norwegian",
+                                                   "Danish",
+                                                   "Finnish"
+                                               ],
+                                "langues_fr":  [
+                                                   "Italien",
+                                                   "Espagnol",
+                                                   "Allemand",
+                                                   "Français",
+                                                   "Anglais",
+                                                   "Néerlandais",
+                                                   "Portugais",
+                                                   "Suédois",
+                                                   "Norvégien",
+                                                   "Danois",
+                                                   "Finlandais"
+                                               ],
+                                "langues_de":  [
+                                                   "Italienisch",
+                                                   "Spanisch",
+                                                   "Deutsch",
+                                                   "Französisch",
+                                                   "Englisch",
+                                                   "Holländisch",
+                                                   "Portugiesisch",
+                                                   "Schwedisch",
+                                                   "Norwegisch",
+                                                   "Dänisch",
+                                                   "Finnisch"
+                                               ],
+                                "langues_es":  [
+                                                   "Italiano",
+                                                   "Español",
+                                                   "Alemán",
+                                                   "Francés",
+                                                   "Inglés",
+                                                   "Holandés",
+                                                   "Portugués",
+                                                   "Sueco",
+                                                   "Noruego",
+                                                   "Danés",
+                                                   "Finlandés"
+                                               ],
+                                "langues_it":  [
+                                                   "Italiano",
+                                                   "Spagnolo",
+                                                   "Tedesco",
+                                                   "Francese",
+                                                   "Inglese",
+                                                   "Olandese",
+                                                   "Portoghese",
+                                                   "Svedese",
+                                                   "Norvegese",
+                                                   "Danese",
+                                                   "Finlandese"
+                                               ],
+                                "langues_pt":  [
+                                                   "Italiano",
+                                                   "Espanhol",
+                                                   "Alemão",
+                                                   "Francês",
+                                                   "Inglês",
+                                                   "Holandês",
+                                                   "Português",
+                                                   "Sueco",
+                                                   "Norueguês",
+                                                   "Dinamarquês",
+                                                   "Finlandês"
+                                               ]
+                            },
+                "regions":  {
+                                "regions_id":  [
+                                                   "48"
+                                               ],
+                                "regions_shortname":  [
+                                                          "eu"
+                                                      ],
+                                "regions_en":  [
+                                                   "Europe"
+                                               ],
+                                "regions_fr":  [
+                                                   "Europe"
+                                               ],
+                                "regions_de":  [
+                                                   "Europa"
+                                               ],
+                                "regions_es":  [
+                                                   "Europa"
+                                               ],
+                                "regions_it":  [
+                                                   "Europa"
+                                               ],
+                                "regions_pt":  [
+                                                   "Europa"
+                                               ]
+                            }
+            }
+}

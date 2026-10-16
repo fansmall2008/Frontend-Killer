@@ -106,6 +106,16 @@
                         <label data-i18n="game-filename">游戏文件名（filename）</label>
                         <input type="text" id="gameFilename">
                     </div>
+                    <div class="form-group full-width">
+                        <label data-i18n="serial-id-label">编号/ID（discSerial）</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="discSerialEdit" placeholder="光盘编号 / 卡带头部 ID / CRC32，均可查询" style="flex: 1;">
+                            <button type="button" id="lookupSerialBtn" class="btn btn-sm" onclick="lookupSerialByName()" title="根据编号/CRC查询匹配库" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;">
+                                🔍 <span data-i18n="lookup-serial">查匹配库</span>
+                            </button>
+                        </div>
+                        <div id="lookupSerialResult" style="display:none; margin-top: 6px; padding: 8px; border-radius: 4px; font-size: 13px;"></div>
+                    </div>
                     <div class="form-group">
                         <label data-i18n="platform-path">平台路径（platformPath）</label>
                         <input type="text" id="platformPathEdit">
@@ -164,9 +174,16 @@
                     <label data-i18n="parent-rom-label">父ROM文件名（parentRom）</label>
                     <input type="text" id="parentRomEdit" placeholder="仅街机 clone 有意义">
                 </div>
+
                 <div class="form-group">
                     <label data-i18n="cached-status-label">缓存状态（cached）</label>
                     <span id="cachedBadge" style="display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 13px;">-</span>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="matchedEdit" style="width: 16px; height: 16px; cursor: pointer;">
+                        <span data-i18n="matched-confirm-label">已确认匹配（游戏身份已通过权威数据源确认）</span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -363,6 +380,8 @@
         // 高级字段：ssGameId/parentRom 可编辑，cached 只读徽标
         document.getElementById('ssGameIdEdit').value = game.ssGameId || '';
         document.getElementById('parentRomEdit').value = game.parentRom || '';
+        // v1.3: 编号字段始终可见
+        document.getElementById('discSerialEdit').value = game.discSerial || '';
         const cachedBadge = document.getElementById('cachedBadge');
         if (game.cached === true) {
             cachedBadge.textContent = I18n.t('cached_yes', '✅ 已缓存');
@@ -373,6 +392,8 @@
             cachedBadge.style.background = 'rgba(136,136,136,0.12)';
             cachedBadge.style.color = '#888';
         }
+        // v1.3: 匹配状态勾选框
+        document.getElementById('matchedEdit').checked = game.matched === true;
 
         // 顶部显示游戏名
         document.getElementById('gameNameDisplay').textContent = '- ' + (game.name || '');
@@ -406,7 +427,9 @@
             genreid: document.getElementById('genreid').value,
             // 高级字段：ssGameId/parentRom 可编辑（留空=置 null）
             ssGameId: parseInt(document.getElementById('ssGameIdEdit').value) || null,
-            parentRom: document.getElementById('parentRomEdit').value || null
+            parentRom: document.getElementById('parentRomEdit').value || null,
+            discSerial: document.getElementById('discSerialEdit').value || null,
+            matched: document.getElementById('matchedEdit').checked
         };
 
         // 保留废弃字段的双写兼容
@@ -434,6 +457,87 @@
             }
         })
         .catch(err => showNotification(I18n.t('save_failed_prefix', '保存失败: ') + err.message, 'error'));
+    }
+
+    // ==================== 根据编号/CRC 查询匹配库 ====================
+    function lookupSerialByName() {
+        const serial = document.getElementById('discSerialEdit').value.trim();
+        if (!serial) {
+            showNotification(I18n.t('enter_serial_first', '请先输入编号或 CRC'), 'warning');
+            return;
+        }
+
+        const platformId = document.getElementById('platformIdInput').value;
+        if (!platformId) {
+            showNotification(I18n.t('no_platform_id', '未获取到平台ID'), 'warning');
+            return;
+        }
+
+        const resultDiv = document.getElementById('lookupSerialResult');
+        const btn = document.getElementById('lookupSerialBtn');
+        btn.disabled = true;
+        btn.textContent = I18n.t('querying', '查询中...');
+        resultDiv.style.display = 'none';
+
+        // 获取平台的 systemId，然后用统一查找接口（serial + CRC 双路径）
+        fetch(`/api/platforms/${platformId}`)
+            .then(r => r.json())
+            .then(platform => {
+                if (!platform.systemId || platform.systemId === 0) {
+                    throw new Error(I18n.t('platform_not_bound_system', '当前平台未绑定系统，无法查询'));
+                }
+                const systemId = platform.systemId;
+                return fetch(`/api/rom-db/lookup?keyword=${encodeURIComponent(serial)}&systemId=${systemId}`);
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 <span data-i18n="lookup-serial">查匹配库</span>';
+
+                if (data.success) {
+                    const d = data.data;
+                    const displayName = d.gameName || d.serial || d.crc32;
+                    let detail = [];
+                    if (d.serial) detail.push(`编号: ${d.serial}`);
+                    if (d.crc32) detail.push(`CRC: ${d.crc32}`);
+                    if (d.region) detail.push(`区域: ${d.region}`);
+                    if (d.developer) detail.push(`开发商: ${d.developer}`);
+                    if (d.releaseyear) detail.push(`年份: ${d.releaseyear}`);
+                    
+                    let html = `<strong style="color: #4caf50;">✓ ${displayName}</strong>`;
+                    if (detail.length > 0) {
+                        html += `<br><span style="color: #888; font-size: 12px;">${detail.join(' · ')}</span>`;
+                    }
+                    html += `<br><button type="button" class="btn btn-sm" onclick="applyLookupResult('${displayName.replace(/'/g, "\\'")}', '${d.serial || ''}');" style="margin-top: 6px; padding: 4px 10px; font-size: 12px;">
+                        ${I18n.t('apply_game_name', '应用到游戏名')}</button>`;
+                    resultDiv.innerHTML = html;
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.background = 'rgba(76,175,80,0.1)';
+                    resultDiv.style.border = '1px solid rgba(76,175,80,0.3)';
+                } else {
+                    resultDiv.innerHTML = `<span style="color: #f44336;">✗ ${data.message}</span>`;
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.background = 'rgba(244,67,54,0.1)';
+                    resultDiv.style.border = '1px solid rgba(244,67,54,0.3)';
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 <span data-i18n="lookup-serial">查匹配库</span>';
+                resultDiv.innerHTML = `<span style="color: #f44336;">✗ ${err.message}</span>`;
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = 'rgba(244,67,54,0.1)';
+                resultDiv.style.border = '1px solid rgba(244,67,54,0.3)';
+            });
+    }
+
+    function applyLookupResult(gameName, serial) {
+        document.getElementById('gameName').value = gameName;
+        if (serial) {
+            document.getElementById('discSerialEdit').value = serial;
+        }
+        showNotification(I18n.t('game_name_applied', '游戏名已应用'), 'success');
+        document.getElementById('lookupSerialResult').style.display = 'none';
     }
 
     // ==================== Tab 3: 媒体卡片渲染 ====================

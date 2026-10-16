@@ -600,11 +600,18 @@ public class PlatformServiceImpl implements PlatformService {
         platform.setWeb("http://localhost:8083");
         logger.info("创建新平台: System={}, Name={}", platform.getSystem(), platform.getName());
         
-        // 继承原平台的sortBy和launch属性
+        // 继承原平台的完整属性
         if (originalPlatform != null) {
             platform.setSortBy(originalPlatform.getSortBy());
             platform.setLaunch(originalPlatform.getLaunch());
-            logger.info("继承原平台的sortBy和launch属性");
+            platform.setFolderPath(originalPlatform.getFolderPath());
+            platform.setSystemId(originalPlatform.getSystemId());
+            platform.setSystemRegion(originalPlatform.getSystemRegion());
+            platform.setLogoRegion(originalPlatform.getLogoRegion());
+            platform.setLogoType(originalPlatform.getLogoType());
+            platform.setExtensions(originalPlatform.getExtensions());
+            platform.setIgnoreFiles(originalPlatform.getIgnoreFiles());
+            logger.info("继承原平台的 sortBy, launch, folderPath, systemId, systemRegion 等属性");
         }
         
         // 保存平台
@@ -619,32 +626,8 @@ public class PlatformServiceImpl implements PlatformService {
         if (!games.isEmpty()) {
             logger.info("开始更新游戏的platformId为新平台ID: {}", platform.getId());
             for (com.gamelist.model.Game game : games) {
-                // 创建一个新的游戏实例，保留原有游戏的数据，保持gameId不变，只修改platformId
-                com.gamelist.model.Game newGame = new com.gamelist.model.Game();
-                newGame.setGameId(game.getGameId());
-                newGame.setSource(game.getSource());
-                newGame.setPath(game.getPath());
-                newGame.setName(game.getName());
-                newGame.setDesc(game.getDesc());
-                newGame.setTranslatedName(game.getTranslatedName());
-                newGame.setTranslatedDesc(game.getTranslatedDesc());
-                newGame.setImage(game.getImage());
-                newGame.setVideo(game.getVideo());
-                newGame.setMarquee(game.getMarquee());
-                newGame.setThumbnail(game.getThumbnail());
-                newGame.setManual(game.getManual());
-                newGame.setRating(game.getRating());
-                newGame.setReleasedate(game.getReleasedate());
-                newGame.setDeveloper(game.getDeveloper());
-                newGame.setPublisher(game.getPublisher());
-                newGame.setGenre(game.getGenre());
-                newGame.setPlayers(game.getPlayers());
-                newGame.setCrc32(game.getCrc32());
-                newGame.setLang(game.getLang());
-                newGame.setGenreid(game.getGenreid());
-                newGame.setPlatformId(platform.getId());
-                newGame.setSortBy(game.getSortBy());
-                
+                // 使用 createGameCopy 完整复制所有字段（包括路径、媒体、状态等），只修改 platformId
+                com.gamelist.model.Game newGame = createGameCopy(game, platform.getId());
                 // 保存新游戏
                 gameMapper.insertGame(newGame);
             }

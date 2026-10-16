@@ -342,6 +342,33 @@ public class TranslationController {
                 }
             }
 
+            // “应用于所有搜索结果”模式：从 filters 解析游戏列表
+            if (games.isEmpty()) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> filters = (Map<String, Object>) request.get("filters");
+                if (filters != null) {
+                    Number platformIdNum = (Number) filters.get("platformId");
+                    Long fPlatformId = platformIdNum != null ? platformIdNum.longValue() : null;
+                    if (fPlatformId != null) {
+                        String search = (String) filters.get("search");
+                        @SuppressWarnings("unchecked") List<String> developers = (List<String>) filters.get("developers");
+                        @SuppressWarnings("unchecked") List<String> genres = (List<String>) filters.get("genres");
+                        @SuppressWarnings("unchecked") List<String> players = (List<String>) filters.get("players");
+                        @SuppressWarnings("unchecked") List<String> scrapeStatuses = (List<String>) filters.get("scrapeStatuses");
+                        @SuppressWarnings("unchecked") List<String> fileStatuses = (List<String>) filters.get("fileStatuses");
+                        String folderPath = (String) filters.get("folderPath");
+                        @SuppressWarnings("unchecked") List<String> publishers = (List<String>) filters.get("publishers");
+                        @SuppressWarnings("unchecked") List<String> matchedStatuses = (List<String>) filters.get("matchedStatuses");
+                        List<Game> filtered = gameService.getGamesByPlatformId(
+                            fPlatformId, search, null, null,
+                            developers, genres, players, scrapeStatuses, fileStatuses,
+                            folderPath, publishers, matchedStatuses
+                        );
+                        games.addAll(filtered);
+                    }
+                }
+            }
+
             if (games.isEmpty()) {
                 result.put("success", false);
                 result.put("message", "未找到有效的游戏");

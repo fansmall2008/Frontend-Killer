@@ -45,6 +45,9 @@
         <a class="nav-item" th:classappend="${activePage == 'logs'} ? 'active'" th:href="@{/log-viewer}">
             <span class="icon">📊</span> <span data-i18n="nav_logs">日志查看</span>
         </a>
+<a class="nav-item" th:classappend="${activePage == 'database'} ? 'active'" th:href="@{/database-manager}">
+            <span class="icon">🗄️</span> <span data-i18n="nav_database">数据库</span>
+        </a>
 
         <div class="nav-section-label">▸ SYSTEM</div>
         <a class="nav-item" th:classappend="${activePage == 'settings'} ? 'active'" th:href="@{/system-settings}">

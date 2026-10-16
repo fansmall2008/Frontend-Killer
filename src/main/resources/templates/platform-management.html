@@ -35,10 +35,11 @@
                     <a id="batchClearLink" href="javascript:void(0)" onclick="clearPlatformSelection()" style="display:none; margin-left:8px; font-size:12px; color:var(--text-tertiary);" data-i18n="batch_clear">取消选择</a>
                 </div>
                 <div class="pm-batch-actions">
-                    <button id="batchBtnScrape" class="btn batch-btn" onclick="batchScrape()" disabled data-i18n="batch_scrape">✨ 刮削</button>
+                    <button id="batchBtnScrape" class="btn batch-btn" onclick="batchScrape()" disabled data-i18n="batch_scrape">🌐 获取 ScreenScraper 数据</button>
                     <button id="batchBtnTranslate" class="btn batch-btn" onclick="batchTranslate()" disabled data-i18n="batch_translate">🌐 翻译</button>
                     <button id="batchBtnSwap" class="btn batch-btn" onclick="batchSwapTranslations()" disabled data-i18n="batch_swap">🔁 切换译文</button>
                     <button id="batchBtnScan" class="btn batch-btn" onclick="batchScanStats()" disabled data-i18n="batch_scan">📦 扫描体量</button>
+                    <button id="batchBtnMatchDisc" class="btn batch-btn" onclick="batchMatchDiscSerial()" disabled data-i18n="batch_match_disc">📦 本地获取数据</button>
                     <button id="batchBtnDelete" class="btn batch-btn batch-btn-danger" onclick="batchDelete()" disabled data-i18n="batch_delete">🗑️ 删除</button>
                 </div>
             </div>
@@ -882,6 +883,10 @@
                         <input type="checkbox" id="scrapeOnlyMissing" style="margin-right: 10px; accent-color: #00ffff;">
                         <span style="color: #ccc;" data-i18n="scrape_only_incomplete">仅刮削信息不全的游戏</span>
                     </label>
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-top: 10px;">
+                        <input type="checkbox" id="scrapePreserveLocal" checked style="margin-right: 10px; accent-color: #00ffff;">
+                        <span style="color: #ccc;" data-i18n="preserve_local_data">保留本地已有数据（不覆盖开发商/发行商/年份等）</span>
+                    </label>
                 </div>
                 </form>
             </div>
@@ -1187,7 +1192,7 @@
         function updateBatchToolbar() {
             const infoText = document.getElementById('batchInfoText');
             const clearLink = document.getElementById('batchClearLink');
-            const btns = ['batchBtnScrape', 'batchBtnTranslate', 'batchBtnSwap', 'batchBtnScan', 'batchBtnDelete'];
+            const btns = ['batchBtnScrape', 'batchBtnTranslate', 'batchBtnSwap', 'batchBtnScan', 'batchBtnMatchDisc', 'batchBtnDelete'];
             const hasSelection = _batchPlatformIds.length > 0;
 
             if (infoText) {
@@ -1277,6 +1282,115 @@
                     .catch(() => {});
             });
             showNotification(I18n.t('batch_scan_started', '已启动 ') + _batchPlatformIds.length + I18n.t('batch_scan_suffix', ' 个平台的体量扫描'), 'success');
+        }
+
+        // 批量匹配光盘编号
+        async function batchMatchDiscSerial() {
+            if (_batchPlatformIds.length === 0) return;
+            
+            // 逐个检查黑名单和白名单
+            const blacklisted = [];
+            let anyWhitelisted = false;
+            for (const platformId of _batchPlatformIds) {
+                const row = _platformRows.find(r => r.platform.id === platformId);
+                const systemId = row ? row.platform.systemId : null;
+                if (!systemId || systemId === 0) continue;
+                try {
+                    const resp = await fetch(`/api/rom-db/check/${systemId}`);
+                    const data = await resp.json();
+                    if (data.blacklisted) {
+                        const name = row ? (row.platform.name || row.platform.system) : platformId;
+                        blacklisted.push(name);
+                    }
+                    if (data.whitelisted) anyWhitelisted = true;
+                } catch (err) {
+                    console.error(`检查平台 ${platformId} (systemId=${systemId}) 失败:`, err);
+                }
+            }
+            
+            // 如果有黑名单平台，阻止执行并提醒
+            if (blacklisted.length > 0) {
+                const msg = I18n.t('batch_match_blacklisted_warning', '以下系统暂不支持本地匹配功能：{0}').replace('{0}', blacklisted.join('、'));
+                showNotification(msg, 'error');
+                return; // 绝对阻止
+            }
+            
+            const names = _batchPlatformIds.map(id => {
+                const row = _platformRows.find(r => r.platform.id === id);
+                return row ? (row.platform.name || row.platform.system) : id;
+            });
+
+            // 显示语言选择弹窗
+            document.getElementById('discMatchLangDesc').textContent =
+                I18n.t('confirm_batch_match_disc', '确定要对选中的 ') + names.length + I18n.t('confirm_batch_match_disc_suffix', ' 个平台进行本地匹配吗？');
+            window._discMatchLangPlatforms = _batchPlatformIds.slice();
+            document.getElementById('discMatchLangModal').style.display = 'block';
+            document.getElementById('discMatchLangSelect').value = 'en';
+            // 根据白名单状态控制 serial checkbox
+            const serialCb = document.getElementById('matchMethodSerial');
+            serialCb.checked = anyWhitelisted;
+            serialCb.disabled = !anyWhitelisted;
+            const serialLabel = document.getElementById('matchMethodSerialLabel');
+            if (serialLabel) serialLabel.style.opacity = anyWhitelisted ? '1' : '0.4';
+            return;
+        }
+
+        function closeDiscMatchLangModal() {
+            document.getElementById('discMatchLangModal').style.display = 'none';
+            window._discMatchLangPlatforms = null;
+        }
+
+        function confirmDiscMatchLang() {
+            const platformIds = window._discMatchLangPlatforms;
+            if (!platformIds) return;
+            const language = document.getElementById('discMatchLangSelect').value;
+            const langLabel = language === 'ja' ? '⚡ 日文' : language === 'cn' ? '🇨🇳 中文' : '🔤 英文';
+            closeDiscMatchLangModal();
+
+            const btn = document.getElementById('batchBtnMatchDisc');
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = I18n.t('matching', '匹配中...');
+
+            // 收集选中的匹配方法
+            const methods = [];
+            if (document.getElementById('matchMethodCrc').checked) methods.push('crc');
+            if (document.getElementById('matchMethodSerial').checked) methods.push('serial');
+            if (document.getElementById('matchMethodName').checked) methods.push('name');
+            if (methods.length === 0) {
+                showNotification(I18n.t('select_at_least_one_method', '请至少选择一种匹配方式'), 'warning');
+                btn.disabled = false;
+                btn.textContent = origText;
+                return;
+            }
+
+            fetch('/api/rom-db/match-by-platform', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ platformIds: platformIds, language: language, methods: methods })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(
+                            I18n.t('batch_match_started', '本地匹配任务已启动（' + langLabel + '），可在任务管理中查看进度'),
+                            'success'
+                        );
+                        clearPlatformSelection();
+                        loadPlatforms();
+                    } else {
+                        showNotification(data.message || I18n.t('match_failed', '匹配失败'), 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Batch disc match error:', err);
+                    showNotification(I18n.t('match_error', '匹配失败: ') + err.message, 'error');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                    updateBatchToolbar();
+                });
         }
 
         // 批量删除
@@ -2669,6 +2783,7 @@
                 .map(cb => cb.value);
             const overwrite = document.getElementById('scrapeOverwrite').checked;
             const onlyMissing = document.getElementById('scrapeOnlyMissing').checked;
+            const preserveLocal = document.getElementById('scrapePreserveLocal').checked;
             
             console.log('scrapeScope:', scrapeScope);
             console.log('language:', language);
@@ -2698,7 +2813,8 @@
                 scrapeAllMedia: scrapeAllMedia,
                 searchMode: searchMode,
                 overwrite: overwrite,
-                onlyMissing: onlyMissing
+                onlyMissing: onlyMissing,
+                preserveLocalData: preserveLocal
             };
             
             // 立即关闭弹窗
@@ -4386,5 +4502,44 @@
     </script>
 
     <div th:replace="~{fragments/layout :: common-scripts}"></div>
+
+    <!-- 光盘编号匹配语言选择弹窗 -->
+    <div id="discMatchLangModal" class="pm-modal" style="display:none;">
+        <div class="pm-modal-content" style="max-width: 420px;">
+            <span class="close" onclick="closeDiscMatchLangModal()">&times;</span>
+            <h2 style="color: #00ffff; font-size: 18px; margin-bottom: 16px;" data-i18n="disc-match-lang-title">选择匹配语言</h2>
+            <p id="discMatchLangDesc" style="color: #ccc; font-size: 14px; margin-bottom: 8px;"></p>
+            <p style="color: #ccc; font-size: 13px; margin-bottom: 16px; line-height: 1.6;" data-i18n="disc-match-lang-desc">说明：① 编号提取最快（毫秒级），但不校验 ROM 完整性/准确性，不校验是否为标准 ROM；② CRC 匹配最准确，但需全文件计算，速度很慢；③ 文件名匹配仅从文件名中提取编号或做名称模糊匹配。匹配顺序：编号 → CRC → 文件名。</p>
+            <div class="form-group">
+                <label data-i18n="select-lang">选择语言</label>
+                <select id="discMatchLangSelect" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(0,255,255,0.3); background: rgba(0,0,0,0.5); color: #fff; font-size: 14px;">
+                    <option value="en" data-i18n="english">英文</option>
+                    <option value="ja" data-i18n="japanese">日文</option>
+                    <option value="cn" data-i18n="chinese">中文</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+                <label style="color: #ccc; font-size: 13px; margin-bottom: 8px; display: block;" data-i18n="match_methods_label">匹配方式（按顺序依次尝试）</label>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;" id="matchMethodSerialLabel">
+                        <input type="checkbox" id="matchMethodSerial" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
+                        <span data-i18n="match_method_serial">编号提取（从 ROM 内部提取标识符，如 SYSTEM.CNF/卡带头部；最快但不校验 ROM 完整性）</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
+                        <input type="checkbox" id="matchMethodCrc" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
+                        <span data-i18n="match_method_crc">CRC 匹配（计算文件哈希，最准确但全文件计算很慢）</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
+                        <input type="checkbox" id="matchMethodName" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
+                        <span data-i18n="match_method_name">文件名匹配（从文件名中提取编号，或名称模糊匹配）</span>
+                    </label>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" onclick="confirmDiscMatchLang()" class="action-btn btn-primary" style="margin-right: 8px;" data-i18n="confirm">确定</button>
+                <button type="button" onclick="closeDiscMatchLangModal()" class="action-btn" data-i18n="cancel">取消</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

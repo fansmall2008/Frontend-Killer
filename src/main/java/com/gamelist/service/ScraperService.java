@@ -110,4 +110,12 @@ public interface ScraperService {
      * @return 是否成功
      */
     boolean executeMediaDownloadTask(ScrapeTask task);
+
+    /**
+     * 从 SS 候选中应用指定游戏元数据到本地游戏，并确认匹配 (matched=true).
+     * @param gameId 本地游戏 ID
+     * @param ssGameId SS 游id (字符串，避免前端精度丢失)
+     * @return 操作结果 (success / message)
+     */
+    Map<String, Object> applySsCandidate(Long gameId, String ssGameId);
 }

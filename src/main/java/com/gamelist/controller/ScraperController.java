@@ -194,6 +194,27 @@ public class ScraperController {
     }
     
     /**
+     * 从 SS 候选中采用指定游戏，将元数据落库并确认匹配。
+     * body: { gameId, ssGameId }
+     */
+    @PostMapping("/apply-ss-candidate")
+    public ResponseEntity<?> applySsCandidate(@RequestBody Map<String, Object> request) {
+        try {
+            if (request.get("gameId") == null || request.get("ssGameId") == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "缺少 gameId 或 ssGameId"));
+            }
+            Long gameId = Long.parseLong(request.get("gameId").toString());
+            String ssGameId = request.get("ssGameId").toString();
+            Map<String, Object> result = scraperService.applySsCandidate(gameId, ssGameId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("应用 SS 候选失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "应用 SS 候选失败: " + e.getMessage()));
+        }
+    }
+
+    /**
      * 下载单个游戏的媒体文件
      */
     @PostMapping("/downloadMedia")

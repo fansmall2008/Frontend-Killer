@@ -61,6 +61,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public BackgroundTask createTask(String type, String description) {
+        return createTask(type, description, false);
+    }
+
+    @Override
+    public BackgroundTask createTask(String type, String description, boolean cancellable) {
         initializeTaskIdGenerator();
         BackgroundTask task = new BackgroundTask();
         task.setType(type);
@@ -71,6 +76,7 @@ public class TaskServiceImpl implements TaskService {
         task.setTotalItems(0);
         task.setStartTime(new Date());
         task.setDescription(description);
+        task.setCancellable(cancellable);
         task.setLog("" + new Date() + " - 任务已创建\n");
 
         taskMapper.insert(task);
@@ -183,8 +189,69 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void deleteTask(Long taskId) {
+        BackgroundTask task = getTaskFromCacheOrDb(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("任务不存在: " + taskId);
+        }
+        
+        // 禁止删除正在运行的任务
+        if ("RUNNING".equals(task.getStatus())) {
+            throw new IllegalStateException("无法删除正在运行的任务，请先停止任务");
+        }
+        
         taskMapper.deleteById(taskId);
         taskCache.remove(taskId);
+    }
+
+    @Override
+    public int deleteTasks(List<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return 0;
+        }
+        
+        int deletedCount = 0;
+        for (Long taskId : taskIds) {
+            try {
+                deleteTask(taskId);
+                deletedCount++;
+            } catch (IllegalStateException e) {
+                // 跳过正在运行的任务
+                continue;
+            }
+        }
+        return deletedCount;
+    }
+
+    @Override
+    public boolean cancelTask(Long taskId) {
+        BackgroundTask task = getTaskFromCacheOrDb(taskId);
+        if (task == null) {
+            return false;
+        }
+        
+        // 只有可取消且正在运行的任务才能被取消
+        if (!task.isCancellable() || !"RUNNING".equals(task.getStatus())) {
+            return false;
+        }
+        
+        task.setStatus("CANCELLED");
+        task.setMessage("任务已被用户取消");
+        task.setEndTime(new Date());
+        updateTaskLog(taskId, "任务已被用户取消");
+        
+        taskMapper.update(task);
+        taskCache.put(taskId, task);
+        
+        // 发送取消通知
+        try {
+            notificationService.send(
+                    task.getDescription() != null ? task.getDescription() : task.getType(),
+                    "任务已取消", "warning", "task");
+        } catch (Exception e) {
+            // 通知失败不影响取消操作
+        }
+        
+        return true;
     }
 
     @Override
