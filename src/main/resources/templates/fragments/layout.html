@@ -7,7 +7,7 @@
         <div class="logo">FK</div>
         <div>
             <h1>FRONTEND<br>-KILLER</h1>
-            <span class="brand-sub">v1.2 · METADATA MGR</span>
+            <span class="brand-sub">v1.3.0 · METADATA MGR</span>
         </div>
     </div>
     <nav class="sidebar-nav">
@@ -52,6 +52,9 @@
         <div class="nav-section-label">▸ SYSTEM</div>
         <a class="nav-item" th:classappend="${activePage == 'settings'} ? 'active'" th:href="@{/system-settings}">
             <span class="icon">⚙️</span> <span data-i18n="nav_settings">系统设置</span>
+        </a>
+        <a class="nav-item" th:classappend="${activePage == 'about'} ? 'active'" th:href="@{/about}">
+            <span class="icon">ℹ️</span> <span data-i18n="nav_about">关于与版权</span>
         </a>
     </nav>
     <div class="sidebar-footer">

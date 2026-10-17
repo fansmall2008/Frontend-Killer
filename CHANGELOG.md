@@ -2,11 +2,12 @@
 
 ## [Unreleased]
 
-## [1.3] - In Development
+## [1.3.0] - 2026-10-17
 
 > Headline theme: **Local ROM matching** — import libretro-database (DAT/RDB) and ClrMamePro data to identify ROMs offline, speeding up scraping and improving match accuracy before ever hitting the ScreenScraper API.
 
 ### Added
+- **Fast Local Matching** — identify ROMs offline against the local `rom_db` before ever calling ScreenScraper. Whitelisted systems (those exposing a reliable in-ROM identifier) take the millisecond-level serial / cartridge-header path and return instantly; every other system falls back to whole-file CRC32. It serves two purposes: users who don't want to scrape can quickly match local game data (basic info only), and successfully identified games automatically carry the authoritative CRC/serial into scraping — higher hit rate, fewer wasted API calls.
 - **rom_db local matching database** (`V1.0.22__rom_db.sql`, `V1.0.24__rom_db_metadata.sql`, `V1.0.25__rom_db_md5_sha1.sql`, `V1.0.26__romdb_multilang_name.sql`)
   - Single `rom_db` table unifying cartridge platforms (CRC32) and disc platforms (serial), with standard EN/JP/CN game names, region, developer, publisher, release year, genre, MD5/SHA1
   - Data sources: libretro-database No-Intro + Redump DAT + RDB, and ClrMamePro DAT (`ClrMameProDatParser`)
@@ -45,12 +46,21 @@
   - Cartridge platforms additionally read headers from inside `.zip` (inner ROM entry); Sega disc platforms do not unwrap `.zip`.
   - **New in 1.3:** Dreamcast `.cdi` (DiscJuggler images are uncompressed but IP.BIN sits at an arbitrary depth up to hundreds of MB → full-file magic scan) and `.gdi` (GD-ROM text index parsed, every data-track `.bin` scanned for the magic); Dreamcast serial offset corrected to `magic+0x40` (Saturn/MegaCD remain `+0x20`). Nintendo handheld/disc **NDS (15)** / **3DS (17)** / **Wii (16)** added: NDS reads the 4-byte game code at 0x0C, 3DS scans the first 64 KB for the NCSD product code, Wii reads the disc-header game ID (raw `.iso` at 0x00, or `.wbfs` at 0x200 behind the 512-byte WBFS header) and matches on the 4-byte code — verified against real NAS libraries (NDS 15/15, Wii-WBFS 15/15 matched; 3DS misses only where the title is absent from the local rom_db, not an extraction failure). Wii (16) moved from blacklist to whitelist.
   - **Not yet supported:** `.chd` disc images — planned (needs a Java CHD hunk reader; see roadmap). Blacklist (still blocked from local matching): PC-FX (72), PCE-CD (114), Neo Geo CD (70), 3DO (29), PSP (61).
-- **Blacklist / whitelist matching configuration** (`RomDbMatchingConfig`)
-  - Whitelist: systems with reliable in-ROM identifiers (SYSTEM.CNF/PARAM.SFO) go the serial path; blacklist: disc systems without reliable serial extraction are blocked from local matching (avoids costly whole-file CRC32); default: cartridge/arcade use CRC32
+- **Blacklist / whitelist matching configuration** (`RomDbMatchingConfig`) — a three-tier routing table that decides *how* (or whether) each system is matched locally
+  - **Why a black/white list exists:** a whole-file CRC32 on a disc image costs 30–60s per file over NAS, and a hacked/translated ROM's CRC never matches a standard dump anyway (its metadata stays empty, so ScreenScraper is still required). Systems that expose a reliable in-ROM identifier are therefore fast-tracked to the millisecond-level serial/header path (**whitelist**), while disc systems with *no* reliable internal identifier are blocked from local matching entirely (**blacklist**) to avoid pointless full-file hashing.
+  - **Whitelist (16 systems — serial / header extraction path):**
+    - Disc: PlayStation (57, SYSTEM.CNF), PlayStation 2 (58, SYSTEM.CNF), PlayStation 3 (59, PARAM.SFO), GameCube (13, 6-byte header game ID)
+    - Sega disc (IP.BIN magic): Saturn (22, magic+0x20), Mega-CD (20, magic+0x20), Dreamcast (23, magic+0x40; also `.cdi`/`.gdi`)
+    - Cartridge (header ID): Game Boy (9), Game Boy Color (10), Game Boy Advance (12), Nintendo 64 (14), Genesis / Mega Drive (1), SNES / SFC (4)
+    - Nintendo handheld / disc (new in 1.3): Nintendo DS (15, game code @0x0C), Nintendo 3DS (17, NCSD product code), Wii (16, disc-header game ID; `.iso` @0x00 / `.wbfs` @0x200)
+  - **Blacklist (5 systems — local matching blocked):** PC-FX (72), PC Engine CD-ROM (114), Neo Geo CD (70), 3DO (29), PSP (61) — all disc-based with no reliable internal serial extraction
+  - **Default:** every other cartridge / arcade system falls back to whole-file CRC32
+  - **Strategy & precedence:** the blacklist is an absolute block (checked first — hides the UI button and rejects the API call); the whitelist routes to serial/header extraction; all others use CRC32. Within an enabled run the fixed order is serial → CRC → filename.
 - **Platform mapping layer** (`RomDbPlatformMapping`): normalizes libretro-database platform names to ScreenScraper `systemId`
 - **REST API** (`RomDbController`): `/api/rom-db/lookup` (unified serial→CRC with 5-level fallback), `/lookup/serial`, `/search`, `/check/{systemId}` (support/blacklist/whitelist status), `/import-dat`, and async batch match by platform
 - **Front-end “本地匹配” (Local Match) action** on game-list: per-system support check, button tooltip distinguishes serial vs CRC matching; batch match runs as a background task (`ROM_DB_MATCH`, viewable in task management)
 - `matched` flag on game (`V1.0.23__game_matched.sql`) records local-match results; `scrape_task.task_id` (`V1.0.27__scrape_task_add_task_id.sql`) links match tasks to the background task queue
+- **Fuzzy match + manual confirmation** (`/api/rom-db/fuzzy-candidates`, `/api/rom-db/fuzzy-confirm`): after exact matching, still-unmatched games can be run through a candidate list (cleaned filename → `searchBySystemAndName`, up to 10 candidates each, batch capped at 30 games); the user picks the correct entry in `fuzzyMatchModal` before it is written back — no silent auto-fill, so near-miss titles (e.g. Contra vs Super Contra) are never force-matched. The filename-cleanup rule (strip extension/brackets, underscore→space, lowercase) is shared as a common utility.
 - **Per-operation matching-method selection** for local match (game-list + platform-management modals)
   - Three checkboxes: serial extraction / CRC / filename match; unchecked methods are skipped entirely (no I/O at all)
   - Fixed execution order serial → CRC → filename applies only among checked methods; filename serial regex extraction moved into the filename branch
@@ -62,11 +72,12 @@
 
 ### Fixed
 - `SsNameNormalizer` regex typo caused `ExceptionInInitializerError`, hanging ScreenScraper scraping for ~2 weeks; fixed the character-class pattern so class initialization succeeds again
+- Rich-text i18n entries were being flattened to a single line: `I18n.updatePage()` assigned `textContent`, wiping all `<br/>`/`<b>`/`<a>` markup — the ROM-DB import tip lost its DAT/RDB path instructions and the libretro-database attribution link. Added a `data-i18n-html` attribute rendered via `innerHTML`, restored the full tri-lingual tip, and expanded the acknowledgment (libretro for data integration + No-Intro / Redump / TOSEC / ClrMamePro / MAME for the data sources)
 
-### Planned for 1.3 (from roadmap — fill in as completed)
-- [ ] Brand-new onboarding / interactive guide
-- [ ] Further multi-threading optimization across scrape / media download / import-export
-- [ ] Bug fixes carried over from 1.2
+### Planned for 1.4–1.5
+- [ ] **Full-workflow onboarding / interactive guide** — a step-by-step walkthrough of the import → match → scrape → media → export pipeline for first-time users
+- [ ] **Button / feature help** — inline explanations for every action button and dialog, making the (admittedly convoluted) feature set self-documenting
+- [ ] **Possible: archive extraction & format conversion** — decompress packed ROMs and convert between image formats (e.g. ISO ↔ CHD, GDI/BIN ↔ CHD); scope still under evaluation
 
 ## [1.2] - 2026-09-28
 

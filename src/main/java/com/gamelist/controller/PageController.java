@@ -182,4 +182,13 @@ public class PageController {
         model.addAttribute("pageTitle", "DATABASE_MANAGER");
         return "database-manager";
     }
+
+    /**
+     * 关于与版权页面
+     */
+    @GetMapping("/about")
+    public String about(Model model) {
+        model.addAttribute("pageTitle", "ABOUT");
+        return "about";
+    }
 }

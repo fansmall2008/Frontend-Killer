@@ -6,31 +6,20 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
-## What's New in 1.2
+## What's New in 1.3.0
 
-- **Unified Scraping Task Pool & Dynamic Threads** - Completely redesigned scraping architecture: database-backed task queue (`scrape_task`) replaces in-memory thread management; `ThreadPoolExecutor` with runtime dynamic resizing (no restart when SS maxThreads changes); three-level priority scheduling (user scrape > media download > arcade auto-download); SS quota auto-validation on every API call; app restart auto-recovers interrupted tasks
-- **Theme Package System** - Customizable UI themes with `data/themes/{themeId}/theme.json` configuration; supports colors (dark/light mode), custom fonts, and per-theme sound effects; theme grid UI in system settings with live preview cards
-- **Scraper Stability Fix** - Fixed scraping hang/deadlock caused by `ThreadResourceManager` counter corruption; media downloads now use an independent `Semaphore` decoupled from the shared game-info thread pool
-- **Media Download Performance** - Media download throughput improved with 64KB buffer (was 8KB) and independent concurrency control (3 parallel downloads) that no longer competes with game info scraping threads
-- **Template Variables (v3 `variables` block)** - Optional global variables declared in templates, set by the user before import/export; shared across `{var}` placeholders and expressions
-- **Searchable Multi-Select Filters** - Developer, publisher and genre (two-level with sub-genres) filters in the game list now use searchable multi-select dropdowns; genre filtering now works correctly for multi-genre games and scrape-status filtering offers four states
-- **Notification Center** - Real-time task notifications via SSE push, with unread badge and auto-created alerts on task completion/failure
-- **Scraper Media Path Restructure** - New storage layout keyed by ScreenScraper system/game ID (`data/scraper/games/{ssSystemId}/{ssGameId}/`), with local-file reuse to skip already-downloaded media
-- **Batch Aggregation Endpoints** - Single GROUP BY queries replace N+1 COUNT/statistics calls for media-download summaries and platform stats
-- **Template Media-Type Preset** - Scrape modals can preset media types directly from an export template
-- **Thymeleaf Migration & UI Polish** - Unified server-side layout, icon-based action buttons, and row-click editing across pages
-- **Genre Dialect Mapping** - Term mapping system (`term_mapping` table) with 261 seed entries normalizes genre synonyms across languages and frontends (e.g. "Beat'em Up" / "act" → unified target); `map()` and `mapFirst()` expression functions available in v3 export templates for genre subdirectory generation; Racing/Driving dialect mapping added
-- **Export & Filter Fixes** - `poor_quality` scrape-status filter redefined to check metadata completeness (desc/developer/publisher/genre/releasedate) instead of media presence
-- **Performance & Stability Fixes** - Fixed import performance, SSE zombie connections, missing xz dependency, and H2 summary bugs
-- **Internationalization** - Continued Chinese / English / Japanese coverage across pages
-- **Batch Platform Operations** - Checkbox + always-visible toolbar on platform management page for batch scrape, translate, swap translations, scan stats, and delete across multiple platforms at once
-- **Failed Task Viewer** - Click failed count on the media-download page to open a styled modal showing failed tasks with game links (jump to game-edit), platform info, error messages, and one-click retry
-- **Separate Scrape Progress Tracking** - Game info and media download progress now displayed as two independent cards with categorized counts (pending/running/completed/failed)
-- **Fixed Table Scroll & Sticky Headers** - Game list and platform management tables scroll within fixed-height containers with sticky table headers, keeping toolbar and search area always visible
-- **Empty Field Filters** - Search for games with empty name, description, genre, players, publisher, or rating fields via new checkbox filters in the search area
-- **Search Auto-fill from Filename** - Game edit page search modal now pre-fills with the ROM filename (without extension) when the game name is empty
+- **Fast Local Matching** - Identify ROMs offline against a local `rom_db` before ever calling ScreenScraper. Whitelisted systems take the millisecond-level serial / cartridge-header path; everything else falls back to whole-file CRC32. Match local game data without scraping, or auto-carry the authoritative CRC/serial into scraping for a higher hit rate and fewer wasted API calls
+- **rom_db Local Matching Database** - Import libretro-database (No-Intro + Redump DAT/RDB) and ClrMamePro data. A single unified table covers cartridge (CRC32) and disc (serial) platforms with multilang names and incremental merge import (same CRC only fills empty fields, never overwrites)
+- **Multi-Tier Matching Pipeline** - L0 filename serial → L1 CRC32 → L2 disc serial (SYSTEM.CNF / PARAM.SFO / IP.BIN / GameCube ID) → L3 cartridge header → name fallback; ZIP/7z use the inner ROM entry CRC
+- **Black/White-List Routing** - 16 whitelist systems fast-tracked to serial/header extraction, 5 disc systems with no reliable identifier blocked from local matching, all others on CRC32; fixed order serial → CRC → filename
+- **Per-Operation Method Selection** - Serial / CRC / filename checkboxes on the match modals; unchecked methods are skipped entirely with no I/O
+- **Fuzzy Match + Manual Confirmation** - Still-unmatched games get a candidate list the user confirms before write-back, so near-miss titles are never force-matched
+- **Manual Data-Import UI** - Copy `.dat`/`.rdb` files under `data/rom-db/`, trigger import from system settings with a live progress bar, plus a confirm-guarded “clear match database” reset
+- **About & Copyright Page** - New tri-lingual (中文 / English / 日本語) page covering the development story, acknowledgments, copyright notice and code-usage policy
+- **Scraper Accuracy** - The scraping pipeline now queries rom_db first and substitutes the authoritative CRC/serial before hitting ScreenScraper
+- **Fixed** - `SsNameNormalizer` regex hang; rich-text i18n flattening that wiped the libretro attribution (now rendered via `data-i18n-html`)
 
-> Upgrading from 1.1-RC1? The scraper media directory structure changed, so previously scraped media files may not be reused directly and may require re-scraping.
+> Local matching needs the rom_db data, which is **not** bundled in any package - download libretro-database / ClrMamePro data yourself and import it from system settings.
 
 ---
 
@@ -101,7 +90,7 @@ Run: `docker compose up -d`
 #### Option 3: JAR File
 Requires Java 17+.
 ```bash
-java -jar webGamelistOper-1.2.jar
+java -jar webGamelistOper-1.3.0.jar
 ```
 
 #### Option 4: Windows EXE (No Java Required)
@@ -184,7 +173,7 @@ services:
 #### 方式三：JAR 包运行
 需要 Java 17+。
 ```bash
-java -jar webGamelistOper-1.2.jar
+java -jar webGamelistOper-1.3.0.jar
 ```
 
 #### 方式四：Windows EXE（无需 Java）
@@ -267,7 +256,7 @@ services:
 #### オプション3：JARファイル
 Java 17+ が必要です。
 ```bash
-java -jar webGamelistOper-1.2.jar
+java -jar webGamelistOper-1.3.0.jar
 ```
 
 #### オプション4：Windows EXE（Java不要）
@@ -296,7 +285,6 @@ http://localhost:8080
 - [x] Published to unRAID Community Applications & fnOS app stores
 
 ### Planned
-- [ ] Multi-file game support (e.g., DOS games) - treat entire game folders as entries
 - [ ] Folder export configuration with configurable parent directory levels
 - [ ] Advanced game filtering options
 - [ ] Statistics dashboard for game collection analytics
@@ -304,17 +292,19 @@ http://localhost:8080
 
 ---
 
-## 🔮 Coming in 1.3
+## ✅ New in 1.3
 
-- **💿 Disc-Based Platform Scraping Overhaul** - Smarter game identification for ISO/CHD/BIN disc images (PS1, PS2, Saturn, Dreamcast, PCE-CD, MD-CD, etc.): instead of relying on fragile whole-file CRC32 (which changes with even a single byte), the scraper will now extract stable identifiers — volume labels (ISO9660 PVD) and game serial numbers (e.g. SLUS-00001) — via a layered strategy: filename regex → ISO9660 sector read → system-specific parsing (SYSTEM.CNF, IP header) → CRC fallback. Supports `.iso`, `.bin+.cue`, `.chd` (filename-only), and raw `.bin`
-- **🆕 Brand New Onboarding Guide** - A completely redesigned feature walkthrough with interactive tutorials, helping new users get up to speed in minutes instead of hours
-- **⚡ Multi-Threading Further Optimization** - Deeper concurrency improvements across scraping, media download, and import/export pipelines for even better throughput and stability
-- **🐛 Bug Fixes from 1.2** - All known issues reported in 1.2 will be addressed, ensuring a smoother experience
+- **🔍 Local ROM Matching (rom_db)** - Import libretro-database (DAT/RDB) and ClrMamePro data to identify ROMs offline before ever hitting ScreenScraper, with incremental merge import and a unified multi-tier matching pipeline
+- **⚡ Fast Local Matching** - Whitelisted systems with a reliable in-ROM identifier take the millisecond-level serial / cartridge-header path; everything else falls back to whole-file CRC32, and blacklist systems are blocked to avoid pointless hashing
+- **💿 Disc-Based Platform Scraping Overhaul** - Stable identifiers (SYSTEM.CNF, PARAM.SFO, IP.BIN, cartridge headers) instead of fragile whole-file CRC32 for PS1/PS2/PS3, GameCube, Saturn/Mega-CD/Dreamcast, GB/GBC/GBA/N64, NDS/3DS/Wii and more
+- **🎯 Fuzzy Match + Manual Confirmation** - Near-miss titles get a candidate list the user confirms before write-back, so nothing is force-matched
+- **🐛 Bug Fixes from 1.2** - Including the SsNameNormalizer hang and rich-text i18n flattening that wiped the libretro attribution
 
-## 🔮 Coming in 1.4
+## 🔮 Coming in 1.4–1.5
 
-- **🧭 Smart System Matching & Auto-Binding** - When a platform has no scraper system bound, the app will automatically detect and suggest matching systems via fuzzy matching (Levenshtein + alias pool + extension analysis). Users can confirm, manually select, or skip — with a "remember this mapping" option that builds a self-learning alias dictionary over time. After binding, auto-scrape kicks in if the platform has unscraped games
-- **📂 Multi-File Game Support** - Treat entire game folders as single entries (DOS games, multi-disc titles), with folder-level CRC/media strategies
+- **🧭 Full-Workflow Onboarding Guide** - A step-by-step walkthrough of the import → match → scrape → media → export pipeline for first-time users
+- **❓ Button / Feature Help** - Inline explanations for every action button and dialog, making the feature set self-documenting
+- **📦 Possible: Archive Extraction & Format Conversion** - Decompress packed ROMs and convert between image formats (e.g. ISO ↔ CHD, GDI/BIN ↔ CHD); scope still under evaluation
 
 ---
 
@@ -448,4 +438,4 @@ Without your effort and support, this idea would never have existed, let alone c
 
 ---
 
-**Version**: 1.2
+**Version**: 1.3.0

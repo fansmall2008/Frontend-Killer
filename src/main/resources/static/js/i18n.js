@@ -57,6 +57,15 @@ const I18n = {
       }
     });
 
+    // Support data-i18n-html for rich-text entries (renders HTML: <br/>, <b>, <a>, etc.)
+    document.querySelectorAll('[data-i18n-html]').forEach(element => {
+      const key = element.getAttribute('data-i18n-html');
+      const translation = this.t(key);
+      if (translation && translation !== key) {
+        element.innerHTML = translation;
+      }
+    });
+
     // Support data-i18n-placeholder for input placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
       const key = element.getAttribute('data-i18n-placeholder');

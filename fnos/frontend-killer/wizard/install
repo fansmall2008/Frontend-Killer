@@ -1,5 +1,14 @@
 [
     {
+        "stepTitle": "关于 Frontend-Killer",
+        "items": [
+            {
+                "type": "tips",
+                "helpText": "<b>Frontend-Killer</b> 是一款 Web 端复古游戏清单管理工具，一站式完成游戏元数据的导入、编辑、本地匹配、刮削、媒体下载与导出。<br/><br/><b>· 五种发布形态</b>：Docker 镜像、可执行 JAR、Windows 原生 EXE、飞牛 fnOS fpk（本包）、unRAID 模板，数据均持久化落盘、开箱即用。<br/><br/><b>· 核心功能</b>：<br/>　- 多格式导入/导出：Pegasus、ES-DE、RetroBat、EmuELEC、Lakka、Skraper 等主流前端；<br/>　- 本地匹配：导入 libretro-database 数据后离线识别 ROM，毫秒级命中，可少刮削甚至不刮削；<br/>　- ScreenScraper 刮削：无人值守、多线程并行抓取游戏信息与媒体文件；<br/>　- 可视化游戏编辑器、批量平台操作、失败任务重试、通知中心实时推送；<br/>　- v3 模板引擎（高度自定义导入导出规则）、主题换肤、中/英/日三语。<br/><br/><b>· 安装后如何访问</b>：应用监听 <b>4448</b> 端口，浏览器打开 http://NAS_IP:4448 即可进入 Web 界面。<br/><br/><b>· 常见提示</b>：<br/>　- 下一步的数据/ROM/输出目录请填你自己存储空间的<b>绝对路径</b>（以 / 开头）；<br/>　- 若存储卷不是 /vol1（如 /vol2），请把默认路径里的 /vol1 改成实际盘符；<br/>　- PUID/PGID 控制落盘文件属主，飞牛默认账户为 1000，属主不同请填对应 ID，留空则以 root 运行；<br/>　- <b>本包不含任何游戏 ROM，也不含 libretro 数据库文件</b>；本地匹配所需的 libretro-database 数据需你自行下载后，在系统设置页导入。"
+            }
+        ]
+    },
+    {
         "stepTitle": "配置数据目录",
         "items": [
             {

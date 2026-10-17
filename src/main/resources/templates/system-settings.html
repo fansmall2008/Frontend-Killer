@@ -161,13 +161,14 @@
                 <div id="romDbProgressText" style="font-size:13px;"></div>
                 <div id="romDbProgressDetail" style="font-size:12px;color:#888;margin-top:3px;"></div>
             </div>
-            <p class="section-tip" data-i18n="rom_db_import_tip">
+            <p class="section-tip" data-i18n-html="rom_db_import_tip">
                 将 libretro-database 的数据文件复制到对应目录后，点击上方按钮手动导入。<br/>
                 <b>DAT</b>：将 metadat/ 下所有 .dat 文件复制到 <code>data/rom-db/metadat/</code>（自动识别 redump/no-intro/serial 格式，递归扫描子目录）<br/>
                 <b>RDB</b>：将 rdb/ 下的 .rdb 文件复制到 <code>data/rom-db/rdb/</code>（含开发商/发行商/年份等额外元数据）<br/>
                 <b>ℹ 导入为增量合并模式</b>：同 CRC 只补充空字段，不覆盖已有数据。可多次导入不同来源的数据。<br/>
                 <b>清零匹配库</b>：手动清空所有 rom_db 数据，操作不可逆，请谨慎使用。<br/>
-                数据来源：<a href="https://github.com/libretro/libretro-database" target="_blank">libretro-database</a> (CC BY-SA 4.0)
+                数据来源：<a href="https://github.com/libretro/libretro-database" target="_blank">libretro-database</a> (CC BY-SA 4.0)<br/>
+                感谢 libretro 小组的数据整合，以及 No-Intro、Redump、TOSEC、ClrMamePro、MAME 等小组提供的数据源。
             </p>
         </div>
         

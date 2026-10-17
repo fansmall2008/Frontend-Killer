@@ -7,9 +7,9 @@ echo 正在启动WebGamelistOper...
 echo JVM参数: %JAVA_OPTS%
 
 echo 检查jar文件是否存在...
-if exist "target\webGamelistOper-1.2.jar" (
+if exist "target\webGamelistOper-1.3.0.jar" (
     echo 启动应用...
-    java %JAVA_OPTS% -jar target\webGamelistOper-1.2.jar
+    java %JAVA_OPTS% -jar target\webGamelistOper-1.3.0.jar
 ) else (
     echo 错误: 找不到jar文件，请先编译项目
     echo 执行: mvn clean package

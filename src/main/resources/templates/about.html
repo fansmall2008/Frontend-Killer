@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="about_title">关于与版权 - Frontend Killer</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <script src="/js/i18n.js"></script>
+    <style>
+        .about-container { max-width: 920px; margin: 0 auto; padding: 24px 20px 60px; }
+        .about-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; }
+        .about-brand { font-size: 30px; font-weight: 800; letter-spacing: .5px; }
+        .about-ver { color: var(--text-muted, #9aa0b4); font-size: 14px; margin-top: 4px; }
+        .lang-switch select { padding: 7px 12px; border-radius: 8px; background: var(--card-bg, #2a2a3e); color: var(--text-color, #e6e6f0); border: 1px solid rgba(255,255,255,.15); font-size: 14px; cursor: pointer; }
+        .about-section { background: var(--card-bg, #1e1e2e); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 22px 26px; margin: 18px 0; }
+        .about-section h2 { margin: 0 0 14px; font-size: 20px; border-left: 4px solid var(--primary, #6c5ce7); padding-left: 12px; }
+        .about-section p { line-height: 1.9; color: var(--text-color, #e6e6f0); margin: 0 0 12px; }
+        .about-section p:last-child { margin-bottom: 0; }
+        .about-section a { color: #74b9ff; text-decoration: none; }
+        .about-section a:hover { text-decoration: underline; }
+        .about-section b { color: var(--text-color, #fff); }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('about')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('ABOUT')}"></div>
+            <main class="content">
+                <div class="about-container">
+                    <div class="about-header">
+                        <div>
+                            <div class="about-brand">Frontend Killer</div>
+                            <div class="about-ver" data-i18n="version">版本：1.3.0</div>
+                        </div>
+                        <div class="lang-switch">
+                            <select id="aboutLangSelect" onchange="I18n.setLanguage(this.value)">
+                                <option value="zh-CN">中文</option>
+                                <option value="en-US">English</option>
+                                <option value="ja-JP">日本語</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="about-section">
+                        <h2 data-i18n="about_story_heading">开发故事</h2>
+                        <div data-i18n-html="about_story_html">
+                            <p>这个故事要从 2023 年讲起。最初只是想写个小脚本，快速转换 Pegasus 和 ES-DE 平台的游戏集合；但转换的耗时与自动化问题实在让人抓狂，干脆把它改成了一个可部署在 NAS 上的 Java Web 项目——顺便还能练练 Struts。这便是软件的雏形。虽然如今只剩下理念，代码早已全部重写。</p>
+                            <p>2024 年，AI 开始流行。我借助 AI 建立了第二个大版本，软件正式命名为 <b>webGamelistOper</b>——最初的想法很朴素，只是编辑并转换各平台的游戏列表。当时的功能也仅限于导入列表进行编辑、合盘等。</p>
+                            <p>2025 年，AI 编程逐渐普及。我评估后借助 Trae 将代码彻底迁移到 Spring Boot 架构，软件也慢慢演变成一个复古游戏管理平台：这一时期加入了大量平台与游戏的修改功能，ScreenScraper 接口刮削被正式列入议程，还新增了多语种支持与 AI 翻译。</p>
+                            <p>2025 年末到 2026 年上半年，为了解决用户自定义导入导出的需求，我们把导入和导出功能全部模块化，加入了模板自定义功能：自建了一套支持参数、操作、常量的可定制模板系统，并一路迭代到 v3 版本——所有字段映射、表达式和落盘规则都写在 JSON 模板里，Java 只负责执行，如今已能覆盖 Pegasus、ES-DE、RetroBat、EmuELEC、Lakka、Skraper 等各种前端与设备的数据导入导出需求。</p>
+                            <p>也是在这一年，我一方面持续打磨 ScreenScraper 接口的匹配，但对速度和命中率始终不太满意——这不是 ScreenScraper 的问题，而是 ROM 标准化程度过低等现实所致的——于是增加了本地匹配功能，允许用户导入 libretro-database 以及 ClrMamePro 数据，并用各种手段提升匹配命中率。另一方面，我把开发工具换成了 Qoder：没什么特别针对性的考量，只是它给出的 UI 方案最酷。软件也因此进行了第二次大迁移，名字改成了 <b>Frontend-Killer</b>。</p>
+                            <p>我一直致力于增加软件的可读性和引导，但功能实在太过繁杂，计划在 1.4 版对这一状况进行全面评估并简化逻辑。</p>
+                        </div>
+                    </div>
+
+                    <div class="about-section">
+                        <h2 data-i18n="about_ack_heading">致谢</h2>
+                        <div data-i18n-html="about_ack_html">
+                            <p>感谢大家能容忍我这个蹩脚又繁杂的小软件。感谢仍然致力于复古游戏信息收集的 ScreenScraper，依然在做数据整合更新的 libretro 小组，致力于做出各种方便用户的前端的作者们，以及依然对复古游戏怀有热爱的玩家们。</p>
+                            <p>没有你们的付出与支持，我们不会有这个想法，更走不到今天这一步。最后我就想问一句，我自己的游戏啥时候能整理一下啊。</p>
+                        </div>
+                    </div>
+
+                    <div class="about-section">
+                        <h2 data-i18n="about_copyright_heading">版权声明</h2>
+                        <div data-i18n-html="about_copyright_html">
+                            <p>本项目 <b>Frontend Killer</b>（前身 webGamelistOper）由 fansmall2008 开发，Copyright © 2023–2026 Frontend Killer。软件本体基于 <b>MIT 许可证</b>开源发布。</p>
+                            <p>本软件<b>不包含任何游戏 ROM、镜像或受版权保护的游戏数据</b>；所有游戏信息的版权归原发行商所有。</p>
+                            <p>本地匹配数据库可使用 libretro-database，其中包含了 No-Intro、Redump、TOSEC、ClrMamePro、MAME 等社区的数据源，各自版权归其作者所有。刮削所用的游戏信息与媒体来自 ScreenScraper，版权归 ScreenScraper 及其贡献者。</p>
+                        </div>
+                    </div>
+
+                    <div class="about-section">
+                        <h2 data-i18n="about_policy_heading">代码使用策略</h2>
+                        <div data-i18n-html="about_policy_html">
+                            <p>依据 MIT 许可证，任何人均可<b>自由使用、复制、修改、合并、发布、分发、再许可乃至销售</b>本软件及其副本，只需在所有副本中<b>保留上述版权声明与许可声明</b>。</p>
+                            <p>本软件按“<b>现状</b>”提供，不附带任何明示或暗示的担保；作者不对任何索赔、损害或其他责任负责。</p>
+                            <p>二次分发或衍生作品建议注明“基于 Frontend Killer”；若你使用了内置的 rom_db 数据，请一并遵守 libretro-database（CC BY-SA 4.0）及各数据源的许可条款。</p>
+                            <p>最后——<b>感谢所有怀旧玩家，以及依然在为怀旧游戏默默奉献热情的贡献者们。</b></p>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var sel = document.getElementById('aboutLangSelect');
+                        if (sel) sel.value = (localStorage.getItem('language') || 'zh-CN');
+                    });
+                </script>
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+</body>
+</html>

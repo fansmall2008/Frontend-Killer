@@ -3,6 +3,12 @@ data/database/
 *.db
 *.db.*
 
+# 排除本地匹配数据库（libretro / ClrMamePro 数据，约 467MB，需用户自行下载导入）
+data/rom-db/
+
+# 排除用户导入暂存目录
+data/input/
+
 # 排除刮削缓存（可达数 GB）
 data/scraper/
 

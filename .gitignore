@@ -118,3 +118,15 @@ distribution/exe/
 
 # 浏览器自动截图
 browser_screenshot_*.png
+
+# Root-level test evidence & dev-record scratch files
+/match_modal_*.png
+/verify_*.png
+/ss_*.json
+/ss_*.txt
+/ss_forum_*.md
+/ca_profile.xml
+/ABANDONED.md
+/MEMO.md
+/TODO.md
+/TASK_MANAGEMENT_OPTIMIZATION.md
