@@ -23,6 +23,59 @@
 
 ---
 
+## Local Matching — Supported Systems & Formats
+
+Local matching identifies a ROM by an **in-ROM identifier** (disc serial or cartridge header ID) rather than hashing the whole file. `RomDbMatchingConfig` routes every system through a three-tier black/white list:
+
+- **Whitelist** → millisecond-level serial / cartridge-header extraction (the 16 systems below)
+- **Default** → whole-file **CRC32** (every other cartridge / arcade system)
+- **Blacklist** → local matching **blocked** (disc systems with no reliable internal serial)
+
+The blacklist is an absolute block, checked first (it hides the UI button and rejects the API call). Within an enabled run the fixed order is **serial → CRC → filename**.
+
+### ✅ Whitelist — 16 systems (serial / header extraction)
+
+| System (id) | Identifier source | Supported image formats |
+|---|---|---|
+| PlayStation (57) | SYSTEM.CNF boot line | `.iso` `.bin` `.img` `.cso` `.pbp` |
+| PlayStation 2 (58) | SYSTEM.CNF boot2 line | `.iso` `.bin` `.img` `.cso` `.pbp` |
+| PlayStation 3 (59) | PARAM.SFO `TITLE_ID` | `.iso` `.bin` `.img` |
+| GameCube (13) | header 6-byte game ID | `.iso` `.gcm` `.bin` |
+| Sega Saturn (22) | IP.BIN `SEGA SEGASATURN` → +0x20 | `.bin` `.cue` `.iso` |
+| Sega Mega-CD (20) | IP.BIN `SEGA SEGAMEGADRIVE` → +0x20 | `.bin` `.cue` `.iso` |
+| Sega Dreamcast (23) | IP.BIN `SEGA SEGAKATANA` → +0x40 | `.bin` `.cue` `.iso` `.cdi` `.gdi` |
+| Game Boy (9) | header `0x0134` title | raw `.gb`/`.gbc` + `.zip` (inner entry) |
+| Game Boy Color (10) | header `0x0134` title | raw `.gb`/`.gbc` + `.zip` |
+| Game Boy Advance (12) | header `0xAC` game code | raw `.gba` + `.zip` |
+| Nintendo 64 (14) | header `0x3C` cart ID | raw `.z64`/`.n64`/`.v64` + `.zip` |
+| Genesis / Mega Drive (1) | header `0x180` domestic serial | raw `.bin`/`.md`/`.gen`/`.smd` + `.zip` |
+| SNES / SFC (4) | LoROM `0x7FC0` / HiROM `0xFFC0` internal title | raw `.smc`/`.sfc` + `.zip` |
+| Nintendo DS (15) | header `0x0C` game code (4 bytes) | raw `.nds` + `.zip` (inner entry) |
+| Nintendo 3DS (17) | NCSD header product code (e.g. `CTR-P-A3RP`) | `.3ds` `.cci` |
+| Nintendo Wii (16) | disc-header game ID → 4-byte code (`.iso` @0x00 / `.wbfs` @0x200) | `.iso` `.gcm` `.wbfs` |
+
+> Cartridge platforms also read the header from **inside `.zip`** (inner ROM entry); the Sega disc platforms do not unwrap `.zip`.
+
+### ⛔ Blacklist — 5 systems (local matching blocked)
+
+| System (id) | Reason |
+|---|---|
+| PC-FX (72) | CD-ROM with no standard filesystem — serial cannot be extracted reliably |
+| PC Engine CD-ROM (114) | disc-based, filename regex unreliable |
+| Neo Geo CD (70) | disc-based, filename regex unreliable |
+| 3DO Interactive Multiplayer (29) | disc-based, filename regex unreliable |
+| Sony PSP (61) | UMD disc, filename regex unreliable (internal-file extraction still pending) |
+
+> **Why block them?** A whole-file CRC32 on a disc image costs 30–60s per file over NAS, and a hacked / translated ROM's CRC never matches a standard dump anyway — its metadata stays empty, so ScreenScraper is still required. Blocking these avoids pointless full-file hashing.
+
+### 🔁 Default — every other system
+
+Any cartridge / arcade system not listed above falls back to **whole-file CRC32** against the imported `rom_db`.
+
+> **Not yet supported:** `.chd` disc images (needs a Java CHD hunk reader — on the roadmap). The `rom_db` data itself is **not** bundled in any package: download libretro-database / ClrMamePro data and import it from system settings.
+
+---
+
 ## English
 
 ### Features
