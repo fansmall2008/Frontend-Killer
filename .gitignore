@@ -119,7 +119,11 @@ distribution/exe/
 # 浏览器自动截图
 browser_screenshot_*.png
 
+# 独立离线工具（ROM_DB DAT 导出 / 翻译小工具），不参与构建与发行，也不进版本库
+/tools/
+
 # Root-level test evidence & dev-record scratch files
+/bugtest_*.png
 /match_modal_*.png
 /verify_*.png
 /ss_*.json
@@ -130,3 +134,8 @@ browser_screenshot_*.png
 /MEMO.md
 /TODO.md
 /TASK_MANAGEMENT_OPTIMIZATION.md
+/build-exe.log
+/build-exe.err
+/build-exe-output*.log
+/docker-build*.log
+/docker-build*.err

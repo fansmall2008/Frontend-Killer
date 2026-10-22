@@ -2178,6 +2178,8 @@ public class ScraperServiceImpl implements ScraperService {
                 games = gameService.getGamesByPlatformId(request.getPlatformId());
                 break;
             case "batch":
+                // 前端“应用于所有搜索结果”发送的是嵌套 filters，先解包到扁平字段
+                request.flattenFilters();
                 if (request.getGameIds() != null && !request.getGameIds().isEmpty()) {
                     games = request.getGameIds().stream()
                         .map(gameService::getGameById)
@@ -2200,7 +2202,9 @@ public class ScraperServiceImpl implements ScraperService {
                     );
                     logger.info("筛选模式刮削: 匹配到 {} 个游戏", games.size());
                 } else {
-                    games = new ArrayList<>();
+                    // “应用于所有搜索结果”但无任何筛选条件 = 整个平台
+                    games = gameService.getGamesByPlatformId(request.getPlatformId());
+                    logger.info("全平台刮削(应用于所有，无筛选): 匹配到 {} 个游戏", games.size());
                 }
                 break;
             case "single":

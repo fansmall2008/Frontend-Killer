@@ -215,15 +215,30 @@ public class RomDbServiceImpl implements RomDbService {
         if (filePath == null || filePath.isEmpty()) return null;
 
         try {
-            String crc32 = calculateCrc32(filePath);
+            String crc32 = calculateCrc32(filePath, systemId);
             if (crc32 != null) {
                 RomDb result = matchByCrc32(crc32, systemId);
-                if (result == null) {
-                    // 诊断日志：记录未匹配的 CRC32
-                    String fileName = new File(filePath).getName();
-                    logger.info("rom_db CRC 未匹配: file={}, crc32={}, systemId={}", fileName, crc32, systemId);
+                if (result != null) return result;
+
+                // MAME/FBA 特殊处理：DAT 有两种格式
+                // - MAME DAT: CRC 是 ZIP 自身的 CRC
+                // - FBNeo DAT: CRC 是 ZIP 内部 entry 的 CRC
+                // 所以如果 ZIP 自身 CRC 未匹配，再尝试内部 entry CRC
+                if (systemId == 75) {
+                    String entryCrc = calculateArchiveCrcLegacy(new File(filePath));
+                    if (entryCrc != null && !entryCrc.equals(crc32)) {
+                        result = matchByCrc32(entryCrc, systemId);
+                        if (result != null) {
+                            logger.debug("rom_db CRC 内部entry匹配成功: file={}, entryCrc={}, systemId={}", new File(filePath).getName(), entryCrc, systemId);
+                            return result;
+                        }
+                    }
                 }
-                return result;
+
+                // 诊断日志：记录未匹配的 CRC32
+                String fileName = new File(filePath).getName();
+                logger.info("rom_db CRC 未匹配: file={}, crc32={}, systemId={}", fileName, crc32, systemId);
+                return null;
             }
         } catch (IOException e) {
             logger.debug("rom_db: CRC32 计算失败: {} - {}", filePath, e.getMessage());
@@ -380,7 +395,7 @@ public class RomDbServiceImpl implements RomDbService {
     @Override
     public Map<String, Integer> batchMatch(List<Long> gameIds, int systemId, String language, boolean fileNameExtract) {
         // 兼容旧调用：fileNameExtract=true 等价于 methods={crc,serial,name}；false 等价于 {crc,serial}
-        Set<String> methods = fileNameExtract ? Set.of("crc", "serial", "name") : Set.of("crc", "serial");
+        Set<String> methods = fileNameExtract ? Set.of("crc", "serial", "name", "filename_exact") : Set.of("crc", "serial", "filename_exact");
         return batchMatch(gameIds, systemId, language, methods);
     }
 
@@ -469,12 +484,23 @@ public class RomDbServiceImpl implements RomDbService {
                     && (game.getGenre() == null || game.getGenre().isBlank())) {
                 game.setGenre(romDbResult.getGenre());
             }
-            game.setMatched(true);
+            game.setMatchMethod(mr.matchMethod);
+            if (mr.authoritative) {
+                // 内容级（CRC/文件内编号）：直接置权威绿
+                game.setMatched(true);
+                game.setMatchSuspect(false);
+            } else {
+                // 名字级（文件名/标题）：不改 matched（保留已有权威绿），仅标存疑 🟡
+                if (!Boolean.TRUE.equals(game.getMatched())) {
+                    game.setMatchSuspect(true);
+                }
+            }
             try {
                 gameMapper.updateGame(game);
                 updated++;
-                logger.info("rom_db 匹配成功: {} → {} (source={}), nameUpdated={}",
-                        fileName, matchKey, romDbResult.getSource(), nameUpdated);
+                logger.info("rom_db 匹配成功: {} → {} (source={}, method={}, level={}), nameUpdated={}",
+                        fileName, matchKey, romDbResult.getSource(), mr.matchMethod,
+                        mr.authoritative ? "authoritative" : "suspect", nameUpdated);
             } catch (Exception e) {
                 logger.warn("rom_db 更新游戏 {} 失败: {}", game.getId(), e.getMessage());
             }
@@ -494,6 +520,8 @@ public class RomDbServiceImpl implements RomDbService {
         RomDb romDbResult;
         String matchKey;
         String filePath;
+        boolean authoritative;   // true=内容级(CRC/文件内编号) → matched 绿；false=名字级 → match_suspect 黄
+        String matchMethod;      // crc/serial/filename_exact/name_serial/name_fuzzy
     }
 
     /** 并行执行：提取标识 + 查 rom_db（不写 DB） */
@@ -591,29 +619,34 @@ public class RomDbServiceImpl implements RomDbService {
             String fileName = new File(filePath).getName();
             RomDb romDbResult = null;
             String matchKey = null;
+            boolean authoritative = false;   // 内容级=绿；名字级=黄
+            String matchMethod = null;
 
-            // L1: 编号提取（ROM 内部：光盘内部文件 → 卡带头部；毫秒级，不校验 ROM 完整性）
+            boolean legacyName = methods.contains("name");
+            boolean useNameSerial = methods.contains("name_serial") || legacyName;
+            boolean useNameFuzzy = methods.contains("name_fuzzy") || legacyName;
+            boolean useFilenameExact = methods.contains("filename_exact");
+
+            // L1: 文件内编号（光盘内部/卡带头部读出 → 内容级 → 权威 🟢）
             if (methods.contains("serial")) {
-                // L1a: 光盘系统 → matchByDiscFile（SYSTEM.CNF/PARAM.SFO/IP.BIN/NGC头部/Wii）
                 if (isDiscSystem && DiscSerialExtractor.isSupported(systemId)) {
                     romDbResult = matchByDiscFile(filePath, systemId);
-                    if (romDbResult != null) matchKey = romDbResult.getSerial();
+                    if (romDbResult != null) { matchKey = romDbResult.getSerial(); authoritative = true; matchMethod = "serial"; }
                 }
-                // L1b: 卡带头部 ID 提取（毫秒级）
                 if (romDbResult == null && CartridgeHeaderReader.isSupported(systemId)) {
                     try {
                         String headerSerial = CartridgeHeaderReader.extractSerial(filePath, systemId);
                         if (headerSerial != null) {
                             romDbResult = matchBySerial(headerSerial, systemId);
                             if (romDbResult != null) {
-                                matchKey = romDbResult.getSerial();
+                                matchKey = romDbResult.getSerial(); authoritative = true; matchMethod = "serial";
                                 logger.info("rom_db 卡带头部匹配: file={}, serial={}, matched={}", fileName, headerSerial, romDbResult.getGameName());
                             } else {
-                                // SNES 等平台的头部提取得到的是内部标题，回退到名称模糊匹配
+                                // 头部读到的是内部标题（非 serial）：名字级 → 存疑 🟡
                                 java.util.List<RomDb> nameCandidates = romDbMapper.searchBySystemAndName(systemId, headerSerial, 1);
                                 if (!nameCandidates.isEmpty()) {
                                     romDbResult = nameCandidates.get(0);
-                                    matchKey = romDbResult.getGameName();
+                                    matchKey = romDbResult.getGameName(); authoritative = false; matchMethod = "name_fuzzy";
                                     logger.info("rom_db 卡带头部名称匹配成功: file={}, title={} → {}", fileName, headerSerial, matchKey);
                                 }
                             }
@@ -624,33 +657,45 @@ public class RomDbServiceImpl implements RomDbService {
                 }
             }
 
-            // L2: CRC 匹配（全文件哈希，最准确但很慢）
+            // L2: CRC 匹配（全文件哈希 → 内容级 → 权威 🟢）
             if (romDbResult == null && methods.contains("crc")) {
                 romDbResult = matchByFileCrc32(filePath, systemId);
                 if (romDbResult != null) {
-                    matchKey = romDbResult.getCrc32();
+                    matchKey = romDbResult.getCrc32(); authoritative = true; matchMethod = "crc";
                     logger.info("rom_db CRC 匹配成功: {} → {}", fileName, matchKey);
                 }
             }
 
-            // L3: 文件名匹配（从文件名提取编号 → 名称模糊匹配）
-            if (romDbResult == null && methods.contains("name")) {
-                // L3a: 文件名正则提取编号（如从 "Game (SLUS-12345).iso" 提取 SLUS-12345）
+            // L3: 文件名精准匹配（玩家 zip 名 ↔ rom_db.rom_file 全等 → 名字级 → 存疑 🟡）
+            if (romDbResult == null && useFilenameExact) {
+                String baseNorm = normalizeRomFileName(fileName);
+                if (baseNorm != null && !baseNorm.isBlank()) {
+                    romDbResult = romDbMapper.findBySystemAndRomFile(systemId, baseNorm);
+                    if (romDbResult != null) {
+                        matchKey = romDbResult.getRomFile(); authoritative = false; matchMethod = "filename_exact";
+                        logger.info("rom_db 文件名精准匹配成功: {} → {}", fileName, matchKey);
+                    }
+                }
+            }
+
+            // L4: 从文件名提取编号（正则抠出编号 → 名字级 → 存疑 🟡）
+            if (romDbResult == null && useNameSerial) {
                 String fnSerial = DiscSerialExtractor.extract(fileName, systemId);
                 if (fnSerial != null) {
                     romDbResult = matchBySerial(fnSerial, systemId);
                     if (romDbResult != null) {
-                        matchKey = fnSerial;
+                        matchKey = fnSerial; authoritative = false; matchMethod = "name_serial";
                         logger.info("rom_db 文件名编号提取成功: {} → {}", fileName, matchKey);
                     }
                 }
-                // L3b: 名称模糊匹配（去标签后按游戏名搜索 rom_db）
-                if (romDbResult == null) {
-                    romDbResult = matchByNameFallback(fileName, systemId);
-                    if (romDbResult != null) {
-                        matchKey = romDbResult.getGameName();
-                        logger.info("rom_db 名称匹配成功: {} → {}", fileName, matchKey);
-                    }
+            }
+
+            // L5: 标题模糊（清洗名按标题 LIKE → 名字级 → 存疑 🟡）
+            if (romDbResult == null && useNameFuzzy) {
+                romDbResult = matchByNameFallback(fileName, systemId);
+                if (romDbResult != null) {
+                    matchKey = romDbResult.getGameName(); authoritative = false; matchMethod = "name_fuzzy";
+                    logger.info("rom_db 名称匹配成功: {} → {}", fileName, matchKey);
                 }
             }
 
@@ -661,6 +706,8 @@ public class RomDbServiceImpl implements RomDbService {
             mr.romDbResult = romDbResult;
             mr.matchKey = matchKey;
             mr.filePath = filePath;
+            mr.authoritative = authoritative;
+            mr.matchMethod = matchMethod;
             return mr;
         } catch (Exception e) {
             logger.debug("rom_db: 匹配游戏 {} 异常: {}", game.getId(), e.getMessage());
@@ -673,17 +720,26 @@ public class RomDbServiceImpl implements RomDbService {
                 || name.contains("_") || name.matches(".*\\d{4,}.*");
     }
 
+    /** 将玩家 ROM 文件名归一化为 rom_db.rom_file 形式：去扩展名 + trim + 小写 */
+    private String normalizeRomFileName(String fileName) {
+        if (fileName == null) return null;
+        String s = fileName;
+        int dot = s.lastIndexOf('.');
+        if (dot > 0) s = s.substring(0, dot);
+        return s.trim().toLowerCase();
+    }
+
     /**
      * 计算文件的 CRC32。
      * 对于归档文件（.zip/.7z），提取内部 ROM entry 的 CRC（而非压缩包自身 CRC）。
      * No-Intro 存储的是内部原始 ROM 文件的 CRC。
      */
-    private String calculateCrc32(String filePath) throws IOException {
+    private String calculateCrc32(String filePath, int systemId) throws IOException {
         File file = new File(filePath);
         String name = file.getName().toLowerCase();
 
         if (name.endsWith(".zip")) {
-            return calculateArchiveCrc(file);
+            return calculateArchiveCrc(file, systemId);
         }
         // 单文件（.pce/.nes/.sfc 等）直接计算
         CRC32 crc = new CRC32();
@@ -699,9 +755,28 @@ public class RomDbServiceImpl implements RomDbService {
 
     /**
      * 从 ZIP 归档中提取内部 ROM entry 的 CRC32。
-     * 策略：优先找与压缩包同名的 entry，否则取最大文件。
+     * 策略：
+     * - MAME/FBA 平台（systemId=75）：计算 ZIP 文件自身的 CRC（DAT 记录的是整个 ZIP 的 CRC）
+     * - 其他平台：优先找与压缩包同名的 entry，否则取最大文件，重新计算 CRC
      */
-    private String calculateArchiveCrc(File zipFile) {
+    private String calculateArchiveCrc(File zipFile, int systemId) {
+        // MAME/FBA 平台：直接计算 ZIP 文件自身的 CRC（与 DAT 文件记录一致）
+        if (systemId == 75) {
+            try {
+                CRC32 crc = new CRC32();
+                byte[] buffer = new byte[8192];
+                try (FileInputStream fis = new FileInputStream(zipFile)) {
+                    int len;
+                    while ((len = fis.read(buffer)) != -1) {
+                        crc.update(buffer, 0, len);
+                    }
+                }
+                return String.format("%08X", crc.getValue());
+            } catch (IOException e) {
+                logger.info("rom_db ZIP 文件 CRC 计算失败: {}", zipFile.getName());
+                return null;
+            }
+        }
         // 尝试多种编码打开 ZIP（cp437=ZIP 原始规范, GBK=Windows 中文, UTF-8=标准）
         Charset[] charsets = { Charset.forName("cp437"), Charset.forName("GBK"), StandardCharsets.UTF_8 };
         ZipFile zip = null;
@@ -768,7 +843,7 @@ public class RomDbServiceImpl implements RomDbService {
             }
 
             if (bestMatch != null) {
-                // 自己计算 CRC32（不信任 ZIP entry 的 CRC 字段，与 GameID 项目一致）
+                // 其他平台：自己计算 CRC32（不信任 ZIP entry 的 CRC 字段，与 GameID 项目一致）
                 try (java.io.InputStream is = finalZip.getInputStream(bestMatch)) {
                     CRC32 crc = new CRC32();
                     byte[] buffer = new byte[8192];
@@ -783,6 +858,65 @@ public class RomDbServiceImpl implements RomDbService {
             return null;
         } catch (IOException e) {
             logger.info("rom_db ZIP 解析失败({}): {}", zipFile.getName(), e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 计算 ZIP 内部 entry 的 CRC32（不区分 systemId，始终读取内部文件）。
+     * 用于 MAME/FBA 平台作为第二次尝试（当 ZIP 自身 CRC 未匹配时）。
+     */
+    private String calculateArchiveCrcLegacy(File zipFile) {
+        Charset[] charsets = { Charset.forName("cp437"), Charset.forName("GBK"), StandardCharsets.UTF_8 };
+        org.apache.commons.compress.archivers.zip.ZipFile zip = null;
+        for (Charset cs : charsets) {
+            try {
+                zip = org.apache.commons.compress.archivers.zip.ZipFile.builder().setFile(zipFile).setCharset(cs).get();
+                break;
+            } catch (Exception e) { /* skip */ }
+        }
+        if (zip == null) return null;
+
+        final org.apache.commons.compress.archivers.zip.ZipFile finalZip = zip;
+        try (finalZip) {
+            String baseName = zipFile.getName();
+            int lastDot = baseName.lastIndexOf('.');
+            if (lastDot > 0) baseName = baseName.substring(0, lastDot);
+
+            org.apache.commons.compress.archivers.zip.ZipArchiveEntry bestMatch = null;
+            long largestSize = 0;
+            Enumeration<org.apache.commons.compress.archivers.zip.ZipArchiveEntry> entries = zip.getEntries();
+            while (entries.hasMoreElements()) {
+                org.apache.commons.compress.archivers.zip.ZipArchiveEntry entry = entries.nextElement();
+                if (entry.isDirectory()) continue;
+                String entryName = entry.getName().toLowerCase();
+                if (entryName.endsWith(".txt") || entryName.endsWith(".info") || entryName.startsWith("__")) continue;
+
+                String entryBase = entry.getName();
+                int eDot = entryBase.lastIndexOf('.');
+                if (eDot > 0) entryBase = entryBase.substring(0, eDot);
+                int slash = Math.max(entryBase.lastIndexOf('/'), entryBase.lastIndexOf('\\'));
+                if (slash >= 0) entryBase = entryBase.substring(slash + 1);
+
+                if (entryBase.equalsIgnoreCase(baseName)) {
+                    bestMatch = entry;
+                    break;
+                }
+                if (entry.getSize() > largestSize) {
+                    largestSize = entry.getSize();
+                    bestMatch = entry;
+                }
+            }
+
+            if (bestMatch != null) {
+                // 直接读取 ZIP entry header 中的 CRC（无需解压）
+                long entryCrc = bestMatch.getCrc();
+                if (entryCrc >= 0) {
+                    return String.format("%08X", entryCrc);
+                }
+            }
+            return null;
+        } catch (IOException e) {
             return null;
         }
     }
@@ -856,12 +990,24 @@ public class RomDbServiceImpl implements RomDbService {
             if (searchWord == null && words.length > 0) searchWord = words[0];
             if (searchWord == null || searchWord.isBlank()) continue;
 
-            List<RomDb> candidates = romDbMapper.searchBySystemAndName(systemId, searchWord, 10);
+            List<RomDb> candidates = new ArrayList<>();
+            // 街机/归档名：优先按 rom_file 精准命中作为首候选（前端可标为“文件名精准”）
+            Long fileMatchId = null;
+            String baseNorm = normalizeRomFileName(fileName);
+            if (baseNorm != null && !baseNorm.isBlank()) {
+                RomDb byFile = romDbMapper.findBySystemAndRomFile(systemId, baseNorm);
+                if (byFile != null) { candidates.add(byFile); fileMatchId = byFile.getId(); }
+            }
+            // 补充标题模糊候选（去重）
+            for (RomDb c : romDbMapper.searchBySystemAndName(systemId, searchWord, 10)) {
+                if (fileMatchId == null || !fileMatchId.equals(c.getId())) candidates.add(c);
+            }
 
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("gameId", gameId);
             entry.put("fileName", fileName);
             entry.put("currentName", game.getName());
+            entry.put("fileMatchId", fileMatchId);
             List<Map<String, Object>> candList = new ArrayList<>();
             for (RomDb c : candidates) {
                 Map<String, Object> cm = new LinkedHashMap<>();
@@ -905,6 +1051,8 @@ public class RomDbServiceImpl implements RomDbService {
             game.setGenre(r.getGenre());
         }
         game.setMatched(true);
+        game.setMatchSuspect(false);   // 人工确认→升绿，清除存疑
+        game.setMatchMethod("manual");
         gameMapper.updateGame(game);
         logger.info("模糊匹配确认: gameId={} → romDbId={} ({})", gameId, romDbId, r.getGameName());
         return true;
@@ -914,7 +1062,7 @@ public class RomDbServiceImpl implements RomDbService {
     @Async
     public void batchMatchByPlatformsAsync(Long taskId, List<Long> platformIds, String language) {
         // 兼容旧调用：默认启用所有方法
-        batchMatchByPlatformsAsync(taskId, platformIds, language, Set.of("crc", "serial", "name"));
+        batchMatchByPlatformsAsync(taskId, platformIds, language, Set.of("crc", "serial", "name", "filename_exact"));
     }
 
     @Override

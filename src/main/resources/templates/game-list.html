@@ -241,7 +241,7 @@
         <div class="gm-modal-content" style="max-width: 420px;">
             <span class="close" onclick="closeDiscMatchLangModal()">&times;</span>
             <h2 style="color: #00ffff; font-size: 18px; margin-bottom: 16px;" data-i18n="disc-match-lang-title">选择匹配语言</h2>
-            <p style="color: #ccc; font-size: 13px; margin-bottom: 16px; line-height: 1.6;" data-i18n="disc-match-lang-desc">说明：① 编号提取最快（毫秒级），但不校验 ROM 完整性/准确性，不校验是否为标准 ROM；② CRC 匹配最准确，但需全文件计算，速度很慢；③ 文件名匹配仅从文件名中提取编号或做名称模糊匹配。匹配顺序：编号 → CRC → 文件名。</p>
+            <p style="color: #ccc; font-size: 13px; margin-bottom: 16px; line-height: 1.6;" data-i18n="disc-match-lang-desc">匹配顺序：文件内编号 → CRC → 文件名精准 → 从文件名提取编号 → 标题模糊。🟢 前两项读 ROM 内容，命中即为确定；🟡 后三项只凭文件名/标题推断，命中后标为存疑，需人工确认才转绿。街机（MAME/FBNeo）建议勾选“文件名匹配”以提高命中率。</p>
             <div class="form-group">
                 <label data-i18n="select-lang">选择语言</label>
                 <select id="discMatchLangSelect" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(0,255,255,0.3); background: rgba(0,0,0,0.5); color: #fff; font-size: 14px;">
@@ -253,17 +253,27 @@
             <div class="form-group" style="margin-top: 12px;">
                 <label style="color: #ccc; font-size: 13px; margin-bottom: 8px; display: block;" data-i18n="match_methods_label">匹配方式（按顺序依次尝试）</label>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="color:#3ecf6a; font-size:12px; margin-top:2px;" data-i18n="match_group_authoritative">🟢 精确匹配（读 ROM 内容，命中即确定）</div>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;" id="matchMethodSerialLabel">
                         <input type="checkbox" id="matchMethodSerial" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
-                        <span data-i18n="match_method_serial">编号提取（从 ROM 内部提取标识符，如 SYSTEM.CNF/卡带头部；最快但不校验 ROM 完整性）</span>
+                        <span data-i18n="match_method_serial">文件内编号（从 ROM 内部提取标识符，如 SYSTEM.CNF/卡带头部；内容级，最快）</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
                         <input type="checkbox" id="matchMethodCrc" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
                         <span data-i18n="match_method_crc">CRC 匹配（计算文件哈希，最准确但全文件计算很慢）</span>
                     </label>
+                    <div style="color:#ffaa00; font-size:12px; margin-top:8px;" data-i18n="match_group_suspect">🟡 存疑匹配（只凭文件名/标题推断，命中后需人工确认才转绿）</div>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
-                        <input type="checkbox" id="matchMethodName" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
-                        <span data-i18n="match_method_name">文件名匹配（从文件名中提取编号，或名称模糊匹配）</span>
+                        <input type="checkbox" id="matchMethodFilenameExact" checked style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <span data-i18n="match_method_filename_exact">文件名匹配（按压缩包名精准对撞 DAT 短名；建议街机使用，可提高匹配度；含多个文件的游戏取容器/首个名，仅供参考）</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
+                        <input type="checkbox" id="matchMethodNameSerial" checked style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <span data-i18n="match_method_name_serial">从文件名提取编号（CRC/文件内提取未命中时，从文件名正则提取编号）</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
+                        <input type="checkbox" id="matchMethodNameFuzzy" style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <span data-i18n="match_method_name_fuzzy">标题模糊匹配（清洗文件名后按标题模糊搜索；噪声较大，默认关闭）</span>
                     </label>
                 </div>
             </div>
@@ -700,7 +710,7 @@
         // 2) 疑似匹配 (matched=false AND scraped=true) → 行淡黄背景.
         // 其余一律不刷行颜色，交给三指示物自讻.
         function getScrapeStatusStyle(game) {
-            const suspect = !game.matched && game.scraped;
+            const suspect = !game.matched && (game.scraped || game.matchSuspect);
             if (suspect) {
                 return 'background: rgba(255, 170, 0, 0.06);';
             }
@@ -710,7 +720,7 @@
         // 三指示物：匹配状态 ● / 信息内容 ■ / 媒体内容 ▲
         function getStatusIndicator(game) {
             const isMatched = !!game.matched;
-            const suspect = !isMatched && !!game.scraped;
+            const suspect = !isMatched && (!!game.scraped || !!game.matchSuspect);
             const hasInfo = !!(game.desc && game.desc.trim() !== '');
             const hasMedia = !!hasAnyMedia(game);
 
@@ -1834,9 +1844,11 @@
                     }
                     // 收集选中的匹配方法
                     const methods = [];
-                    if (document.getElementById('matchMethodCrc').checked) methods.push('crc');
                     if (document.getElementById('matchMethodSerial').checked) methods.push('serial');
-                    if (document.getElementById('matchMethodName').checked) methods.push('name');
+                    if (document.getElementById('matchMethodCrc').checked) methods.push('crc');
+                    if (document.getElementById('matchMethodFilenameExact').checked) methods.push('filename_exact');
+                    if (document.getElementById('matchMethodNameSerial').checked) methods.push('name_serial');
+                    if (document.getElementById('matchMethodNameFuzzy').checked) methods.push('name_fuzzy');
                     if (methods.length === 0) {
                         showNotification(typeof I18n !== 'undefined' ? I18n.t('select_at_least_one_method', '请至少选择一种匹配方式') : '请至少选择一种匹配方式', 'warning');
                         btn.disabled = false;
@@ -4071,26 +4083,29 @@
                 return;
             }
             
-            const firstGameId = checkboxes[0].value;
-            
             try {
-                const gameResponse = await fetch(`/api/gamelist/games/${firstGameId}`);
+                let resolvedPlatformId = platformId; // 使用全局平台ID
                 
-                if (!gameResponse.ok) {
-                    alert('获取游戏信息失败');
-                    return;
+                // 非全量模式时，从第一个选中游戏获取 platformId（兼容 subset 视图）
+                if (!isApplyToAll && checkboxes.length > 0) {
+                    const firstGameId = checkboxes[0].value;
+                    const gameResponse = await fetch(`/api/gamelist/games/${firstGameId}`);
+                    if (!gameResponse.ok) {
+                        alert('获取游戏信息失败');
+                        return;
+                    }
+                    const game = await gameResponse.json();
+                    if (game.platformId && game.platformId !== 0) {
+                        resolvedPlatformId = game.platformId;
+                    }
                 }
                 
-                const game = await gameResponse.json();
-                
-                if (!game.platformId || game.platformId === 0) {
+                if (!resolvedPlatformId || resolvedPlatformId === 0) {
                     alert('请先绑定系统后再进行刮削');
                     return;
                 }
                 
-                const platformId = game.platformId;
-                
-                const platformResponse = await fetch(`/api/platforms/${platformId}`);
+                const platformResponse = await fetch(`/api/platforms/${resolvedPlatformId}`);
                 const platform = await platformResponse.json();
                 const hasSystem = platform.systemId && platform.systemId !== 0;
                 
@@ -4101,10 +4116,10 @@
                 
                 const gameIds = isApplyToAll ? [] : Array.from(checkboxes).map(cb => parseInt(cb.value));
                 console.log('游戏ID列表:', gameIds, '应用于所有:', isApplyToAll);
-                console.log('平台ID:', platformId);
+                console.log('平台ID:', resolvedPlatformId);
                 console.log('准备调用 openScrapeModal...');
                 
-                openScrapeModal('batch', platformId, gameIds, isApplyToAll);
+                openScrapeModal('batch', resolvedPlatformId, gameIds, isApplyToAll);
                 console.log('openScrapeModal 调用完成');
             } catch (error) {
                 console.error('批量刮削出错:', error);

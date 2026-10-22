@@ -268,7 +268,8 @@ public class RomDbController {
                 methods = new java.util.LinkedHashSet<>();
                 for (String m : methodsList) {
                     String ml = m.trim().toLowerCase();
-                    if (ml.equals("crc") || ml.equals("serial") || ml.equals("name")) {
+                    if (ml.equals("crc") || ml.equals("serial") || ml.equals("name")
+                            || ml.equals("filename_exact") || ml.equals("name_serial") || ml.equals("name_fuzzy")) {
                         methods.add(ml);
                     }
                 }
@@ -276,7 +277,7 @@ public class RomDbController {
             }
             // 兼容旧调用：如果没有 methods 参数，根据 fileNameExtract 决定
             if (methods == null) {
-                methods = fileNameExtract ? Set.of("crc", "serial", "name") : Set.of("crc", "serial");
+                methods = fileNameExtract ? Set.of("crc", "serial", "name", "filename_exact") : Set.of("crc", "serial", "filename_exact");
             }
             
             // L1: 黑名单拦截（绝对禁止）
@@ -373,14 +374,15 @@ public class RomDbController {
                 methods = new java.util.LinkedHashSet<>();
                 for (String m : methodsList) {
                     String ml = m.trim().toLowerCase();
-                    if (ml.equals("crc") || ml.equals("serial") || ml.equals("name")) {
+                    if (ml.equals("crc") || ml.equals("serial") || ml.equals("name")
+                            || ml.equals("filename_exact") || ml.equals("name_serial") || ml.equals("name_fuzzy")) {
                         methods.add(ml);
                     }
                 }
                 if (methods.isEmpty()) methods = null;
             }
             if (methods == null) {
-                methods = fileNameExtract ? Set.of("crc", "serial", "name") : Set.of("crc", "serial", "name");
+                methods = fileNameExtract ? Set.of("crc", "serial", "name", "filename_exact") : Set.of("crc", "serial", "name", "filename_exact");
             }
             if (idNums == null || idNums.isEmpty()) {
                 result.put("success", false);

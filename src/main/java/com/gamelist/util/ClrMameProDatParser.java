@@ -31,6 +31,9 @@ public class ClrMameProDatParser {
     private static final Pattern SHA1_PATTERN = Pattern.compile("\\bsha1\\s+([0-9A-Fa-f]{40})\\b");
     private static final Pattern SERIAL_ATTR = Pattern.compile("\\bserial\\s+\"([^\"]+)\"");
     private static final Pattern NAME_ATTR = Pattern.compile("\\bname\\s+\"([^\"]+)\"");
+    // ROM 文件名：rom ( name <X> ... ) 中的 X，可为裸名（88games.zip）或带引号名（"Super Game (USA).sfc"）。
+    // 仅锚定 rom 级 name，不会误抓 game 级带引号标题。
+    private static final Pattern ROM_ENTRY_ATTR = Pattern.compile("rom\\s*\\(\\s*name\\s+(\"[^\"]*\"|[^\\s)]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern REGION_ATTR = Pattern.compile("\\bregion\\s+\"([^\"]+)\"");
     private static final Pattern COMMENT_ATTR = Pattern.compile("\\bcomment\\s+\"([^\"]+)\"");
     private static final Pattern DEVELOPER_ATTR = Pattern.compile("\\bdeveloper\\s+\"([^\"]+)\"");
@@ -99,6 +102,8 @@ public class ClrMameProDatParser {
         String publisher = null;
         String releaseyear = null;
         String genre = null;
+        String romFile = null;
+        String romFileNorm = null;
 
         // 提取 name
         Matcher nameMatcher = NAME_ATTR.matcher(block);
@@ -144,6 +149,27 @@ public class ClrMameProDatParser {
             sha1 = sha1Matcher.group(1).toUpperCase();
         }
 
+        // 提取 ROM 文件名：扫描块内所有 rom ( name ... ) 条目（全系统），
+        // 优先取容器（.zip/.7z），否则取首个；存储时保留原始名（带扩展），另存归一化名供匹配。
+        java.util.List<String> romNames = new ArrayList<>();
+        Matcher romFileMatcher = ROM_ENTRY_ATTR.matcher(block);
+        while (romFileMatcher.find()) {
+            String t = romFileMatcher.group(1);
+            if (t.startsWith("\"")) t = t.substring(1, t.length() - 1);
+            t = t.trim();
+            if (!t.isEmpty()) romNames.add(t);
+        }
+        if (!romNames.isEmpty()) {
+            String pick = null;
+            for (String rn : romNames) {
+                String low = rn.toLowerCase();
+                if (low.endsWith(".zip") || low.endsWith(".7z")) { pick = rn; break; }
+            }
+            if (pick == null) pick = romNames.get(0);
+            romFile = pick;                              // 原始文件名（带扩展名）
+            romFileNorm = normalizeRomFileNorm(pick);    // 归一化（去扩展名、小写）供匹配
+        }
+
         // 提取元数据字段（developer/publisher/releaseyear/genre）
         Matcher devMatcher = DEVELOPER_ATTR.matcher(block);
         if (devMatcher.find()) {
@@ -184,7 +210,18 @@ public class ClrMameProDatParser {
         romDb.setPublisher(publisher);
         romDb.setReleaseyear(releaseyear);
         romDb.setGenre(genre);
+        romDb.setRomFile(romFile);
+        romDb.setRomFileNorm(romFileNorm);
         return romDb;
+    }
+
+    /** 归一化 ROM 文件名供匹配：去扩展名 + trim + 小写（与 RomDbServiceImpl.normalizeRomFileName 一致）。*/
+    private static String normalizeRomFileNorm(String fileName) {
+        if (fileName == null) return null;
+        String s = fileName;
+        int dot = s.lastIndexOf('.');
+        if (dot > 0) s = s.substring(0, dot);
+        return s.trim().toLowerCase();
     }
 
     /**

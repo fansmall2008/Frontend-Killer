@@ -19,6 +19,8 @@
         <result column="publisher" property="publisher"/>
         <result column="releaseyear" property="releaseyear"/>
         <result column="genre" property="genre"/>
+        <result column="rom_file" property="romFile"/>
+        <result column="rom_file_norm" property="romFileNorm"/>
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
@@ -71,6 +73,15 @@
         LIMIT 1
     </select>
 
+    <!-- 按 systemId + 归一化文件名精确查找（全系统文件名匹配，玩家侧传入已去扩展名+小写的值）-->
+    <!-- 同一 systemId(如 75) 下可能 MAME/FBNeo 多行，按 platform 稳定排序优先 FBNeo -->
+    <select id="findBySystemAndRomFile" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db
+        WHERE system_id = #{systemId} AND rom_file_norm = #{romFile}
+        ORDER BY platform
+        LIMIT 1
+    </select>
+
     <!-- 按 platform + serial 查找（未映射平台） -->
     <select id="findByPlatformAndSerial" resultMap="RomDbResultMap">
         SELECT * FROM rom_db
@@ -87,17 +98,17 @@
 
     <!-- 插入单条（简单 INSERT，去重由 Service 层控制） -->
     <insert id="insertIgnore" parameterType="com.gamelist.model.RomDb" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO rom_db (system_id, platform, crc32, serial, md5, sha1, game_name, game_name_jp, game_name_cn, region, source, developer, publisher, releaseyear, genre)
-        VALUES (#{systemId}, #{platform}, #{crc32}, #{serial}, #{md5}, #{sha1}, #{gameName}, #{gameNameJp}, #{gameNameCn}, #{region}, #{source}, #{developer}, #{publisher}, #{releaseyear}, #{genre})
+        INSERT INTO rom_db (system_id, platform, crc32, serial, md5, sha1, game_name, game_name_jp, game_name_cn, region, source, developer, publisher, releaseyear, genre, rom_file, rom_file_norm)
+        VALUES (#{systemId}, #{platform}, #{crc32}, #{serial}, #{md5}, #{sha1}, #{gameName}, #{gameNameJp}, #{gameNameCn}, #{region}, #{source}, #{developer}, #{publisher}, #{releaseyear}, #{genre}, #{romFile}, #{romFileNorm})
     </insert>
 
     <!-- 批量插入 -->
     <insert id="batchInsert">
-        INSERT INTO rom_db (system_id, platform, crc32, serial, md5, sha1, game_name, game_name_jp, game_name_cn, region, source, developer, publisher, releaseyear, genre)
+        INSERT INTO rom_db (system_id, platform, crc32, serial, md5, sha1, game_name, game_name_jp, game_name_cn, region, source, developer, publisher, releaseyear, genre, rom_file, rom_file_norm)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.systemId}, #{item.platform}, #{item.crc32}, #{item.serial}, #{item.md5}, #{item.sha1},
-             #{item.gameName}, #{item.gameNameJp}, #{item.gameNameCn}, #{item.region}, #{item.source}, #{item.developer}, #{item.publisher}, #{item.releaseyear}, #{item.genre})
+             #{item.gameName}, #{item.gameNameJp}, #{item.gameNameCn}, #{item.region}, #{item.source}, #{item.developer}, #{item.publisher}, #{item.releaseyear}, #{item.genre}, #{item.romFile}, #{item.romFileNorm})
         </foreach>
     </insert>
 

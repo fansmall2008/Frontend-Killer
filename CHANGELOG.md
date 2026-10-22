@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-22
+
+> Patch release on top of 1.3.0. Headline fix: **batch scraping under "Apply to all search results" silently matched 0 games**.
+
+### Fixed
+- **Batch scrape under "Apply to all search results" produced no work** — the game-list page sends a nested `filters` object (the same contract every other batch endpoint already reads), but the scrape backend (`ScraperRequest` / `ScraperServiceImpl`) only inspected flat fields, so `hasFilters()` was always false and the batch branch resolved to an empty game list ("no games to scrape"). `ScraperRequest` now accepts the nested `filters` and flattens it (empty arrays/blanks normalized to null to avoid an empty `IN ()` returning 0 rows), and the batch branch now falls back to the **whole platform** when apply-to-all is selected with no filter conditions.
+
+### Added
+- **Full-system filename matching** — `rom_db` now stores the real ROM filename from the DAT (`rom_file`, plus a normalized, indexed `rom_file_norm`), captured for every system (not just arcade) during DAT import. `filename_exact` matching resolves against `rom_file_norm`; content-level hits (crc/serial) stay confirmed (🟢) while name-level hits are flagged suspect (🟡) so they never masquerade as verified matches.
+
 ## [1.3.0] - 2026-10-17
 
 > Headline theme: **Local ROM matching** — import libretro-database (DAT/RDB) and ClrMamePro data to identify ROMs offline, speeding up scraping and improving match accuracy before ever hitting the ScreenScraper API.

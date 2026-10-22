@@ -729,3 +729,17 @@ CREATE INDEX IF NOT EXISTS idx_game_matched ON game(matched);
 -- ============================================================
 ALTER TABLE scrape_task ADD COLUMN IF NOT EXISTS task_id BIGINT DEFAULT NULL;
 CREATE INDEX IF NOT EXISTS idx_scrape_task_task_id ON scrape_task(task_id);
+
+-- ============================================================
+-- V1.0.28 街机文件名精准匹配 + 存疑状态
+--   rom_db.rom_file     : 原始 ROM 文件名（DAT 中 rom ( name ... ) 的真名，带扩展名），供生成器/备份还原
+--   rom_db.rom_file_norm: rom_file 归一化（去扩展名、小写），供按文件名精准匹配（建索引）
+--   game.match_suspect  : 名字级命中（文件名/标题推断，未校验内容）标记，与 matched 正交
+--   game.match_method   : 命中来源（crc/serial/filename_exact/name_serial/name_fuzzy）
+-- ============================================================
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS rom_file VARCHAR(255);
+ALTER TABLE rom_db ADD COLUMN IF NOT EXISTS rom_file_norm VARCHAR(255);
+CREATE INDEX IF NOT EXISTS idx_rom_db_romfile ON rom_db(system_id, rom_file);
+CREATE INDEX IF NOT EXISTS idx_rom_db_romfile_norm ON rom_db(system_id, rom_file_norm);
+ALTER TABLE game ADD COLUMN IF NOT EXISTS match_suspect BOOLEAN DEFAULT FALSE;
+ALTER TABLE game ADD COLUMN IF NOT EXISTS match_method VARCHAR(20);

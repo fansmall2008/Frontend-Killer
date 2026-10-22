@@ -25,6 +25,8 @@ public class RomDb {
     private String publisher;    // 发行商
     private String releaseyear;  // 发行年份
     private String genre;        // 游戏类型
+    private String romFile;      // 原始 ROM 文件名（DAT 中 rom ( name ... ) 的真名，带扩展名），供生成器/备份还原用
+    private String romFileNorm;  // romFile 归一化形式（去扩展名、小写），供按文件名精准匹配（建索引）
     private LocalDateTime createdAt;
 
     public RomDb() {}
@@ -102,6 +104,12 @@ public class RomDb {
 
     public String getGenre() { return genre; }
     public void setGenre(String genre) { this.genre = genre; }
+
+    public String getRomFile() { return romFile; }
+    public void setRomFile(String romFile) { this.romFile = romFile; }
+
+    public String getRomFileNorm() { return romFileNorm; }
+    public void setRomFileNorm(String romFileNorm) { this.romFileNorm = romFileNorm; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

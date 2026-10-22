@@ -29,6 +29,9 @@ public interface RomDbMapper {
     /** 按 systemId + crc32 精确查找（卡带平台） */
     RomDb findBySystemAndCrc32(@Param("systemId") int systemId, @Param("crc32") String crc32);
 
+    /** 按 systemId + 归一化文件名精确查找（街机 zip 短名匹配） */
+    RomDb findBySystemAndRomFile(@Param("systemId") int systemId, @Param("romFile") String romFile);
+
     /** 按 platform + serial 查找（systemId=0 的未映射平台） */
     RomDb findByPlatformAndSerial(@Param("platform") String platform, @Param("serial") String serial);
 

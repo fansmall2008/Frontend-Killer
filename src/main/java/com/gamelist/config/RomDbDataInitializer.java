@@ -190,6 +190,8 @@ public class RomDbDataInitializer {
         if (target.getPublisher() == null && src.getPublisher() != null) target.setPublisher(src.getPublisher());
         if (target.getReleaseyear() == null && src.getReleaseyear() != null) target.setReleaseyear(src.getReleaseyear());
         if (target.getGenre() == null && src.getGenre() != null) target.setGenre(src.getGenre());
+        if (target.getRomFile() == null && src.getRomFile() != null) target.setRomFile(src.getRomFile());
+        if (target.getRomFileNorm() == null && src.getRomFileNorm() != null) target.setRomFileNorm(src.getRomFileNorm());
     }
 
     /**
@@ -408,6 +410,16 @@ public class RomDbDataInitializer {
 
             if (r.getGameName() == null || r.getGameName().isBlank()) continue;
 
+            // ROM 文件名：RDB 若带文件名语义的字段就导入（有则写、无则留空），
+            // 不拿显示名 game name 冒充满文件名。
+            String rf = firstNonBlank(entry, "romname", "filename", "file", "rom");
+            if (rf != null) {
+                r.setRomFile(rf);
+                int d = rf.lastIndexOf('.');
+                String base = d > 0 ? rf.substring(0, d) : rf;
+                r.setRomFileNorm(base.trim().toLowerCase());
+            }
+
             // 合并到 mergeMap
             String crc = r.getCrc32();
             if (crc != null && !crc.isBlank()) {
@@ -518,6 +530,16 @@ public class RomDbDataInitializer {
         if (val instanceof byte[]) return new String((byte[]) val, java.nio.charset.StandardCharsets.UTF_8).trim();
         if (val instanceof Long) return String.valueOf(val);
         if (val instanceof Integer) return String.valueOf(val);
+        return null;
+    }
+
+    /** 依次尝试多个 key，返回第一个非空字符串值；全都没有则返回 null。 */
+    private static String firstNonBlank(Map<String, Object> entry, String... keys) {
+        for (String k : keys) {
+            if (!entry.containsKey(k)) continue;
+            String v = safeStr(entry.get(k));
+            if (v != null && !v.isBlank()) return v;
+        }
         return null;
     }
 

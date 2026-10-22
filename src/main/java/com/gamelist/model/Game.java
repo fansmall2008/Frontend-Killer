@@ -167,6 +167,8 @@ public class Game {
     private String discSerial;         // 光盘编号（从文件名/ISO PVD/SYSTEM.CNF 提取，可追溯可手动修正）
     // ========== 匹配状态 ==========
     private Boolean matched;           // 游戏身份是否已通过权威数据源确认（SS批量刮削/rom_db精确匹配 = true）
+    private Boolean matchSuspect;      // 存疑：名字级命中（文件名/标题推断，未校验内容），需人工确认才转绿
+    private String matchMethod;        // 命中来源：crc/serial/filename_exact/name_serial/name_fuzzy
     
     // Getters and Setters
     public Long getId() {
@@ -767,6 +769,22 @@ public class Game {
 
     public void setMatched(Boolean matched) {
         this.matched = matched;
+    }
+
+    public Boolean getMatchSuspect() {
+        return matchSuspect;
+    }
+
+    public void setMatchSuspect(Boolean matchSuspect) {
+        this.matchSuspect = matchSuspect;
+    }
+
+    public String getMatchMethod() {
+        return matchMethod;
+    }
+
+    public void setMatchMethod(String matchMethod) {
+        this.matchMethod = matchMethod;
     }
 
 

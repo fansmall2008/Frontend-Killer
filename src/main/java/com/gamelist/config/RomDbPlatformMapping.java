@@ -122,6 +122,15 @@ public final class RomDbPlatformMapping {
 
         // ========== 街机 ==========
         m.put("FBNeo - Arcade Games", 75);   // 归入 MAME/FBA
+        m.put("MAME", 75);                   // 归入 MAME/FBA
+        m.put("MAME 2000", 75);              // 归入 MAME/FBA
+        m.put("MAME 2003", 75);              // 归入 MAME/FBA
+        m.put("MAME 2003-Plus", 75);         // 归入 MAME/FBA
+        m.put("MAME 2010", 75);              // 归入 MAME/FBA
+        m.put("MAME 2015", 75);              // 归入 MAME/FBA
+        m.put("MAME 2016", 75);              // 归入 MAME/FBA
+        m.put("HBMAME", 75);                 // 归入 MAME/FBA
+        m.put("MAME-nonmerged", 75);         // 归入 MAME/FBA
 
         // ========== 其他 ==========
         m.put("GCE - Vectrex", 43);

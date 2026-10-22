@@ -128,7 +128,9 @@ public interface RomDbService {
      * @param gameIds  选中的游戏 ID 列表
      * @param systemId ScreenScraper systemId
      * @param language 语言偏好（"ja" / "en" / "cn"）
-     * @param methods  启用的匹配方法集合，固定顺序 serial → CRC → name。可包含 "crc"、"serial"、"name"
+     * @param methods  启用的匹配方法集合，固定顺序 serial → CRC → filename_exact → name_serial → name_fuzzy。
+     *                 可包含 "crc"、"serial"、"filename_exact"、"name_serial"、"name_fuzzy"（"name" 为旧别名，等价 name_serial+name_fuzzy）。
+     *                 其中 crc/serial 为内容级→命中置 matched（🟢）；filename_exact/name_serial/name_fuzzy 为名字级→置 match_suspect（🟡）待人工确认。
      * @return {total, matched, updated}
      */
     Map<String, Integer> batchMatch(List<Long> gameIds, int systemId, String language, Set<String> methods);

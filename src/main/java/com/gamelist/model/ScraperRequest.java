@@ -1,6 +1,7 @@
 package com.gamelist.model;
 
 import java.util.List;
+import java.util.Map;
 
 public class ScraperRequest {
     
@@ -27,7 +28,44 @@ public class ScraperRequest {
     private List<String> genres;             // 类型筛选
     private List<String> players;            // 玩家数筛选
     private String folderPath;               // 文件夹路径筛选
-    
+
+    // 前端“应用于所有搜索结果”统一发送的嵌套 filters 对象（与其余批量端点契约一致）
+    private Map<String, Object> filters;
+
+    public Map<String, Object> getFilters() { return filters; }
+    public void setFilters(Map<String, Object> filters) { this.filters = filters; }
+
+    /**
+     * 将嵌套 filters 解包到扁平字段，供 hasFilters()/各 getter 使用。
+     * 空数组、空串一律视为“无筛选”，保持 null，避免只填部分条件时把 [] 传入 SQL 造成 0 行。
+     */
+    @SuppressWarnings("unchecked")
+    public void flattenFilters() {
+        if (filters == null) return;
+        if (isBlank(search)) {
+            Object s = filters.get("search");
+            if (s instanceof String && !((String) s).isEmpty()) search = (String) s;
+        }
+        if (isBlank(folderPath)) {
+            Object fp = filters.get("folderPath");
+            if (fp instanceof String && !((String) fp).isEmpty()) folderPath = (String) fp;
+        }
+        scrapeStatuses = pickList(scrapeStatuses, (List<String>) filters.get("scrapeStatuses"));
+        fileStatuses   = pickList(fileStatuses,   (List<String>) filters.get("fileStatuses"));
+        matchedStatuses= pickList(matchedStatuses,(List<String>) filters.get("matchedStatuses"));
+        developers     = pickList(developers,     (List<String>) filters.get("developers"));
+        publishers     = pickList(publishers,     (List<String>) filters.get("publishers"));
+        genres         = pickList(genres,         (List<String>) filters.get("genres"));
+        players        = pickList(players,        (List<String>) filters.get("players"));
+    }
+
+    private static boolean isBlank(String s) { return s == null || s.isEmpty(); }
+
+    private static List<String> pickList(List<String> current, List<String> incoming) {
+        if (current != null && !current.isEmpty()) return current;
+        return (incoming != null && !incoming.isEmpty()) ? incoming : null;
+    }
+
     // Getters and Setters
     public String getType() {
         return type;

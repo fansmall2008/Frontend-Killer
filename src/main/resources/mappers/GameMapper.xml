@@ -119,6 +119,8 @@
         <result column="parent_rom" property="parentRom"/>
         <result column="disc_serial" property="discSerial"/>
         <result column="matched" property="matched"/>
+        <result column="match_suspect" property="matchSuspect"/>
+        <result column="match_method" property="matchMethod"/>
     </resultMap>
     
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
@@ -282,8 +284,8 @@
             <foreach item="ms" collection="matchedStatuses" separator=" OR ">
                 <choose>
                     <when test="ms == 'matched'">matched = true</when>
-                    <when test="ms == 'suspect'">(matched = false OR matched IS NULL) AND scraped = true</when>
-                    <when test="ms == 'unmatched'">(matched = false OR matched IS NULL) AND (scraped = false OR scraped IS NULL)</when>
+                    <when test="ms == 'suspect'">(matched = false OR matched IS NULL) AND (scraped = true OR match_suspect = true)</when>
+                    <when test="ms == 'unmatched'">(matched = false OR matched IS NULL) AND (scraped = false OR scraped IS NULL) AND (match_suspect = false OR match_suspect IS NULL)</when>
                     <otherwise>1=1</otherwise>
                 </choose>
             </foreach>
@@ -435,8 +437,8 @@
             <foreach item="ms" collection="matchedStatuses" separator=" OR ">
                 <choose>
                     <when test="ms == 'matched'">matched = true</when>
-                    <when test="ms == 'suspect'">(matched = false OR matched IS NULL) AND scraped = true</when>
-                    <when test="ms == 'unmatched'">(matched = false OR matched IS NULL) AND (scraped = false OR scraped IS NULL)</when>
+                    <when test="ms == 'suspect'">(matched = false OR matched IS NULL) AND (scraped = true OR match_suspect = true)</when>
+                    <when test="ms == 'unmatched'">(matched = false OR matched IS NULL) AND (scraped = false OR scraped IS NULL) AND (match_suspect = false OR match_suspect IS NULL)</when>
                     <otherwise>1=1</otherwise>
                 </choose>
             </foreach>
@@ -953,7 +955,9 @@
             cached = #{cached, jdbcType=BOOLEAN},
             parent_rom = #{parentRom},
             disc_serial = #{discSerial},
-            matched = #{matched, jdbcType=BOOLEAN}
+            matched = #{matched, jdbcType=BOOLEAN},
+            match_suspect = #{matchSuspect, jdbcType=BOOLEAN},
+            match_method = #{matchMethod}
         WHERE id = #{id}
     </update>
     
