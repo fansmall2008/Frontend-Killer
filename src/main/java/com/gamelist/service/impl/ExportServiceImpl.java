@@ -20,6 +20,7 @@ import com.gamelist.service.ExportRuleService;
 import com.gamelist.service.ExportService;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.TaskService;
+import com.gamelist.service.VariantCapabilityService;
 
 @Service
 public class ExportServiceImpl implements ExportService {
@@ -39,6 +40,9 @@ public class ExportServiceImpl implements ExportService {
 
     @Autowired
     private ExportOrchestrator exportOrchestrator;
+
+    @Autowired
+    private VariantCapabilityService variantCapabilityService;
 
     @Override
     public Map<String, Object> exportPlatform(ExportRequest request) {
@@ -77,6 +81,8 @@ public class ExportServiceImpl implements ExportService {
             }
             logger.info("Platform information: id={}, name={}, folderPath={}", 
                 platform.getId(), platform.getName(), platform.getFolderPath());
+
+            rememberVariantPreference(platform, request);
 
             // 加载规则
             logger.info("Loading export rules");
@@ -171,6 +177,12 @@ public class ExportServiceImpl implements ExportService {
                             individualRequest.setCopyRoms(request.isCopyRoms());
                             individualRequest.setCopyMedia(request.isCopyMedia());
                             individualRequest.setGenerateDataFile(request.isGenerateDataFile());
+                            individualRequest.setWholeDirectoryCopy(request.isWholeDirectoryCopy());
+                            individualRequest.setSystemVariantFormats(request.getSystemVariantFormats());
+                            individualRequest.setTranslationLang(request.getTranslationLang());
+                            individualRequest.setTemplateVariables(request.getTemplateVariables());
+
+                            rememberVariantPreference(platform, request);
 
                             // v3 模板分发
                             TemplateV3 v3Template = exportRuleService.getV3RuleByFrontend(frontend);
@@ -281,5 +293,31 @@ public class ExportServiceImpl implements ExportService {
             result.put("error", "Preflight failed: " + e.getMessage());
         }
         return result;
+    }
+
+    /**
+     * 记住本次按系统选择的副本格式，下次导出弹窗自动回填。
+     */
+    private void rememberVariantPreference(Platform platform, ExportRequest request) {
+        if (platform == null || platform.getSystemId() == null || request == null) {
+            return;
+        }
+        Map<String, String> formats = request.getSystemVariantFormats();
+        if (formats == null || formats.isEmpty()) {
+            return;
+        }
+        String selected = formats.get(String.valueOf(platform.getSystemId()));
+        if (selected == null) {
+            selected = formats.get(platform.getSystemId());
+        }
+        if (selected == null || selected.isBlank()) {
+            return;
+        }
+        try {
+            variantCapabilityService.savePreference(platform.getSystemId(), selected);
+        } catch (Exception e) {
+            logger.warn("保存副本格式偏好失败: systemId={}, format={}, error={}",
+                    platform.getSystemId(), selected, e.getMessage());
+        }
     }
 }

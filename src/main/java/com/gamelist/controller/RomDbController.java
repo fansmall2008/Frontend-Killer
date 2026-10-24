@@ -7,6 +7,7 @@ import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
 import com.gamelist.model.RomDb;
 import com.gamelist.service.GameService;
+import com.gamelist.service.DatToolService;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.RomDbService;
 import com.gamelist.service.TaskService;
@@ -45,6 +46,9 @@ public class RomDbController {
 
     @Autowired(required = false)
     private TaskService taskService;
+
+    @Autowired(required = false)
+    private DatToolService datToolService;
 
     /** 获取 rom_db 总体统计 */
     @GetMapping("/stats")
@@ -453,6 +457,11 @@ public class RomDbController {
     @PostMapping("/import-dat")
     public ResponseEntity<Object> importDat() {
         Map<String, Object> result = new LinkedHashMap<>();
+        if (datToolService != null && datToolService.isGenerating()) {
+            result.put("success", false);
+            result.put("message", "DAT 生成进行中，请等待其完成后再导入");
+            return ResponseEntity.ok(result);
+        }
         if (romDbDataInitializer == null) {
             result.put("success", false);
             result.put("message", "RomDbDataInitializer not available");
@@ -468,6 +477,11 @@ public class RomDbController {
     @PostMapping("/import-rdb")
     public ResponseEntity<Object> importRdb() {
         Map<String, Object> result = new LinkedHashMap<>();
+        if (datToolService != null && datToolService.isGenerating()) {
+            result.put("success", false);
+            result.put("message", "DAT 生成进行中，请等待其完成后再导入");
+            return ResponseEntity.ok(result);
+        }
         if (romDbDataInitializer == null) {
             result.put("success", false);
             result.put("message", "RomDbDataInitializer not available");

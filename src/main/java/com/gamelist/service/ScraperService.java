@@ -3,8 +3,8 @@ package com.gamelist.service;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.gamelist.model.Game;
+import com.gamelist.model.MediaDownloadTask;
 import com.gamelist.model.ScrapeTask;
 import com.gamelist.model.ScraperRequest;
 
@@ -81,13 +81,6 @@ public interface ScraperService {
     Map<String, Object> backfillMetadataFromManifest();
     
     /**
-     * 查询 SS 用户信息（ssuserInfos.php）
-     * 用于主动刷新配额信息
-     * @return 完整的用户信息 JSON 节点
-     */
-    JsonNode fetchUserInfosFromSS();
-    
-    /**
      * 批量创建游戏信息刮削任务（写入 scrape_task 表）
      * @param games 游戏列表
      * @param request 刮削请求参数
@@ -110,12 +103,58 @@ public interface ScraperService {
      * @return 是否成功
      */
     boolean executeMediaDownloadTask(ScrapeTask task);
+    
+    /**
+     * 执行媒体下载任务（MediaDownloadTask 版本，由 ScrapeWorkerPool 调用）
+     * @param task 媒体下载任务
+     * @return 是否成功
+     */
+    boolean executeMediaDownloadTask(MediaDownloadTask task);
 
     /**
      * 从 SS 候选中应用指定游戏元数据到本地游戏，并确认匹配 (matched=true).
      * @param gameId 本地游戏 ID
-     * @param ssGameId SS 游id (字符串，避免前端精度丢失)
+     * @param ssGameId SS 游戏id (字符串，避免前端精度丢失)
      * @return 操作结果 (success / message)
      */
     Map<String, Object> applySsCandidate(Long gameId, String ssGameId);
+
+    /**
+     * 获取所有平台的实时进度（用于媒体下载页面显示）
+     * @return 包含 platforms 列表、globalPhase、isPaused、maxThreads 的 Map
+     */
+    Map<String, Object> getPlatformProgress();
+
+    /**
+     * 暂停所有平台的信息刮削和媒体下载
+     */
+    void pauseAll();
+
+    /**
+     * 恢复所有平台的信息刮削和媒体下载
+     */
+    void resumeAll();
+
+    /**
+     * 停止所有平台的信息刮削和媒体下载
+     */
+    void stopAll();
+
+    /**
+     * 暂停指定平台的信息刮削和媒体下载
+     * @param platformId 平台ID
+     */
+    void pausePlatform(Long platformId);
+
+    /**
+     * 恢复指定平台的信息刮削和媒体下载
+     * @param platformId 平台ID
+     */
+    void resumePlatform(Long platformId);
+
+    /**
+     * 停止指定平台的信息刮削和媒体下载
+     * @param platformId 平台ID
+     */
+    void stopPlatform(Long platformId);
 }

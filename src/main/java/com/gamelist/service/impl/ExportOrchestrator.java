@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gamelist.mapper.GameMapper;
+import com.gamelist.mapper.FieldTranslationMapper;
 import com.gamelist.model.BackgroundTask;
 import com.gamelist.model.ExportRequest;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
+import com.gamelist.model.ResolvedVariant;
 import com.gamelist.model.TemplateV3;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.TaskService;
+import com.gamelist.service.VariantService;
 import com.gamelist.util.GameFieldAccessor;
 import com.gamelist.util.TemplateExpressionEngine;
 
@@ -46,6 +50,9 @@ public class ExportOrchestrator {
     private GameMapper gameMapper;
 
     @Autowired
+    private FieldTranslationMapper fieldTranslationMapper;
+
+    @Autowired
     private PlatformService platformService;
 
     @Autowired
@@ -53,6 +60,9 @@ public class ExportOrchestrator {
 
     @Autowired
     private TemplateV3ExportService v3ExportService;
+
+    @Autowired
+    private VariantResolver variantResolver;
 
     /**
      * 执行 v3 导出。
@@ -83,6 +93,18 @@ public class ExportOrchestrator {
         // 获取游戏列表
         List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
         logger.info("v3 导出: 平台={}, 游戏数={}", platform.getName(), games.size());
+        // 按所选语种从 field_translation 回填瞬态 translatedName/translatedDesc（供 coalesce/-translated 模板消费）
+        applyTranslationInjection(games, request.getTranslationLang());
+
+        // 按系统选择副本格式；未选择时用系统偏好（无偏好则 original）
+        Map<Long, ResolvedVariant> resolvedVariants = Collections.emptyMap();
+        boolean useVariants = request.isCopyRoms()
+                && output.getRoms() != null && output.getRoms().isEnabled()
+                && !request.isWholeDirectoryCopy();
+        if (useVariants) {
+            String requestedFormat = resolveRequestedVariantFormat(request, platform);
+            resolvedVariants = variantResolver.resolveBatch(games, platform.getSystemId(), requestedFormat);
+        }
 
         try {
             int progress = 0;
@@ -101,7 +123,8 @@ public class ExportOrchestrator {
                     copyWholeDirectory(platform, romsDir, task.getId());
                 } else {
                     taskService.updateTaskProgress(task.getId(), 10, "开始复制游戏文件", 0, 100);
-                    missingParents = copyGameFiles(games, output.getRoms(), platform, vars, task.getId());
+                    missingParents = copyGameFiles(games, output.getRoms(), platform, vars,
+                            task.getId(), resolvedVariants);
                 }
                 progress = 40;
                 taskService.updateTaskProgress(task.getId(), progress, "游戏文件复制完成", 0, 100);
@@ -172,6 +195,42 @@ public class ExportOrchestrator {
         }
     }
 
+    // ==================== 译文注入 ====================
+
+    /**
+     * 按所选语种从 field_translation 批量回填 game 的瞬态 translatedName/translatedDesc。
+     * lang 为空则不注入（模板 coalesce 自然回退原文）。
+     */
+    private void applyTranslationInjection(List<Game> games, String lang) {
+        if (games == null || games.isEmpty() || lang == null || lang.isBlank()) {
+            return;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (Game g : games) {
+            if (g.getId() != null) ids.add(g.getId());
+        }
+        if (ids.isEmpty()) return;
+        Map<Long, String> nameMap = new HashMap<>();
+        Map<Long, String> descMap = new HashMap<>();
+        for (Map<String, Object> row : fieldTranslationMapper.selectValues("game", "name", lang, ids)) {
+            Object sid = row.get("srcId");
+            Object v = row.get("value");
+            if (sid != null && v != null) nameMap.put(((Number) sid).longValue(), v.toString());
+        }
+        for (Map<String, Object> row : fieldTranslationMapper.selectValues("game", "desc", lang, ids)) {
+            Object sid = row.get("srcId");
+            Object v = row.get("value");
+            if (sid != null && v != null) descMap.put(((Number) sid).longValue(), v.toString());
+        }
+        for (Game g : games) {
+            if (g.getId() == null) continue;
+            String n = nameMap.get(g.getId());
+            String d = descMap.get(g.getId());
+            if (n != null && !n.isBlank()) g.setTranslatedName(n);
+            if (d != null && !d.isBlank()) g.setTranslatedDesc(d);
+        }
+    }
+
     // ==================== ROM 文件复制 ====================
 
     /**
@@ -182,7 +241,7 @@ public class ExportOrchestrator {
      */
     private List<String> copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
                                 Platform platform, Map<String, String> vars,
-                                Long taskId) {
+                                Long taskId, Map<Long, ResolvedVariant> resolvedVariants) {
         // roms.directory 可能含 per-game 表达式（如 if(genre,...)），在 createDirectories 中已创建基础路径
         // 此处为每个游戏重新求值，确保 genre 等字段正确参与计算
         String rawDirTemplate = romsConfig.getDirectory();
@@ -196,16 +255,32 @@ public class ExportOrchestrator {
         boolean enableM3U = romsConfig.getM3u() != null && romsConfig.getM3u().isEnabled();
         // 窄口径缺件报告：仅收集"父 rom 在源目录找不到"的游戏（线程安全）
         final List<String> missingParents = java.util.Collections.synchronizedList(new ArrayList<>());
+        int variantUsed = 0;
+        int variantFallback = 0;
 
         for (Game game : games) {
+            ResolvedVariant resolved = resolvedVariants.get(game.getId());
+            if (resolved != null && resolved.isVariant()) {
+                variantUsed++;
+            } else if (resolved != null && resolved.getRequestedFormat() != null
+                    && !VariantService.FORMAT_ORIGINAL.equals(resolved.getRequestedFormat())) {
+                variantFallback++;
+            }
             try {
                 // 为当前游戏重新求值 roms.directory（支持 genre 等 per-game 字段）
                 String romsDirForGame = resolveRomDirForGame(rawDirTemplate, game, platform, vars);
-                copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId);
+                copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId, resolved);
                 // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
                 copyParentRomIfMissing(game, romsDirForGame, taskId, missingParents);
             } catch (Exception e) {
                 logger.error("复制 ROM 文件失败: {}", game.getName(), e);
+            }
+        }
+        if (variantUsed > 0 || variantFallback > 0) {
+            logger.info("副本使用情况: 使用副本 {} 个, 回退主文件 {} 个", variantUsed, variantFallback);
+            if (taskId != null && variantFallback > 0) {
+                taskService.updateTaskLog(taskId,
+                        "副本回退: " + variantFallback + " 个游戏使用主文件（副本未生成/已过期）");
             }
         }
         return missingParents;
@@ -352,9 +427,10 @@ public class ExportOrchestrator {
     private void copySingleGameFile(Game game, String romsDir, String filenameTemplate,
                                      Platform platform, Map<String, String> vars,
                                      boolean enableM3U, TemplateV3.RomOutput romsConfig,
-                                     Long taskId) throws Exception {
-        // 确定源路径
-        Path sourcePath = resolveSourcePath(game);
+                                     Long taskId, ResolvedVariant resolved) throws Exception {
+        // 确定源路径：有可用副本则用副本，否则回退主文件
+        Path sourcePath = resolved != null && resolved.getSourcePath() != null
+                ? resolved.getSourcePath() : resolveSourcePath(game);
         if (sourcePath == null || !Files.exists(sourcePath)) {
             if (sourcePath != null) {
                 logger.warn("ROM 文件不存在: {}", sourcePath);
@@ -362,8 +438,20 @@ public class ExportOrchestrator {
             return;
         }
 
+        boolean appliedVariant = resolved != null && resolved.isVariant();
+        if (appliedVariant) {
+            // 让 path / ext 表达式先看到副本扩展名，确保文件名模板求出正确后缀
+            game.setPath(replaceExtension(game.getPath(), resolved.getExtension()));
+            if (resolved.getFallbackReason() == null) {
+                logger.debug("使用副本: game={}, format={}", game.getName(), resolved.getFormat());
+            }
+        }
+
         // 计算目标文件名
         Map<String, String> gameVars = buildGameVariables(game, vars);
+        if (appliedVariant) {
+            gameVars.put("ext", resolved.getExtension());
+        }
 
         // 多文件游戏：拷贝多文件文本中的所有盘文件，并按模板 m3u 配置生成 m3u 文件
         if (Boolean.TRUE.equals(game.getMultiFile())
@@ -380,13 +468,61 @@ public class ExportOrchestrator {
         copyFile(sourcePath, targetPath);
 
         if (taskId != null) {
-            taskService.updateTaskLog(taskId, "复制 ROM: " + sourcePath.getFileName() + " → " + targetFileName);
+            String prefix = appliedVariant ? "复制副本(" + resolved.getFormat() + "): " : "复制 ROM: ";
+            taskService.updateTaskLog(taskId, prefix + sourcePath.getFileName() + " → " + targetFileName);
+        }
+
+        if (appliedVariant) {
+            // 数据文件里的 path 必须指向实际导出的文件名（扩展名可能已变）；
+            // absolutePath 保持源主文件路径，避免后续父 ROM 定位误把副本目录当源目录
+            game.setPath(targetFileName);
+        } else if (resolved != null && resolved.getFallbackReason() != null
+                && resolved.getRequestedFormat() != null
+                && !VariantService.FORMAT_ORIGINAL.equals(resolved.getRequestedFormat())) {
+            logger.info("副本不可用，回退主文件: game={}, format={}, reason={}",
+                    game.getName(), resolved.getRequestedFormat(), resolved.getFallbackReason());
         }
 
         // 处理 M3U 文件（path 指向 m3u 文件的旧数据：复制 m3u 引用的所有文件）
         if (enableM3U && targetFileName.toLowerCase().endsWith(".m3u")) {
             processM3UFile(sourcePath, targetPath, romsDir, romsConfig, game, platform, gameVars);
         }
+    }
+
+    /**
+     * 解析本次导出请求的副本格式（按 systemId 取值）。
+     * 返回 null 表示未显式指定，由 VariantResolver 使用系统偏好。
+     */
+    private String resolveRequestedVariantFormat(ExportRequest request, Platform platform) {
+        if (platform == null || platform.getSystemId() == null) {
+            return VariantService.FORMAT_ORIGINAL;
+        }
+        Map<String, String> formats = request.getSystemVariantFormats();
+        if (formats == null || formats.isEmpty()) {
+            return null;
+        }
+        String selected = formats.get(String.valueOf(platform.getSystemId()));
+        if (selected == null) {
+            selected = formats.get(platform.getSystemId());
+        }
+        return selected;
+    }
+
+    /**
+     * 把 path 的扩展名替换为副本扩展名，保留目录前缀与 # 片段。
+     */
+    private String replaceExtension(String path, String extension) {
+        if (path == null || path.isEmpty()) {
+            return path;
+        }
+        String value = path.split("\\r?\\n")[0];
+        int hash = value.indexOf('#');
+        String suffix = hash >= 0 ? value.substring(hash) : "";
+        String base = hash >= 0 ? value.substring(0, hash) : value;
+        int slash = Math.max(base.lastIndexOf('/'), base.lastIndexOf('\\'));
+        int dot = base.lastIndexOf('.');
+        String withoutExt = dot > slash ? base.substring(0, dot) : base;
+        return withoutExt + (extension != null ? extension : "") + suffix;
     }
 
     /**

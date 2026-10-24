@@ -191,4 +191,13 @@ public class PageController {
         model.addAttribute("pageTitle", "ABOUT");
         return "about";
     }
+
+    /**
+     * 工具箱页面
+     */
+    @GetMapping("/tools")
+    public String tools(Model model) {
+        model.addAttribute("pageTitle", "TOOLS");
+        return "tools";
+    }
 }

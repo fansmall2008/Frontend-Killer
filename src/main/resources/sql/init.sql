@@ -31,8 +31,6 @@ CREATE TABLE IF NOT EXISTS game (
     `path` VARCHAR(1024) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `desc` TEXT,
-    translated_name VARCHAR(255),
-    translated_desc TEXT,
     image VARCHAR(255),
     video VARCHAR(255),
     marquee VARCHAR(255),
@@ -743,3 +741,58 @@ CREATE INDEX IF NOT EXISTS idx_rom_db_romfile ON rom_db(system_id, rom_file);
 CREATE INDEX IF NOT EXISTS idx_rom_db_romfile_norm ON rom_db(system_id, rom_file_norm);
 ALTER TABLE game ADD COLUMN IF NOT EXISTS match_suspect BOOLEAN DEFAULT FALSE;
 ALTER TABLE game ADD COLUMN IF NOT EXISTS match_method VARCHAR(20);
+
+-- ============================================================
+-- 通用字段译文表（game.name / game.desc / rom_db.game_name 多语种译文）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS field_translation (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    src_table   VARCHAR(20)  NOT NULL,
+    src_id      BIGINT       NOT NULL,
+    src_field   VARCHAR(30)  NOT NULL,
+    lang        VARCHAR(10)  NOT NULL,
+    trans_value VARCHAR(2000),
+    UNIQUE (src_table, src_id, src_field, lang)
+);
+CREATE INDEX IF NOT EXISTS idx_ft_lookup ON field_translation (src_table, src_field, lang);
+
+-- ============================================================
+-- ROM 副本机制（Variant）
+--   game_variant              : 已落盘的副本记录（bare / zip / 7z）
+--   system_variant_capability : 系统支持哪些副本格式（能力矩阵）
+--   system_variant_preference : 每个系统上次选择的导出格式
+-- ============================================================
+CREATE TABLE IF NOT EXISTS game_variant (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    game_id         BIGINT       NOT NULL,
+    format          VARCHAR(16)  NOT NULL,
+    rel_path        VARCHAR(1000) NOT NULL,
+    size_bytes      BIGINT,
+    source_size     BIGINT,
+    source_mtime    BIGINT,
+    status          VARCHAR(16)  NOT NULL DEFAULT 'READY',
+    recipe          VARCHAR(32),
+    error_message   VARCHAR(1000),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_game_variant UNIQUE (game_id, format)
+);
+CREATE INDEX IF NOT EXISTS idx_game_variant_game ON game_variant(game_id);
+
+CREATE TABLE IF NOT EXISTS system_variant_capability (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    system_id       INT          NOT NULL,
+    format          VARCHAR(16)  NOT NULL,
+    supported       BOOLEAN      NOT NULL DEFAULT TRUE,
+    source          VARCHAR(16)  DEFAULT 'auto',
+    note            VARCHAR(255),
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_system_variant UNIQUE (system_id, format)
+);
+CREATE INDEX IF NOT EXISTS idx_system_variant_system ON system_variant_capability(system_id);
+
+CREATE TABLE IF NOT EXISTS system_variant_preference (
+    system_id         INT PRIMARY KEY,
+    preferred_format  VARCHAR(16) NOT NULL,
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

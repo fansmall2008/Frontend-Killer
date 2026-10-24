@@ -18,6 +18,7 @@ import com.gamelist.service.ScraperSettingsService;
 import com.gamelist.service.ScraperSystemService;
 import com.gamelist.service.ScreenScraperApiService;
 import com.gamelist.service.TaskService;
+import com.gamelist.service.VariantCapabilityService;
 
 @Service
 public class ScraperSystemServiceImpl implements ScraperSystemService {
@@ -35,6 +36,9 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private VariantCapabilityService variantCapabilityService;
 
     /**
      * 自代理：自调用 @Async 方法会绕过 Spring 代理导致同步执行，
@@ -57,6 +61,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             logger.info("插入刮削系统完成，ID: {}", system.getId());
         }
         
+        refreshVariantCapabilities();
         return system;
     }
 
@@ -66,6 +71,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
         logger.info("更新刮削系统: id={}, systemId={}", system.getId(), system.getSystemId());
         int updated = scraperSystemMapper.update(system);
         logger.info("更新完成，影响行数: {}", updated);
+        refreshVariantCapabilities();
         return scraperSystemMapper.selectById(system.getId());
     }
 
@@ -74,6 +80,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     public void deleteById(Long id) {
         logger.info("删除刮削系统: id={}", id);
         scraperSystemMapper.deleteById(id);
+        refreshVariantCapabilities();
         logger.info("删除完成");
     }
 
@@ -118,6 +125,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
             }
         }
         logger.info("批量插入/更新完成，插入: {}, 更新: {}", inserted, updated);
+        refreshVariantCapabilities();
         return inserted + updated;
     }
 
@@ -126,7 +134,16 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
     public void clearAll() {
         logger.info("清空所有刮削系统");
         scraperSystemMapper.deleteAll();
+        refreshVariantCapabilities();
         logger.info("清空完成");
+    }
+
+    private void refreshVariantCapabilities() {
+        try {
+            variantCapabilityService.refresh();
+        } catch (Exception e) {
+            logger.warn("刷新副本能力矩阵失败: {}", e.getMessage());
+        }
     }
 
     @Override

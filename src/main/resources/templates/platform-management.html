@@ -36,8 +36,6 @@
                 </div>
                 <div class="pm-batch-actions">
                     <button id="batchBtnScrape" class="btn batch-btn" onclick="batchScrape()" disabled data-i18n="batch_scrape">🌐 获取 ScreenScraper 数据</button>
-                    <button id="batchBtnTranslate" class="btn batch-btn" onclick="batchTranslate()" disabled data-i18n="batch_translate">🌐 翻译</button>
-                    <button id="batchBtnSwap" class="btn batch-btn" onclick="batchSwapTranslations()" disabled data-i18n="batch_swap">🔁 切换译文</button>
                     <button id="batchBtnScan" class="btn batch-btn" onclick="batchScanStats()" disabled data-i18n="batch_scan">📦 扫描体量</button>
                     <button id="batchBtnMatchDisc" class="btn batch-btn" onclick="batchMatchDiscSerial()" disabled data-i18n="batch_match_disc">📦 本地获取数据</button>
                     <button id="batchBtnDelete" class="btn batch-btn batch-btn-danger" onclick="batchDelete()" disabled data-i18n="batch_delete">🗑️ 删除</button>
@@ -450,52 +448,6 @@
                     <input type="text" id="addFolderPath" placeholder="请输入平台文件夹的绝对路径" data-i18n-placeholder="platform_folder_path_placeholder">
                 </div>
                 <button type="submit" class="submit-btn" data-i18n="save">保存</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 翻译模态框 -->
-    <div id="translationModal" class="pm-modal">
-        <div class="pm-modal-content">
-            <span class="close">&times;</span>
-            <h2 data-i18n="translation_settings">翻译配置</h2>
-            <form id="translationForm">
-                <input type="hidden" id="translationPlatformId">
-                <div class="form-group">
-                    <label for="translationSourceLang" data-i18n="source_language">源语言</label>
-                    <select id="translationSourceLang">
-                        <option value="auto" data-i18n="auto_detect">自动检测</option>
-                        <option value="zh" data-i18n="lang_zh_full">中文</option>
-                        <option value="en" data-i18n="lang_en_full">英语</option>
-                        <option value="ja" data-i18n="lang_ja_full">日语</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="translationTargetLang" data-i18n="target_language">目标语言</label>
-                    <select id="translationTargetLang">
-                        <option value="zh" data-i18n="lang_zh_full">中文</option>
-                        <option value="en" data-i18n="lang_en_full">英语</option>
-                        <option value="ja" data-i18n="lang_ja_full">日语</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="translationApi" data-i18n="select_translation_api">翻译引擎</label>
-                    <select id="translationApi">
-                        <option value="google" data-i18n="google_translate">Google翻译</option>
-                        <option value="baidu" data-i18n="baidu_translate">百度翻译</option>
-                        <option value="youdao" data-i18n="youdao_translate">有道翻译</option>
-                        <option value="deepseek">DeepSeek</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="translationType" data-i18n="translate_content">翻译内容</label>
-                    <select id="translationType">
-                        <option value="name" data-i18n="translate_name_only">仅游戏名称</option>
-                        <option value="desc" data-i18n="translate_desc_only">仅游戏描述</option>
-                        <option value="both" data-i18n="translate_both">游戏名称和描述</option>
-                    </select>
-                </div>
-                <button type="submit" class="submit-btn" data-i18n="start_translation">开始翻译</button>
             </form>
         </div>
     </div>
@@ -1192,7 +1144,7 @@
         function updateBatchToolbar() {
             const infoText = document.getElementById('batchInfoText');
             const clearLink = document.getElementById('batchClearLink');
-            const btns = ['batchBtnScrape', 'batchBtnTranslate', 'batchBtnSwap', 'batchBtnScan', 'batchBtnMatchDisc', 'batchBtnDelete'];
+            const btns = ['batchBtnScrape', 'batchBtnScan', 'batchBtnMatchDisc', 'batchBtnDelete'];
             const hasSelection = _batchPlatformIds.length > 0;
 
             if (infoText) {
@@ -1223,46 +1175,6 @@
             });
             document.getElementById('scrapeModalTitle').textContent = _pi18n('batch_scrape_title', '批量刮削') + ' (' + names.length + ')';
             document.getElementById('scrapeModal').style.display = 'block';
-        }
-
-        // 批量翻译：打开翻译弹窗，确认后对所有选中平台执行
-        function batchTranslate() {
-            if (_batchPlatformIds.length === 0) return;
-            document.getElementById('translationPlatformId').value = _batchPlatformIds[0]; // 先用第一个占位
-            window._batchTranslateIds = _batchPlatformIds.slice();
-            document.getElementById('translationModal').style.display = 'block';
-        }
-
-        // 批量切换译文
-        function batchSwapTranslations() {
-            if (_batchPlatformIds.length === 0) return;
-            const names = _batchPlatformIds.map(id => {
-                const row = _platformRows.find(r => r.platform.id === id);
-                return row ? (row.platform.name || row.platform.system) : id;
-            });
-            if (!confirm(I18n.t('confirm_batch_swap', '确定要对选中的 ') + names.length + I18n.t('confirm_batch_swap_suffix', ' 个平台切换译文吗？\n\n这将交换每个平台下所有游戏的原文/译文。'))) return;
-
-            let totalSwapped = 0;
-            let pending = _batchPlatformIds.length;
-            _batchPlatformIds.forEach(pid => {
-                fetch('/api/gamelist/games/swap-translations-by-platform', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ platformId: pid })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) totalSwapped += (data.swappedCount || 0);
-                })
-                .catch(() => {})
-                .finally(() => {
-                    pending--;
-                    if (pending === 0) {
-                        showNotification(I18n.t('batch_swap_done_prefix', '批量切换完成，共切换 ') + totalSwapped + I18n.t('batch_swap_done_suffix', ' 个游戏的译文'), 'success');
-                        loadPlatformStatistics();
-                    }
-                });
-            });
         }
 
         // 批量扫描体量
@@ -1352,11 +1264,13 @@
             btn.disabled = true;
             btn.textContent = I18n.t('matching', '匹配中...');
 
-            // 收集选中的匹配方法
+            // 收集选中的匹配方法（顺序固定：serial → crc → filename_exact → name_serial → name_fuzzy）
             const methods = [];
-            if (document.getElementById('matchMethodCrc').checked) methods.push('crc');
             if (document.getElementById('matchMethodSerial').checked) methods.push('serial');
-            if (document.getElementById('matchMethodName').checked) methods.push('name');
+            if (document.getElementById('matchMethodCrc').checked) methods.push('crc');
+            if (document.getElementById('matchMethodFilenameExact').checked) methods.push('filename_exact');
+            if (document.getElementById('matchMethodNameSerial').checked) methods.push('name_serial');
+            if (document.getElementById('matchMethodNameFuzzy').checked) methods.push('name_fuzzy');
             if (methods.length === 0) {
                 showNotification(I18n.t('select_at_least_one_method', '请至少选择一种匹配方式'), 'warning');
                 btn.disabled = false;
@@ -2962,38 +2876,6 @@
             }
         }
 
-        // 打开翻译模态框
-        function openTranslationModal(id) {
-            document.getElementById('translationPlatformId').value = id;
-            document.getElementById('translationModal').style.display = 'block';
-        }
-
-        // 按平台切换译文
-        function swapPlatformTranslations(platformId, platformName) {
-            if (!confirm(I18n.t('confirm_swap_platform_translations', '确定要切换平台「') + platformName + I18n.t('confirm_swap_platform_suffix', '」下所有游戏的原文/译文吗？\n\n这将交换每个游戏的名称和描述与翻译后的内容。'))) {
-                return;
-            }
-
-            fetch('/api/gamelist/games/swap-translations-by-platform', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ platformId: platformId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(I18n.t('swap_platform_success_prefix', '成功切换 ') + data.swappedCount + I18n.t('swap_platform_success_suffix', ' 个游戏的译文'), 'success');
-                    loadPlatformStatistics();
-                } else {
-                    showNotification(I18n.t('swap_failed_prefix', '切换失败：') + (data.error || I18n.t('unknown_error', '未知错误')), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error swapping platform translations:', error);
-                showNotification(I18n.t('swap_failed_prefix', '切换失败：') + error.message, 'error');
-            });
-        }
-
         // 打开分离模态框
         function openSeparationModal(id) {
             document.getElementById('separationPlatformId').value = id;
@@ -3087,288 +2969,10 @@
             });
         }
 
-        // 提交翻译表单
-        document.getElementById('translationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const platformId = document.getElementById('translationPlatformId').value;
-            const sourceLang = document.getElementById('translationSourceLang').value;
-            const targetLang = document.getElementById('translationTargetLang').value;
-            const apiType = document.getElementById('translationApi').value;
-            const translateType = document.getElementById('translationType').value;
-
-            // 批量翻译模式
-            if (window._batchTranslateIds && window._batchTranslateIds.length > 1) {
-                const ids = window._batchTranslateIds;
-                window._batchTranslateIds = null;
-                document.getElementById('translationModal').style.display = 'none';
-                let successCount = 0;
-                ids.forEach(pid => {
-                    fetch('/api/translation/translate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({
-                            platformId: pid,
-                            apiType: apiType,
-                            sourceLang: sourceLang,
-                            targetLang: targetLang,
-                            translateType: translateType,
-                            apiKey: localStorage.getItem(apiType + 'ApiKey') || ''
-                        }),
-                    })
-                    .then(r => r.json())
-                    .then(result => { if (result.success) successCount++; })
-                    .catch(() => {});
-                });
-                showNotification(I18n.t('batch_translate_started', '批量翻译已启动，共 ') + ids.length + I18n.t('batch_translate_suffix', ' 个平台'), 'success');
-                return;
-            }
-            window._batchTranslateIds = null;
-            
-            // 发送翻译请求
-            fetch('/api/translation/translate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    platformId: platformId,
-                    apiType: apiType,
-                    sourceLang: sourceLang,
-                    targetLang: targetLang,
-                    translateType: translateType,
-                    apiKey: localStorage.getItem(apiType + 'ApiKey') || ''
-                }),
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    showNotification(_pi18n('translation_task_started', '翻译任务已开始'), 'success');
-                    document.getElementById('translationModal').style.display = 'none';
-                    // 显示翻译进度
-                    showTranslationProgress(result.taskId);
-                } else {
-                    showNotification(_pi18n('translation_task_failed', '翻译任务失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error starting translation:', error);
-                showNotification(_pi18n('translation_task_failed', '翻译任务失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
-            });
-        });
-
-        // 显示翻译进度
-        function showTranslationProgress(taskId) {
-            const progressModal = document.createElement('div');
-            progressModal.className = 'pm-modal';
-            progressModal.style.display = 'block';
-            progressModal.innerHTML = `
-                <div class="pm-modal-content">
-                    <span class="close">&times;</span>
-                    <h2 data-i18n="translation_progress">翻译进度</h2>
-                    <div class="progress-section">
-                        <div class="progress-bar">
-                            <div id="progressFill" class="progress-fill" style="width: 0%;">0%</div>
-                        </div>
-                        <div class="progress-info">
-                            <div class="progress-item">
-                                <label data-i18n="total_games">总游戏数</label>
-                                <value id="totalGames">0</value>
-                            </div>
-                            <div class="progress-item">
-                                <label data-i18n="completed_games">已完成</label>
-                                <value id="completedGames">0</value>
-                            </div>
-                            <div class="progress-item">
-                                <label data-i18n="success_games">成功</label>
-                                <value id="successGames">0</value>
-                            </div>
-                            <div class="progress-item">
-                                <label data-i18n="failed_games">失败</label>
-                                <value id="failedGames">0</value>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="translationReport" style="margin-top: 30px; display: none;">
-                        <h4 style="color: #00ffff; margin-bottom: 15px;" data-i18n="translation_report">翻译报告</h4>
-                        <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                            <p style="margin-bottom: 10px;"><strong data-i18n="report_task_status">任务状态:</strong> <span id="reportStatus">已完成</span></p>
-                            <p style="margin-bottom: 10px;"><strong data-i18n="report_success_count">成功数量:</strong> <span id="reportSuccessCount">0</span></p>
-                            <p style="margin-bottom: 10px;"><strong data-i18n="report_failed_count">失败数量:</strong> <span id="reportFailedCount">0</span></p>
-                            <p style="margin-bottom: 10px;"><strong data-i18n="report_success_rate">成功率:</strong> <span id="reportSuccessRate">0%</span></p>
-                        </div>
-                        <div id="errorList" style="display: none;">
-                            <h5 style="color: #ff0088; margin-bottom: 15px;" data-i18n="translation_error_list">翻译错误列表</h5>
-                            <div style="background: rgba(255, 0, 136, 0.1); border: 1px solid #ff0088; border-radius: 8px; padding: 20px; max-height: 400px; overflow-y: auto;">
-                                <table style="width: 100%; border-collapse: collapse;">
-                                    <thead>
-                                        <tr style="border-bottom: 1px solid #444;">
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_game_id">游戏ID</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_game_name">游戏名称</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_error_type">错误类型</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;" data-i18n="report_col_error_msg">错误信息</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="errorTableBody">
-                                        <!-- 错误条目将通过JavaScript动态添加 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div style="margin-top: 20px;">
-                                <button id="createErrorSubsetBtn" class="btn" style="background: linear-gradient(45deg, #ff0088, #ff00ff);" data-i18n="create_error_subset">
-                                    创建错误条目子集
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(progressModal);
-            
-            // 关闭按钮事件
-            progressModal.querySelector('.close').addEventListener('click', function() {
-                document.body.removeChild(progressModal);
-            });
-            
-            // 点击模态框外部关闭
-            progressModal.addEventListener('click', function(event) {
-                if (event.target === progressModal) {
-                    document.body.removeChild(progressModal);
-                }
-            });
-            
-            // 定期获取翻译进度
-            const interval = setInterval(() => {
-                fetch(`/api/translation/progress/${taskId}`)
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            const progress = result.progress;
-                            
-                            // 更新进度条
-                            const progressFill = progressModal.querySelector('#progressFill');
-                            const totalGames = progressModal.querySelector('#totalGames');
-                            const completedGames = progressModal.querySelector('#completedGames');
-                            const successGames = progressModal.querySelector('#successGames');
-                            const failedGames = progressModal.querySelector('#failedGames');
-                            
-                            totalGames.textContent = progress.total;
-                            completedGames.textContent = progress.completed;
-                            successGames.textContent = progress.success;
-                            failedGames.textContent = progress.failed;
-                            
-                            const percentage = Math.round((progress.completed / progress.total) * 100);
-                            progressFill.style.width = percentage + '%';
-                            progressFill.textContent = percentage + '%';
-                            
-                            // 检查任务是否完成
-                            if (progress.status === 'completed') {
-                                clearInterval(interval);
-                                
-                                // 显示翻译报告
-                                const translationReport = progressModal.querySelector('#translationReport');
-                                const reportStatus = progressModal.querySelector('#reportStatus');
-                                const reportSuccessCount = progressModal.querySelector('#reportSuccessCount');
-                                const reportFailedCount = progressModal.querySelector('#reportFailedCount');
-                                const reportSuccessRate = progressModal.querySelector('#reportSuccessRate');
-                                
-                                translationReport.style.display = 'block';
-                                reportStatus.textContent = _pi18n('report_status_done', '已完成');
-                                reportSuccessCount.textContent = progress.success;
-                                reportFailedCount.textContent = progress.failed;
-                                
-                                const successRate = progress.total > 0 ? Math.round((progress.success / progress.total) * 100) : 0;
-                                reportSuccessRate.textContent = successRate + '%';
-                                
-                                // 显示错误列表
-                                if (progress.errors && progress.errors.length > 0) {
-                                    const errorList = progressModal.querySelector('#errorList');
-                                    const errorTableBody = progressModal.querySelector('#errorTableBody');
-                                    
-                                    errorList.style.display = 'block';
-                                    errorTableBody.innerHTML = '';
-                                    
-                                    progress.errors.forEach(error => {
-                                        const row = document.createElement('tr');
-                                        row.innerHTML = `
-                                            <td>${error.gameId}</td>
-                                            <td>${error.gameName}</td>
-                                            <td>${error.errorType}</td>
-                                            <td>${error.errorMessage}</td>
-                                        `;
-                                        errorTableBody.appendChild(row);
-                                    });
-                                    
-                                    // 创建错误条目子集按钮
-                                    const createErrorSubsetBtn = progressModal.querySelector('#createErrorSubsetBtn');
-                                    createErrorSubsetBtn.addEventListener('click', function() {
-                                        fetch(`/api/translation/create-error-subset/${taskId}`, {
-                                            method: 'POST'
-                                        })
-                                        .then(response => response.json())
-                                        .then(result => {
-                                            if (result.success) {
-                                                showNotification(_pi18n('error_subset_created', '错误条目子集创建成功'), 'success');
-                                            } else {
-                                                showNotification(_pi18n('error_subset_failed', '错误条目子集创建失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
-                                            }
-                                        })
-                                        .catch(error => {
-                                            console.error('Error creating error subset:', error);
-                                            showNotification(_pi18n('error_subset_failed', '错误条目子集创建失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
-                                        });
-                                    });
-                                }
-                            }
-                        } else {
-                            clearInterval(interval);
-                            showNotification(_pi18n('translation_progress_failed', '获取翻译进度失败') + ': ' + (result.message || _pi18n('unknown_error', '未知错误')), 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching translation progress:', error);
-                        clearInterval(interval);
-                        showNotification(_pi18n('translation_progress_failed', '获取翻译进度失败') + ': ' + _pi18n('network_error', '网络错误'), 'error');
-                    });
-            }, 2000);
-        }
-
-        // 加载有效的翻译服务列表
-        function loadValidTranslationServices() {
-            fetch('/api/translation/services')
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        const apiSelect = document.getElementById('translationApi');
-                        apiSelect.innerHTML = '';
-                        
-                        // 添加默认选项
-                        const defaultOption = document.createElement('option');
-                        defaultOption.value = '';
-                        defaultOption.textContent = _pi18n('select_translation_api_placeholder', '-- 请选择翻译API --');
-                        apiSelect.appendChild(defaultOption);
-                        
-                        // 添加有效的翻译服务
-                        result.services.forEach(service => {
-                            const option = document.createElement('option');
-                            option.value = service.id;
-                            option.textContent = service.name;
-                            apiSelect.appendChild(option);
-                        });
-                    } else {
-                        console.error('Failed to load translation services:', result.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading translation services:', error);
-                });
-        }
-
         // 页面加载时获取平台列表
         window.onload = function() {
             initLanguage();
             getPlatforms();
-            loadValidTranslationServices();
         };
 
         // 提交分离表单
@@ -4509,7 +4113,7 @@
             <span class="close" onclick="closeDiscMatchLangModal()">&times;</span>
             <h2 style="color: #00ffff; font-size: 18px; margin-bottom: 16px;" data-i18n="disc-match-lang-title">选择匹配语言</h2>
             <p id="discMatchLangDesc" style="color: #ccc; font-size: 14px; margin-bottom: 8px;"></p>
-            <p style="color: #ccc; font-size: 13px; margin-bottom: 16px; line-height: 1.6;" data-i18n="disc-match-lang-desc">说明：① 编号提取最快（毫秒级），但不校验 ROM 完整性/准确性，不校验是否为标准 ROM；② CRC 匹配最准确，但需全文件计算，速度很慢；③ 文件名匹配仅从文件名中提取编号或做名称模糊匹配。匹配顺序：编号 → CRC → 文件名。</p>
+            <p style="color: #ccc; font-size: 13px; margin-bottom: 16px; line-height: 1.6;" data-i18n="disc-match-lang-desc">匹配顺序：文件内编号 → CRC → 文件名精准 → 从文件名提取编号 → 标题模糊。🟢 前两项读 ROM 内容，命中即为确定；🟡 后三项只凭文件名/标题推断，命中后标为存疑，需人工确认才转绿。街机（MAME/FBNeo）建议勾选“文件名匹配”以提高命中率。</p>
             <div class="form-group">
                 <label data-i18n="select-lang">选择语言</label>
                 <select id="discMatchLangSelect" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(0,255,255,0.3); background: rgba(0,0,0,0.5); color: #fff; font-size: 14px;">
@@ -4521,21 +4125,31 @@
             <div class="form-group" style="margin-top: 12px;">
                 <label style="color: #ccc; font-size: 13px; margin-bottom: 8px; display: block;" data-i18n="match_methods_label">匹配方式（按顺序依次尝试）</label>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="color:#3ecf6a; font-size:12px; margin-top:2px;" data-i18n="match_group_authoritative">🟢 精确匹配（读 ROM 内容，命中即确定）</div>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;" id="matchMethodSerialLabel">
                         <input type="checkbox" id="matchMethodSerial" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
-                        <span data-i18n="match_method_serial">编号提取（从 ROM 内部提取标识符，如 SYSTEM.CNF/卡带头部；最快但不校验 ROM 完整性）</span>
+                        <span data-i18n="match_method_serial">文件内编号（从 ROM 内部提取标识符，如 SYSTEM.CNF/卡带头部；内容级，最快）</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
                         <input type="checkbox" id="matchMethodCrc" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
                         <span data-i18n="match_method_crc">CRC 匹配（计算文件哈希，最准确但全文件计算很慢）</span>
                     </label>
+                    <div style="color:#ffaa00; font-size:12px; margin-top:8px;" data-i18n="match_group_suspect">🟡 存疑匹配（只凭文件名/标题推断，命中后需人工确认才转绿）</div>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
-                        <input type="checkbox" id="matchMethodName" checked style="width: 16px; height: 16px; accent-color: #00ffff;">
-                        <span data-i18n="match_method_name">文件名匹配（从文件名中提取编号，或名称模糊匹配）</span>
+                        <input type="checkbox" id="matchMethodFilenameExact" checked style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <span data-i18n="match_method_filename_exact">文件名匹配（按压缩包名精准对撞 DAT 短名；建议街机使用，可提高匹配度；含多个文件的游戏取容器/首个名，仅供参考）</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
+                        <input type="checkbox" id="matchMethodNameSerial" style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <span data-i18n="match_method_name_serial">从文件名提取编号（CRC/文件内提取未命中时，从文件名正则提取编号）</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
+                        <input type="checkbox" id="matchMethodNameFuzzy" style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <span data-i18n="match_method_name_fuzzy">标题模糊匹配（清洗文件名后按标题模糊搜索；噪声较大，默认关闭）</span>
                     </label>
                 </div>
             </div>
-            <div style="text-align: right; margin-top: 20px;">
+            <div style="position: sticky; bottom: 0; z-index: 2; background: var(--bg-surface); text-align: right; margin-top: 20px; padding: 12px 0 4px;">
                 <button type="button" onclick="confirmDiscMatchLang()" class="action-btn btn-primary" style="margin-right: 8px;" data-i18n="confirm">确定</button>
                 <button type="button" onclick="closeDiscMatchLangModal()" class="action-btn" data-i18n="cancel">取消</button>
             </div>

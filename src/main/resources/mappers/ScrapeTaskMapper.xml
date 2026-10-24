@@ -191,4 +191,24 @@
         DELETE FROM scrape_task WHERE task_id = #{taskId}
     </delete>
 
+    <!-- 一次性汇总所有平台各任务类型各状态的任务数量 -->
+    <select id="selectPlatformTaskTypeSummary" resultType="java.util.HashMap">
+        SELECT platform_id AS "platformId", task_type AS "taskType", status AS "status", COUNT(*) AS "cnt"
+        FROM scrape_task
+        WHERE platform_id IS NOT NULL
+        GROUP BY platform_id, task_type, status
+    </select>
+
+    <!-- 查询当前 RUNNING 状态的任务（关联游戏名称和平台名称） -->
+    <select id="selectRunningTasksWithNames" resultType="java.util.HashMap">
+        SELECT t.platform_id AS "platformId", t.task_type AS "taskType",
+               t.rom_filename AS "romFilename",
+               g.name AS "gameName",
+               p.name AS "platformName"
+        FROM scrape_task t
+        LEFT JOIN game g ON t.game_id = g.id
+        LEFT JOIN platform p ON t.platform_id = p.id
+        WHERE t.status = 'RUNNING'
+    </select>
+
 </mapper>

@@ -15,6 +15,10 @@ public class ExportRequest {
     private boolean wholeDirectoryCopy;
     // 模板声明变量的用户填写值（key=变量名, value=用户输入），执行前注入表达式与路径占位符
     private Map<String, String> templateVariables;
+    // 可选：导出时按此语种从 field_translation 回填 translatedName/translatedDesc（空=不注入，用原文）
+    private String translationLang;
+    // 按系统选择副本格式：key=systemId, value=bare/zip/7z/original；未提供时用系统偏好
+    private Map<String, String> systemVariantFormats;
 
     public Long getPlatformId() {
         return platformId;
@@ -86,5 +90,21 @@ public class ExportRequest {
 
     public void setTemplateVariables(Map<String, String> templateVariables) {
         this.templateVariables = templateVariables;
+    }
+
+    public String getTranslationLang() {
+        return translationLang;
+    }
+
+    public void setTranslationLang(String translationLang) {
+        this.translationLang = translationLang;
+    }
+
+    public Map<String, String> getSystemVariantFormats() {
+        return systemVariantFormats;
+    }
+
+    public void setSystemVariantFormats(Map<String, String> systemVariantFormats) {
+        this.systemVariantFormats = systemVariantFormats;
     }
 }

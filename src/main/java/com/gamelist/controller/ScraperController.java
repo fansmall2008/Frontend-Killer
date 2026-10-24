@@ -276,18 +276,20 @@ public class ScraperController {
             data.put("mediaWaiting", snapshot.getOrDefault("mediaWaiting", 0));
             data.put("cachedMaxThreads", scraperService.getUserMaxThreads());
             
-            // 配额信息
+            // 配额信息（从 ScrapeStatus 快照的嵌套 quota map 读取）
+            @SuppressWarnings("unchecked")
+            Map<String, Object> snapshotQuota = (Map<String, Object>) snapshot.getOrDefault("quota", Map.of());
             Map<String, Object> quota = new java.util.LinkedHashMap<>();
-            quota.put("requestsToday", snapshot.getOrDefault("requestsToday", 0));
-            quota.put("maxRequestsPerDay", snapshot.getOrDefault("maxRequestsPerDay", 0));
-            quota.put("maxRequestsPerMin", snapshot.getOrDefault("maxRequestsPerMin", 0));
-            quota.put("maxDownloadSpeed", snapshot.getOrDefault("maxDownloadSpeed", 0));
-            quota.put("requestsKoToday", snapshot.getOrDefault("requestsKoToday", 0));
-            quota.put("userNiveau", snapshot.getOrDefault("userNiveau", 0));
-            quota.put("userContribution", snapshot.getOrDefault("userContribution", 0));
+            quota.put("requestsToday", snapshotQuota.getOrDefault("requestsToday", 0));
+            quota.put("maxRequestsPerDay", snapshotQuota.getOrDefault("maxRequestsPerDay", 0));
+            quota.put("maxRequestsPerMin", snapshotQuota.getOrDefault("maxRequestsPerMin", 0));
+            quota.put("maxDownloadSpeed", snapshotQuota.getOrDefault("maxDownloadSpeed", 0));
+            quota.put("requestsKoToday", snapshotQuota.getOrDefault("requestsKoToday", 0));
+            quota.put("userNiveau", snapshotQuota.getOrDefault("userNiveau", ""));
+            quota.put("userContribution", snapshotQuota.getOrDefault("userContribution", ""));
             // 计算配额使用百分比
-            Object maxRequestsPerDay = snapshot.get("maxRequestsPerDay");
-            Object requestsToday = snapshot.get("requestsToday");
+            Object maxRequestsPerDay = snapshotQuota.get("maxRequestsPerDay");
+            Object requestsToday = snapshotQuota.get("requestsToday");
             if (maxRequestsPerDay instanceof Number && ((Number) maxRequestsPerDay).intValue() > 0) {
                 int max = ((Number) maxRequestsPerDay).intValue();
                 int current = requestsToday instanceof Number ? ((Number) requestsToday).intValue() : 0;
@@ -302,6 +304,104 @@ public class ScraperController {
         } catch (Exception e) {
             logger.error("获取刮削状态失败", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * 获取所有平台的实时进度（用于媒体下载页面显示）
+     */
+    @GetMapping("/platform-progress")
+    public ResponseEntity<?> getPlatformProgress() {
+        try {
+            Map<String, Object> data = scraperService.getPlatformProgress();
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            logger.error("获取平台进度失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "获取平台进度失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 暂停所有平台的信息刮削和媒体下载
+     */
+    @PostMapping("/pause-all")
+    public ResponseEntity<?> pauseAll() {
+        try {
+            scraperService.pauseAll();
+            return ResponseEntity.ok(Map.of("success", true, "message", "已暂停所有平台"));
+        } catch (Exception e) {
+            logger.error("暂停所有平台失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "暂停失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 恢复所有平台的信息刮削和媒体下载
+     */
+    @PostMapping("/resume-all")
+    public ResponseEntity<?> resumeAll() {
+        try {
+            scraperService.resumeAll();
+            return ResponseEntity.ok(Map.of("success", true, "message", "已恢复所有平台"));
+        } catch (Exception e) {
+            logger.error("恢复所有平台失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "恢复失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 停止所有平台的信息刮削和媒体下载
+     */
+    @PostMapping("/stop-all")
+    public ResponseEntity<?> stopAll() {
+        try {
+            scraperService.stopAll();
+            return ResponseEntity.ok(Map.of("success", true, "message", "已停止所有平台"));
+        } catch (Exception e) {
+            logger.error("停止所有平台失败", e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "停止失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 暂停指定平台的信息刮削和媒体下载
+     */
+    @PostMapping("/platforms/{id}/pause")
+    public ResponseEntity<?> pausePlatform(@PathVariable("id") Long platformId) {
+        try {
+            scraperService.pausePlatform(platformId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "已暂停平台 " + platformId));
+        } catch (Exception e) {
+            logger.error("暂停平台失败: platformId={}", platformId, e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "暂停失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 恢复指定平台的信息刮削和媒体下载
+     */
+    @PostMapping("/platforms/{id}/resume")
+    public ResponseEntity<?> resumePlatform(@PathVariable("id") Long platformId) {
+        try {
+            scraperService.resumePlatform(platformId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "已恢复平台 " + platformId));
+        } catch (Exception e) {
+            logger.error("恢复平台失败: platformId={}", platformId, e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "恢复失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 停止指定平台的信息刮削和媒体下载
+     */
+    @PostMapping("/platforms/{id}/stop")
+    public ResponseEntity<?> stopPlatform(@PathVariable("id") Long platformId) {
+        try {
+            scraperService.stopPlatform(platformId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "已停止平台 " + platformId));
+        } catch (Exception e) {
+            logger.error("停止平台失败: platformId={}", platformId, e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "停止失败: " + e.getMessage()));
         }
     }
 

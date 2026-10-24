@@ -437,6 +437,17 @@
                     </div>`;
             });
             html += `<button id="matchBindBtn" class="btn" data-i18n="match_bind_btn">绑定系统</button>`;
+            // 区域选择（影响自动刮削下载的媒体区域）
+            html += `
+                <div class="match-region-row">
+                    <label class="match-region-label" for="matchRegionSelect" data-i18n="match_region_label">媒体区域：</label>
+                    <select id="matchRegionSelect" class="match-region-select">
+                        <option value="wor" data-i18n="region_wor">世界 (wor)</option>
+                        <option value="us" data-i18n="region_us">美版 (us)</option>
+                        <option value="eu" data-i18n="region_eu">欧版 (eu)</option>
+                        <option value="jp" data-i18n="region_jp">日版 (jp)</option>
+                    </select>
+                </div>`;
             container.innerHTML = html;
             updateTranslations(getCurrentLanguage());
             
@@ -460,6 +471,8 @@
                 return;
             }
             const systemId = parseInt(selected.dataset.systemId, 10);
+            const regionSelect = document.getElementById('matchRegionSelect');
+            const selectedRegion = regionSelect ? regionSelect.value : 'wor';
             const btn = document.getElementById('matchBindBtn');
             if (!btn) return;
             btn.disabled = true;
@@ -470,7 +483,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ systemId: systemId })
+                body: JSON.stringify({ systemId: systemId, region: selectedRegion })
             })
             .then(response => response.json())
             .then(result => {
@@ -482,6 +495,35 @@
                         showNotification(getI18nText('match_scrape_started'), 'success');
                     } else {
                         showNotification(getI18nText('match_no_credentials'), 'warning');
+                    }
+                    // 绑定成功后：若本地 rom_db 已有该系统数据，引导立即本地匹配
+                    if (systemId > 0) {
+                        fetch(`/api/rom-db/has-data?systemId=${systemId}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success && data.hasData) {
+                                    const count = data.count || '';
+                                    const msg = I18n.t('local_data_found', `本地已有该平台的匹配数据（${count} 条记录）。`).replace('%d', count) + '\n'
+                                              + I18n.t('local_match_prompt', '是否立即进行本地匹配？') + '\n'
+                                              + I18n.t('local_match_benefit', '可回填游戏名、开发商等基础信息，并提升刮削准确度。');
+                                    if (confirm(msg)) {
+                                        fetch('/api/rom-db/match', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                gameIds: [],
+                                                systemId: systemId,
+                                                language: 'en',
+                                                fileNameExtract: true,
+                                                platformId: currentPlatformId
+                                            })
+                                        }).then(() => {
+                                            showNotification(getI18nText('local_match_started'), 'success');
+                                            setTimeout(() => location.reload(), 2000);
+                                        });
+                                    }
+                                }
+                            }).catch(e => console.debug('rom_db has-data check failed:', e));
                     }
                 } else {
                     btn.disabled = false;

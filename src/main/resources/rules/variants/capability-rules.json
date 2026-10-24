@@ -1,0 +1,13 @@
+{
+  "eligibleTypes": ["console", "handheld"],
+  "excludeRomTypes": ["iso", "cue", "cd", "dvd", "hdd", "disk", "optical", "tape"],
+  "eligibleExtensions": [
+    "nes", "fds", "unf", "unif",
+    "smc", "sfc", "swc", "fig",
+    "gb", "gbc", "gba", "agb",
+    "sms", "gg", "md", "gen", "bin", "32x", "sg",
+    "pce", "ngp", "ngc", "ws", "wsc",
+    "a26", "a52", "a78", "lnx", "col", "int", "vec", "o2", "chf",
+    "msx", "rom", "n64", "z64", "v64", "nds", "j64", "vb", "min"
+  ]
+}

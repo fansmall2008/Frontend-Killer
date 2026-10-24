@@ -122,6 +122,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void completeTask(Long taskId, String message, String result) {
+        completeTask(taskId, message, result, "success");
+    }
+
+    @Override
+    public void completeTask(Long taskId, String message, String result, String notificationType) {
         BackgroundTask task = getTaskFromCacheOrDb(taskId);
         if (task != null) {
             task.setStatus("COMPLETED");
@@ -140,7 +145,8 @@ public class TaskServiceImpl implements TaskService {
             try {
                 notificationService.send(
                         task.getDescription() != null && !task.getDescription().isEmpty() ? task.getDescription() : task.getType(),
-                        message, "success", "task");
+                        message, notificationType == null || notificationType.isBlank() ? "success" : notificationType,
+                        "task");
             } catch (Exception e) {
                 // 通知失败不影响任务状态
             }

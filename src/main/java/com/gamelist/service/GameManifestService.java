@@ -47,6 +47,9 @@ public class GameManifestService {
     private ThreadResourceManager threadResourceManager;
 
     @Autowired
+    private ScrapeStatus scrapeStatus;
+
+    @Autowired
     private ScreenScraperConfig scraperConfig;
 
     @Autowired
@@ -317,19 +320,12 @@ public class GameManifestService {
 
     private void updateQuotaFromSsuser(JsonNode ssuserNode) {
         try {
+            // 并发控制：更新 ThreadResourceManager 的 maxThreads
             if (ssuserNode.has("maxthreads")) {
                 threadResourceManager.updateFromServerResponse(ssuserNode.get("maxthreads").asInt());
             }
-            int requestsToday = ssuserNode.has("requeststoday") ? ssuserNode.get("requeststoday").asInt(0) : 0;
-            int maxRequestsPerDay = ssuserNode.has("maxrequestsperday") ? ssuserNode.get("maxrequestsperday").asInt(0) : 0;
-            int maxRequestsPerMin = ssuserNode.has("maxrequestspermin") ? ssuserNode.get("maxrequestspermin").asInt(0) : 0;
-            int maxDownloadSpeed = ssuserNode.has("maxdownloadspeed") ? ssuserNode.get("maxdownloadspeed").asInt(0) : 0;
-            int requestsKoToday = ssuserNode.has("requestskotoday") ? ssuserNode.get("requestskotoday").asInt(0) : 0;
-            String niveau = ssuserNode.has("niveau") ? ssuserNode.get("niveau").asText("") : "";
-            String contribution = ssuserNode.has("contribution") ? ssuserNode.get("contribution").asText("") : "";
-            threadResourceManager.updateQuotaFromServer(
-                    requestsToday, maxRequestsPerDay, maxRequestsPerMin,
-                    maxDownloadSpeed, requestsKoToday, niveau, contribution);
+            // 配额信息统一由 ScrapeStatus 管理（前端 thread-status API 的唯一数据源）
+            scrapeStatus.updateQuotaFromSsuser(ssuserNode);
         } catch (Exception e) {
             logger.debug("更新配额信息失败（忽略）: {}", e.getMessage());
         }

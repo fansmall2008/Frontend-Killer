@@ -4,6 +4,7 @@ import com.gamelist.config.RomDbDataInitializer;
 import com.gamelist.config.RomDbPlatformMapping;
 import com.gamelist.mapper.GameMapper;
 import com.gamelist.mapper.RomDbMapper;
+import com.gamelist.mapper.FieldTranslationMapper;
 import com.gamelist.model.Game;
 import com.gamelist.model.Platform;
 import com.gamelist.model.RomDb;
@@ -54,10 +55,61 @@ public class RomDbServiceImpl implements RomDbService {
     @Autowired(required = false)
     private NotificationService notificationService;
 
+    @Autowired(required = false)
+    private FieldTranslationMapper fieldTranslationMapper;
+
     public RomDbServiceImpl(RomDbMapper romDbMapper, RomDbDataInitializer initializer, GameMapper gameMapper) {
         this.romDbMapper = romDbMapper;
         this.initializer = initializer;
         this.gameMapper = gameMapper;
+    }
+
+    /**
+     * 解析某 rom_db 行在指定语种下的游戏名：
+     * 优先取 field_translation（src_table='rom_db',src_field='game_name',lang）译文，
+     * 无则回退 RomDb.getGameNameByLang 的旧多语言列逻辑。
+     */
+    private String resolveLocalizedGameName(RomDb romDb, String language) {
+        if (romDb == null) return null;
+        if (fieldTranslationMapper != null && romDb.getId() != null && language != null && !language.isBlank()) {
+            try {
+                String v = fieldTranslationMapper.selectValue("rom_db", romDb.getId(), "game_name", language);
+                if (v != null && !v.isBlank()) {
+                    return v;
+                }
+            } catch (Exception e) {
+                logger.debug("rom_db 取译文失败(回退列): id={}, lang={}, {}", romDb.getId(), language, e.getMessage());
+            }
+        }
+        return romDb.getGameNameByLang(language);
+    }
+
+    /**
+     * 批量为一组 rom_db 行注入当前语种译文（写入瞬态 gameNameLocalized），
+     * 供控制器/DAT 导出等消费方复用；已翻则覆盖显示，未翻保留旧列回退。
+     */
+    @Override
+    public void localizeRomDb(List<RomDb> romDbs, String lang) {
+        if (romDbs == null || romDbs.isEmpty() || lang == null || lang.isBlank() || fieldTranslationMapper == null) {
+            return;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (RomDb r : romDbs) {
+            if (r.getId() != null) ids.add(r.getId());
+        }
+        if (ids.isEmpty()) return;
+        Map<Long, String> map = new HashMap<>();
+        for (Map<String, Object> row : fieldTranslationMapper.selectValues("rom_db", "game_name", lang, ids)) {
+            Object sid = row.get("srcId");
+            Object val = row.get("value");
+            if (sid != null && val != null) {
+                map.put(((Number) sid).longValue(), val.toString());
+            }
+        }
+        for (RomDb r : romDbs) {
+            String v = r.getId() == null ? null : map.get(r.getId());
+            if (v != null && !v.isBlank()) r.setGameNameLocalized(v);
+        }
     }
 
     @Override
@@ -457,7 +509,7 @@ public class RomDbServiceImpl implements RomDbService {
 
             boolean nameUpdated = false;
             String fileName = new File(mr.filePath).getName();
-            String gameName = romDbResult.getGameNameByLang(language);
+            String gameName = resolveLocalizedGameName(romDbResult, language);
 
             if (gameName != null && (game.getName() == null || game.getName().isBlank()
                     || game.getName().equals(fileName) || isFileNameLike(game.getName()))) {

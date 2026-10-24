@@ -59,9 +59,8 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     private static final int BATCH_SIZE = 100;
     private static final long BATCH_PAUSE_MS = 30000;
     
-    // ★ 媒体下载独立并发控制（不与游戏信息线程竞争 ThreadResourceManager 资源池）
-    private static final int MEDIA_DOWNLOAD_CONCURRENCY = 3;
-    private volatile Semaphore mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
+    // ★ 媒体下载使用独立 Semaphore，不影响游戏信息刮削的资源池
+    // 并发控制已统一交由 ThreadResourceManager 管理，不再使用硬编码 Semaphore
 
     // 限流计数器 - 10秒内20次访问则休息20秒
     private final RateLimitCounter rateLimitCounter = new RateLimitCounter();
@@ -90,6 +89,14 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
 
         logger.info("开始媒体下载任务，任务ID: {}, 最大线程数: {}", taskId, maxThreads);
 
+        // ★ 守卫检查：maxThreads <= 0 表示服务端拒绝服务（用户未登录或配额耗尽）
+        if (maxThreads <= 0) {
+            logger.error("媒体下载无法启动: maxThreads={}, 服务端禁止请求（请检查 ScreenScraper 账号登录状态）", maxThreads);
+            isRunning.set(false);
+            sendNotification("媒体下载失败", "无法启动媒体下载: 服务端配额为0，请确认已登录 ScreenScraper 账号", "error");
+            return;
+        }
+
         // 从任务中获取 platformId，后续下载线程按平台查找任务（避免不同批次 taskId 互相找不到）
         MediaDownloadTask sampleTask = mediaDownloadTaskMapper.selectByTaskId(taskId).stream().findFirst().orElse(null);
         if (sampleTask != null) {
@@ -101,15 +108,10 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
             return;
         }
 
-        // ★ 不再调用 threadResourceManager.updateMaxThreads(maxThreads)
-        // 媒体下载使用独立 Semaphore，不影响游戏信息刮削的资源池
-        
-        // ★ 初始化独立 Semaphore（媒体下载不再与游戏信息线程竞争共享资源）
-        mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
-        logger.info("媒体下载并发控制: 最大 {} 个并发下载（独立于游戏信息资源池）", MEDIA_DOWNLOAD_CONCURRENCY);
-        
-        // 创建线程池：至少 2 个工作线程，保证 maxThreads=1 时下载不会完全串行
-        int poolSize = Math.max(MEDIA_DOWNLOAD_CONCURRENCY, 2);
+        // ★ 并发控制统一由 ThreadResourceManager 管理，媒体下载使用 acquireForMedia/releaseForMedia
+        // 线程池大小 = maxThreads（服务端配额决定实际并发数）
+        int poolSize = Math.max(maxThreads, 1);
+        logger.info("媒体下载线程池大小: {} (由服务端 maxThreads 决定)", poolSize);
         ExecutorService executor = Executors.newFixedThreadPool(poolSize);
         AtomicInteger totalProcessed = new AtomicInteger(0);
 
@@ -155,17 +157,12 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                 break;
                             }
 
-                            // ★ 使用独立 Semaphore 获取并发许可（不再与游戏信息线程竞争 ThreadResourceManager）
-                            boolean acquired = false;
-                            try {
-                                acquired = mediaDownloadSemaphore.tryAcquire(5, TimeUnit.SECONDS);
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                                break;
-                            }
+                            // ★ 通过 ThreadResourceManager 获取并发许可（与游戏信息刮削共享配额，优先级较低）
+                            boolean acquired = threadResourceManager.acquireForMedia();
                             if (!acquired) {
-                                // Semaphore 超时，短暂等待后重试
-                                Thread.sleep(100);
+                                // 获取资源超时，短暂等待后重试
+                                logger.debug("媒体下载获取资源超时，等待重试");
+                                Thread.sleep(1000);
                                 continue;
                             }
 
@@ -251,8 +248,8 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
                                     mediaDownloadTaskMapper.updateStatusById(mediaTask.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
                                 }
                             } finally {
-                                // 关键：必须归还 Semaphore 许可
-                                mediaDownloadSemaphore.release();
+                                // 关键：必须归还 ThreadResourceManager 许可
+                                threadResourceManager.releaseForMedia();
                             }
                         }
                     } catch (InterruptedException e) {

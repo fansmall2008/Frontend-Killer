@@ -1,0 +1,91 @@
+{
+  "_comment": "全局模块目录：这里声明“世界上存在哪些转换模块”。已实现的模块由 Spring Bean 提供实现，同 id 会自动从 RESERVED 升级为 AVAILABLE；未实现的模块只在这里占位。chd 系列全部依赖外部 chdman，判断阶段会检查可执行文件是否存在。",
+  "modules": [
+    {
+      "id": "bin2iso",
+      "input": "RAW_2352",
+      "output": "ISO_2048",
+      "cost": 30,
+      "lossless": true,
+      "note": "2352 → 2048：按 MODE1/MODE2 用户数据偏移抽取；多轨或含音轨的输入会被拒绝（需要先拆轨）"
+    },
+    {
+      "id": "iso2zso",
+      "input": "ISO_2048",
+      "output": "ZSO",
+      "cost": 20,
+      "lossless": true,
+      "note": "LZ4 块压缩，结构与 CISO 类似；需引入 lz4 实现后启用"
+    },
+    {
+      "id": "iso2chd",
+      "input": "ISO_2048",
+      "output": "CHD",
+      "cost": 40,
+      "lossless": true,
+      "externalDeps": ["chdman"],
+      "note": "chdman createcd：2048 扇区输入，同步头与 EDC/ECC 由 chdman 合成；抽回得到 2352 镜像而非原 ISO"
+    },
+    {
+      "id": "bin2chd",
+      "input": "RAW_2352",
+      "output": "CHD",
+      "cost": 40,
+      "lossless": true,
+      "externalDeps": ["chdman"],
+      "note": "chdman createcd：必须配套 cue 提供轨道表；裸 BIN 会产出 0 轨空壳，因此被拒绝"
+    },
+    {
+      "id": "multitrack2chd",
+      "input": "RAW_2352_MULTI",
+      "output": "CHD",
+      "cost": 40,
+      "lossless": true,
+      "externalDeps": ["chdman"],
+      "note": "chdman createcd：多轨/含音轨整盘打包，是 PCE CD、Saturn 这类盘唯一的压缩出口"
+    },
+    {
+      "id": "gdi2chd",
+      "input": "GDI",
+      "output": "CHD",
+      "cost": 40,
+      "lossless": true,
+      "externalDeps": ["chdman"],
+      "note": "chdman createcd：Dreamcast GD-ROM，.gdi 自带轨道索引"
+    },
+    {
+      "id": "nrg2chd",
+      "input": "NRG",
+      "output": "CHD",
+      "cost": 40,
+      "lossless": true,
+      "externalDeps": ["chdman"],
+      "note": "chdman createcd：Nero 镜像单文件自带轨道表"
+    },
+    {
+      "id": "toc2chd",
+      "input": "TOC",
+      "output": "CHD",
+      "cost": 40,
+      "lossless": true,
+      "externalDeps": ["chdman"],
+      "note": "chdman createcd：cdrdao 镜像，DATAFILE 引用的轨道一并打包"
+    },
+    {
+      "id": "iso2pbp",
+      "input": "ISO_2048",
+      "output": "PBP",
+      "cost": 50,
+      "lossless": true,
+      "note": "PSP EBOOT 打包：需要 PARAM.SFO 与 ISO 重排，PS1 单盘可直接打包"
+    },
+    {
+      "id": "cso2bin",
+      "input": "CSO",
+      "output": "RAW_2352",
+      "cost": 40,
+      "lossless": true,
+      "note": "解包后重算 2352 扇区头；只给仅认 BIN 的模拟器用"
+    }
+  ]
+}

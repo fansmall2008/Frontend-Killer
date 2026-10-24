@@ -202,4 +202,19 @@
         DELETE FROM media_download_task WHERE game_id = #{gameId}
     </delete>
 
+    <!-- 批量拾取待处理的媒体下载任务 -->
+    <select id="pickNextPendingMediaTasks" resultMap="MediaDownloadTaskResultMap">
+        SELECT * FROM media_download_task 
+        WHERE status = 'PENDING' 
+        ORDER BY priority ASC, order_index ASC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 乐观锁认领媒体下载任务：PENDING → DOWNLOADING -->
+    <update id="tryClaimMediaTask">
+        UPDATE media_download_task 
+        SET status = 'DOWNLOADING', updated_at = CURRENT_TIMESTAMP 
+        WHERE id = #{id} AND status = 'PENDING'
+    </update>
+
 </mapper>

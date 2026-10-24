@@ -1,6 +1,8 @@
 package com.gamelist.service;
 
+import com.gamelist.mapper.MediaDownloadTaskMapper;
 import com.gamelist.mapper.ScrapeTaskMapper;
+import com.gamelist.model.MediaDownloadTask;
 import com.gamelist.model.ScrapeTask;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -18,7 +20,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 刮削工作线程池
@@ -37,9 +38,8 @@ public class ScrapeWorkerPool {
     @Autowired
     private ScrapeTaskMapper scrapeTaskMapper;
     
-    @Lazy
     @Autowired
-    private ScrapeStatus scrapeStatus;
+    private MediaDownloadTaskMapper mediaDownloadTaskMapper;
     
     @Lazy
     @Autowired
@@ -54,9 +54,6 @@ public class ScrapeWorkerPool {
     // 控制标志
     private final AtomicBoolean paused = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(false);
-    
-    // 媒体任务计数器（每 100 个刷新一次配额）
-    private final AtomicLong mediaTaskCounter = new AtomicLong(0);
     
     // ★ 僵尸 RUNNING 自愈看门狗：仅针对 GAME_INFO（媒体下载单条可能 legitimately 超过阈值，不纳入）
     //   阈值 600s 远大于游戏信息刮削最坏耗时（含 fuzzy 兜底 2 次 SS 调用 × 120s 读超时），避免误伤在途任务。
@@ -92,6 +89,9 @@ public class ScrapeWorkerPool {
         
         // 启动常驻监听线程
         startListener();
+        
+        // 启动媒体下载任务监听线程
+        startMediaDownloadListener();
     }
     
     @PreDestroy
@@ -146,6 +146,16 @@ public class ScrapeWorkerPool {
         listenerThread.setDaemon(false);
         listenerThread.start();
         logger.info("任务监听线程已启动");
+    }
+    
+    /**
+     * 启动媒体下载任务监听线程
+     */
+    private void startMediaDownloadListener() {
+        Thread listenerThread = new Thread(this::mediaDownloadListenerLoop, "media-download-listener");
+        listenerThread.setDaemon(false);
+        listenerThread.start();
+        logger.info("媒体下载任务监听线程已启动");
     }
     
     /**
@@ -234,6 +244,93 @@ public class ScrapeWorkerPool {
     }
     
     /**
+     * 媒体下载监听线程主循环
+     */
+    private void mediaDownloadListenerLoop() {
+        logger.info("媒体下载监听线程开始运行");
+        
+        while (running.get()) {
+            try {
+                while (paused.get() && running.get()) {
+                    Thread.sleep(500);
+                }
+                if (!running.get()) break;
+                
+                int activeCount = workerPool.getActiveCount();
+                int maxPoolSize = workerPool.getMaximumPoolSize();
+                int queueSize = workerPool.getQueue().size();
+                int availableSlots = Math.max(0, maxPoolSize - activeCount - queueSize);
+                
+                if (availableSlots <= 0) {
+                    Thread.sleep(500);
+                    continue;
+                }
+                
+                List<MediaDownloadTask> tasks = mediaDownloadTaskMapper.pickNextPendingMediaTasks(availableSlots);
+                
+                if (tasks == null || tasks.isEmpty()) {
+                    Thread.sleep(2000);
+                    continue;
+                }
+                
+                int dispatched = 0;
+                for (MediaDownloadTask task : tasks) {
+                    if (mediaDownloadTaskMapper.tryClaimMediaTask(task.getId()) > 0) {
+                        logger.info("媒体下载任务已认领: id={}, gameId={}, mediaType={}", 
+                            task.getId(), task.getGameId(), task.getMediaType());
+                        workerPool.submit(() -> executeMediaDownloadTaskFromTable(task));
+                        dispatched++;
+                    } else {
+                        logger.debug("媒体下载任务 {} 被其他线程抢占", task.getId());
+                    }
+                }
+                
+                if (dispatched == 0 && !tasks.isEmpty()) {
+                    Thread.sleep(100);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (Exception e) {
+                logger.error("媒体下载监听线程异常: {}", e.getMessage(), e);
+            }
+        }
+        
+        logger.info("媒体下载监听线程已退出");
+    }
+    
+    /**
+     * 执行媒体下载任务（MediaDownloadTask 版本）
+     */
+    private void executeMediaDownloadTaskFromTable(MediaDownloadTask task) {
+        String threadName = "scrape-worker-MEDIA_DOWNLOAD-" + task.getId();
+        Thread.currentThread().setName(threadName);
+        
+        try {
+            boolean success = scraperService.executeMediaDownloadTask(task);
+            
+            if (success) {
+                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_COMPLETED, null);
+                logger.info("媒体下载任务完成: id={}, gameId={}", task.getId(), task.getGameId());
+            } else {
+                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, "媒体下载失败");
+                logger.warn("媒体下载任务失败: id={}, gameId={}", task.getId(), task.getGameId());
+            }
+        } catch (Exception e) {
+            logger.error("媒体下载任务执行异常: id={}, error={}", task.getId(), e.getMessage(), e);
+            mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
+        } catch (Throwable t) {
+            logger.error("媒体下载任务遇到 Error: id={}, error={}", task.getId(), String.valueOf(t), t);
+            try {
+                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, 
+                    t.getClass().getName() + ": " + t.getMessage());
+            } catch (Exception inner) {
+                logger.error("置媒体任务 FAILED 失败: id={}", task.getId(), inner);
+            }
+        }
+    }
+    
+    /**
      * 执行单个任务
      */
     private void executeTask(ScrapeTask task) {
@@ -308,12 +405,7 @@ public class ScrapeWorkerPool {
             logger.warn("媒体下载任务失败: taskId={}, gameId={}", task.getId(), task.getGameId());
         }
         
-        // 每 100 个媒体任务主动查询一次 SS 配额
-        long count = mediaTaskCounter.incrementAndGet();
-        if (count % 100 == 0) {
-            logger.info("已处理 {} 个媒体任务，主动查询 SS 配额信息...", count);
-            scrapeStatus.refreshQuotaFromSS();
-        }
+        // 配额更新由每次 jeuInfos 响应自动完成，无需定时刷新
     }
     
     // ========== 控制方法 ==========

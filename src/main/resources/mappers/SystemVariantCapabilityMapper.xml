@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.SystemVariantCapabilityMapper">
+
+    <resultMap id="SystemVariantCapabilityResultMap" type="com.gamelist.model.SystemVariantCapability">
+        <id column="id" property="id"/>
+        <result column="system_id" property="systemId"/>
+        <result column="format" property="format"/>
+        <result column="supported" property="supported"/>
+        <result column="source" property="source"/>
+        <result column="note" property="note"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="SystemVariantCapabilityResultMap">
+        SELECT * FROM system_variant_capability ORDER BY system_id, format
+    </select>
+
+    <select id="selectBySystemId" resultMap="SystemVariantCapabilityResultMap">
+        SELECT * FROM system_variant_capability
+        WHERE system_id = #{systemId}
+        ORDER BY format
+    </select>
+
+    <select id="selectBySystemIdAndFormat" resultMap="SystemVariantCapabilityResultMap">
+        SELECT * FROM system_variant_capability
+        WHERE system_id = #{systemId} AND format = #{format}
+    </select>
+
+    <insert id="insert" parameterType="com.gamelist.model.SystemVariantCapability" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_variant_capability (system_id, format, supported, source, note)
+        VALUES (#{systemId}, #{format}, #{supported}, #{source}, #{note})
+    </insert>
+
+    <update id="update" parameterType="com.gamelist.model.SystemVariantCapability">
+        UPDATE system_variant_capability SET
+            supported = #{supported},
+            source = #{source},
+            note = #{note},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE system_id = #{systemId} AND format = #{format}
+    </update>
+
+    <insert id="upsert" parameterType="com.gamelist.model.SystemVariantCapability">
+        MERGE INTO system_variant_capability
+            (system_id, format, supported, source, note, updated_at)
+        KEY (system_id, format)
+        VALUES (#{systemId}, #{format}, #{supported}, #{source}, #{note}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <delete id="deleteAutoBySystemId">
+        DELETE FROM system_variant_capability
+        WHERE system_id = #{systemId} AND source = 'auto'
+    </delete>
+
+    <delete id="deleteAutoBySystemIdAndFormat">
+        DELETE FROM system_variant_capability
+        WHERE system_id = #{systemId} AND format = #{format} AND source = 'auto'
+    </delete>
+
+</mapper>

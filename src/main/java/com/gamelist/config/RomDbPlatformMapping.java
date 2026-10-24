@@ -1,6 +1,7 @@
 package com.gamelist.config;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -19,6 +20,9 @@ public final class RomDbPlatformMapping {
 
     /** libretro-database 平台名 → ScreenScraper systemId */
     private static final Map<String, Integer> MAP;
+
+    /** systemId → 首个映射到它的 libretro 平台名（LinkedHashMap 保序，systemId=0 不纳入）。 */
+    private static final Map<Integer, String> REVERSE;
 
     static {
         Map<String, Integer> m = new LinkedHashMap<>();
@@ -161,6 +165,13 @@ public final class RomDbPlatformMapping {
         m.put("RCA - Studio II", 0);
 
         MAP = Collections.unmodifiableMap(m);
+
+        Map<Integer, String> rev = new HashMap<>();
+        for (Map.Entry<String, Integer> e : m.entrySet()) {
+            int sid = e.getValue();
+            if (sid > 0) rev.putIfAbsent(sid, e.getKey());
+        }
+        REVERSE = Collections.unmodifiableMap(rev);
     }
 
     /**
@@ -182,5 +193,13 @@ public final class RomDbPlatformMapping {
     public static boolean hasSystem(String platformName) {
         Integer id = MAP.get(platformName);
         return id != null && id > 0;
+    }
+
+    /**
+     * 由 ScreenScraper systemId 反查一个规范 libretro 平台名（供 game→DAT 文件名回灌映射）。
+     * @return 映射名；systemId<=0 或未映射返回 null
+     */
+    public static String getPlatformNameBySystemId(int systemId) {
+        return REVERSE.get(systemId);
     }
 }

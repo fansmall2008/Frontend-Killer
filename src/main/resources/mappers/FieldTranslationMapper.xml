@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.FieldTranslationMapper">
+
+    <resultMap id="FieldTranslationResultMap" type="com.gamelist.model.FieldTranslation">
+        <id column="id" property="id"/>
+        <result column="src_table" property="srcTable"/>
+        <result column="src_id" property="srcId"/>
+        <result column="src_field" property="srcField"/>
+        <result column="lang" property="lang"/>
+        <result column="trans_value" property="value"/>
+    </resultMap>
+
+    <!-- 存在则更新、否则插入（H2 MERGE INTO 按业务唯一键匹配） -->
+    <insert id="upsert" parameterType="com.gamelist.model.FieldTranslation">
+        MERGE INTO field_translation (src_table, src_id, src_field, lang, trans_value)
+        KEY (src_table, src_id, src_field, lang)
+        VALUES (#{srcTable}, #{srcId}, #{srcField}, #{lang}, #{value})
+    </insert>
+
+    <select id="selectValue" resultType="java.lang.String">
+        SELECT trans_value FROM field_translation
+        WHERE src_table = #{srcTable} AND src_id = #{srcId}
+          AND src_field = #{srcField} AND lang = #{lang}
+        LIMIT 1
+    </select>
+
+    <select id="selectValues" resultType="java.util.HashMap">
+        SELECT src_id AS srcId, trans_value AS value FROM field_translation
+        WHERE src_table = #{srcTable} AND src_field = #{srcField} AND lang = #{lang}
+        <if test="ids != null and ids.size() &gt; 0">
+            AND src_id IN
+            <foreach item="sid" collection="ids" open="(" separator="," close=")">
+                #{sid}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectTranslatedIds" resultType="java.lang.Long">
+        SELECT src_id FROM field_translation
+        WHERE src_table = #{srcTable} AND src_field = #{srcField} AND lang = #{lang}
+          AND trans_value IS NOT NULL AND TRIM(trans_value) &lt;&gt; ''
+        <if test="ids != null and ids.size() &gt; 0">
+            AND src_id IN
+            <foreach item="sid" collection="ids" open="(" separator="," close=")">
+                #{sid}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="countTranslated" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM field_translation
+        WHERE src_table = #{srcTable} AND src_field = #{srcField} AND lang = #{lang}
+        <if test="ids != null and ids.size() &gt; 0">
+            AND src_id IN
+            <foreach item="sid" collection="ids" open="(" separator="," close=")">
+                #{sid}
+            </foreach>
+        </if>
+    </select>
+
+    <delete id="deleteBySource">
+        DELETE FROM field_translation
+        WHERE src_table = #{srcTable} AND src_id = #{srcId}
+        <if test="srcField != null and srcField != ''">
+            AND src_field = #{srcField}
+        </if>
+    </delete>
+
+</mapper>

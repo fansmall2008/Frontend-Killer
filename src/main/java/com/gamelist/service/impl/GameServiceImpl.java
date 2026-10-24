@@ -3377,67 +3377,6 @@ public class GameServiceImpl implements GameService {
     }
     
     @Override
-    public int swapTranslations(List<Long> gameIds) {
-        if (gameIds == null || gameIds.isEmpty()) {
-            logger.warn("切换译文：游戏ID列表为空");
-            return 0;
-        }
-        
-        int swappedCount = 0;
-        try {
-            for (Long gameId : gameIds) {
-                if (gameId == null) {
-                    continue;
-                }
-                Game game = gameMapper.selectGameById(gameId);
-                if (game != null) {
-                    // 交换名称
-                    String tempName = game.getName();
-                    game.setName(game.getTranslatedName() != null ? game.getTranslatedName() : "");
-                    game.setTranslatedName(tempName != null ? tempName : "");
-                    
-                    // 交换描述
-                    String tempDesc = game.getDesc();
-                    game.setDesc(game.getTranslatedDesc() != null ? game.getTranslatedDesc() : "");
-                    game.setTranslatedDesc(tempDesc != null ? tempDesc : "");
-                    
-                    game.setEdited(true);
-                    int result = gameMapper.updateGame(game);
-                    if (result > 0) {
-                        swappedCount++;
-                    }
-                }
-            }
-            logger.info("批量切换译文：成功切换 {} 个游戏", swappedCount);
-        } catch (Exception e) {
-            logger.error("批量切换译文失败：", e);
-            throw e;
-        }
-        return swappedCount;
-    }
-
-    @Override
-    public int swapTranslationsByPlatformId(Long platformId) {
-        if (platformId == null) {
-            logger.warn("切换译文：平台ID为空");
-            return 0;
-        }
-        List<Game> games = gameMapper.selectGamesByPlatformId(platformId);
-        if (games == null || games.isEmpty()) {
-            logger.warn("切换译文：平台 {} 下没有游戏", platformId);
-            return 0;
-        }
-        List<Long> gameIds = new java.util.ArrayList<>();
-        for (Game g : games) {
-            if (g.getId() != null) {
-                gameIds.add(g.getId());
-            }
-        }
-        logger.info("平台 {} 下共 {} 个游戏，开始切换译文", platformId, gameIds.size());
-        return swapTranslations(gameIds);
-    }
-    
-    @Override
     public int addGame(Game game) {
         if (game == null) {
             logger.warn("新增游戏：游戏对象为空");

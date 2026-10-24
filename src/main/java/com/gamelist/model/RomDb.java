@@ -27,6 +27,7 @@ public class RomDb {
     private String genre;        // 游戏类型
     private String romFile;      // 原始 ROM 文件名（DAT 中 rom ( name ... ) 的真名，带扩展名），供生成器/备份还原用
     private String romFileNorm;  // romFile 归一化形式（去扩展名、小写），供按文件名精准匹配（建索引）
+    private String gameNameLocalized; // 非持久化：由 field_translation 预取的当前语种译文（服务层 localizeRomDb 注入）
     private LocalDateTime createdAt;
 
     public RomDb() {}
@@ -76,16 +77,24 @@ public class RomDb {
 
     /**
      * 按语言偏好返回游戏名。
-     * @param language "ja" → 日文名, "cn" → 中文名, 其他 → 英文名（回退到可用名称）
+     * 优先使用服务层预取的 field_translation 译文（gameNameLocalized），
+     * 无则回退到旧多语言列 game_name_jp/cn，最后回退英文名。
+     * @param language "ja" → 日文名, "cn"/"zh" → 中文名, 其他 → 英文名（回退到可用名称）
      */
     public String getGameNameByLang(String language) {
+        if (gameNameLocalized != null && !gameNameLocalized.isBlank()) {
+            return gameNameLocalized;
+        }
         if ("ja".equals(language)) {
             return (gameNameJp != null && !gameNameJp.isBlank()) ? gameNameJp : gameName;
-        } else if ("cn".equals(language)) {
+        } else if ("cn".equals(language) || "zh".equals(language)) {
             return (gameNameCn != null && !gameNameCn.isBlank()) ? gameNameCn : gameName;
         }
         return gameName;
     }
+
+    public String getGameNameLocalized() { return gameNameLocalized; }
+    public void setGameNameLocalized(String gameNameLocalized) { this.gameNameLocalized = gameNameLocalized; }
 
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }

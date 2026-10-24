@@ -47,6 +47,9 @@ public interface RomDbMapper {
     /** 按平台统计数据量 */
     List<Map<String, Object>> countByPlatform();
 
+    /** DAT 预检：按平台统计总行数与有效行数（名称非空且(crc32或serial非空)） */
+    List<Map<String, Object>> countDatStatsByPlatform();
+
     /** 按 systemId 统计数据量 */
     List<Map<String, Object>> countBySystem();
 
@@ -79,6 +82,9 @@ public interface RomDbMapper {
 
     /** 按 systemId 批量查询全部记录（用于内存预加载） */
     List<RomDb> findBySystemId(@Param("systemId") int systemId);
+
+    /** 按平台名查询全部记录（用于翻译工具 rom_db 范围取数） */
+    List<RomDb> findByPlatform(@Param("platform") String platform);
 
     /** 模糊搜索游戏名（LIMIT 限制） */
     List<RomDb> searchByName(@Param("keyword") String keyword, @Param("limit") int limit);

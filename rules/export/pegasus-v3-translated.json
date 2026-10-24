@@ -73,7 +73,7 @@
     },
     "roms": {
       "enabled": true,
-      "directory": "{outputPath}/{platform.system}",
+      "directory": "if(genre, concat('{outputPath}/', platform.system, '/', mapFirst(genre)), '{outputPath}/{platform.system}')",
       "filename": "{filename}{ext}",
       "m3u": {
         "enabled": false,

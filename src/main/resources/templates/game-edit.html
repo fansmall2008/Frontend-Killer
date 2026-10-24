@@ -67,14 +67,6 @@
                         <textarea id="gameDescription"></textarea>
                     </div>
                     <div class="form-group">
-                        <label data-i18n="translated-name">翻译名称（translatedName）</label>
-                        <input type="text" id="translatedName">
-                    </div>
-                    <div class="form-group full-width">
-                        <label data-i18n="translated-desc">翻译描述（translatedDesc）</label>
-                        <textarea id="translatedDescription"></textarea>
-                    </div>
-                    <div class="form-group">
                         <label data-i18n="developer">开发商（developer）</label>
                         <input type="text" id="gameDeveloper">
                     </div>
@@ -124,11 +116,6 @@
                         <label data-i18n="absolute-path">绝对路径（absolutePath）</label>
                         <input type="text" id="absolutePathEdit">
                     </div>
-                </div>
-                <!-- 切换译文快捷按钮 -->
-                <div style="margin-top: 20px; padding: 15px; background: rgba(0,255,255,0.05); border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; gap: 15px;">
-                    <button class="btn btn-success" onclick="swapTranslationInEditor()" style="padding: 8px 16px;">🔄 切换译文</button>
-                    <span style="color: #aaa; font-size: 13px;">将原文名称/描述与译文名称/描述互换</span>
                 </div>
             </form>
         </div>
@@ -350,8 +337,6 @@
         document.getElementById('gameName').value = game.name || '';
         document.getElementById('gamePath').value = game.path || '';
         document.getElementById('gameDescription').value = game.desc || '';
-        document.getElementById('translatedName').value = game.translatedName || '';
-        document.getElementById('translatedDescription').value = game.translatedDesc || '';
         document.getElementById('gameDeveloper').value = game.developer || '';
         document.getElementById('gamePublisher').value = game.publisher || '';
         document.getElementById('gameType').value = game.genre || '';
@@ -406,8 +391,6 @@
             name: document.getElementById('gameName').value,
             path: document.getElementById('gamePath').value,
             desc: document.getElementById('gameDescription').value,
-            translatedName: document.getElementById('translatedName').value,
-            translatedDesc: document.getElementById('translatedDescription').value,
             developer: document.getElementById('gameDeveloper').value,
             publisher: document.getElementById('gamePublisher').value,
             genre: document.getElementById('gameType').value,
@@ -917,26 +900,6 @@
         div.textContent = message;
         document.body.appendChild(div);
         setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 300); }, 3000);
-    }
-
-    // ==================== 切换译文（编辑页面）====================
-    function swapTranslationInEditor() {
-        const nameEl = document.getElementById('gameName');
-        const descEl = document.getElementById('gameDescription');
-        const transNameEl = document.getElementById('translatedName');
-        const transDescEl = document.getElementById('translatedDescription');
-
-        // 交换名称
-        const tempName = nameEl.value;
-        nameEl.value = transNameEl.value;
-        transNameEl.value = tempName;
-
-        // 交换描述
-        const tempDesc = descEl.value;
-        descEl.value = transDescEl.value;
-        transDescEl.value = tempDesc;
-
-        showNotification(I18n.t('translation_swapped', '已互换原文与译文'), 'success');
     }
     </script>
     <div th:replace="~{fragments/layout :: notification-modal}"></div>

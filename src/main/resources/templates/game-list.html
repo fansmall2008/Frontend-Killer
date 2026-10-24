@@ -148,9 +148,7 @@
                 <button id="mergeDiscsBtn" class="toolbar-btn" onclick="mergeDiscs()" disabled data-i18n="merge-discs">合盘</button>
                 <button id="matchDiscSerialBtn" class="toolbar-btn" onclick="matchDiscSerial()" disabled style="display:none;" data-i18n="match-disc-serial">📦 本地获取数据</button>
                 <button id="batchEditBtn" class="toolbar-btn" onclick="openBatchEditModal()" disabled data-i18n="batch-edit">批量修改</button>
-                <button id="translateBtn" class="toolbar-btn" onclick="openTranslateModal()" disabled data-i18n="translate">翻译</button>
                 <button id="migrateBtn" class="toolbar-btn" onclick="openMigrateModal()" disabled data-i18n="migrate">迁转</button>
-                <button id="swapTranslationBtn" class="toolbar-btn" onclick="swapTranslations()" disabled data-i18n="swap_translation">切换译文</button>
                 <button id="recheckExistsBtn" class="toolbar-btn" onclick="recheckExists()" data-i18n="recheck_exists">重新检测</button>
                 <label style="margin-left: 16px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--text-primary, #e0e0e0);">
                     <input type="checkbox" id="applyToAllCheckbox" onchange="toggleApplyToAll()" style="width: 15px; height: 15px; cursor: pointer;">
@@ -214,8 +212,6 @@
                         <th style="width: 150px;" data-sort="path" class="sortable" data-i18n="game-path">游戏路径</th>
                         <th style="width: 150px;" data-sort="platformPath" class="sortable" data-i18n="platform-path">平台路径</th>
                         <th style="width: 200px;" data-sort="desc" class="sortable" data-i18n="game-desc">游戏描述</th>
-                        <th style="width: 150px;" data-sort="translatedName" class="sortable" data-i18n="translated-name">翻译名称</th>
-                        <th style="width: 200px;" data-sort="translatedDesc" class="sortable" data-i18n="translated-desc">翻译描述</th>
                         <th style="width: 120px;" data-sort="developer" class="sortable" data-i18n="developer">开发商</th>
                         <th style="width: 120px;" data-sort="publisher" class="sortable" data-i18n="publisher">发行商</th>
                         <th style="width: 100px;" data-sort="genre" class="sortable" data-i18n="genre">游戏类型</th>
@@ -268,7 +264,7 @@
                         <span data-i18n="match_method_filename_exact">文件名匹配（按压缩包名精准对撞 DAT 短名；建议街机使用，可提高匹配度；含多个文件的游戏取容器/首个名，仅供参考）</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
-                        <input type="checkbox" id="matchMethodNameSerial" checked style="width: 16px; height: 16px; accent-color: #ffaa00;">
+                        <input type="checkbox" id="matchMethodNameSerial" style="width: 16px; height: 16px; accent-color: #ffaa00;">
                         <span data-i18n="match_method_name_serial">从文件名提取编号（CRC/文件内提取未命中时，从文件名正则提取编号）</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
@@ -277,7 +273,7 @@
                     </label>
                 </div>
             </div>
-            <div style="text-align: right; margin-top: 20px;">
+            <div style="position: sticky; bottom: 0; z-index: 2; background: var(--bg-surface); text-align: right; margin-top: 20px; padding: 12px 0 4px;">
                 <button type="button" onclick="confirmDiscMatchLang()" class="action-btn btn-primary" style="margin-right: 8px;" data-i18n="confirm">确定</button>
                 <button type="button" onclick="closeDiscMatchLangModal()" class="action-btn" data-i18n="cancel">取消</button>
             </div>
@@ -328,6 +324,23 @@
         </div>
     </div>
     
+    <!-- ROM 副本弹窗（第四指示物点击） -->
+    <div id="variantModal" class="gm-modal" style="display:none;">
+        <div class="gm-modal-content" style="max-width: 620px;">
+            <span class="close" onclick="closeVariantDialog()">&times;</span>
+            <h2 style="color: var(--accent-primary); font-size: 18px; margin-bottom: 4px;">ROM 副本</h2>
+            <div id="variantGameName" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;"></div>
+            <div id="variantBody" style="font-size: 13px;"></div>
+            <div id="variantDiag" style="font-size: 13px;"></div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap;">
+                <button type="button" class="action-btn" onclick="generateVariantDialog(false)">生成缺失副本</button>
+                <button type="button" class="action-btn" onclick="generateVariantDialog(true)">强制重建</button>
+                <button type="button" class="action-btn" style="color:#ff4444;" onclick="deleteAllVariantsDialog()">删除全部</button>
+                <button type="button" class="action-btn" onclick="closeVariantDialog()">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 批量编辑游戏模态框 -->
     <div id="batchEditModal" class="gm-modal">
         <div class="gm-modal-content">
@@ -388,54 +401,6 @@
         </div>
     </div>
 
-    <!-- 翻译游戏模态框 -->
-    <div id="translateModal" class="gm-modal">
-        <div class="gm-modal-content">
-            <span class="close" onclick="closeTranslateModal()">&times;</span>
-            <h2 data-i18n="translate-title">翻译游戏</h2>
-            <form id="translateForm">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <p id="translateInfo" style="margin-bottom: 15px;" data-i18n="translate-info">将翻译 0 个游戏</p>
-                </div>
-                <div class="form-group">
-                    <label for="translationSourceLang" data-i18n="source-lang">源语言</label>
-                    <select id="translationSourceLang">
-                        <option value="auto" data-i18n="auto-detect">自动检测</option>
-                        <option value="zh" data-i18n="chinese">中文</option>
-                        <option value="en" data-i18n="english">英文</option>
-                        <option value="ja" data-i18n="japanese">日文</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="translationTargetLang" data-i18n="target-lang">目标语言</label>
-                    <select id="translationTargetLang">
-                        <option value="zh" data-i18n="chinese">中文</option>
-                        <option value="en" data-i18n="english">英文</option>
-                        <option value="ja" data-i18n="japanese">日文</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="translationApi" data-i18n="select-translation-api">翻译API</label>
-                    <select id="translationApi">
-                        <option value="" data-i18n="select-api">请选择翻译API</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="translationType" data-i18n="translation-content">翻译内容</label>
-                    <select id="translationType">
-                        <option value="name" data-i18n="name-only">仅游戏名称</option>
-                        <option value="description" data-i18n="desc-only">仅游戏描述</option>
-                        <option value="both" data-i18n="name-and-desc">游戏名称和描述</option>
-                    </select>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button type="button" onclick="submitTranslate()" class="action-btn btn-primary" data-i18n="start-translate">开始翻译</button>
-                    <button type="button" onclick="closeTranslateModal()" class="action-btn" data-i18n="cancel">取消</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- 新增游戏模态框 -->
     <div id="addGameModal" class="gm-modal">
         <div class="gm-modal-content">
@@ -455,14 +420,6 @@
                     <div class="form-group">
                         <label for="addGameDescription" data-i18n="game-desc">游戏描述</label>
                         <textarea id="addGameDescription"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="addTranslatedName" data-i18n="translated-name">翻译名称</label>
-                        <input type="text" id="addTranslatedName">
-                    </div>
-                    <div class="form-group">
-                        <label for="addTranslatedDescription" data-i18n="translated-desc">翻译描述</label>
-                        <textarea id="addTranslatedDescription"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="addGameDeveloper" data-i18n="developer">开发商</label>
@@ -749,10 +706,14 @@
             const mediaInd = hasMedia ? 'ind ind-triangle ind-purple' : 'ind ind-triangle ind-gray';
             const mediaTitle = hasMedia ? 'media-indicator-tooltip-has' : 'media-indicator-tooltip-empty';
 
+            // 副本指示物 (叠层，四态：灰/蓝/黄/红，由 loadVariantSummaries 刷新)
+            const variantInd = 'ind ind-layers ind-gray variant-indicator';
+
             return `<span class="status-triple" title="">
                 <span class="${matchInd}" data-i18n-title="${matchTitle}" title="匹配" ${matchClick}></span>
                 <span class="${infoInd}" data-i18n-title="${infoTitle}" title="信息"></span>
                 <span class="${mediaInd}" data-i18n-title="${mediaTitle}" title="媒体"></span>
+                <span class="${variantInd}" data-variant-game="${game.id}" title="ROM 副本" onclick="event.stopPropagation(); openVariantDialog(${game.id});"></span>
             </span>`;
         }
         
@@ -964,7 +925,7 @@
                                 const screenshotPath = resolveMediaUrl(game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '');
                                 const titleScreenPath = resolveMediaUrl(game.sstitle || '');
                                 const videoPath = resolveMediaUrl(game.video || game.videoNormalized || '');
-                                const gameName = game.name || game.translatedName || '';
+                                const gameName = game.name || '';
                                 const iconContent = resolvedIconUrl ? 
                                     `<img src="${resolvedIconUrl}" 
                                            style="width: ${iconWidth}; height: 40px; object-fit: contain; border-radius: 4px; background: #222; cursor: pointer;" 
@@ -982,8 +943,6 @@
                                     <td ${pathStyle}>${game.path || ''}</td>
                                     <td>${game.platformPath || ''}</td>
                                     <td>${game.desc || game.description || ''}</td>
-                                    <td>${game.translatedName || ''}</td>
-                                    <td>${game.translatedDesc || game.translatedDescription || ''}</td>
                                     <td>${game.developer || ''}</td>
                                     <td>${game.publisher || ''}</td>
                                     <td>${game.genre || game.gameType || ''}</td>
@@ -1003,6 +962,8 @@
                         if (window.I18n && typeof I18n.updatePage === 'function') {
                             try { I18n.updatePage(); } catch (_) {}
                         }
+                        window.__lastGames = games;
+                        loadVariantSummaries(games);
                         console.log('=== 游戏渲染完成 ===');
                     }
                     console.log('=== loadGames 正常结束 ===');
@@ -1521,8 +1482,6 @@
             document.getElementById('addGameName').value = '';
             document.getElementById('addGamePath').value = '';
             document.getElementById('addGameDescription').value = '';
-            document.getElementById('addTranslatedName').value = '';
-            document.getElementById('addTranslatedDescription').value = '';
             document.getElementById('addGameDeveloper').value = '';
             document.getElementById('addGamePublisher').value = '';
             document.getElementById('addGameType').value = '';
@@ -1587,8 +1546,6 @@
                 path: document.getElementById('addGamePath').value,
                 platformPath: document.getElementById('addPlatformPath').value,
                 desc: document.getElementById('addGameDescription').value,
-                translatedName: document.getElementById('addTranslatedName').value,
-                translatedDesc: document.getElementById('addTranslatedDescription').value,
                 developer: document.getElementById('addGameDeveloper').value,
                 publisher: document.getElementById('addGamePublisher').value,
                 genre: document.getElementById('addGameType').value,
@@ -1696,44 +1653,6 @@
             }
         }
         
-        // 批量切换译文
-        function swapTranslations() {
-            const target = getBatchTarget();
-            if (target.mode === 'ids' && target.gameIds.length === 0) {
-                showNotification('请先选择要切换译文的游戏', 'info');
-                return;
-            }
-            
-            const count = target.mode === 'ids' ? target.gameIds.length : (window._lastTotalElements || 0);
-            const modeText = target.mode === 'ids' ? '选中' : '当前筛选条件下的所有';
-            
-            if (!confirm(`确定要切换${modeText} ${count} 个游戏的原文/译文吗？\n\n这将交换游戏名称和描述与翻译后的内容。`)) {
-                return;
-            }
-            
-            const body = target.mode === 'ids'
-                ? { gameIds: target.gameIds }
-                : { filters: target.filters };
-            fetch('/api/gamelist/games/swap-translations', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(`成功切换 ${data.swappedCount} 个游戏的译文`, 'success');
-                    refreshCurrentPage();
-                } else {
-                    showNotification('切换失败：' + (data.error || '未知错误'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error swapping translations:', error);
-                showNotification('切换失败: ' + error.message, 'error');
-            });
-        }
-
         // ========== v1.3 本地匹配（rom_db 统一：光盘 serial + 卡带 CRC） ==========
         let discSerialSupported = false;
         let _currentSystemWhitelisted = false;
@@ -2051,6 +1970,339 @@
             document.getElementById('fuzzyMatchModal').style.display = 'none';
         }
 
+        // ==================== ROM 副本（第四指示物 + 弹窗）====================
+        // 格式标签由后端格式表下发，页面不再写死 bare/zip/7z
+        let VARIANT_LABELS = { original: '主文件（原样）' };
+
+        async function loadVariantFormatLabels() {
+            try {
+                const r = await fetch('/api/variants/formats');
+                const data = await r.json();
+                if (!data || !data.success) return;
+                const labels = { original: '主文件（原样）' };
+                (data.formats || []).forEach(f => { labels[f.id] = f.label; });
+                VARIANT_LABELS = labels;
+            } catch (e) { /* ignore */ }
+        }
+
+        function variantFormatLabel(format) {
+            return VARIANT_LABELS[String(format || '').toLowerCase()] || format;
+        }
+
+        function formatVariantBytes(bytes) {
+            if (bytes === null || bytes === undefined || isNaN(bytes)) return '-';
+            const n = Number(bytes);
+            if (n < 1024) return n + ' B';
+            if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+            if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + ' MB';
+            return (n / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+        }
+
+        // 批量刷新当前页的第四指示物
+        function loadVariantSummaries(games) {
+            const ids = (games || []).map(g => g && g.id).filter(id => id !== undefined && id !== null);
+            if (!ids.length) return;
+            fetch('/api/variants/summaries?gameIds=' + ids.join(','))
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    if (!res || !res.success) return;
+                    applyVariantSummaries(res.summaries || {});
+                })
+                .catch(err => console.warn('加载副本摘要失败:', err && err.message));
+        }
+
+        function refreshVariantSummaries() {
+            if (window.__lastGames) loadVariantSummaries(window.__lastGames);
+        }
+
+        function applyVariantSummaries(summaries) {
+            document.querySelectorAll('.variant-indicator').forEach(el => {
+                const gameId = el.getAttribute('data-variant-game');
+                const s = summaries[gameId];
+                el.classList.remove('ind-gray', 'ind-blue', 'ind-yellow', 'ind-red');
+                if (!s) {
+                    el.classList.add('ind-gray');
+                    el.title = 'ROM 副本：未生成';
+                    return;
+                }
+                const parts = [];
+                if (s.readyCount > 0) parts.push('就绪 ' + s.readyCount);
+                if (s.staleCount > 0) parts.push('过期 ' + s.staleCount);
+                if (s.failedCount > 0) parts.push('失败 ' + s.failedCount);
+                if (s.failedCount > 0) {
+                    el.classList.add('ind-red');
+                } else if (s.staleCount > 0) {
+                    el.classList.add('ind-yellow');
+                } else if (s.readyCount > 0) {
+                    el.classList.add('ind-blue');
+                } else {
+                    el.classList.add('ind-gray');
+                }
+                el.title = 'ROM 副本：' + (parts.length ? parts.join(' / ') : '未生成');
+            });
+        }
+
+        let _variantDialogGameId = null;
+        let _variantDialogData = null;
+        let _variantDiagnosis = null;
+
+        function openVariantDialog(gameId) {
+            _variantDialogGameId = gameId;
+            _variantDialogData = null;
+            _variantDiagnosis = null;
+            document.getElementById('variantGameName').textContent = '游戏 ID：' + gameId;
+            document.getElementById('variantBody').innerHTML = '<div style="color:#888;">加载中...</div>';
+            document.getElementById('variantDiag').innerHTML = '';
+            document.getElementById('variantModal').style.display = 'block';
+            loadVariantDialog(gameId);
+        }
+
+        function closeVariantDialog() {
+            document.getElementById('variantModal').style.display = 'none';
+            _variantDialogGameId = null;
+            _variantDialogData = null;
+            _variantDiagnosis = null;
+        }
+
+        function loadVariantDialog(gameId) {
+            fetch('/api/variants/game/' + encodeURIComponent(gameId))
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    if (!res || !res.success) throw new Error((res && res.error) || '加载副本信息失败');
+                    _variantDialogData = res;
+                    renderVariantDialog();
+                })
+                .catch(err => {
+                    document.getElementById('variantBody').innerHTML =
+                        '<div style="color:#ff4444;">' + escapeHtml(err.message) + '</div>';
+                });
+            loadVariantDiagnosis(gameId);
+        }
+
+        // 源文件形态与产线结论不落库，弹窗打开时现算
+        function loadVariantDiagnosis(gameId) {
+            fetch('/api/variants/game/' + encodeURIComponent(gameId) + '/diagnose')
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    if (_variantDialogGameId !== gameId) return;
+                    _variantDiagnosis = res && res.success ? res : null;
+                    renderVariantDiagnosis();
+                    renderVariantDialog();
+                })
+                .catch(() => { if (_variantDialogGameId === gameId) _variantDiagnosis = null; });
+        }
+
+        function variantTargetDiag(fmt) {
+            if (!_variantDiagnosis || !_variantDiagnosis.targets) return null;
+            const key = String(fmt || '').toLowerCase();
+            return _variantDiagnosis.targets.find(t => String(t.format || '').toLowerCase() === key) || null;
+        }
+
+        // 返回 null 表示可以生成，否则是拦下原因
+        function variantBlockedReason(fmt) {
+            const target = variantTargetDiag(fmt);
+            if (!target) return null;
+            if (target.status === 'DIRECT' || target.status === 'READY' || target.status === 'SAME') return null;
+            return target.message || target.status;
+        }
+
+        // 源文件本身就是这个格式：不是“缺”，而是“无需生成”
+        function variantSameAsSource(fmt) {
+            const target = variantTargetDiag(fmt);
+            return !!target && target.status === 'SAME';
+        }
+
+        function variantDiagStatusText(status) {
+            return {
+                DIRECT: '可打包',
+                READY: '可补',
+                SAME: '源即目标',
+                INCOMPLETE: '缺模块',
+                UNSUPPORTED: '无产线',
+                BLOCKED: '源不可用',
+                ALREADY: '源即目标'
+            }[status] || status;
+        }
+
+        function renderVariantDiagnosis() {
+            const box = document.getElementById('variantDiag');
+            if (!box) return;
+            const data = _variantDiagnosis;
+            if (!data) { box.innerHTML = ''; return; }
+            const src = data.source || {};
+            const srcText = src.display || src.kindLabel || src.kind || '未知';
+            let html = '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);">'
+                + '<div style="color:#00ffff;font-size:12px;margin-bottom:6px;">流水线诊断</div>'
+                + '<div style="color:#aaa;font-size:12px;">源文件：' + escapeHtml(srcText)
+                + (data.sourceExists === false ? ' · <span style="color:#ff4444;">文件不存在</span>' : '')
+                + '</div>';
+            (data.targets || []).forEach(target => {
+                const status = String(target.status || '');
+                const color = (status === 'READY' || status === 'DIRECT' || status === 'SAME') ? '#44ff44'
+                    : (status === 'INCOMPLETE' ? '#ffaa00'
+                    : (status === 'UNSUPPORTED' || status === 'BLOCKED' ? '#8a8a8a' : '#ff4444'));
+                html += '<div style="margin-top:6px;font-size:12px;">'
+                    + '<span style="color:#ddd;">' + escapeHtml(variantFormatLabel(target.format)) + '</span> '
+                    + '<span style="color:' + color + ';">' + escapeHtml(variantDiagStatusText(status)) + '</span>'
+                    + (target.chainText ? '<div style="color:#777;font-size:11px;font-family:monospace;">' + escapeHtml(target.chainText) + '</div>' : '')
+                    + (target.message ? '<div style="color:#888;font-size:11px;">' + escapeHtml(target.message) + '</div>' : '')
+                    + '</div>';
+            });
+            html += '</div>';
+            box.innerHTML = html;
+        }
+
+        function renderVariantDialog() {
+            const data = _variantDialogData || {};
+            document.getElementById('variantGameName').textContent =
+                (data.gameName ? '游戏：' + data.gameName : '游戏 ID：' + _variantDialogGameId);
+
+            const body = document.getElementById('variantBody');
+            const formats = data.supportedFormats || [];
+            if (!data.eligible || formats.length === 0) {
+                body.innerHTML = '<div style="color:#888;">该系统不参与 ROM 副本机制（仅主机/掌机且非光盘类系统可用）。</div>';
+                return;
+            }
+
+            const variants = {};
+            (data.variants || []).forEach(v => {
+                if (v && v.format) variants[String(v.format).toLowerCase()] = v;
+            });
+
+            let rows = '';
+            formats.forEach(fmt => {
+                const key = String(fmt).toLowerCase();
+                const v = variants[key];
+                const status = v && v.status ? String(v.status).toLowerCase() : '';
+                let stateHtml;
+                let sizeHtml = '-';
+                let actions = '';
+                if (!v) {
+                    if (variantSameAsSource(fmt)) {
+                        // 源文件已经是这个格式，生成只会白拷一份，直接说清楚
+                        stateHtml = '<span style="color:#44ff44;">源即目标</span>';
+                    } else {
+                        stateHtml = '<span style="color:#888;">未生成</span>';
+                        actions = '<button type="button" class="action-btn" onclick="generateVariantDialog(false,\'' + key + '\')">生成</button>';
+                    }
+                } else if (status === 'ready') {
+                    stateHtml = '<span style="color:#44ff44;">就绪</span>';
+                    sizeHtml = formatVariantBytes(v.sizeBytes);
+                    actions = '<button type="button" class="action-btn" onclick="generateVariantDialog(true,\'' + key + '\')">重建</button>'
+                        + '<button type="button" class="action-btn" style="color:#ff4444;" onclick="deleteVariantFormat(\'' + key + '\')">删除</button>';
+                } else if (status === 'stale') {
+                    stateHtml = '<span style="color:#ffaa00;">过期</span>';
+                    sizeHtml = formatVariantBytes(v.sizeBytes);
+                    actions = '<button type="button" class="action-btn" onclick="generateVariantDialog(false,\'' + key + '\')">更新</button>'
+                        + '<button type="button" class="action-btn" style="color:#ff4444;" onclick="deleteVariantFormat(\'' + key + '\')">删除</button>';
+                } else if (status === 'failed') {
+                    stateHtml = '<span style="color:#ff4444;">失败</span>';
+                    actions = '<button type="button" class="action-btn" onclick="generateVariantDialog(true,\'' + key + '\')">重试</button>';
+                } else {
+                    stateHtml = '<span style="color:#888;">' + escapeHtml(status || '未生成') + '</span>';
+                }
+                const detail = v && v.errorMessage ? '<div style="color:#ff8888;font-size:11px;margin-top:2px;">' + escapeHtml(v.errorMessage) + '</div>' : '';
+                // 已有且未过期的副本不受产线影响；只有“要生成/更新”时才需要提示为何补不了
+                const needsGeneration = !v || status === 'stale' || status === 'failed';
+                const blocked = needsGeneration && !variantSameAsSource(fmt) ? variantBlockedReason(fmt) : null;
+                if (blocked) {
+                    // 只拿掉生成类按钮，删除已有副本的入口要留着
+                    actions = actions.replace(/<button[^>]*>(生成|重建|更新|重试)<\/button>/g, '')
+                        + '<span style="color:#8a8a8a;font-size:11px;" title="' + escapeHtml(blocked) + '">不可生成</span>';
+                    stateHtml += '<div style="color:#777;font-size:11px;margin-top:2px;max-width:220px;">'
+                        + escapeHtml(blocked) + '</div>';
+                }
+                rows += '<tr>'
+                    + '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);">' + escapeHtml(variantFormatLabel(fmt))
+                    + '<div style="color:#777;font-size:11px;">' + escapeHtml(String(fmt)) + '</div></td>'
+                    + '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);">' + stateHtml + detail + '</td>'
+                    + '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);color:#aaa;">' + sizeHtml + '</td>'
+                    + '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);text-align:right;">' + actions + '</td>'
+                    + '</tr>';
+            });
+
+            body.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+                + '<thead><tr style="color:#888;font-size:12px;text-align:left;">'
+                + '<th style="padding:6px 8px;">格式</th><th style="padding:6px 8px;">状态</th>'
+                + '<th style="padding:6px 8px;">大小</th><th style="padding:6px 8px;text-align:right;">操作</th>'
+                + '</tr></thead><tbody>' + rows + '</tbody></table>'
+                + '<div style="margin-top:10px;color:#777;font-size:11px;line-height:1.6;">'
+                + '副本会随主文件变化而标记为过期；导出时若副本缺失/过期将自动回退主文件。</div>';
+        }
+
+        function generateVariantDialog(force, onlyFormat) {
+            const gameId = _variantDialogGameId;
+            if (!gameId) return;
+            const body = document.getElementById('variantBody');
+            const previous = body.innerHTML;
+            body.innerHTML = '<div style="color:#00ffff;">正在生成副本，请稍候...</div>';
+            const payload = { force: !!force };
+            if (onlyFormat) payload.formats = [onlyFormat];
+            fetch('/api/variants/game/' + encodeURIComponent(gameId) + '/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    const result = (res && res.result) || {};
+                    const failed = result.failed || 0;
+                    const skipped = result.skipped || 0;
+                    const created = result.success || 0;
+                    const messages = result.messages || [];
+                    if (failed > 0) {
+                        showNotification('副本生成失败 ' + failed + ' 项：' + (messages[0] || '部分格式生成失败'), 'error');
+                    } else if (!res || res.success === false) {
+                        showNotification('副本生成失败: ' + ((res && res.error) || '请查看日志'), 'error');
+                    } else if (created === 0 && skipped > 0) {
+                        // 一个都没生成时不能报绿：把跳过的原因直接抛给用户
+                        showNotification('副本未生成：' + (messages[0] || '没有可用的产线'), 'warning');
+                    } else {
+                        showNotification('副本生成完成' + (skipped > 0 ? '（跳过 ' + skipped + ' 项）' : ''), 'success');
+                    }
+                    refreshVariantSummaries();
+                    loadVariantDialog(gameId);
+                })
+                .catch(err => {
+                    body.innerHTML = previous;
+                    showNotification('副本生成失败: ' + err.message, 'error');
+                });
+        }
+
+        function deleteVariantFormat(format) {
+            const gameId = _variantDialogGameId;
+            if (!gameId) return;
+            if (!confirm('确定删除该格式的副本文件？')) return;
+            fetch('/api/variants/game/' + encodeURIComponent(gameId) + '/' + encodeURIComponent(format), {
+                method: 'DELETE'
+            })
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    if (!res || !res.success) throw new Error((res && res.error) || '删除失败');
+                    showNotification('已删除副本', 'success');
+                    refreshVariantSummaries();
+                    loadVariantDialog(gameId);
+                })
+                .catch(err => showNotification('删除失败: ' + err.message, 'error'));
+        }
+
+        function deleteAllVariantsDialog() {
+            const gameId = _variantDialogGameId;
+            if (!gameId) return;
+            if (!confirm('确定删除该游戏的全部副本文件？')) return;
+            fetch('/api/variants/game/' + encodeURIComponent(gameId), {
+                method: 'DELETE'
+            })
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    if (!res || !res.success) throw new Error((res && res.error) || '删除失败');
+                    showNotification('已删除全部副本', 'success');
+                    refreshVariantSummaries();
+                    loadVariantDialog(gameId);
+                })
+                .catch(err => showNotification('删除失败: ' + err.message, 'error'));
+        }
+
         // ==================== 匹配确认弹窗（疑似徒章 / 候选拉取 共用）====================
         let _mcCurrentGame = null;              // 当前正在确认的游戏对象（仅前端缓存）
         let _mcCandidates = [];                 // 当前候选列表
@@ -2067,7 +2319,7 @@
                     renderMcCurrentCard();
                     renderMcCandidates();
                     // 预填搜索词 = 游戏名，自动拉候选
-                    const guess = (game && (game.name || game.translatedName)) || '';
+                    const guess = (game && game.name) || '';
                     document.getElementById('mcSearchTerm').value = guess;
                     document.getElementById('matchConfirmModal').style.display = 'block';
                     if (guess) doMcSearch();
@@ -2089,7 +2341,7 @@
             const el = document.getElementById('mcCurrentCard');
             if (!g) { el.innerHTML = ''; return; }
             const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-            const localName = g.name || g.translatedName || '';
+            const localName = g.name || '';
             const ssName = g.ssGameId ? '(SS #' + g.ssGameId + ')' : '';
             const scrapedLabel = g.scraped ? '<span style="color:#44ff44">已刮削</span>' : '<span style="color:#888">未刮削</span>';
             const matchedLabel = g.matched ? '<span style="color:#44ff44">已确认</span>' : '<span style="color:#ffaa00">未确认</span>';
@@ -2132,7 +2384,7 @@
                 return;
             }
             const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-            const localNorm = _mcCurrentGame ? norm(_mcCurrentGame.name || _mcCurrentGame.translatedName || '') : '';
+            const localNorm = _mcCurrentGame ? norm(_mcCurrentGame.name || '') : '';
             list.innerHTML = '';
             _mcCandidates.forEach((g, i) => {
                 const row = document.createElement('div');
@@ -2877,9 +3129,7 @@
             const batchEditBtn = document.getElementById('batchEditBtn');
             const migrateBtn = document.getElementById('migrateBtn');
             const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-            const translateBtn = document.getElementById('translateBtn');
             const batchScrapeBtn = document.getElementById('batchScrapeBtn');
-            const swapTranslationBtn = document.getElementById('swapTranslationBtn');
             const matchDiscSerialBtn = document.getElementById('matchDiscSerialBtn');
             
             if (isApplyToAll) {
@@ -2888,9 +3138,7 @@
                 batchEditBtn.disabled = false;
                 migrateBtn.disabled = false;
                 deleteSelectedBtn.disabled = false;
-                translateBtn.disabled = false;
                 batchScrapeBtn.disabled = false;
-                swapTranslationBtn.disabled = false;
                 if (matchDiscSerialBtn.style.display !== 'none') {
                     matchDiscSerialBtn.disabled = false;
                 }
@@ -2899,9 +3147,7 @@
                 batchEditBtn.disabled = selectedGameIds.length === 0;
                 migrateBtn.disabled = selectedGameIds.length === 0;
                 deleteSelectedBtn.disabled = selectedGameIds.length === 0;
-                translateBtn.disabled = selectedGameIds.length === 0;
                 batchScrapeBtn.disabled = selectedGameIds.length === 0;
-                swapTranslationBtn.disabled = selectedGameIds.length === 0;
                 if (matchDiscSerialBtn.style.display !== 'none') {
                     matchDiscSerialBtn.disabled = selectedGameIds.length === 0;
                 }
@@ -3056,7 +3302,7 @@
                         const screenshotPath = resolveMediaUrl(game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '');
                         const titleScreenPath = resolveMediaUrl(game.sstitle || '');
                         const videoPath = resolveMediaUrl(game.video || game.videoNormalized || '');
-                        const gameName = game.name || game.translatedName || '';
+                        const gameName = game.name || '';
                         const iconContent = resolvedIconUrl ? 
                             `<img src="${resolvedIconUrl}" 
                                    style="width: ${iconWidth}; height: 40px; object-fit: contain; border-radius: 4px; background: #222; cursor: pointer;" 
@@ -3074,8 +3320,6 @@
                             <td ${pathStyle}>${game.path || ''}</td>
                             <td>${game.platformPath || ''}</td>
                             <td>${game.desc || ''}</td>
-                            <td>${game.translatedName || ''}</td>
-                            <td>${game.translatedDesc || ''}</td>
                             <td>${game.developer || ''}</td>
                             <td>${game.publisher || ''}</td>
                             <td>${game.genre || ''}</td>
@@ -3096,6 +3340,9 @@
             if (window.I18n && typeof I18n.updatePage === 'function') {
                 try { I18n.updatePage(); } catch (_) {}
             }
+            // 回填第四指示物（副本状态），并记住当前页用于生成后刷新
+            window.__lastGames = games;
+            loadVariantSummaries(games);
         }
         
         // 显示通知
@@ -3153,6 +3400,7 @@
         window.onload = function() {
             console.log('=== 页面初始化开始 ===');
             initGameSort();
+            loadVariantFormatLabels();
             const platformIdParam = getUrlParameter('platformId');
             const subsetIdParam = getUrlParameter('subsetId');
             console.log('platformIdParam:', platformIdParam);
@@ -3349,286 +3597,6 @@
             }
         }
 
-        // 打开翻译模态框
-        function openTranslateModal() {
-            const target = getBatchTarget();
-            if (target.mode === 'ids' && target.gameIds.length === 0) {
-                showNotification('请先选择要翻译的游戏', 'info');
-                return;
-            }
-            const count = target.mode === 'ids' ? target.gameIds.length : (window._lastTotalElements || 0);
-            document.getElementById('translateInfo').textContent = `将翻译 ${count} 个游戏`;
-            loadValidTranslationServices();
-            document.getElementById('translateModal').style.display = 'block';
-        }
-        
-        // 关闭翻译模态框
-        function closeTranslateModal() {
-            document.getElementById('translateModal').style.display = 'none';
-        }
-        
-        // 加载有效的翻译服务列表
-        function loadValidTranslationServices() {
-            fetch('/api/translation/services')
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        const apiSelect = document.getElementById('translationApi');
-                        apiSelect.innerHTML = '';
-                        
-                        // 添加默认选项
-                        const defaultOption = document.createElement('option');
-                        defaultOption.value = '';
-                        defaultOption.textContent = '-- 请选择翻译API --';
-                        apiSelect.appendChild(defaultOption);
-                        
-                        // 添加有效的翻译服务
-                        result.services.forEach(service => {
-                            const option = document.createElement('option');
-                            option.value = service.id;
-                            option.textContent = service.name;
-                            apiSelect.appendChild(option);
-                        });
-                    } else {
-                        console.error('Failed to load translation services:', result.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading translation services:', error);
-                });
-        }
-        
-        // 提交翻译请求
-        function submitTranslate() {
-            const target = getBatchTarget();
-            if (target.mode === 'ids' && target.gameIds.length === 0) {
-                showNotification('请先选择要翻译的游戏', 'info');
-                return;
-            }
-            
-            const sourceLang = document.getElementById('translationSourceLang').value;
-            const targetLang = document.getElementById('translationTargetLang').value;
-            const apiType = document.getElementById('translationApi').value;
-            const translateType = document.getElementById('translationType').value;
-            
-            if (!apiType) {
-                showNotification('请选择翻译API', 'info');
-                return;
-            }
-            
-            // 发送翻译请求
-            const translateBody = {
-                apiType: apiType,
-                sourceLang: sourceLang,
-                targetLang: targetLang,
-                translateType: translateType,
-                apiKey: localStorage.getItem(apiType + 'ApiKey') || ''
-            };
-            if (target.mode === 'ids') {
-                translateBody.gameIds = target.gameIds;
-            } else {
-                translateBody.filters = target.filters;
-            }
-            fetch('/api/translation/translate/games', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(translateBody),
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    showNotification('翻译任务已开始', 'success');
-                    document.getElementById('translateModal').style.display = 'none';
-                    // 显示翻译进度
-                    showTranslationProgress(result.taskId);
-                } else {
-                    showNotification('翻译任务失败: ' + (result.message || '未知错误'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error starting translation:', error);
-                showNotification('翻译任务失败: 网络错误', 'error');
-            });
-        }
-        
-        // 显示翻译进度
-        function showTranslationProgress(taskId) {
-            const progressModal = document.createElement('div');
-            progressModal.className = 'gm-modal';
-            progressModal.style.display = 'block';
-            progressModal.innerHTML = `
-                <div class="gm-modal-content">
-                    <span class="close">&times;</span>
-                    <h2>翻译进度</h2>
-                    <div class="progress-section">
-                        <div class="progress-bar">
-                            <div id="progressFill" class="progress-fill" style="width: 0%;">0%</div>
-                        </div>
-                        <div class="progress-info">
-                            <div class="progress-item">
-                                <label>总游戏数</label>
-                                <value id="totalGames">0</value>
-                            </div>
-                            <div class="progress-item">
-                                <label>已完成</label>
-                                <value id="completedGames">0</value>
-                            </div>
-                            <div class="progress-item">
-                                <label>成功</label>
-                                <value id="successGames">0</value>
-                            </div>
-                            <div class="progress-item">
-                                <label>失败</label>
-                                <value id="failedGames">0</value>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="translationReport" style="margin-top: 30px; display: none;">
-                        <h4 style="color: #00ffff; margin-bottom: 15px;">翻译报告</h4>
-                        <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                            <p style="margin-bottom: 10px;"><strong>任务状态:</strong> <span id="reportStatus">已完成</span></p>
-                            <p style="margin-bottom: 10px;"><strong>成功数量:</strong> <span id="reportSuccessCount">0</span></p>
-                            <p style="margin-bottom: 10px;"><strong>失败数量:</strong> <span id="reportFailedCount">0</span></p>
-                            <p style="margin-bottom: 10px;"><strong>成功率:</strong> <span id="reportSuccessRate">0%</span></p>
-                        </div>
-                        <div id="errorList" style="display: none;">
-                            <h5 style="color: #ff0088; margin-bottom: 15px;">翻译错误列表</h5>
-                            <div style="background: rgba(255, 0, 136, 0.1); border: 1px solid #ff0088; border-radius: 8px; padding: 20px; max-height: 400px; overflow-y: auto;">
-                                <table style="width: 100%; border-collapse: collapse;">
-                                    <thead>
-                                        <tr style="border-bottom: 1px solid #444;">
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">游戏ID</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">游戏名称</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">错误类型</th>
-                                            <th style="text-align: left; padding: 10px; color: #00ffff;">错误信息</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="errorTableBody">
-                                        <!-- 错误条目将通过JavaScript动态添加 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div style="margin-top: 20px;">
-                                <button id="createErrorSubsetBtn" class="btn" style="background: linear-gradient(45deg, #ff0088, #ff00ff);">
-                                    创建错误条目子集
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(progressModal);
-            
-            // 关闭按钮事件
-            progressModal.querySelector('.close').addEventListener('click', function() {
-                document.body.removeChild(progressModal);
-            });
-            
-            // 点击模态框外部关闭
-            progressModal.addEventListener('click', function(event) {
-                if (event.target === progressModal) {
-                    document.body.removeChild(progressModal);
-                }
-            });
-            
-            // 定期获取翻译进度
-            const interval = setInterval(() => {
-                fetch(`/api/translation/progress/${taskId}`)
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            const progress = result.progress;
-                            
-                            // 更新进度条
-                            const progressFill = progressModal.querySelector('#progressFill');
-                            const totalGames = progressModal.querySelector('#totalGames');
-                            const completedGames = progressModal.querySelector('#completedGames');
-                            const successGames = progressModal.querySelector('#successGames');
-                            const failedGames = progressModal.querySelector('#failedGames');
-                            
-                            totalGames.textContent = progress.total;
-                            completedGames.textContent = progress.completed;
-                            successGames.textContent = progress.success;
-                            failedGames.textContent = progress.failed;
-                            
-                            const percentage = Math.round((progress.completed / progress.total) * 100);
-                            progressFill.style.width = percentage + '%';
-                            progressFill.textContent = percentage + '%';
-                            
-                            // 检查任务是否完成
-                            if (progress.status === 'completed') {
-                                clearInterval(interval);
-                                
-                                // 显示翻译报告
-                                const translationReport = progressModal.querySelector('#translationReport');
-                                const reportStatus = progressModal.querySelector('#reportStatus');
-                                const reportSuccessCount = progressModal.querySelector('#reportSuccessCount');
-                                const reportFailedCount = progressModal.querySelector('#reportFailedCount');
-                                const reportSuccessRate = progressModal.querySelector('#reportSuccessRate');
-                                
-                                translationReport.style.display = 'block';
-                                reportStatus.textContent = '已完成';
-                                reportSuccessCount.textContent = progress.success;
-                                reportFailedCount.textContent = progress.failed;
-                                
-                                const successRate = progress.total > 0 ? Math.round((progress.success / progress.total) * 100) : 0;
-                                reportSuccessRate.textContent = successRate + '%';
-                                
-                                // 显示错误列表
-                                if (progress.errors && progress.errors.length > 0) {
-                                    const errorList = progressModal.querySelector('#errorList');
-                                    const errorTableBody = progressModal.querySelector('#errorTableBody');
-                                    
-                                    errorList.style.display = 'block';
-                                    errorTableBody.innerHTML = '';
-                                    
-                                    progress.errors.forEach(error => {
-                                        const row = document.createElement('tr');
-                                        row.innerHTML = `
-                                            <td>${error.gameId}</td>
-                                            <td>${error.gameName}</td>
-                                            <td>${error.errorType}</td>
-                                            <td>${error.errorMessage}</td>
-                                        `;
-                                        errorTableBody.appendChild(row);
-                                    });
-                                    
-                                    // 创建错误条目子集按钮
-                                    const createErrorSubsetBtn = progressModal.querySelector('#createErrorSubsetBtn');
-                                    createErrorSubsetBtn.addEventListener('click', function() {
-                                        fetch(`/api/translation/create-error-subset/${taskId}`, {
-                                            method: 'POST'
-                                        })
-                                        .then(response => response.json())
-                                        .then(result => {
-                                            if (result.success) {
-                                                showNotification('错误条目子集创建成功', 'success');
-                                            } else {
-                                                showNotification('错误条目子集创建失败: ' + (result.message || '未知错误'), 'error');
-                                            }
-                                        })
-                                        .catch(error => {
-                                            console.error('Error creating error subset:', error);
-                                            showNotification('错误条目子集创建失败: 网络错误', 'error');
-                                        });
-                                    });
-                                }
-                            }
-                        } else {
-                            clearInterval(interval);
-                            showNotification('获取翻译进度失败: ' + (result.message || '未知错误'), 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching translation progress:', error);
-                        clearInterval(interval);
-                        showNotification('获取翻译进度失败: 网络错误', 'error');
-                    });
-            }, 2000);
-        }
-
         // ========== “应用于所有搜索结果”模式 ==========
         
         // 切换“应用于所有搜索结果”模式
@@ -3727,7 +3695,6 @@
             const addModal = document.getElementById('addGameModal');
             const batchEditModal = document.getElementById('batchEditModal');
             const migrateModal = document.getElementById('migrateModal');
-            const translateModal = document.getElementById('translateModal');
             if (event.target == addModal) {
                 addModal.style.display = 'none';
             }
@@ -3736,9 +3703,6 @@
             }
             if (event.target == migrateModal) {
                 migrateModal.style.display = 'none';
-            }
-            if (event.target == translateModal) {
-                translateModal.style.display = 'none';
             }
         };
     </script>
@@ -4295,7 +4259,7 @@
             // 区域选择
             html += `
                 <div class="match-region-row">
-                    <label class="match-region-label" data-i18n="match_region_label">媒体区域：</label>
+                    <label class="match-region-label" for="matchRegionSelect" data-i18n="match_region_label">媒体区域：</label>
                     <select id="matchRegionSelect" class="match-region-select">
                         <option value="wor" data-i18n="region_wor">世界 (wor)</option>
                         <option value="us" data-i18n="region_us">美版 (us)</option>
@@ -4358,7 +4322,7 @@
                             .then(data => {
                                 if (data.success && data.hasData) {
                                     const count = data.count || '';
-                                    const msg = I18n.t('local_data_found', `本地已有该平台的匹配数据（${count} 条记录）。`) + '\n'
+                                    const msg = I18n.t('local_data_found', `本地已有该平台的匹配数据（${count} 条记录）。`).replace('%d', count) + '\n'
                                               + I18n.t('local_match_prompt', '是否立即进行本地匹配？') + '\n'
                                               + I18n.t('local_match_benefit', '可回填游戏名、开发商等基础信息，并提升刮削准确度。');
                                     if (confirm(msg)) {

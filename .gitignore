@@ -77,6 +77,9 @@ ui-prototype*.html
 maven_*.txt
 mvn_*.txt
 cp.txt
+
+# 临时验证工程（端到端驱动、探测小工具）
+/tmp-*/
 task_response.json
 fix_*.py
 merge_*.ps1
@@ -139,3 +142,18 @@ browser_screenshot_*.png
 /build-exe-output*.log
 /docker-build*.log
 /docker-build*.err
+
+# Root-level scratch scripts & test evidence
+/Calc*.java
+/Calc*.class
+/chdman-*.txt
+/crosscheck-*.ps1
+/list-pcecd.ps1
+/pcecd-*.txt
+/pcecd-*.ps1
+/probe-*.ps1
+/probe-out.txt
+/scan-form2.ps1
+/scan-out.txt
+/tail-out.txt
+/test-chdman-*.ps1

@@ -29,9 +29,6 @@
         </a>
 
         <div class="nav-section-label">▸ TOOLS</div>
-        <a class="nav-item" th:classappend="${activePage == 'scraper'} ? 'active'" th:href="@{/scraper-system-list}">
-            <span class="icon">🔍</span> <span data-i18n="nav_scraper">刮削系统</span>
-        </a>
         <a class="nav-item" th:classappend="${activePage == 'media'} ? 'active'" th:href="@{/media-download}">
             <span class="icon">🖼️</span> <span data-i18n="nav_media">媒体下载</span>
             <span class="badge-count" id="sidebarMediaCount" style="display:none">-</span>
@@ -45,8 +42,8 @@
         <a class="nav-item" th:classappend="${activePage == 'logs'} ? 'active'" th:href="@{/log-viewer}">
             <span class="icon">📊</span> <span data-i18n="nav_logs">日志查看</span>
         </a>
-<a class="nav-item" th:classappend="${activePage == 'database'} ? 'active'" th:href="@{/database-manager}">
-            <span class="icon">🗄️</span> <span data-i18n="nav_database">数据库</span>
+        <a class="nav-item" th:classappend="${activePage == 'tools'} ? 'active'" th:href="@{/tools}">
+            <span class="icon">🧰</span> <span data-i18n="nav_tools">工具箱</span>
         </a>
 
         <div class="nav-section-label">▸ SYSTEM</div>

@@ -561,6 +561,12 @@
     color: #fff;
 }
 
+/* 没有生成副本（全被跳过）时用警告色，避免看起来像成功 */
+.notification.warning {
+    background: rgba(255, 152, 0, 0.92);
+    color: #fff;
+}
+
 /* ---- Media Type Grid (scrape modal) ---- */
 .media-type-grid {
     max-height: 320px;
@@ -661,8 +667,36 @@
 .ind-green  { background: #44ff44; box-shadow: 0 0 6px rgba(68,255,68,0.6); }
 .ind-yellow { background: #ffaa00; box-shadow: 0 0 6px rgba(255,170,0,0.6); cursor: pointer; }
 .ind-blue   { background: #4488ff; box-shadow: 0 0 6px rgba(68,136,255,0.6); }
+.ind-red    { background: #ff4444; box-shadow: 0 0 6px rgba(255,68,68,0.6); cursor: pointer; }
 .ind-purple { color: #bb66ff; border-bottom-color: #bb66ff !important; filter: drop-shadow(0 0 4px rgba(187,102,255,0.6)); }
 .ind-gray   { background: #555; }
+
+/* 副本指示物：叠层图标（四态：灰/蓝/黄/红） */
+.status-triple .ind-layers {
+    position: relative;
+    width: 14px;
+    height: 12px;
+    background: transparent !important;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+.status-triple .ind-layers::before,
+.status-triple .ind-layers::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 14px;
+    height: 5px;
+    border-radius: 2px;
+    background: currentColor;
+    transform: skewY(-12deg);
+}
+.status-triple .ind-layers::before { top: 0; }
+.status-triple .ind-layers::after { top: 6px; opacity: .65; }
+.status-triple .ind-layers.ind-gray   { color: #555; }
+.status-triple .ind-layers.ind-blue   { color: #4488ff; filter: drop-shadow(0 0 3px rgba(68,136,255,.6)); }
+.status-triple .ind-layers.ind-yellow { color: #ffaa00; filter: drop-shadow(0 0 3px rgba(255,170,0,.6)); }
+.status-triple .ind-layers.ind-red    { color: #ff4444; filter: drop-shadow(0 0 3px rgba(255,68,68,.6)); }
 
 /* Suspect row highlight */
 tr.row-suspect {

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,9 +27,6 @@ public class ScrapeStatus {
     
     @Autowired
     private ScrapeTaskMapper scrapeTaskMapper;
-    
-    @Autowired
-    private ScraperService scraperService;
     
     // 线程池引用（延迟注入，避免循环依赖）
     private volatile ScrapeWorkerPool scrapeWorkerPool;
@@ -117,27 +113,6 @@ public class ScrapeStatus {
             if (scrapeWorkerPool != null) {
                 scrapeWorkerPool.resize(newMaxThreads);
             }
-        }
-    }
-    
-    /**
-     * 主动查询 SS 配额（媒体下载期间每 100 个任务调用一次）
-     * 因为媒体下载不产生 SS API 响应，配额信息不会自然更新
-     */
-    public void refreshQuotaFromSS() {
-        try {
-            // 调用 ssuserInfos.php 获取最新配额
-            JsonNode userInfo = scraperService.fetchUserInfosFromSS();
-            if (userInfo != null && userInfo.has("response")) {
-                JsonNode responseNode = userInfo.get("response");
-                if (responseNode.has("ssuser")) {
-                    updateQuotaFromSsuser(responseNode.get("ssuser"));
-                    logger.info("配额主动刷新完成: requestsToday={}/{}, maxThreads={}", 
-                                requestsToday, maxRequestsPerDay, maxThreads);
-                }
-            }
-        } catch (Exception e) {
-            logger.warn("主动查询 SS 配额失败（不影响媒体下载）: {}", e.getMessage());
         }
     }
     

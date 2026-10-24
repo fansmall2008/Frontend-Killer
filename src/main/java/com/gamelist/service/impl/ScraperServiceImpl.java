@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,8 +46,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamelist.config.ScreenScraperConfig;
 import com.gamelist.mapper.MediaDownloadTaskMapper;
 import com.gamelist.mapper.ScrapeTaskMapper;
+import com.gamelist.mapper.FieldTranslationMapper;
 import com.gamelist.model.BackgroundTask;
 import com.gamelist.model.FileType;
+import com.gamelist.model.FieldTranslation;
 import com.gamelist.model.Game;
 import com.gamelist.model.GameFileInfo;
 import com.gamelist.model.MediaDownloadTask;
@@ -105,6 +106,9 @@ public class ScraperServiceImpl implements ScraperService {
     
     @Autowired
     private ScrapeTaskMapper scrapeTaskMapper;
+
+    @Autowired
+    private FieldTranslationMapper fieldTranslationMapper;
     
     @Autowired
     private ThreadResourceManager threadResourceManager;
@@ -143,10 +147,6 @@ public class ScraperServiceImpl implements ScraperService {
     
     // 缓存从 API 响应中获取的 maxthreads，避免重复调用 ssuserInfos.php
     private volatile int cachedMaxThreads = 0;
-    
-    // 媒体下载独立并发控制（不与游戏信息线程竞争共享资源池）
-    private static final int MEDIA_DOWNLOAD_CONCURRENCY = 3;
-    private volatile Semaphore mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
     
     // 刮削任务控制标志
     private final AtomicBoolean isScrapingPaused = new AtomicBoolean(false);
@@ -463,112 +463,7 @@ public class ScraperServiceImpl implements ScraperService {
                 });
             }
             
-            // 如果选择了媒体刮削，启动多个媒体下载线程
-            if (scrapeMedia) {
-                // 根据最大线程数启动多个媒体下载线程
-                // 注意：游戏信息刮削优先，所以媒体线程数设为 maxThreads（实际并发由资源管理器控制）
-                // ★ 媒体下载使用独立 Semaphore，不与游戏信息线程竞争 ThreadResourceManager 资源
-                // 这样即使所有游戏信息槽位被占满，媒体下载仍可正常进行
-                mediaDownloadSemaphore = new Semaphore(MEDIA_DOWNLOAD_CONCURRENCY);
-                logger.info("媒体下载并发控制: 最大 {} 个并发下载（独立于游戏信息资源池）", MEDIA_DOWNLOAD_CONCURRENCY);
-                            
-                for (int i = 0; i < maxThreads; i++) {
-                    final int threadIndex = i;
-                    executor.submit(() -> {
-                        try {
-                            // 只在第一个线程打印启动日志
-                            if (threadIndex == 0) {
-                                logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                                logger.info("  📍 启动媒体下载任务 ({}个线程, 并发={})", maxThreads, MEDIA_DOWNLOAD_CONCURRENCY);
-                                logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                            }
-                                        
-                            // ★ 同时检查停止和暂停，暂停时不退出而是等待
-                            while (!isScrapingStopped.get()) {
-                                // ★ 暂停检查：等待恢复，不占用资源
-                                while (isScrapingPaused.get() && !isScrapingStopped.get()) {
-                                    Thread.sleep(1000);
-                                }
-                                if (isScrapingStopped.get()) {
-                                    break;
-                                }
-                                            
-                                // ★ 使用独立 Semaphore 获取并发许可（不再与游戏信息线程竞争 ThreadResourceManager）
-                                boolean acquired = false;
-                                try {
-                                    acquired = mediaDownloadSemaphore.tryAcquire(5, TimeUnit.SECONDS);
-                                } catch (InterruptedException e) {
-                                    Thread.currentThread().interrupt();
-                                    break;
-                                }
-                                if (!acquired) {
-                                    // Semaphore 超时，短暂等待后重试
-                                    Thread.sleep(100);
-                                    continue;
-                                }
-                                            
-                                try {
-                                    // 获取资源后再次检查暂停（获取资源期间可能被暂停）
-                                    if (isScrapingPaused.get() || isScrapingStopped.get()) {
-                                        continue; // 释放许可后重新循环
-                                    }
-                                                
-                                    // 尝试获取一个待下载任务
-                                    MediaDownloadTask task = mediaDownloadTaskMapper.selectOnePendingTask(taskId);
-                                    if (task != null) {
-                                        try {
-                                            // 标记为下载中（乐观锁）
-                                            int updated = mediaDownloadTaskMapper.tryUpdateStatus(task.getId(), 
-                                                MediaDownloadTask.STATUS_PENDING, MediaDownloadTask.STATUS_DOWNLOADING);
-                                                        
-                                            if (updated > 0) {
-                                                String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
-                                                downloadMediaFile(decryptedUrl, task.getLocalPath());
-                                                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_COMPLETED, null);
-                                                updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
-                                                logger.info("媒体下载完成: {} [Semaphore可用={}]", task.getLocalPath(), 
-                                                    mediaDownloadSemaphore.availablePermits());
-                                            }
-                                        } catch (ScreenScraperApiException e) {
-                                            if (e.isLimitError()) {
-                                                logger.error("媒体下载遇到限额限制，暂停刮削: 状态码={}, 消息={}", e.getStatusCode(), e.getLimitWarningMessage());
-                                                isScrapingPaused.set(true);
-                                                taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
-                                                sendNotification("配额警告", e.getLimitWarningMessage(), "warning");
-                                                break; // 退出媒体下载循环，等待用户恢复
-                                            }
-                                            logger.error("下载媒体文件API错误: {}", e.getMessage());
-                                            mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
-                                        } catch (Exception e) {
-                                            logger.error("下载媒体文件失败: {}", e.getMessage());
-                                            mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
-                                        }
-                                    } else {
-                                        // 检查是否所有游戏信息刮削已完成
-                                        if (gameScrapeLatch.getCount() == 0) {
-                                            // 检查是否还有待下载任务
-                                            long pending = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
-                                            if (pending == 0) {
-                                                logger.info("媒体下载线程完成: 游戏信息已完成且无待下载任务");
-                                                break;
-                                            }
-                                        }
-                                        // 短暂等待后重试
-                                        Thread.sleep(200);
-                                    }
-                                } finally {
-                                    // 关键：必须归还 Semaphore 许可
-                                    mediaDownloadSemaphore.release();
-                                }
-                            }
-                        } catch (Exception e) {
-                            logger.error("媒体下载线程异常: {}", e.getMessage());
-                        }
-                    });
-                }
-            }
-            
-            // 等待游戏信息刮削完成
+            // 等待游戏信息刮削完成（Phase 1）
             try {
                 gameScrapeLatch.await();
             } catch (InterruptedException e) {
@@ -579,48 +474,72 @@ public class ScraperServiceImpl implements ScraperService {
                 taskService.failTask(taskId, "刮削被中断", "刮削任务在等待期间被中断");
                 return;
             }
-            
+                        
             logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            logger.info("  ✅ 游戏信息刮削完成");
+            logger.info("  ✅ Phase 1 完成：游戏信息刮削全部结束");
             logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            
-            // 等待媒体下载完成（如果有）
-            if (scrapeMedia) {
-                logger.info("等待媒体下载完成...");
-                // 等待所有媒体任务完成
-                long lastPendingCount = -1;
-                int noChangeCount = 0;
-                while (!isScrapingStopped.get()) {
-                    // ★ 暂停时不检测“卡住”，等待恢复即可
-                    if (isScrapingPaused.get()) {
-                        Thread.sleep(1000);
-                        continue;
-                    }
-                    
-                    long pendingCount = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
-                    long downloadingCount = mediaDownloadTaskMapper.countByTaskIdAndStatus(taskId, MediaDownloadTask.STATUS_DOWNLOADING);
-                    
-                    if (pendingCount == 0 && downloadingCount == 0) {
-                        logger.info("所有媒体下载任务已完成");
-                        break;
-                    }
-                    
-                    // 检测是否卡住（连续10次pending数量不变）
-                    if (pendingCount == lastPendingCount) {
-                        noChangeCount++;
-                        if (noChangeCount > 20) { // 20 * 1秒 = 20秒
-                            logger.warn("媒体下载可能卡住，pending={}, downloading={}", pendingCount, downloadingCount);
-                            break;
+                        
+            // ★ Phase 2：信息刮削完成后，启动媒体下载（串行执行，maxThreads 全部给媒体下载用）
+            if (scrapeMedia && !isScrapingStopped.get()) {
+                long pendingMediaCount = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
+                logger.info("Phase 2 启动: 待下载媒体任务数 = {}", pendingMediaCount);
+                            
+                if (pendingMediaCount > 0) {
+                    logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    logger.info("  📍 Phase 2: 开始媒体下载 (maxThreads={})", maxThreads);
+                    logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                                
+                    // 调用 MediaDownloadService 启动媒体下载任务
+                    // 此时信息刮削已结束，ThreadResourceManager 的 gameInfoWaiting=0，媒体可占满 maxThreads
+                    mediaDownloadService.startMediaDownloadTask(taskId, maxThreads);
+                                
+                    // 等待媒体下载完成（轮询 MediaDownloadService 的运行状态）
+                    logger.info("等待媒体下载完成...");
+                    long lastPendingCount = -1;
+                    int noChangeCount = 0;
+                    while (!isScrapingStopped.get()) {
+                        // 暂停时不检测“卡住”，等待恢复即可
+                        if (isScrapingPaused.get()) {
+                            Thread.sleep(1000);
+                            continue;
                         }
-                    } else {
-                        noChangeCount = 0;
+                                    
+                        // 检查媒体下载服务是否还在运行
+                        if (!mediaDownloadService.isRunning()) {
+                            logger.info("媒体下载服务已停止运行，检查任务状态...");
+                            // 再次确认数据库中是否还有待处理任务
+                            long remaining = mediaDownloadTaskMapper.countPendingByTaskId(taskId) 
+                                + mediaDownloadTaskMapper.countByTaskIdAndStatus(taskId, MediaDownloadTask.STATUS_DOWNLOADING);
+                            if (remaining == 0) {
+                                logger.info("所有媒体下载任务已完成");
+                                break;
+                            } else {
+                                logger.warn("媒体下载服务已停止但仍有 {} 条未完成任务，继续等待...", remaining);
+                            }
+                        }
+                                    
+                        long pendingCount = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
+                        long downloadingCount = mediaDownloadTaskMapper.countByTaskIdAndStatus(taskId, MediaDownloadTask.STATUS_DOWNLOADING);
+                                    
+                        // 检测是否卡住（连绕20次pending数量不变）
+                        if (pendingCount == lastPendingCount && downloadingCount == 0) {
+                            noChangeCount++;
+                            if (noChangeCount > 20) { // 20 * 1秒 = 20秒
+                                logger.warn("媒体下载可能卡住，pending={}, downloading={}", pendingCount, downloadingCount);
+                                break;
+                            }
+                        } else {
+                            noChangeCount = 0;
+                        }
+                        lastPendingCount = pendingCount;
+                                    
+                        Thread.sleep(1000);
                     }
-                    lastPendingCount = pendingCount;
-                    
-                    Thread.sleep(1000);
+                } else {
+                    logger.info("没有待下载的媒体任务，跳过 Phase 2");
                 }
             }
-            
+                        
             // 关闭线程池
             executor.shutdown();
             try {
@@ -682,138 +601,6 @@ public class ScraperServiceImpl implements ScraperService {
             resetNotFoundCount();
             scrapedCount.set(0);
             totalCount.set(0);
-        }
-    }
-    
-    /**
-     * 提前开始媒体下载（阶段1期间）
-     */
-    private void startEarlyMediaDownload(Long taskId, ExecutorService executor) {
-        // 获取线程池大小
-        int poolSize = ((java.util.concurrent.ThreadPoolExecutor) executor).getMaximumPoolSize();
-        
-        logger.info("提前媒体下载启动，线程数: {}", poolSize);
-        
-        // 为每个线程提交一个下载工作任务
-        for (int i = 0; i < poolSize; i++) {
-            executor.submit(() -> {
-                try {
-                    while (!isScrapingStopped.get()) {
-                        // 尝试获取一个待下载任务
-                        MediaDownloadTask task = mediaDownloadTaskMapper.selectOnePendingTask(taskId);
-                        if (task != null) {
-                            try {
-                                // 标记为下载中
-                                int updated = mediaDownloadTaskMapper.tryUpdateStatus(task.getId(), 
-                                    MediaDownloadTask.STATUS_PENDING, MediaDownloadTask.STATUS_DOWNLOADING);
-                                if (updated > 0) {
-                                    String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
-                                    downloadMediaFile(decryptedUrl, task.getLocalPath());
-                                    mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_COMPLETED, null);
-                                    // 将下载的媒体文件路径更新到游戏记录中
-                                    updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
-                                    logger.debug("提前下载完成: {}", task.getLocalPath());
-                                }
-                            } catch (ScreenScraperApiException e) {
-                                if (e.isLimitError()) {
-                                    logger.error("提前媒体下载遇到限额限制，暂停刮削: 状态码={}", e.getStatusCode());
-                                    isScrapingPaused.set(true);
-                                    taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
-                                    sendNotification("配额警告", e.getLimitWarningMessage(), "warning");
-                                    break;
-                                }
-                                logger.error("提前下载媒体文件API错误: {}", e.getMessage());
-                                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
-                            } catch (Exception e) {
-                                logger.error("提前下载媒体文件失败: {}", e.getMessage());
-                                mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
-                            }
-                        } else {
-                            // 没有待下载任务，短暂等待
-                            Thread.sleep(500);
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error("提前媒体下载线程异常: {}", e.getMessage());
-                }
-            });
-        }
-    }
-    
-    /**
-     * 启动完整的媒体下载（阶段2）
-     */
-    private void startFullMediaDownload(Long taskId, ExecutorService executor, int maxThreads) {
-        long pendingCount = mediaDownloadTaskMapper.countPendingByTaskId(taskId);
-        logger.info("开始完整媒体下载，待下载文件数: {}", pendingCount);
-        
-        if (pendingCount == 0) {
-            logger.info("没有待下载的媒体文件");
-            return;
-        }
-        
-        // 使用多线程下载
-        AtomicInteger processedCount = new AtomicInteger(0);
-        CountDownLatch latch = new CountDownLatch((int) pendingCount);
-        
-        // 获取所有待下载任务
-        List<MediaDownloadTask> allPendingTasks = mediaDownloadTaskMapper.selectByTaskId(taskId).stream()
-            .filter(t -> MediaDownloadTask.STATUS_PENDING.equals(t.getStatus()))
-            .collect(Collectors.toList());
-        
-        for (MediaDownloadTask task : allPendingTasks) {
-            executor.submit(() -> {
-                if (isScrapingStopped.get()) {
-                    latch.countDown();
-                    return;
-                }
-                
-                try {
-                    // 检查暂停状态
-                    while (isScrapingPaused.get() && !isScrapingStopped.get()) {
-                        logger.info("媒体下载任务已暂停，等待恢复...");
-                        Thread.sleep(2000);
-                    }
-                    
-                    if (isScrapingStopped.get()) {
-                        latch.countDown();
-                        return;
-                    }
-                    
-                    mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_DOWNLOADING, null);
-                    String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
-                    downloadMediaFile(decryptedUrl, task.getLocalPath());
-                    mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_COMPLETED, null);
-                    
-                    // 将下载的媒体文件路径更新到游戏记录中
-                    updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
-                    
-                    int current = processedCount.incrementAndGet();
-                    logger.info("媒体下载进度: {}/{}", current, allPendingTasks.size());
-                    
-                } catch (ScreenScraperApiException e) {
-                    if (e.isLimitError()) {
-                        logger.error("批量媒体下载遇到限额限制，暂停刮削: 状态码={}", e.getStatusCode());
-                        isScrapingPaused.set(true);
-                        taskService.updateTaskLog(taskId, e.getLimitWarningMessage());
-                        sendNotification("配额警告", e.getLimitWarningMessage(), "warning");
-                    } else {
-                        logger.error("下载媒体文件API错误: {}", e.getMessage());
-                        mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
-                    }
-                } catch (Exception e) {
-                    logger.error("下载媒体文件失败: {}", e.getMessage());
-                    mediaDownloadTaskMapper.updateStatusById(task.getId(), MediaDownloadTask.STATUS_FAILED, e.getMessage());
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-        
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         }
     }
     
@@ -1040,6 +827,10 @@ public class ScraperServiceImpl implements ScraperService {
                     logger.info("响应包含ssuser节点");
                     JsonNode ssuserNode = responseNode.get("ssuser");
                     logger.info("ssuser节点内容: {}", ssuserNode.toString());
+                    
+                    // 同步更新 ScrapeStatus 配额（确保前端 platform-progress API 读到最新值）
+                    scrapeStatus.updateQuotaFromSsuser(ssuserNode);
+                    
                     if (ssuserNode.has("maxthreads")) {
                         maxThreads = ssuserNode.get("maxthreads").asInt();
                         logger.info("从ssuser.maxthreads获取到线程数: {}", maxThreads);
@@ -1088,42 +879,6 @@ public class ScraperServiceImpl implements ScraperService {
         } catch (Exception e) {
             logger.error("调用ssuserInfos.php获取用户信息失败: {}", e.getMessage(), e);
             return 1;
-        }
-    }
-    
-    @Override
-    public JsonNode fetchUserInfosFromSS() {
-        try {
-            Map<String, String> settings = scraperSettingsService.getSettings();
-            String username = settings.get("username");
-            String password = settings.get("password");
-
-            if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
-                logger.warn("未设置ScreenScraper用户凭证，无法查询用户信息");
-                return null;
-            }
-
-            String baseUrl = scraperConfig.getBaseUrl();
-            okhttp3.HttpUrl.Builder urlBuilder = okhttp3.HttpUrl.parse(baseUrl + "/api2/ssuserInfos.php").newBuilder();
-            urlBuilder.addQueryParameter("devid", scraperConfig.getDevPseudo());
-            urlBuilder.addQueryParameter("devpassword", scraperConfig.getDevPassword());
-            urlBuilder.addQueryParameter("softname", "FrontendKiller");
-            urlBuilder.addQueryParameter("output", "json");
-            urlBuilder.addQueryParameter("ssid", username);
-            urlBuilder.addQueryParameter("sspassword", password);
-
-            String url = urlBuilder.build().toString();
-            String response = executeRequest(url);
-
-            if (response == null || response.isEmpty()) {
-                logger.warn("ssuserInfos.php返回空响应");
-                return null;
-            }
-
-            return objectMapper.readTree(response);
-        } catch (Exception e) {
-            logger.warn("查询SS用户信息失败: {}", e.getMessage());
-            return null;
         }
     }
     
@@ -1188,6 +943,266 @@ public class ScraperServiceImpl implements ScraperService {
         status.put("mediaFailed", mdFailed);
         
         return status;
+    }
+
+    // ==================== 平台进度追踪与统一控制 ====================
+
+    /** 平台级暂停/停止标志（key=platformId） */
+    private final ConcurrentHashMap<Long, AtomicBoolean> platformPausedFlags = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, AtomicBoolean> platformStoppedFlags = new ConcurrentHashMap<>();
+
+    @Override
+    public Map<String, Object> getPlatformProgress() {
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+
+        // 1. 查询 scrape_task 按 platform_id + task_type + status 分组统计
+        List<Map<String, Object>> scrapeSummary = scrapeTaskMapper.selectPlatformTaskTypeSummary();
+        // 2. 查询 media_download_task 按 platform_id + status 分组统计
+        List<Map<String, Object>> mediaSummary = mediaDownloadTaskMapper.selectPlatformStatusSummary();
+        // 3. 查询当前 RUNNING 的任务（获取 currentGame）
+        List<Map<String, Object>> runningTasks = scrapeTaskMapper.selectRunningTasksWithNames();
+
+        // 收集所有出现过的 platformId
+        Set<Long> allPlatformIds = new java.util.LinkedHashSet<>();
+        for (Map<String, Object> row : scrapeSummary) {
+            Object pid = row.get("platformId");
+            if (pid != null) allPlatformIds.add(((Number) pid).longValue());
+        }
+        for (Map<String, Object> row : mediaSummary) {
+            Object pid = row.get("platformId");
+            if (pid != null) allPlatformIds.add(((Number) pid).longValue());
+        }
+
+        // 构建每个平台的统计数据
+        // scrape: platformId -> taskType -> status -> cnt
+        Map<Long, Map<String, Map<String, Long>>> scrapeStats = new HashMap<>();
+        for (Map<String, Object> row : scrapeSummary) {
+            long pid = ((Number) row.get("platformId")).longValue();
+            String taskType = (String) row.get("taskType");
+            String status = (String) row.get("status");
+            long cnt = ((Number) row.get("cnt")).longValue();
+            scrapeStats.computeIfAbsent(pid, k -> new HashMap<>())
+                       .computeIfAbsent(taskType, k -> new HashMap<>())
+                       .put(status, cnt);
+        }
+        // media: platformId -> status -> cnt
+        Map<Long, Map<String, Long>> mediaStats = new HashMap<>();
+        for (Map<String, Object> row : mediaSummary) {
+            long pid = ((Number) row.get("platformId")).longValue();
+            String status = (String) row.get("status");
+            long cnt = ((Number) row.get("cnt")).longValue();
+            mediaStats.computeIfAbsent(pid, k -> new HashMap<>()).put(status, cnt);
+        }
+        // running: platformId -> gameName
+        Map<Long, String> currentGames = new HashMap<>();
+        for (Map<String, Object> row : runningTasks) {
+            long pid = ((Number) row.get("platformId")).longValue();
+            if (!currentGames.containsKey(pid)) {
+                String gameName = (String) row.get("gameName");
+                String romFilename = (String) row.get("romFilename");
+                currentGames.put(pid, gameName != null ? gameName : romFilename);
+            }
+        }
+
+        // 获取平台名称
+        Map<Long, String> platformNames = new HashMap<>();
+        for (Long pid : allPlatformIds) {
+            try {
+                Platform platform = platformService.getPlatformById(pid);
+                if (platform != null) {
+                    platformNames.put(pid, platform.getName());
+                }
+            } catch (Exception e) {
+                logger.debug("获取平台名称失败: platformId={}", pid);
+            }
+        }
+
+        // 组装平台列表
+        List<Map<String, Object>> platforms = new java.util.ArrayList<>();
+        boolean anyInfoRunning = false, anyMediaRunning = false;
+        boolean anyInfoPending = false, anyMediaPending = false;
+
+        for (Long pid : allPlatformIds) {
+            Map<String, Object> platformData = new java.util.LinkedHashMap<>();
+            platformData.put("platformId", pid);
+            platformData.put("platformName", platformNames.getOrDefault(pid, "Platform " + pid));
+
+            // 信息刮削统计
+            Map<String, Map<String, Long>> pScrape = scrapeStats.getOrDefault(pid, Map.of());
+            Map<String, Long> giStats = pScrape.getOrDefault(ScrapeTask.TYPE_GAME_INFO, Map.of());
+            long giCompleted = giStats.getOrDefault(ScrapeTask.STATUS_COMPLETED, 0L);
+            long giFailed = giStats.getOrDefault(ScrapeTask.STATUS_FAILED, 0L);
+            long giRunning = giStats.getOrDefault(ScrapeTask.STATUS_RUNNING, 0L);
+            long giPending = giStats.getOrDefault(ScrapeTask.STATUS_PENDING, 0L);
+            long giStopped = giStats.getOrDefault(ScrapeTask.STATUS_STOPPED, 0L);
+            long infoTotal = giCompleted + giFailed + giRunning + giPending + giStopped;
+
+            // 媒体下载统计（来自 media_download_task 表）
+            Map<String, Long> mdStats = mediaStats.getOrDefault(pid, Map.of());
+            long mdCompleted = mdStats.getOrDefault("COMPLETED", 0L);
+            long mdFailed = mdStats.getOrDefault("FAILED", 0L);
+            long mdDownloading = mdStats.getOrDefault("DOWNLOADING", 0L);
+            long mdPendingCount = mdStats.getOrDefault("PENDING", 0L);
+            long mdStopped = mdStats.getOrDefault("STOPPED", 0L);
+            long mediaTotal = mdCompleted + mdFailed + mdDownloading + mdPendingCount + mdStopped;
+
+            // 判断平台阶段
+            String phase;
+            boolean isPlatformPaused = getPlatformPausedFlag(pid).get();
+            boolean isPlatformStopped = getPlatformStoppedFlag(pid).get();
+            if (isPlatformPaused) {
+                phase = "PAUSED";
+            } else if (isPlatformStopped) {
+                phase = "STOPPED";
+            } else if (giRunning > 0 || giPending > 0) {
+                phase = "INFO_SCRAPING";
+                anyInfoRunning = anyInfoRunning || giRunning > 0;
+                anyInfoPending = anyInfoPending || giPending > 0;
+            } else if (mdDownloading > 0 || mdPendingCount > 0) {
+                phase = "MEDIA_DOWNLOAD";
+                anyMediaRunning = anyMediaRunning || mdDownloading > 0;
+                anyMediaPending = anyMediaPending || mdPendingCount > 0;
+            } else if (infoTotal == 0 && mediaTotal == 0) {
+                phase = "WAITING";
+            } else {
+                phase = "COMPLETED";
+            }
+
+            platformData.put("phase", phase);
+            platformData.put("currentGame", currentGames.getOrDefault(pid, ""));
+            platformData.put("infoTotal", infoTotal);
+            platformData.put("infoCompleted", giCompleted);
+            platformData.put("infoFailed", giFailed);
+            platformData.put("mediaTotal", mediaTotal);
+            platformData.put("mediaCompleted", mdCompleted);
+            platformData.put("mediaFailed", mdFailed);
+            platformData.put("mediaPending", mdPendingCount);
+
+            platforms.add(platformData);
+        }
+
+        // 计算全局阶段
+        String globalPhase;
+        if (isScrapingPaused.get()) {
+            globalPhase = "PAUSED";
+        } else if (isScrapingStopped.get()) {
+            globalPhase = "STOPPED";
+        } else if (anyInfoRunning || anyInfoPending) {
+            globalPhase = "INFO_SCRAPING";
+        } else if (anyMediaRunning || anyMediaPending) {
+            globalPhase = "MEDIA_DOWNLOAD";
+        } else if (platforms.isEmpty()) {
+            globalPhase = "WAITING";
+        } else {
+            globalPhase = "COMPLETED";
+        }
+
+        result.put("platforms", platforms);
+        result.put("globalPhase", globalPhase);
+        result.put("isPaused", isScrapingPaused.get());
+        result.put("maxThreads", scrapeStatus.getMaxThreads());
+
+        return result;
+    }
+
+    @Override
+    public void pauseAll() {
+        isScrapingPaused.set(true);
+        // 暂停工作线程池（信息刮削）
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.pause();
+        }
+        // 暂停媒体下载
+        mediaDownloadService.pauseMediaDownloadTask();
+        logger.info("已暂停所有平台的信息刮削和媒体下载");
+    }
+
+    @Override
+    public void resumeAll() {
+        isScrapingPaused.set(false);
+        isScrapingStopped.set(false);
+        // 恢复工作线程池
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.resume();
+        }
+        // 恢复媒体下载
+        mediaDownloadService.resumeMediaDownloadTask();
+        // 恢复所有平台的暂停标志
+        for (AtomicBoolean flag : platformPausedFlags.values()) {
+            flag.set(false);
+        }
+        logger.info("已恢复所有平台的信息刮削和媒体下载");
+    }
+
+    @Override
+    public void stopAll() {
+        isScrapingStopped.set(true);
+        isScrapingPaused.set(false);
+        // 停止工作线程池
+        if (scrapeWorkerPool != null) {
+            scrapeWorkerPool.stopAll();
+        }
+        // 停止媒体下载
+        mediaDownloadService.stopAllPlatformDownload();
+        // 设置所有平台的停止标志
+        for (Long pid : platformPausedFlags.keySet()) {
+            getPlatformStoppedFlag(pid).set(true);
+            getPlatformPausedFlag(pid).set(false);
+        }
+        logger.info("已停止所有平台的信息刮削和媒体下载");
+    }
+
+    @Override
+    public void pausePlatform(Long platformId) {
+        getPlatformPausedFlag(platformId).set(true);
+        // 暂停该平台的信息刮削（通过全局暂停 + 平台标志实现选择性暂停）
+        // 暂停该平台的媒体下载
+        mediaDownloadService.stopPlatformDownload(platformId);
+        logger.info("已暂停平台 {} 的刮削和媒体下载", platformId);
+    }
+
+    @Override
+    public void resumePlatform(Long platformId) {
+        getPlatformPausedFlag(platformId).set(false);
+        getPlatformStoppedFlag(platformId).set(false);
+        // 恢复该平台的媒体下载
+        mediaDownloadService.resumePlatformDownload(platformId);
+        logger.info("已恢复平台 {} 的刮削和媒体下载", platformId);
+    }
+
+    @Override
+    public void stopPlatform(Long platformId) {
+        getPlatformStoppedFlag(platformId).set(true);
+        getPlatformPausedFlag(platformId).set(false);
+        // 停止该平台的所有 PENDING scrape_task
+        scrapeTaskMapper.stopPendingTasksByPlatformId(platformId);
+        // 停止该平台的媒体下载
+        mediaDownloadService.stopPlatformDownload(platformId);
+        logger.info("已停止平台 {} 的刮削和媒体下载", platformId);
+    }
+
+    private AtomicBoolean getPlatformPausedFlag(Long platformId) {
+        return platformPausedFlags.computeIfAbsent(platformId, k -> new AtomicBoolean(false));
+    }
+
+    private AtomicBoolean getPlatformStoppedFlag(Long platformId) {
+        return platformStoppedFlags.computeIfAbsent(platformId, k -> new AtomicBoolean(false));
+    }
+
+    /**
+     * 检查指定平台是否被暂停（供工作线程查询）
+     */
+    public boolean isPlatformPaused(Long platformId) {
+        AtomicBoolean flag = platformPausedFlags.get(platformId);
+        return flag != null && flag.get();
+    }
+
+    /**
+     * 检查指定平台是否被停止（供工作线程查询）
+     */
+    public boolean isPlatformStopped(Long platformId) {
+        AtomicBoolean flag = platformStoppedFlags.get(platformId);
+        return flag != null && flag.get();
     }
     
     // ==================== 原有方法保持不变 ====================
@@ -1355,26 +1370,15 @@ public class ScraperServiceImpl implements ScraperService {
                     if (responseNode.has("ssuser")) {
                         JsonNode ssuserNode = responseNode.get("ssuser");
                         
-                        // 更新线程配额
+                        // 更新线程配额（并发控制）
                         if (ssuserNode.has("maxthreads")) {
                             int serverMaxThreads = ssuserNode.get("maxthreads").asInt();
                             cachedMaxThreads = serverMaxThreads;
                             threadResourceManager.updateFromServerResponse(serverMaxThreads);
                         }
                         
-                        // 更新完整配额信息
-                        int requestsToday = ssuserNode.has("requeststoday") ? ssuserNode.get("requeststoday").asInt(0) : 0;
-                        int maxRequestsPerDay = ssuserNode.has("maxrequestsperday") ? ssuserNode.get("maxrequestsperday").asInt(0) : 0;
-                        int maxRequestsPerMin = ssuserNode.has("maxrequestspermin") ? ssuserNode.get("maxrequestspermin").asInt(0) : 0;
-                        int maxDownloadSpeed = ssuserNode.has("maxdownloadspeed") ? ssuserNode.get("maxdownloadspeed").asInt(0) : 0;
-                        int requestsKoToday = ssuserNode.has("requestskotoday") ? ssuserNode.get("requestskotoday").asInt(0) : 0;
-                        String niveau = ssuserNode.has("niveau") ? ssuserNode.get("niveau").asText("") : "";
-                        String contribution = ssuserNode.has("contribution") ? ssuserNode.get("contribution").asText("") : "";
-                        
-                        threadResourceManager.updateQuotaFromServer(
-                            requestsToday, maxRequestsPerDay, maxRequestsPerMin,
-                            maxDownloadSpeed, requestsKoToday, niveau, contribution
-                        );
+                        // 更新完整配额信息（ScrapeStatus 是前端 thread-status API 的唯一数据源）
+                        scrapeStatus.updateQuotaFromSsuser(ssuserNode);
                     }
                     
                     if (responseNode.has("jeu")) {
@@ -2910,6 +2914,15 @@ public class ScraperServiceImpl implements ScraperService {
             }
 
             gameService.updateGame(game);
+            // 刮削免费得到的中文名称/简介写入通用译文表（lang=zh），接管旧 translated_name/desc 列
+            if (game.getId() != null) {
+                if (game.getTranslatedName() != null && !game.getTranslatedName().isBlank()) {
+                    fieldTranslationMapper.upsert(new FieldTranslation("game", game.getId(), "name", "zh", game.getTranslatedName()));
+                }
+                if (game.getTranslatedDesc() != null && !game.getTranslatedDesc().isBlank()) {
+                    fieldTranslationMapper.upsert(new FieldTranslation("game", game.getId(), "desc", "zh", game.getTranslatedDesc()));
+                }
+            }
             logger.info("更新游戏记录: {} (语种: {})", game.getName(), preferredLang);
             
         } catch (Exception e) {
@@ -3815,6 +3828,52 @@ public class ScraperServiceImpl implements ScraperService {
         }
     }
     
+    @Override
+    public boolean executeMediaDownloadTask(MediaDownloadTask task) {
+        logger.info("执行媒体下载任务(MediaDownloadTask): taskId={}, gameId={}, mediaType={}", 
+            task.getId(), task.getGameId(), task.getMediaType());
+        
+        try {
+            if (task.getDownloadUrl() == null || task.getLocalPath() == null) {
+                logger.error("媒体下载任务缺少必要参数: taskId={}", task.getId());
+                return false;
+            }
+            
+            // ★ 文件已存在检查：避免重复下载浪费带宽
+            java.io.File targetFile = new java.io.File(task.getLocalPath());
+            if (targetFile.exists() && targetFile.length() > 0) {
+                logger.info("媒体文件已存在，跳过下载: taskId={}, path={}", task.getId(), task.getLocalPath());
+                updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
+                return true;
+            }
+            
+            // ★ 同类型文件检查：目录中已有该类型的其他媒体文件（不同扩展名）也视为已存在
+            java.nio.file.Path localFilePath = java.nio.file.Paths.get(task.getLocalPath());
+            java.nio.file.Path gameMediaDir = localFilePath.getParent();
+            java.nio.file.Path existingFile = PathResolver.findExistingMedia(gameMediaDir, task.getMediaType());
+            if (existingFile != null) {
+                logger.info("同类型媒体文件已存在，跳过下载: taskId={}, existingPath={}", task.getId(), existingFile);
+                updateGameMediaPath(task.getGameId(), task.getMediaType(), PathResolver.normalizeForDb(existingFile));
+                return true;
+            }
+            
+            // 解密下载 URL
+            String decryptedUrl = EncryptionUtil.decrypt(task.getDownloadUrl());
+            
+            // 下载文件
+            downloadMediaFile(decryptedUrl, task.getLocalPath());
+            
+            // 更新游戏媒体路径
+            updateGameMediaPath(task.getGameId(), task.getMediaType(), task.getLocalPath());
+            
+            logger.info("媒体下载完成(MediaDownloadTask): taskId={}, path={}", task.getId(), task.getLocalPath());
+            return true;
+        } catch (Exception e) {
+            logger.error("执行媒体下载任务失败(MediaDownloadTask): taskId={}, error={}", task.getId(), e.getMessage(), e);
+            return false;
+        }
+    }
+    
     /**
      * 从游戏信息刮削结果创建媒体下载任务
      * <p>路径规则对齐 MEMO 设计: {ssSystemId}/{ssGameId}/{type}.{ext}
@@ -3849,7 +3908,7 @@ public class ScraperServiceImpl implements ScraperService {
             Path gameMediaDir = PathResolver.resolveGameMediaDir(game, ssSystemId);
             Files.createDirectories(gameMediaDir);
             
-            List<ScrapeTask> mediaTasks = new ArrayList<>();
+            List<MediaDownloadTask> mediaTasks = new ArrayList<>();
             long orderIndex = System.currentTimeMillis();
             
             boolean scrapeAllMedia = Boolean.TRUE.equals(request.getScrapeAllMedia());
@@ -3914,25 +3973,24 @@ public class ScraperServiceImpl implements ScraperService {
                 String localPath = gameMediaDir.resolve(type + "." + ext).toString();
                 String encryptedUrl = EncryptionUtil.encrypt(media.get("url").asText());
                 
-                ScrapeTask mediaTask = new ScrapeTask();
-                mediaTask.setTaskType(ScrapeTask.TYPE_MEDIA_DOWNLOAD);
+                MediaDownloadTask mediaTask = new MediaDownloadTask();
                 mediaTask.setGameId(gameId);
+                mediaTask.setGameName(game.getName());
                 mediaTask.setPlatformId(platformId);
-                mediaTask.setSystemId(ssSystemId);
-                mediaTask.setSsGameId(game.getSsGameId());
+                mediaTask.setPlatformName(platformName);
+                mediaTask.setGameFieldName(mapMediaTypeToGameField(type));
                 mediaTask.setMediaType(type);
                 mediaTask.setDownloadUrl(encryptedUrl);
                 mediaTask.setLocalPath(localPath);
-                mediaTask.setStatus(ScrapeTask.STATUS_PENDING);
-                mediaTask.setPriority(ScrapeTask.PRIORITY_MEDIA_DOWNLOAD);
+                mediaTask.setStatus(MediaDownloadTask.STATUS_PENDING);
                 mediaTask.setTaskId(taskId);
                 mediaTask.setOrderIndex(orderIndex++);
                 mediaTasks.add(mediaTask);
             }
             
             if (!mediaTasks.isEmpty()) {
-                scrapeTaskMapper.batchInsert(mediaTasks);
-                logger.info("已创建 {} 个媒体下载任务 for gameId={}", mediaTasks.size(), gameId);
+                mediaDownloadTaskMapper.insertBatch(mediaTasks);
+                logger.info("已创建 {} 个媒体下载任务（media_download_task表） for gameId={}", mediaTasks.size(), gameId);
             }
         } catch (Exception e) {
             logger.error("创建媒体下载任务失败: gameId={}", game.getId(), e);

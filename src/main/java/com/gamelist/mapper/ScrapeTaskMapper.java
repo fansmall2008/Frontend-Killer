@@ -130,4 +130,17 @@ public interface ScrapeTaskMapper {
      * 按后台任务ID删除所有关联的 scrape_task 记录
      */
     int deleteByTaskId(@Param("taskId") long taskId);
+
+    /**
+     * 一次性汇总所有平台各任务类型各状态的任务数量
+     * 返回列：platform_id, task_type, status, cnt
+     * 用于平台进度 API 的高效统计
+     */
+    List<java.util.Map<String, Object>> selectPlatformTaskTypeSummary();
+
+    /**
+     * 查询当前 RUNNING 状态的任务（关联游戏名称和平台名称）
+     * 用于平台进度 API 获取 currentGame
+     */
+    List<java.util.Map<String, Object>> selectRunningTasksWithNames();
 }

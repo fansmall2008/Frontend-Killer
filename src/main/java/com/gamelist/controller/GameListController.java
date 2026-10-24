@@ -441,77 +441,8 @@ public class GameListController {
     }
 
     /**
-     * 批量切换译文（交换 name/desc 与 translatedName/translatedDesc）
+     * 按平台切换译文（占位，功能已迁至翻译工具，保留注释避免误删其他逻辑）
      */
-    @PutMapping("/games/swap-translations")
-    public ResponseEntity<java.util.Map<String, Object>> swapTranslations(@RequestBody java.util.Map<String, Object> request) {
-        try {
-            @SuppressWarnings("unchecked")
-            java.util.List<Object> gameIdsObj = (java.util.List<Object>) request.get("gameIds");
-            
-            // 解析 gameIds（支持直接指定或从 filters 解析）
-            java.util.List<Long> gameIds = new java.util.ArrayList<>();
-            if (gameIdsObj != null && !gameIdsObj.isEmpty()) {
-                for (Object obj : gameIdsObj) {
-                    if (obj instanceof Number) gameIds.add(((Number) obj).longValue());
-                    else if (obj instanceof String) { try { gameIds.add(Long.parseLong((String) obj)); } catch (NumberFormatException e) { /* skip */ } }
-                }
-            }
-            if (gameIds.isEmpty()) {
-                gameIds = resolveGameIdsFromFilters(request);
-            }
-            if (gameIds == null || gameIds.isEmpty()) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "游戏ID列表不能为空且未提供有效筛选条件"));
-            }
-            
-            int swappedCount = gameService.swapTranslations(gameIds);
-            
-            java.util.Map<String, Object> result = new java.util.HashMap<>();
-            result.put("success", true);
-            result.put("swappedCount", swappedCount);
-            result.put("message", "成功切换 " + swappedCount + " 个游戏的译文");
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            java.util.Map<String, Object> errorResult = new java.util.HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("error", "切换译文失败：" + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
-        }
-    }
-
-    /**
-     * 按平台切换译文（交换该平台下所有游戏的 name/desc 与 translatedName/translatedDesc）
-     */
-    @PutMapping("/games/swap-translations-by-platform")
-    public ResponseEntity<java.util.Map<String, Object>> swapTranslationsByPlatform(@RequestBody java.util.Map<String, Object> request) {
-        try {
-            Object platformIdObj = request.get("platformId");
-            if (platformIdObj == null) {
-                return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "平台ID不能为空"));
-            }
-            Long platformId;
-            if (platformIdObj instanceof Number) {
-                platformId = ((Number) platformIdObj).longValue();
-            } else {
-                platformId = Long.parseLong(platformIdObj.toString());
-            }
-
-            int swappedCount = gameService.swapTranslationsByPlatformId(platformId);
-
-            java.util.Map<String, Object> result = new java.util.HashMap<>();
-            result.put("success", true);
-            result.put("swappedCount", swappedCount);
-            result.put("message", "成功切换 " + swappedCount + " 个游戏的译文");
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            logger.error("按平台切换译文失败", e);
-            java.util.Map<String, Object> errorResult = new java.util.HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("error", "切换译文失败：" + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
-        }
-    }
 
     /**
      * 确认当前已抓的 SS 信息对应同一游戏（将 matched 置 true，不改动其它字段）

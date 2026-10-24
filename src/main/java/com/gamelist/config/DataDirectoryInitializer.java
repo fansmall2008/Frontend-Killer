@@ -90,6 +90,12 @@ public class DataDirectoryInitializer implements ApplicationListener<Application
                 logger.info("主题包目录创建成功: {}", themesDir.getAbsolutePath());
             }
 
+            File variantsDir = new File("./data/variants");
+            if (!variantsDir.exists()) {
+                variantsDir.mkdirs();
+                logger.info("副本库目录创建成功: {}", variantsDir.getAbsolutePath());
+            }
+
             logger.info("========== 数据目录初始化完成 ==========");
 
         } catch (Exception e) {

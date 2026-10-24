@@ -81,4 +81,15 @@ public interface MediaDownloadTaskMapper {
      * 按游戏ID删除媒体下载任务（删除游戏前需先调用）
      */
     int deleteByGameId(@Param("gameId") Long gameId);
+    
+    /**
+     * 批量拾取待处理的媒体下载任务（按优先级和排序索引）
+     */
+    List<MediaDownloadTask> pickNextPendingMediaTasks(@Param("limit") int limit);
+    
+    /**
+     * 乐观锁认领媒体下载任务：PENDING → DOWNLOADING
+     * @return 1=成功, 0=已被其他线程认领
+     */
+    int tryClaimMediaTask(@Param("id") Long id);
 }

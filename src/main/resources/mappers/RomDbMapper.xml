@@ -120,6 +120,18 @@
         ORDER BY count DESC
     </select>
 
+    <!-- DAT 预检：逐平台总行数 / 有效行数（名称非空且(crc32或serial非空)） -->
+    <select id="countDatStatsByPlatform" resultType="java.util.Map">
+        SELECT platform, system_id AS systemId, COUNT(*) AS totalRows,
+            SUM(CASE WHEN game_name IS NOT NULL AND TRIM(game_name) &lt;&gt; ''
+                      AND ((crc32 IS NOT NULL AND TRIM(crc32) &lt;&gt; '')
+                        OR (serial IS NOT NULL AND TRIM(serial) &lt;&gt; ''))
+                     THEN 1 ELSE 0 END) AS validRows
+        FROM rom_db
+        GROUP BY platform, system_id
+        ORDER BY platform
+    </select>
+
     <!-- 按 systemId 统计数据量 -->
     <select id="countBySystem" resultType="java.util.Map">
         SELECT system_id AS systemId, COUNT(*) AS count
@@ -179,6 +191,11 @@
     <!-- 按 systemId 批量查询全部记录（用于内存预加载） -->
     <select id="findBySystemId" resultMap="RomDbResultMap">
         SELECT * FROM rom_db WHERE system_id = #{systemId}
+    </select>
+
+    <!-- 按平台名取全部记录（翻译工具 rom_db 范围） -->
+    <select id="findByPlatform" resultMap="RomDbResultMap">
+        SELECT * FROM rom_db WHERE platform = #{platform}
     </select>
 
     <!-- 模糊搜索游戏名 -->

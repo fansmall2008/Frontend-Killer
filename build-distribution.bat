@@ -35,7 +35,7 @@ if not exist "%DATA_DIR%\database" mkdir "%DATA_DIR%\database"
 
 rem 拷贝jar文件
 echo 拷贝jar文件...
-copy "%TARGET_DIR%\webGamelistOper-1.3.1.jar" "%DISTRIBUTION_DIR%\webGamelistOper-1.3.1.jar" /Y
+copy "%TARGET_DIR%\webGamelistOper-1.3.7.jar" "%DISTRIBUTION_DIR%\webGamelistOper-1.3.7.jar" /Y
 
 rem 拷贝data目录内容
 echo 拷贝data目录内容...
@@ -58,6 +58,12 @@ if exist "%PROJECT_DIR%\distribution\docs" (
     xcopy "%PROJECT_DIR%\distribution\docs\*" "%DISTRIBUTION_DIR%\docs" /E /I /Y
 ) else (
     echo 注意: distribution/docs目录不存在
+)
+
+rem 拷贝第三方组件声明
+echo 拷贝第三方组件声明...
+if exist "%PROJECT_DIR%\THIRD-PARTY-NOTICES.md" (
+    copy "%PROJECT_DIR%\THIRD-PARTY-NOTICES.md" "%DISTRIBUTION_DIR%" /Y
 )
 
 rem 拷贝安装说明

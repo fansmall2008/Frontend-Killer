@@ -39,6 +39,16 @@ public interface TaskService {
      * @param result 任务结果
      */
     void completeTask(Long taskId, String message, String result);
+
+    /**
+     * 完成任务，并指定通知类型。
+     * <p>
+     * 结果全是“跳过”时不该报绿色成功（例如：目标格式没产线、源文件是压缩包），
+     * 用 warning 让用户看见原因。
+     *
+     * @param notificationType success / warning
+     */
+    void completeTask(Long taskId, String message, String result, String notificationType);
     
     /**
      * 失败任务

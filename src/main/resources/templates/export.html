@@ -160,6 +160,24 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="translationLang" data-i18n="export_translation_lang">导出译文书种</label>
+                    <select id="translationLang">
+                        <option value="" data-i18n="export_translation_lang_none">不翻译（使用原文）</option>
+                        <option value="zh">简体中文 [zh]</option>
+                        <option value="en">英语 [en]</option>
+                        <option value="ja">日语 [ja]</option>
+                        <option value="fr">法语 [fr]</option>
+                        <option value="es">西班牙语 [es]</option>
+                        <option value="de">德语 [de]</option>
+                        <option value="it">意大利语 [it]</option>
+                        <option value="ko">韩语 [ko]</option>
+                        <option value="pt">葡萄牙语 [pt]</option>
+                        <option value="ru">俄语 [ru]</option>
+                    </select>
+                    <small data-i18n="export_translation_lang_tip">若选中语种已有译文，导出的 name/desc 将取自译文表。</small>
+                </div>
+
+                <div class="form-group">
                     <label data-i18n="export_range">导出范围</label>
                     <div class="checkbox-group">
                         <label><input type="checkbox" id="copyRoms" checked> <span data-i18n="game_files">游戏文件</span></label>
@@ -171,6 +189,12 @@
                     </div>
                 </div>
                 
+                <div class="form-group" id="variantFormatGroup" style="display:none;">
+                    <label>ROM 副本格式</label>
+                    <div id="variantFormatList"></div>
+                    <small>按系统选择导出时使用的副本格式；副本未生成或已过期时自动回退主文件。可在工具箱 → ROM 副本中批量生成。</small>
+                </div>
+
                 <div class="form-group">
                     <label for="outputPath" data-i18n="export_path">导出路径</label>
                     <input type="text" id="outputPath" value="/data/output" required>
@@ -362,7 +386,9 @@
                 outputPath: document.getElementById('outputPath').value,
                 copyRoms: document.getElementById('copyRoms').checked,
                 copyMedia: document.getElementById('copyMedia').checked,
-                generateDataFile: document.getElementById('generateDataFile').checked
+                generateDataFile: document.getElementById('generateDataFile').checked,
+                translationLang: document.getElementById('translationLang').value,
+                systemVariantFormats: collectVariantFormats()
             };
 
             // 模板若声明了执行前变量，先弹窗收集用户设定，再继续导出流程（多平台共享一份全局变量）
@@ -652,6 +678,8 @@
                 const checkedVisible = document.querySelectorAll('#platformOptions .ms-combo-option:not([style*="display: none"]) input[type="checkbox"]:checked');
                 allCb.checked = visibleOptions.length > 0 && checkedVisible.length === visibleOptions.length;
             }
+
+            if (typeof scheduleVariantRefresh === 'function') scheduleVariantRefresh();
         }
         
         function msComboRemoveOption(platformId) {
@@ -675,6 +703,126 @@
             return result;
         }
         
+        // ========== ROM 副本格式选择 ==========
+        // 格式文案由后端格式表下发，页面不再写死 bare/zip/7z
+        let VARIANT_FORMAT_TEXT = { original: '主文件（原样）' };
+        let variantOptions = [];
+        let variantSelections = {};
+        let variantRefreshTimer = null;
+
+        async function loadVariantFormatText() {
+            try {
+                const r = await fetch('/api/variants/formats');
+                const data = await r.json();
+                if (!data || !data.success) return;
+                const labels = { original: '主文件（原样）' };
+                (data.formats || []).forEach(f => { labels[f.id] = f.label; });
+                VARIANT_FORMAT_TEXT = labels;
+            } catch (e) { /* ignore */ }
+        }
+
+        function scheduleVariantRefresh() {
+            clearTimeout(variantRefreshTimer);
+            variantRefreshTimer = setTimeout(refreshVariantOptions, 200);
+        }
+
+        function refreshVariantOptions() {
+            const group = document.getElementById('variantFormatGroup');
+            if (!group) return;
+            const selected = msComboGetSelected();
+            if (!selected.length || !document.getElementById('copyRoms').checked) {
+                group.style.display = 'none';
+                return;
+            }
+            const ids = selected.map(s => s.id);
+            fetch('/api/variants/options?platformIds=' + ids.join(','))
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+                .then(res => {
+                    if (!res || !res.success) throw new Error((res && res.error) || '加载副本选项失败');
+                    variantOptions = res.systems || [];
+                    renderVariantOptions();
+                })
+                .catch(err => {
+                    console.warn('加载副本选项失败:', err && err.message);
+                    variantOptions = [];
+                    group.style.display = 'none';
+                });
+        }
+
+        function renderVariantOptions() {
+            const group = document.getElementById('variantFormatGroup');
+            const list = document.getElementById('variantFormatList');
+            if (!list) return;
+            list.innerHTML = '';
+            if (!variantOptions.length) {
+                group.style.display = 'none';
+                return;
+            }
+            variantOptions.forEach(system => {
+                const key = String(system.systemId);
+                const formats = system.formats || {};
+                const enabled = Object.keys(formats).filter(f => formats[f]);
+
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);';
+
+                const label = document.createElement('span');
+                label.style.cssText = 'min-width:180px;font-size:13px;color:var(--text-primary,#ddd);';
+                label.textContent = system.systemName || system.systemNameEn || ('系统 #' + system.systemId);
+                row.appendChild(label);
+
+                const select = document.createElement('select');
+                select.className = 'variant-format-select';
+                select.setAttribute('data-system-id', key);
+                select.style.cssText = 'min-width:170px;';
+                const originalOption = document.createElement('option');
+                originalOption.value = 'original';
+                originalOption.textContent = VARIANT_FORMAT_TEXT.original;
+                select.appendChild(originalOption);
+                enabled.forEach(f => {
+                    const option = document.createElement('option');
+                    option.value = f;
+                    option.textContent = VARIANT_FORMAT_TEXT[f] || f;
+                    select.appendChild(option);
+                });
+
+                let chosen = variantSelections[key] || system.preferredFormat || 'original';
+                if (chosen !== 'original' && enabled.indexOf(chosen) < 0) chosen = 'original';
+                select.value = chosen;
+                select.onchange = function() {
+                    variantSelections[key] = this.value;
+                    saveVariantPreference(system.systemId, this.value);
+                };
+                row.appendChild(select);
+
+                const counts = document.createElement('span');
+                counts.style.cssText = 'font-size:12px;color:var(--text-tertiary,#888);';
+                counts.textContent = '共 ' + (system.totalGames || 0) + ' 款 · 就绪 ' + (system.readyCount || 0)
+                    + ' · 过期 ' + (system.staleCount || 0) + ' · 失败 ' + (system.failedCount || 0);
+                row.appendChild(counts);
+
+                list.appendChild(row);
+            });
+            group.style.display = 'block';
+        }
+
+        function collectVariantFormats() {
+            const result = {};
+            document.querySelectorAll('#variantFormatList .variant-format-select').forEach(sel => {
+                const systemId = sel.getAttribute('data-system-id');
+                if (systemId) result[systemId] = sel.value;
+            });
+            return result;
+        }
+
+        function saveVariantPreference(systemId, format) {
+            fetch('/api/variants/matrix/' + systemId + '/preference', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ format: format })
+            }).catch(err => console.warn('保存副本偏好失败:', err && err.message));
+        }
+
         // Click outside to close combobox
         document.addEventListener('click', function(e) {
             const combo = document.getElementById('platformCombo');
@@ -684,10 +832,13 @@
             }
         });
         
-        window.onload = function() {
+        window.onload = async function() {
             initLanguage();
+            await loadVariantFormatText();
             loadPlatforms();
             loadFrontends();
+            const copyRomsEl = document.getElementById('copyRoms');
+            if (copyRomsEl) copyRomsEl.addEventListener('change', scheduleVariantRefresh);
         };
     </script>
 

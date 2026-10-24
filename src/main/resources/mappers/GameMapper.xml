@@ -10,8 +10,6 @@
         <result column="path" property="path"/>
         <result column="name" property="name"/>
         <result column="desc" property="desc"/>
-        <result column="translated_name" property="translatedName"/>
-        <result column="translated_desc" property="translatedDesc"/>
         <result column="image" property="image"/>
         <result column="video" property="video"/>
         <result column="marquee" property="marquee"/>
@@ -125,12 +123,12 @@
     
     <insert id="insertGame" parameterType="com.gamelist.model.Game" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO game (
-            game_id, ss_game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            game_id, ss_game_id, source, path, name, `desc`, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
             rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, sort_by, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content, cached, parent_rom, disc_serial, matched
         ) VALUES (
-            #{gameId}, #{ssGameId}, #{source}, #{path}, #{name}, #{desc}, #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
+            #{gameId}, #{ssGameId}, #{source}, #{path}, #{name}, #{desc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
             #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight}, #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen}, #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel}, #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper}, #{platformType}, #{hash},
             #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan}, #{support2d}, #{supportTexture}, #{supportScan}, #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee}, #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps}, #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail}, #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs}, #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper}, #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios},
             #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{platformId}, #{sortBy}, #{scraped, jdbcType=BOOLEAN}, #{edited, jdbcType=BOOLEAN}, #{exists, jdbcType=BOOLEAN}, #{absolutePath}, #{platformPath}, #{multiFile, jdbcType=BOOLEAN}, #{multiFileContent}, #{cached, jdbcType=BOOLEAN}, #{parentRom}, #{discSerial}, #{matched, jdbcType=BOOLEAN}
@@ -139,14 +137,14 @@
     
     <insert id="insertGamesBatch" parameterType="java.util.List">
         INSERT INTO game (
-            game_id, ss_game_id, source, path, name, `desc`, translated_name, translated_desc, image, video, marquee, thumbnail, manual,
+            game_id, ss_game_id, source, path, name, `desc`, image, video, marquee, thumbnail, manual,
             box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right, tile, banner, steam, poster, background, music, screenshot, titlescreen, box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel, screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper, platform_type, hash,
             box_2d, box_2d_back, box_2d_side, box_texture, box_scan, support_2d, support_texture, support_scan, wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee, ss, sstitle, overlay, video_normalized, flyer, manuel, maps, bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail, mixrbv1, mixrbv2, themehb, themehs, ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper, videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios,
             rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, platform_id, scraped, edited, `exists`, absolute_path, platform_path, multi_file, multi_file_content
         ) VALUES
         <foreach collection="list" item="game" separator=",">
             (
-                #{game.gameId}, #{game.ssGameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
+                #{game.gameId}, #{game.ssGameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
                 #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight}, #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen}, #{game.box3D}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.videonormalized}, #{game.wheelcarbon}, #{game.wheelsteel}, #{game.screenmarqueesmall}, #{game.boxside}, #{game.figurine}, #{game.pictoliste}, #{game.pictomonochrome}, #{game.pictomonochromesvg}, #{game.pictocouleur}, #{game.wallpaper}, #{game.platformType}, #{game.hash},
                 #{game.box2d}, #{game.box2dBack}, #{game.box2dSide}, #{game.boxTexture}, #{game.boxScan}, #{game.support2d}, #{game.supportTexture}, #{game.supportScan}, #{game.wheel}, #{game.wheelHd}, #{game.wheelCarbon}, #{game.wheelSteel}, #{game.screenmarquee}, #{game.ss}, #{game.sstitle}, #{game.overlay}, #{game.videoNormalized}, #{game.flyer}, #{game.manuel}, #{game.maps}, #{game.bezel43}, #{game.bezel43V}, #{game.bezel43Cocktail}, #{game.bezel169}, #{game.bezel169V}, #{game.bezel169Cocktail}, #{game.mixrbv1}, #{game.mixrbv2}, #{game.themehb}, #{game.themehs}, #{game.ssdmd}, #{game.ssfronton169}, #{game.ssfronton11}, #{game.ssfronton43}, #{game.sstable}, #{game.sstopper}, #{game.videodmd}, #{game.videofronton43}, #{game.videofronton169}, #{game.videotable}, #{game.videotable4k}, #{game.videotopper}, #{game.wheelTarcisios},
                 #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.platformId}, #{game.scraped, jdbcType=BOOLEAN}, #{game.edited, jdbcType=BOOLEAN}, #{game.exists, jdbcType=BOOLEAN}, #{game.absolutePath}, #{game.platformPath}, #{game.multiFile, jdbcType=BOOLEAN}, #{game.multiFileContent}
@@ -161,7 +159,7 @@
     <select id="selectAllGamesWithFilter" resultMap="GameResultMap">
         SELECT * FROM game WHERE 1=1
         <if test="search != null and search != ''">
-            AND (LOWER(name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(translated_name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(path) LIKE CONCAT('%', LOWER(#{search}), '%'))
+            AND (LOWER(name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(path) LIKE CONCAT('%', LOWER(#{search}), '%'))
         </if>
         <if test="startDate != null and startDate != ''">
             AND (releasedate IS NULL OR CAST(SUBSTRING(releasedate, 1, 4) AS INTEGER) >= CAST(#{startDate} AS INTEGER))
@@ -210,7 +208,6 @@
                             OR (publisher IS NOT NULL AND publisher != '' AND publisher != 'unknown')
                             OR (genre IS NOT NULL AND genre != '' AND genre != 'unknown')
                             OR (`desc` IS NOT NULL AND `desc` != '' AND `desc` != 'unknown' AND LENGTH(`desc`) &gt; 10)
-                            OR (translated_desc IS NOT NULL AND translated_desc != '' AND LENGTH(translated_desc) &gt; 10)
                             OR (releasedate IS NOT NULL AND releasedate != '')
                             OR (players IS NOT NULL AND players != '' AND players != '1')
                             OR rating IS NOT NULL
@@ -252,7 +249,6 @@
                         AND (publisher IS NULL OR publisher = '' OR publisher = 'unknown')
                         AND (genre IS NULL OR genre = '' OR genre = 'unknown')
                         AND (`desc` IS NULL OR `desc` = '' OR `desc` = 'unknown' OR LENGTH(`desc`) &lt;= 10)
-                        AND (translated_desc IS NULL OR translated_desc = '' OR LENGTH(translated_desc) &lt;= 10)
                         AND (releasedate IS NULL OR releasedate = '')
                         AND (players IS NULL OR players = '' OR players = '1')
                         AND rating IS NULL
@@ -301,7 +297,7 @@
     <select id="selectGamesByPlatformIdWithFilter" resultMap="GameResultMap">
         SELECT * FROM game WHERE platform_id = #{platformId}
         <if test="search != null and search != ''">
-            AND (LOWER(name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(translated_name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(path) LIKE CONCAT('%', LOWER(#{search}), '%'))
+            AND (LOWER(name) LIKE CONCAT('%', LOWER(#{search}), '%') OR LOWER(path) LIKE CONCAT('%', LOWER(#{search}), '%'))
         </if>
         <if test="startDate != null and startDate != ''">
             AND (releasedate IS NULL OR CAST(SUBSTRING(releasedate, 1, 4) AS INTEGER) >= CAST(#{startDate} AS INTEGER))
@@ -350,7 +346,6 @@
                             OR (publisher IS NOT NULL AND publisher != '' AND publisher != 'unknown')
                             OR (genre IS NOT NULL AND genre != '' AND genre != 'unknown')
                             OR (`desc` IS NOT NULL AND `desc` != '' AND `desc` != 'unknown' AND LENGTH(`desc`) &gt; 10)
-                            OR (translated_desc IS NOT NULL AND translated_desc != '' AND LENGTH(translated_desc) &gt; 10)
                             OR (releasedate IS NOT NULL AND releasedate != '')
                             OR (players IS NOT NULL AND players != '' AND players != '1')
                             OR rating IS NOT NULL
@@ -392,7 +387,6 @@
                         AND (publisher IS NULL OR publisher = '' OR publisher = 'unknown')
                         AND (genre IS NULL OR genre = '' OR genre = 'unknown')
                         AND (`desc` IS NULL OR `desc` = '' OR `desc` = 'unknown' OR LENGTH(`desc`) &lt;= 10)
-                        AND (translated_desc IS NULL OR translated_desc = '' OR LENGTH(translated_desc) &lt;= 10)
                         AND (releasedate IS NULL OR releasedate = '')
                         AND (players IS NULL OR players = '' OR players = '1')
                         AND rating IS NULL
@@ -493,7 +487,6 @@
             OR (publisher IS NOT NULL AND publisher != '' AND publisher != 'unknown')
             OR (genre IS NOT NULL AND genre != '' AND genre != 'unknown')
             OR (`desc` IS NOT NULL AND `desc` != '' AND `desc` != 'unknown' AND LENGTH(`desc`) &gt; 10)
-            OR (translated_desc IS NOT NULL AND translated_desc != '' AND LENGTH(translated_desc) &gt; 10)
             OR (releasedate IS NOT NULL AND releasedate != '')
             OR (players IS NOT NULL AND players != '' AND players != '1')
             OR rating IS NOT NULL
@@ -538,7 +531,6 @@
         AND (publisher IS NULL OR publisher = '' OR publisher = 'unknown')
         AND (genre IS NULL OR genre = '' OR genre = 'unknown')
         AND (`desc` IS NULL OR `desc` = '' OR `desc` = 'unknown' OR LENGTH(`desc`) &lt;= 10)
-        AND (translated_desc IS NULL OR translated_desc = '' OR LENGTH(translated_desc) &lt;= 10)
         AND (releasedate IS NULL OR releasedate = '')
         AND (players IS NULL OR players = '' OR players = '1')
         AND rating IS NULL
@@ -585,7 +577,6 @@
                     OR (g.publisher IS NOT NULL AND g.publisher != '' AND g.publisher != 'unknown')
                     OR (g.genre IS NOT NULL AND g.genre != '' AND g.genre != 'unknown')
                     OR (g.`desc` IS NOT NULL AND g.`desc` != '' AND g.`desc` != 'unknown' AND LENGTH(g.`desc`) &gt; 10)
-                    OR (g.translated_desc IS NOT NULL AND g.translated_desc != '' AND LENGTH(g.translated_desc) &gt; 10)
                     OR (g.releasedate IS NOT NULL AND g.releasedate != '')
                     OR (g.players IS NOT NULL AND g.players != '' AND g.players != '1')
                     OR g.rating IS NOT NULL
@@ -626,7 +617,7 @@
                 AND (g.publisher IS NULL OR g.publisher = '' OR g.publisher = 'unknown')
                 AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown')
                 AND (g.`desc` IS NULL OR g.`desc` = '' OR g.`desc` = 'unknown' OR LENGTH(g.`desc`) &lt;= 10)
-                AND (g.translated_desc IS NULL OR g.translated_desc = '' OR LENGTH(g.translated_desc) &lt;= 10)
+                
                 AND (g.releasedate IS NULL OR g.releasedate = '')
                 AND (g.players IS NULL OR g.players = '' OR g.players = '1')
                 AND g.rating IS NULL
@@ -683,7 +674,6 @@
                     OR (g.publisher IS NOT NULL AND g.publisher != '' AND g.publisher != 'unknown')
                     OR (g.genre IS NOT NULL AND g.genre != '' AND g.genre != 'unknown')
                     OR (g.`desc` IS NOT NULL AND g.`desc` != '' AND g.`desc` != 'unknown' AND LENGTH(g.`desc`) &gt; 10)
-                    OR (g.translated_desc IS NOT NULL AND g.translated_desc != '' AND LENGTH(g.translated_desc) &gt; 10)
                     OR (g.releasedate IS NOT NULL AND g.releasedate != '')
                     OR (g.players IS NOT NULL AND g.players != '' AND g.players != '1')
                     OR g.rating IS NOT NULL
@@ -722,7 +712,7 @@
                 AND (g.publisher IS NULL OR g.publisher = '' OR g.publisher = 'unknown')
                 AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown')
                 AND (g.`desc` IS NULL OR g.`desc` = '' OR g.`desc` = 'unknown' OR LENGTH(g.`desc`) &lt;= 10)
-                AND (g.translated_desc IS NULL OR g.translated_desc = '' OR LENGTH(g.translated_desc) &lt;= 10)
+                
                 AND (g.releasedate IS NULL OR g.releasedate = '')
                 AND (g.players IS NULL OR g.players = '' OR g.players = '1')
                 AND g.rating IS NULL
@@ -769,7 +759,6 @@
                     OR (g.publisher IS NOT NULL AND g.publisher != '' AND g.publisher != 'unknown')
                     OR (g.genre IS NOT NULL AND g.genre != '' AND g.genre != 'unknown')
                     OR (g.`desc` IS NOT NULL AND g.`desc` != '' AND g.`desc` != 'unknown' AND LENGTH(g.`desc`) &gt; 10)
-                    OR (g.translated_desc IS NOT NULL AND g.translated_desc != '' AND LENGTH(g.translated_desc) &gt; 10)
                     OR (g.releasedate IS NOT NULL AND g.releasedate != '')
                     OR (g.players IS NOT NULL AND g.players != '' AND g.players != '1')
                     OR g.rating IS NOT NULL
@@ -812,7 +801,7 @@
                 AND (g.publisher IS NULL OR g.publisher = '' OR g.publisher = 'unknown')
                 AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown')
                 AND (g.`desc` IS NULL OR g.`desc` = '' OR g.`desc` = 'unknown' OR LENGTH(g.`desc`) &lt;= 10)
-                AND (g.translated_desc IS NULL OR g.translated_desc = '' OR LENGTH(g.translated_desc) &lt;= 10)
+                
                 AND (g.releasedate IS NULL OR g.releasedate = '')
                 AND (g.players IS NULL OR g.players = '' OR g.players = '1')
                 AND g.rating IS NULL
@@ -844,8 +833,6 @@
         UPDATE game SET
             name = #{name},
             `desc` = #{desc},
-            translated_name = #{translatedName},
-            translated_desc = #{translatedDesc},
             image = #{image},
             video = #{video},
             marquee = #{marquee},
@@ -1180,7 +1167,7 @@
                                 OR (g.publisher IS NOT NULL AND g.publisher != '' AND g.publisher != 'unknown')
                                 OR (g.genre IS NOT NULL AND g.genre != '' AND g.genre != 'unknown')
                                 OR (g.`desc` IS NOT NULL AND g.`desc` != '' AND g.`desc` != 'unknown' AND LENGTH(g.`desc`) &gt; 10)
-                                OR (g.translated_desc IS NOT NULL AND g.translated_desc != '' AND LENGTH(g.translated_desc) &gt; 10)
+                                
                                 OR (g.releasedate IS NOT NULL AND g.releasedate != '')
                                 OR (g.players IS NOT NULL AND g.players != '' AND g.players != '1')
                                 OR g.rating IS NOT NULL
@@ -1221,7 +1208,7 @@
                             AND (g.publisher IS NULL OR g.publisher = '' OR g.publisher = 'unknown')
                             AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown')
                             AND (g.`desc` IS NULL OR g.`desc` = '' OR g.`desc` = 'unknown' OR LENGTH(g.`desc`) &lt;= 10)
-                            AND (g.translated_desc IS NULL OR g.translated_desc = '' OR LENGTH(g.translated_desc) &lt;= 10)
+                            
                             AND (g.releasedate IS NULL OR g.releasedate = '')
                             AND (g.players IS NULL OR g.players = '' OR g.players = '1')
                             AND g.rating IS NULL
@@ -1439,7 +1426,7 @@
                                 OR (g.publisher IS NOT NULL AND g.publisher != '' AND g.publisher != 'unknown')
                                 OR (g.genre IS NOT NULL AND g.genre != '' AND g.genre != 'unknown')
                                 OR (g.`desc` IS NOT NULL AND g.`desc` != '' AND g.`desc` != 'unknown' AND LENGTH(g.`desc`) &gt; 10)
-                                OR (g.translated_desc IS NOT NULL AND g.translated_desc != '' AND LENGTH(g.translated_desc) &gt; 10)
+                                
                                 OR (g.releasedate IS NOT NULL AND g.releasedate != '')
                                 OR (g.players IS NOT NULL AND g.players != '' AND g.players != '1')
                                 OR g.rating IS NOT NULL
@@ -1480,7 +1467,7 @@
                             AND (g.publisher IS NULL OR g.publisher = '' OR g.publisher = 'unknown')
                             AND (g.genre IS NULL OR g.genre = '' OR g.genre = 'unknown')
                             AND (g.`desc` IS NULL OR g.`desc` = '' OR g.`desc` = 'unknown' OR LENGTH(g.`desc`) &lt;= 10)
-                            AND (g.translated_desc IS NULL OR g.translated_desc = '' OR LENGTH(g.translated_desc) &lt;= 10)
+                            
                             AND (g.releasedate IS NULL OR g.releasedate = '')
                             AND (g.players IS NULL OR g.players = '' OR g.players = '1')
                             AND g.rating IS NULL
@@ -1512,6 +1499,18 @@
     <!-- 获取平台游戏数量 -->
     <select id="countGamesByPlatformId" parameterType="java.lang.Long" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM game WHERE platform_id = #{platformId}
+    </select>
+
+    <!-- DAT 预检：逐平台总游戏数 / 有效数（name 非空且(crc32 或 disc_serial 非空)） -->
+    <select id="countDatStatsByPlatform" resultType="java.util.Map">
+        SELECT platform_id AS platformId, COUNT(*) AS totalGames,
+            SUM(CASE WHEN name IS NOT NULL AND TRIM(name) &lt;&gt; ''
+                      AND ((crc32 IS NOT NULL AND TRIM(crc32) &lt;&gt; '')
+                        OR (disc_serial IS NOT NULL AND TRIM(disc_serial) &lt;&gt; ''))
+                     THEN 1 ELSE 0 END) AS validGames
+        FROM game
+        WHERE platform_id IS NOT NULL
+        GROUP BY platform_id
     </select>
 
     <!-- 导出预检：统计单平台未刮削(scraped!=true)游戏数，O(1) 计数，供关联性强校验分流 -->

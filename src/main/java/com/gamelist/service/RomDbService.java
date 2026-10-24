@@ -13,6 +13,12 @@ import java.util.Set;
 public interface RomDbService {
 
     /**
+     * 批量为一组 rom_db 行注入指定语种译文（写入瞬态 gameNameLocalized）。
+     * 译文来自 field_translation；无译文则保留旧多语言列回退。
+     */
+    void localizeRomDb(List<RomDb> romDbs, String lang);
+
+    /**
      * 按 serial + systemId 匹配（光盘平台）。
      *
      * @param serial   光盘编号（如 SLUS-20751）

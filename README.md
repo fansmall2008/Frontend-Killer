@@ -143,7 +143,7 @@ Run: `docker compose up -d`
 #### Option 3: JAR File
 Requires Java 17+.
 ```bash
-java -jar webGamelistOper-1.3.1.jar
+java -jar webGamelistOper-1.3.7.jar
 ```
 
 #### Option 4: Windows EXE (No Java Required)
@@ -226,7 +226,7 @@ services:
 #### 方式三：JAR 包运行
 需要 Java 17+。
 ```bash
-java -jar webGamelistOper-1.3.1.jar
+java -jar webGamelistOper-1.3.7.jar
 ```
 
 #### 方式四：Windows EXE（无需 Java）
@@ -309,7 +309,7 @@ services:
 #### オプション3：JARファイル
 Java 17+ が必要です。
 ```bash
-java -jar webGamelistOper-1.3.1.jar
+java -jar webGamelistOper-1.3.7.jar
 ```
 
 #### オプション4：Windows EXE（Java不要）
@@ -491,4 +491,4 @@ Without your effort and support, this idea would never have existed, let alone c
 
 ---
 
-**Version**: 1.3.1
+**Version**: 1.3.7

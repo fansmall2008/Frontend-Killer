@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="tools_page_title">工具箱 - 前端杀手</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <script src="/js/i18n.js"></script>
+    <style>
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .tool-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all .15s ease;
+        }
+        .tool-card:hover { border-color: var(--border-accent); transform: translateY(-2px); }
+        .tool-card.active { border-color: var(--accent-primary); }
+        .tool-card .tool-icon { font-size: 32px; margin-bottom: 8px; }
+        .tool-card .tool-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .tool-card .tool-desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+        .tools-group-label { font-size: 12px; color: var(--text-secondary); letter-spacing: .5px; margin: 26px 0 10px; }
+        .tool-card.nav-page { display: block; text-decoration: none; color: inherit; }
+        .tool-card.nav-page:hover { border-color: var(--accent-primary); }
+        .tool-card.nav-page .tool-open { margin-top: 10px; font-size: 12px; color: var(--accent-primary-hover); }
+        .tool-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .tool-panel h3 { margin: 0 0 14px 0; font-size: 16px; color: var(--text-primary); }
+        .form-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
+        .form-field { display: flex; flex-direction: column; gap: 5px; min-width: 180px; flex: 1; }
+        .form-field label { font-size: 12px; color: var(--text-secondary); }
+        .form-field select, .form-field input, .form-field textarea {
+            background: var(--bg-base);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 8px 10px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .form-field select:focus, .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-primary); }
+        .form-field select[multiple] { min-height: 120px; }
+        .scope-options { display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--text-primary); }
+        .scope-options label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .checkbox-field { flex-direction: row; align-items: center; }
+        .checkbox-field input { width: 16px; height: 16px; }
+        .progress-wrap { margin: 14px 0; display: none; }
+        .progress-bar-bg { background: var(--bg-base); border-radius: 8px; height: 16px; overflow: hidden; border: 1px solid var(--border-default); }
+        .progress-bar-fill { background: var(--accent-primary); height: 100%; width: 0; transition: width .2s; }
+        .progress-text { font-size: 12px; color: var(--text-secondary); margin-top: 6px; display: flex; gap: 16px; }
+        .log-area {
+            background: var(--bg-base);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        .engines-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .engines-table th, .engines-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-default); text-align: left; color: var(--text-primary); }
+        .engines-table th { color: var(--text-secondary); font-weight: 600; font-size: 12px; }
+        .badge-valid { color: #22c55e; }
+        .badge-invalid { color: #ef4444; }
+        .badge-default { background: var(--accent-primary); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        .action-link { color: var(--accent-primary-hover); cursor: pointer; margin-right: 12px; font-size: 12px; text-decoration: none; }
+        .action-link.danger { color: #ef4444; }
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        details.advanced { margin-top: 12px; }
+        details.advanced summary { cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+        details.advanced textarea { width: 100%; min-height: 160px; margin-top: 8px; font-family: 'Consolas','Monaco',monospace; font-size: 12px; }
+        .hint { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+        .status-msg { padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px; display: none; }
+        .status-msg.success { background: rgba(34,197,94,.12); color: #22c55e; border: 1px solid rgba(34,197,94,.3); display: block; }
+        .status-msg.error { background: rgba(239,68,68,.12); color: #ef4444; border: 1px solid rgba(239,68,68,.3); display: block; }
+        .sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .sub-tab { padding: 8px 16px; border-radius: 8px; background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; font-size: 13px; border: 1px solid var(--border-default); }
+        .sub-tab.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div th:replace="~{fragments/layout :: sidebar('tools')}"></div>
+        <div class="main-area">
+            <div th:replace="~{fragments/layout :: header('TOOLS')}"></div>
+            <main class="content">
+
+                <div class="toolbar">
+                    <h2 data-i18n="tools_title">工具箱</h2>
+                    <div class="toolbar-buttons">
+                        <span class="hint" data-i18n="tools_subtitle">离线与通用小工具集合</span>
+                    </div>
+                </div>
+
+                <div id="globalMsg" class="status-msg"></div>
+
+                <!-- 工具卡片网格 -->
+                <div class="tools-grid">
+                    <div class="tool-card active" id="cardTranslation" onclick="openTool('translation')">
+                        <div class="tool-icon">🌐</div>
+                        <div class="tool-name" data-i18n="tool_translation_name">翻译工具</div>
+                        <div class="tool-desc" data-i18n="tool_translation_desc">批量翻译游戏名称/描述/ROM名到任意目标语种，结果写入独立译文表。</div>
+                    </div>
+                    <div class="tool-card" id="cardDat" onclick="openTool('dat')">
+                        <div class="tool-icon">🗃️</div>
+                        <div class="tool-name" data-i18n="tool_dat_name">DAT 生成器</div>
+                        <div class="tool-desc" data-i18n="tool_dat_desc">把 rom_db 或现有游戏列表导出为标准 ClrMamePro DAT，可回流导入 rom_db。</div>
+                    </div>
+                    <div class="tool-card" id="cardVariant" onclick="openTool('variant')">
+                        <div class="tool-icon">📚</div>
+                        <div class="tool-name">ROM 副本</div>
+                        <div class="tool-desc">按系统能力生成裸 ROM / ZIP / 7z / ISO / CSO 副本，供导出时按格式选择；副本与主文件独立存储。</div>
+                    </div>
+                </div>
+
+                <!-- 翻译工具面板 -->
+                <div class="tool-panel" id="panelTranslation">
+                    <div class="sub-tabs">
+                        <div class="sub-tab active" id="tabRun" onclick="switchSubTab('run')" data-i18n="translation_tab_run">批量翻译</div>
+                        <div class="sub-tab" id="tabEngines" onclick="switchSubTab('engines')" data-i18n="translation_tab_engines">⚙️ 引擎管理</div>
+                    </div>
+
+                    <!-- 批量翻译子页 -->
+                    <div id="subtabRun">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label data-i18n="translation_field_label">翻译字段</label>
+                                <select id="fieldSelect" onchange="onFieldChange()"></select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field" style="flex:2;">
+                                <label data-i18n="translation_scope_label">范围</label>
+                                <div class="scope-options">
+                                    <label><input type="radio" name="scope" value="platform" checked onchange="onScopeChange()"> <span data-i18n="translation_scope_platform">按平台</span></label>
+                                    <label><input type="radio" name="scope" value="all" onchange="onScopeChange()"> <span data-i18n="translation_scope_all">全部</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- game: 平台下拉 -->
+                        <div class="form-row" id="gamePlatformRow">
+                            <div class="form-field">
+                                <label data-i18n="translation_platform">平台</label>
+                                <select id="gamePlatformSelect"></select>
+                            </div>
+                        </div>
+
+                        <!-- rom_db: 平台多选 -->
+                        <div class="form-row" id="romPlatformRow" style="display:none;">
+                            <div class="form-field" style="flex:2;">
+                                <label data-i18n="translation_platforms_multi">平台（可多选）</label>
+                                <select id="romPlatformSelect" multiple></select>
+                                <span class="hint" data-i18n="translation_platforms_multi_hint">按住 Ctrl/Cmd 多选</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label data-i18n="translation_source_lang">源语种</label>
+                                <select id="sourceLangSelect"></select>
+                            </div>
+                            <div class="form-field">
+                                <label data-i18n="translation_target_lang">目标语种</label>
+                                <select id="targetLangSelect"></select>
+                            </div>
+                            <div class="form-field">
+                                <label data-i18n="translation_engine">翻译引擎</label>
+                                <select id="engineSelect"></select>
+                            </div>
+                            <div class="form-field checkbox-field">
+                                <input type="checkbox" id="overwriteCheck">
+                                <label for="overwriteCheck" data-i18n="translation_overwrite">覆盖已翻译</label>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <button class="btn btn-primary" id="startBtn" onclick="startTranslation()" data-i18n="translation_start">开始翻译</button>
+                            <button class="btn btn-danger" id="stopBtn" onclick="stopTranslation()" style="display:none;" data-i18n="translation_stop">停止</button>
+                        </div>
+
+                        <div class="progress-wrap" id="progressWrap">
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+                            <div class="progress-text">
+                                <span id="progressInfo">—</span>
+                            </div>
+                            <div class="log-area" id="logArea" style="margin-top:10px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 引擎管理子页 -->
+                    <div id="subtabEngines" style="display:none;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <h3 style="margin:0;" data-i18n="engines_list_title">已配置引擎</h3>
+                            <button class="btn btn-secondary" onclick="loadEngines()" data-i18n="btn_refresh">刷新</button>
+                        </div>
+                        <table class="engines-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="col_name">名称</th>
+                                    <th data-i18n="col_type">类型</th>
+                                    <th data-i18n="engines_col_status">状态</th>
+                                    <th data-i18n="col_actions">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="enginesTableBody"></tbody>
+                        </table>
+
+                        <hr class="section-divider">
+
+                        <h3 data-i18n="engines_add_title">新增大模型（OpenAI 兼容）</h3>
+                        <span class="hint" data-i18n="engines_add_hint">填写 Base URL + Model + API Key 即可接入 DeepSeek / 通义 DashScope / OpenAI / Moonshot / 智谱 / Ollama / One-API 等。</span>
+                        <input type="hidden" id="engineEditId">
+                        <div class="form-row" style="margin-top:12px;">
+                            <div class="form-field">
+                                <label data-i18n="engines_name">引擎名称</label>
+                                <input type="text" id="engName" placeholder="DeepSeek">
+                            </div>
+                            <div class="form-field" style="flex:2;">
+                                <label data-i18n="engines_baseurl">Base URL</label>
+                                <input type="text" id="engBaseUrl" placeholder="https://api.deepseek.com/v1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label data-i18n="engines_model">Model</label>
+                                <input type="text" id="engModel" placeholder="deepseek-chat">
+                            </div>
+                            <div class="form-field">
+                                <label data-i18n="engines_apikey">API Key</label>
+                                <input type="password" id="engApiKey" placeholder="sk-...">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field" style="flex:2;">
+                                <label data-i18n="engines_system_prompt">System Prompt（可选）</label>
+                                <input type="text" id="engSystemPrompt" data-i18n-placeholder="engines_system_prompt_ph" placeholder="留空使用内置翻译提示词">
+                            </div>
+                            <div class="form-field">
+                                <label data-i18n="engines_temperature">Temperature（可选）</label>
+                                <input type="number" id="engTemperature" step="0.1" min="0" max="2" placeholder="0.3">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <button class="btn btn-primary" onclick="saveOpenAiEngine()" data-i18n="engines_save">保存引擎</button>
+                            <button class="btn btn-secondary" onclick="resetEngineForm()" data-i18n="engines_reset">清空/新增</button>
+                        </div>
+
+                        <details class="advanced">
+                            <summary data-i18n="engines_advanced_summary">高级：直接编辑 Service JSON</summary>
+                            <div class="form-field" style="margin-top:8px;">
+                                <label data-i18n="engines_advanced_json">Service JSON</label>
+                                <textarea id="engRawJson" placeholder='{"id":"my_engine","name":"My Engine","url":"...","requestBody":{...},"responsePath":"..."}'></textarea>
+                            </div>
+                            <div class="form-field" style="margin-top:8px;">
+                                <label data-i18n="engines_advanced_vars">变量（每行 key=value，用于 ${var} 占位）</label>
+                                <textarea id="engRawVars" style="min-height:60px;" placeholder="my_engine_api_key=xxxxx"></textarea>
+                            </div>
+                            <div class="form-row" style="margin-top:8px;">
+                                <button class="btn btn-primary" onclick="saveRawEngine()" data-i18n="engines_save_raw">保存 JSON 引擎</button>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- DAT 生成器面板 -->
+                <div class="tool-panel" id="panelDat" style="display:none;">
+                    <div class="sub-tabs">
+                        <div class="sub-tab active" id="datTabRom" onclick="switchDatSource('rom_db')" data-i18n="dat_source_romdb">来源：rom_db</div>
+                        <div class="sub-tab" id="datTabGame" onclick="switchDatSource('game')" data-i18n="dat_source_game">来源：游戏列表</div>
+                    </div>
+
+                    <div class="status-msg" id="datWarnNoResolvable"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span class="hint" data-i18n="dat_precheck_hint">勾选要导出的平台；“有效”列为名称非空且(有 CRC 或 serial)的可导出条目数。</span>
+                        <button class="btn btn-secondary" onclick="loadDatMeta()" data-i18n="btn_refresh">刷新</button>
+                    </div>
+                    <table class="engines-table">
+                        <thead id="datTableHead"></thead>
+                        <tbody id="datTableBody"><tr><td data-i18n="dat_loading">加载中...</td></tr></tbody>
+                    </table>
+
+                    <div class="form-row" style="margin-top:16px;">
+                        <div class="form-field checkbox-field">
+                            <input type="checkbox" id="datAutoImport">
+                            <label for="datAutoImport" data-i18n="dat_auto_import">生成后立即导入 rom_db</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="btn btn-primary" id="datStartBtn" onclick="startDat()" data-i18n="dat_start">开始生成</button>
+                        <button class="btn btn-danger" id="datStopBtn" onclick="stopDat()" style="display:none;" data-i18n="dat_stop">停止</button>
+                    </div>
+
+                    <div class="progress-wrap" id="datProgressWrap">
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="datProgressFill"></div></div>
+                        <div class="progress-text"><span id="datProgressInfo">—</span></div>
+                        <div class="log-area" id="datLogArea" style="margin-top:10px;"></div>
+                    </div>
+                </div>
+
+                <!-- ROM 副本面板 -->
+                <div class="tool-panel" id="panelVariant" style="display:none;">
+                    <div class="sub-tabs">
+                        <div class="sub-tab active" id="varTabMatrix" onclick="switchVariantTab('matrix')">能力矩阵</div>
+                        <div class="sub-tab" id="varTabGen" onclick="switchVariantTab('gen')">批量生成</div>
+                        <div class="sub-tab" id="varTabSurvey" onclick="switchVariantTab('survey')">格式体检</div>
+                        <div class="sub-tab" id="varTabPipes" onclick="switchVariantTab('pipes')">产线总览</div>
+                    </div>
+
+                    <!-- 能力矩阵 -->
+                    <div id="varSubMatrix">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div>
+                            <h3 style="margin:0;">系统副本能力矩阵</h3>
+                            <span class="hint">只展示已纳入副本机制的系统；勾选表示允许导出该格式的副本，CSO/ISO 由流水线转换。</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="initVariantPanel()" data-i18n="btn_refresh">刷新</button>
+                    </div>
+                    <table class="engines-table">
+                        <thead id="variantMatrixHead">
+                            <tr>
+                                <th>系统</th>
+                                <th>类型</th>
+                                <th>导出首选</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variantMatrixBody">
+                            <tr><td colspan="3" style="color:var(--text-tertiary)">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <!-- 批量生成 -->
+                    <div id="varSubGen" style="display:none;">
+                    <h3>批量生成副本</h3>
+                    <span class="hint">为所选平台的游戏生成副本文件，在后台任务中执行；副本未生成或过期时导出会自动回退主文件。</span>
+                    <div class="form-row" style="margin-top:12px;">
+                        <div class="form-field">
+                            <label>平台</label>
+                            <select id="variantPlatformSelect" onchange="renderVariantGenFormats()"><option value="">加载中...</option></select>
+                        </div>
+                        <div class="form-field">
+                            <label>生成格式</label>
+                            <div class="scope-options" id="variantGenFormats">
+                                <span class="hint">选择平台后加载</span>
+                            </div>
+                        </div>
+                        <div class="form-field checkbox-field">
+                            <input type="checkbox" id="variantForceRebuild">
+                            <label for="variantForceRebuild">强制重建</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="btn btn-primary" id="variantGenBtn" onclick="startVariantGenerate()">开始生成</button>
+                    </div>
+
+                    <div class="progress-wrap" id="variantProgressWrap">
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="variantProgressFill"></div></div>
+                        <div class="progress-text"><span id="variantProgressInfo">—</span></div>
+                        <div class="log-area" id="variantLogArea" style="margin-top:10px;"></div>
+                    </div>
+                    </div>
+
+                    <!-- 平台格式体检 -->
+                    <div id="varSubSurvey" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div>
+                            <h3 style="margin:0;">平台格式体检</h3>
+                            <span class="hint">按扩展名归类（不读文件头），列出“已有 / 可补 / 不可生成”；只读，不生成也不落盘。单游戏的精确诊断在游戏列表里看。</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>平台</label>
+                            <select id="variantSurveyPlatformSelect"><option value="">加载中...</option></select>
+                        </div>
+                        <div class="form-field" style="flex:0 0 auto;justify-content:flex-end;">
+                            <button class="btn btn-secondary" onclick="runVariantSurvey()">开始体检</button>
+                        </div>
+                    </div>
+                    <div id="variantSurveySummary"></div>
+                    <div id="variantSurveyBox" style="margin-top:10px;font-size:12px;color:var(--text-tertiary);">选择平台后点击“开始体检”。</div>
+                    </div>
+
+                    <!-- 产线总览 -->
+                    <div id="varSubPipes" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div>
+                            <h3 style="margin:0;">产线总览</h3>
+                            <span class="hint">模块目录 + 各系统声明的转换路线；RESERVED 为尚未实现的占位模块，自动选路时会跳过。</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadVariantPipelines()" data-i18n="btn_refresh">刷新</button>
+                    </div>
+                    <div id="variantPipelineBox" style="font-size:12px;color:var(--text-tertiary);">尚未加载。</div>
+                    </div>
+                </div>
+
+                <!-- 独立页面入口（点击跳转，非页内面板） -->
+                <div class="tools-group-label"><span>▸</span> <span data-i18n="tools_group_system">系统管理</span></div>
+                <div class="tools-grid">
+                    <a class="tool-card nav-page" href="/scraper-system-list">
+                        <div class="tool-icon">🔍</div>
+                        <div class="tool-name" data-i18n="nav_scraper">刮削系统</div>
+                        <div class="tool-desc" data-i18n="tool_scraper_desc">维护 ScreenScraper 系统清单与平台方言映射，支持添加、初始化、导入/导出。</div>
+                        <div class="tool-open" data-i18n="tool_open_page">打开页面 ↗</div>
+                    </a>
+                    <a class="tool-card nav-page" href="/database-manager">
+                        <div class="tool-icon">🗄️</div>
+                        <div class="tool-name" data-i18n="nav_database">数据库</div>
+                        <div class="tool-desc" data-i18n="tool_database_desc">浏览数据表与字段、执行只读 SQL 查询（最多返回 500 行）。</div>
+                        <div class="tool-open" data-i18n="tool_open_page">打开页面 ↗</div>
+                    </a>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notification-modal}"></div>
+    <div th:replace="~{fragments/layout :: common-scripts}"></div>
+
+    <script>
+        // ====== 全局状态 ======
+        let META = { fields: [], languages: [], targetLanguages: [], services: [] };
+        let currentField = null; // {srcTable, srcField, label}
+        let currentTaskId = null;
+        let pollTimer = null;
+
+        function t(key, fb) { return (typeof I18n !== 'undefined' && I18n.t) ? (I18n.t(key, fb) || fb) : fb; }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+        function showMsg(text, type) {
+            const el = document.getElementById('globalMsg');
+            el.textContent = text;
+            el.className = 'status-msg ' + (type || 'success');
+            setTimeout(() => { el.className = 'status-msg'; }, 4000);
+        }
+
+        // ====== 初始化 ======
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMeta();
+            loadGamePlatforms();
+        });
+
+        async function loadMeta() {
+            try {
+                const r = await fetch('/api/tools/translation/meta');
+                const data = await r.json();
+                if (!data.success) { showMsg(t('tools_meta_fail','加载元数据失败')+': '+(data.message||''), 'error'); return; }
+                META = data;
+                populateFields();
+                populateLangs();
+                populateEngines();
+            } catch (e) {
+                showMsg(t('tools_meta_fail','加载元数据失败')+': '+e, 'error');
+            }
+        }
+
+        function populateFields() {
+            const sel = document.getElementById('fieldSelect');
+            sel.innerHTML = '';
+            META.fields.forEach((f, i) => {
+                const o = document.createElement('option');
+                o.value = i;
+                o.textContent = f.label + ' (' + f.srcTable + '.' + f.srcField + ')';
+                sel.appendChild(o);
+            });
+            if (META.fields.length) { currentField = META.fields[0]; }
+            onFieldChange();
+        }
+
+        function populateLangs() {
+            const src = document.getElementById('sourceLangSelect');
+            const tgt = document.getElementById('targetLangSelect');
+            src.innerHTML = ''; tgt.innerHTML = '';
+            META.languages.forEach(l => {
+                const o = document.createElement('option'); o.value = l.code; o.textContent = l.label + ' [' + l.code + ']'; src.appendChild(o);
+            });
+            META.targetLanguages.forEach(l => {
+                const o = document.createElement('option'); o.value = l.code; o.textContent = l.label + ' [' + l.code + ']'; tgt.appendChild(o);
+            });
+            // 默认目标语种=日语，源=auto
+            src.value = 'auto';
+            if (META.targetLanguages.find(l => l.code === 'ja')) tgt.value = 'ja';
+        }
+
+        function populateEngines() {
+            const sel = document.getElementById('engineSelect');
+            sel.innerHTML = '';
+            (META.services || []).forEach(s => {
+                const o = document.createElement('option'); o.value = s.id; o.textContent = s.name + ' (' + s.id + ')'; sel.appendChild(o);
+            });
+            if (!META.services || META.services.length === 0) {
+                const o = document.createElement('option'); o.value = ''; o.textContent = t('tools_no_engine','（无可用引擎，请到引擎管理配置）'); sel.appendChild(o);
+            }
+        }
+
+        function currentSrcTable() { return currentField ? currentField.srcTable : 'game'; }
+
+        function onFieldChange() {
+            const idx = parseInt(document.getElementById('fieldSelect').value, 10);
+            currentField = META.fields[idx] || null;
+            const isRom = currentSrcTable() === 'rom_db';
+            document.getElementById('gamePlatformRow').style.display = isRom ? 'none' : '';
+            document.getElementById('romPlatformRow').style.display = isRom ? '' : 'none';
+            onScopeChange();
+        }
+
+        function onScopeChange() {
+            const scope = document.querySelector('input[name="scope"]:checked').value;
+            const isRom = currentSrcTable() === 'rom_db';
+            if (isRom) {
+                document.getElementById('romPlatformRow').style.display = scope === 'platform' ? '' : 'none';
+            } else {
+                document.getElementById('gamePlatformRow').style.display = scope === 'platform' ? '' : 'none';
+            }
+        }
+
+        async function loadGamePlatforms() {
+            try {
+                const r = await fetch('/api/gamelist/platforms');
+                const list = await r.json();
+                const sel = document.getElementById('gamePlatformSelect');
+                sel.innerHTML = '';
+                (list || []).forEach(p => {
+                    const o = document.createElement('option'); o.value = p.id; o.textContent = p.name || p.system; sel.appendChild(o);
+                });
+            } catch (e) { /* ignore */ }
+        }
+
+        async function loadRomPlatforms() {
+            try {
+                const r = await fetch('/api/rom-db/stats/platforms');
+                const data = await r.json();
+                const sel = document.getElementById('romPlatformSelect');
+                sel.innerHTML = '';
+                (data.data || []).forEach(p => {
+                    const o = document.createElement('option'); o.value = p.platform; o.textContent = p.platform + ' (' + p.count + ')'; sel.appendChild(o);
+                });
+            } catch (e) { /* ignore */ }
+        }
+
+        // ====== 跑批 ======
+        function buildRunRequest() {
+            const scope = document.querySelector('input[name="scope"]:checked').value;
+            const req = {
+                srcTable: currentSrcTable(),
+                srcField: currentField.srcField,
+                sourceLang: document.getElementById('sourceLangSelect').value,
+                targetLang: document.getElementById('targetLangSelect').value,
+                serviceId: document.getElementById('engineSelect').value,
+                overwriteExisting: document.getElementById('overwriteCheck').checked
+            };
+            if (currentSrcTable() === 'game') {
+                if (scope === 'all') req.all = true;
+                else req.platformId = document.getElementById('gamePlatformSelect').value;
+            } else {
+                if (scope === 'all') req.all = true;
+                else {
+                    const sel = document.getElementById('romPlatformSelect');
+                    req.platforms = Array.from(sel.selectedOptions).map(o => o.value);
+                }
+            }
+            return req;
+        }
+
+        async function startTranslation() {
+            const req = buildRunRequest();
+            if (!req.serviceId) { showMsg(t('tools_no_engine','请先到引擎管理配置可用引擎'), 'error'); return; }
+            if (currentSrcTable() === 'rom_db' && req.platforms && req.platforms.length === 0) {
+                showMsg(t('tools_pick_platform','请选择至少一个平台'), 'error'); return;
+            }
+            try {
+                const r = await fetch('/api/tools/translation/run', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req)
+                });
+                const data = await r.json();
+                if (!data.success) { showMsg(t('tools_run_fail','启动失败')+': '+(data.message||''), 'error'); return; }
+                currentTaskId = data.taskId;
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = '';
+                document.getElementById('progressWrap').style.display = 'block';
+                document.getElementById('logArea').innerHTML = '';
+                document.getElementById('progressFill').style.width = '0';
+                pollProgress();
+            } catch (e) {
+                showMsg(t('tools_run_fail','启动失败')+': '+e, 'error');
+            }
+        }
+
+        function pollProgress() {
+            if (pollTimer) clearTimeout(pollTimer);
+            pollTimer = setTimeout(async () => {
+                if (!currentTaskId) return;
+                try {
+                    const r = await fetch('/api/tools/translation/progress/' + currentTaskId);
+                    const data = await r.json();
+                    if (data.success) {
+                        renderProgress(data.progress);
+                        if (data.progress.status === 'processing') { pollProgress(); }
+                        else { finishTranslation(data.progress.status); }
+                    } else { finishTranslation('error'); }
+                } catch (e) { pollProgress(); }
+            }, 1000);
+        }
+
+        function renderProgress(p) {
+            const total = p.total || 0, completed = p.completed || 0;
+            const pct = total > 0 ? Math.round(completed / total * 100) : 0;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressInfo').textContent =
+                t('tools_progress_info','进度') + ': ' + completed + '/' + total +
+                ' · ' + t('tools_progress_ok','成功') + ': ' + (p.success||0) +
+                ' · ' + t('tools_progress_fail','失败') + ': ' + (p.failed||0) +
+                ' · ' + (p.status||'');
+            const logs = p.logs || [];
+            const area = document.getElementById('logArea');
+            area.textContent = logs.slice(-200).join('\n');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function finishTranslation(status) {
+            document.getElementById('startBtn').style.display = '';
+            document.getElementById('stopBtn').style.display = 'none';
+            currentTaskId = null;
+            if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+            if (status === 'completed') showMsg(t('tools_done','翻译完成'), 'success');
+            else if (status === 'stopped') showMsg(t('tools_stopped','已停止'), 'success');
+        }
+
+        async function stopTranslation() {
+            if (!currentTaskId) return;
+            try { await fetch('/api/tools/translation/stop/' + currentTaskId, { method: 'POST' }); } catch (e) {}
+        }
+
+        // ====== 子页切换 ======
+        function switchSubTab(which) {
+            document.getElementById('tabRun').classList.toggle('active', which === 'run');
+            document.getElementById('tabEngines').classList.toggle('active', which === 'engines');
+            document.getElementById('subtabRun').style.display = which === 'run' ? '' : 'none';
+            document.getElementById('subtabEngines').style.display = which === 'engines' ? '' : 'none';
+            if (which === 'engines') { loadEngines(); }
+            if (which === 'run' && currentSrcTable() === 'rom_db') { loadRomPlatforms(); }
+        }
+
+        function openTool(which) {
+            const cards = { translation: 'cardTranslation', dat: 'cardDat', variant: 'cardVariant' };
+            const panels = { translation: 'panelTranslation', dat: 'panelDat', variant: 'panelVariant' };
+            Object.keys(cards).forEach(key => {
+                const card = document.getElementById(cards[key]);
+                const panel = document.getElementById(panels[key]);
+                if (card) card.classList.toggle('active', key === which);
+                if (panel) panel.style.display = key === which ? '' : 'none';
+            });
+            if (which === 'translation') {
+                switchSubTab('run');
+                if (currentSrcTable() === 'rom_db') loadRomPlatforms();
+            } else if (which === 'dat') {
+                loadDatMeta();
+            } else if (which === 'variant') {
+                initVariantPanel();
+            }
+        }
+
+        // ====== 引擎管理 ======
+        async function loadEngines() {
+            try {
+                const r = await fetch('/api/tools/translation/engines');
+                const data = await r.json();
+                if (!data.success) { showMsg(t('tools_engines_fail','加载引擎失败'), 'error'); return; }
+                renderEngines(data.engines || [], data.defaultService);
+            } catch (e) { showMsg(t('tools_engines_fail','加载引擎失败')+': '+e, 'error'); }
+        }
+
+        function renderEngines(engines, defaultId) {
+            const body = document.getElementById('enginesTableBody');
+            body.innerHTML = '';
+            if (!engines.length) {
+                body.innerHTML = '<tr><td colspan="4" style="color:var(--text-tertiary)">' + esc(t('tools_no_engines','暂无引擎，请在下方新增')) + '</td></tr>';
+                return;
+            }
+            engines.forEach(e => {
+                const tr = document.createElement('tr');
+                const status = e.valid
+                    ? '<span class="badge-valid">● ' + esc(t('tools_valid','可用')) + '</span>'
+                    : '<span class="badge-invalid">● ' + esc(t('tools_invalid','未配置Key')) + '</span>';
+                const defBadge = (e.id === defaultId) ? ' <span class="badge-default">' + esc(t('tools_default','默认')) + '</span>' : '';
+                const actions = []
+                    + '<a class="action-link" onclick="testEngine(\'' + esc(e.id) + '\')">' + esc(t('engines_test','测试')) + '</a>'
+                    + '<a class="action-link" onclick="setDefaultEngine(\'' + esc(e.id) + '\')">' + esc(t('engines_set_default','设为默认')) + '</a>'
+                    + '<a class="action-link" onclick="editEngine(\'' + escA(e.id) + '\')">' + esc(t('engines_edit','编辑JSON')) + '</a>'
+                    + '<a class="action-link danger" onclick="deleteEngine(\'' + escA(e.id) + '\')">' + esc(t('engines_delete','删除')) + '</a>';
+                tr.innerHTML = '<td>' + esc(e.name) + defBadge + '<div class="hint">' + esc(e.id) + (e.model ? ' · ' + esc(e.model) : '') + '</div></td>'
+                    + '<td>' + esc(e.type) + '</td>'
+                    + '<td>' + status + '</td>'
+                    + '<td>' + actions + '</td>';
+                body.appendChild(tr);
+            });
+        }
+
+        function escA(s) { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+        async function testEngine(id) {
+            showMsg(t('tools_testing','测试中...'), 'success');
+            try {
+                const r = await fetch('/api/tools/translation/engines/' + encodeURIComponent(id) + '/test', { method: 'POST' });
+                const data = await r.json();
+                if (data.success) showMsg(t('tools_test_ok','连通成功') + ': ' + (data.preview||''), 'success');
+                else showMsg(t('tools_test_fail','连通失败') + ': ' + (data.message||''), 'error');
+            } catch (e) { showMsg(t('tools_test_fail','连通失败') + ': ' + e, 'error'); }
+        }
+
+        async function setDefaultEngine(id) {
+            try {
+                const r = await fetch('/api/tools/translation/engines/default', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
+                });
+                const data = await r.json();
+                if (data.success) { showMsg(t('tools_default_set','已设为默认'), 'success'); loadEngines(); }
+                else showMsg(t('tools_default_set_fail','设置失败')+': '+(data.message||''), 'error');
+            } catch (e) { showMsg(t('tools_default_set_fail','设置失败'), 'error'); }
+        }
+
+        async function deleteEngine(id) {
+            if (!confirm(t('tools_confirm_delete_engine','确定删除该引擎？'))) return;
+            try {
+                const r = await fetch('/api/tools/translation/engines/' + encodeURIComponent(id), { method: 'DELETE' });
+                const data = await r.json();
+                if (data.success) { showMsg(t('tools_deleted','已删除'), 'success'); loadEngines(); await loadMeta(); }
+                else showMsg(t('tools_delete_fail','删除失败')+': '+(data.message||''), 'error');
+            } catch (e) { showMsg(t('tools_delete_fail','删除失败'), 'error'); }
+        }
+
+        function editEngine(id) {
+            // 拉取原始 JSON 填入高级编辑框
+            fetch('/api/tools/translation/engines').then(r => r.json()).then(data => {
+                const e = (data.engines || []).find(x => x.id === id);
+                if (e) {
+                    document.getElementById('engRawJson').value = formatJson(e.rawJson);
+                    const details = document.querySelector('details.advanced');
+                    if (details) details.open = true;
+                    switchSubTab('engines');
+                    showMsg(t('tools_loaded_json','已载入 JSON，可编辑后保存'), 'success');
+                }
+            });
+        }
+
+        function formatJson(s) { try { return JSON.stringify(JSON.parse(s), null, 2); } catch (e) { return s; } }
+
+        async function saveOpenAiEngine() {
+            const body = {
+                mode: 'openai',
+                id: document.getElementById('engineEditId').value || undefined,
+                name: document.getElementById('engName').value,
+                baseUrl: document.getElementById('engBaseUrl').value,
+                model: document.getElementById('engModel').value,
+                apiKey: document.getElementById('engApiKey').value,
+                systemPrompt: document.getElementById('engSystemPrompt').value,
+                temperature: document.getElementById('engTemperature').value ? parseFloat(document.getElementById('engTemperature').value) : undefined
+            };
+            if (!body.baseUrl || !body.model) { showMsg(t('tools_need_url_model','Base URL 与 Model 必填'), 'error'); return; }
+            try {
+                const r = await fetch('/api/tools/translation/engines', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                const data = await r.json();
+                if (data.success) {
+                    showMsg(t('tools_engine_saved','引擎已保存'), 'success');
+                    resetEngineForm();
+                    await loadEngines();
+                    await loadMeta();
+                } else showMsg(t('tools_engine_save_fail','保存失败')+': '+(data.message||''), 'error');
+            } catch (e) { showMsg(t('tools_engine_save_fail','保存失败')+': '+e, 'error'); }
+        }
+
+        async function saveRawEngine() {
+            const rawJson = document.getElementById('engRawJson').value.trim();
+            if (!rawJson) { showMsg(t('tools_need_json','请填写 JSON'), 'error'); return; }
+            const vars = {};
+            document.getElementById('engRawVars').value.split('\n').forEach(line => {
+                const idx = line.indexOf('=');
+                if (idx > 0) vars[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+            });
+            try {
+                const r = await fetch('/api/tools/translation/engines', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'raw', rawJson, variables: vars })
+                });
+                const data = await r.json();
+                if (data.success) { showMsg(t('tools_engine_saved','引擎已保存'), 'success'); await loadEngines(); await loadMeta(); }
+                else showMsg(t('tools_engine_save_fail','保存失败')+': '+(data.message||''), 'error');
+            } catch (e) { showMsg(t('tools_engine_save_fail','保存失败')+': '+e, 'error'); }
+        }
+
+        function resetEngineForm() {
+            document.getElementById('engineEditId').value = '';
+            ['engName','engBaseUrl','engModel','engApiKey','engSystemPrompt','engTemperature'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        // rom_db 平台列表在切换到 rom_db 字段时懒加载
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'fieldSelect' && currentSrcTable() === 'rom_db') loadRomPlatforms();
+        });
+
+        // ====== DAT 生成器 ======
+        let DAT_META = { romDb: [], game: [] };
+        let datSource = 'rom_db';
+        let datTaskId = null;
+        let datPollTimer = null;
+
+        function switchDatSource(which) {
+            datSource = which;
+            document.getElementById('datTabRom').classList.toggle('active', which === 'rom_db');
+            document.getElementById('datTabGame').classList.toggle('active', which === 'game');
+            renderDatTable();
+        }
+
+        async function loadDatMeta() {
+            const body = document.getElementById('datTableBody');
+            body.innerHTML = '<tr><td>' + esc(t('dat_loading','加载中...')) + '</td></tr>';
+            try {
+                const r = await fetch('/api/tools/dat/meta');
+                const data = await r.json();
+                if (!data.success) { showMsg(t('dat_meta_fail','加载预检失败')+': '+(data.message||''), 'error'); body.innerHTML=''; return; }
+                DAT_META = data;
+                renderDatTable();
+            } catch (e) {
+                showMsg(t('dat_meta_fail','加载预检失败')+': '+e, 'error');
+                body.innerHTML = '';
+            }
+        }
+
+        function renderDatTable() {
+            const head = document.getElementById('datTableHead');
+            const body = document.getElementById('datTableBody');
+            const warn = document.getElementById('datWarnNoResolvable');
+            warn.className = 'status-msg';
+            if (datSource === 'rom_db') {
+                head.innerHTML = '<tr>'
+                    + '<th><input type="checkbox" onchange="toggleAllDat(this.checked)"></th>'
+                    + '<th>' + esc(t('dat_col_platform','平台')) + '</th>'
+                    + '<th>' + esc(t('dat_col_total','总行数')) + '</th>'
+                    + '<th>' + esc(t('dat_col_valid','有效')) + '</th>'
+                    + '<th>' + esc(t('dat_col_systemid','systemId')) + '</th></tr>';
+                const rows = DAT_META.romDb || [];
+                if (!rows.length) { body.innerHTML = '<tr><td colspan="5">' + esc(t('dat_no_rows','无数据')) + '</td></tr>'; return; }
+                body.innerHTML = rows.map(r => {
+                    const validHtml = (r.validRows > 0)
+                        ? esc(r.validRows)
+                        : '<span style="color:#ef4444">0</span>';
+                    const sidHtml = r.resolvable
+                        ? esc(r.systemId)
+                        : '<span style="color:#f59e0b">' + esc(r.systemId) + ' ⚠</span>';
+                    return '<tr>'
+                        + '<td><input type="checkbox" class="dat-check" value="' + escA(r.platform) + '"></td>'
+                        + '<td>' + esc(r.platform) + '</td>'
+                        + '<td>' + esc(r.totalRows) + '</td>'
+                        + '<td>' + validHtml + '</td>'
+                        + '<td>' + sidHtml + '</td></tr>';
+                }).join('');
+            } else {
+                head.innerHTML = '<tr>'
+                    + '<th><input type="checkbox" onchange="toggleAllDat(this.checked)"></th>'
+                    + '<th>' + esc(t('dat_col_platform','平台')) + '</th>'
+                    + '<th>' + esc(t('dat_col_total','总数')) + '</th>'
+                    + '<th>' + esc(t('dat_col_valid','有效')) + '</th>'
+                    + '<th>' + esc(t('dat_col_systemid','systemId')) + '</th></tr>';
+                const rows = DAT_META.game || [];
+                if (!rows.length) { body.innerHTML = '<tr><td colspan="5">' + esc(t('dat_no_rows','无数据')) + '</td></tr>'; return; }
+                let unresolvable = 0;
+                const html = rows.map(r => {
+                    if (!r.resolvable && r.totalGames > 0) unresolvable++;
+                    const validHtml = (r.validGames > 0)
+                        ? esc(r.validGames)
+                        : '<span style="color:#ef4444">0</span>';
+                    const sidHtml = r.resolvable
+                        ? esc(r.systemId)
+                        : '<span style="color:#f59e0b">' + esc(r.systemId) + ' ⚠</span>';
+                    return '<tr>'
+                        + '<td><input type="checkbox" class="dat-check" value="' + escA(r.platformId) + '"></td>'
+                        + '<td>' + esc(r.platformName) + '</td>'
+                        + '<td>' + esc(r.totalGames) + '</td>'
+                        + '<td>' + validHtml + '</td>'
+                        + '<td>' + sidHtml + '</td></tr>';
+                }).join('');
+                body.innerHTML = html;
+                if (unresolvable > 0) {
+                    warn.textContent = t('dat_warn_resolvable','有 ' + unresolvable + ' 个平台未绑定 SS 系统：导出的 DAT 名可能回灌后 systemId=0，仅入库不参与刮削匹配。');
+                    warn.className = 'status-msg error';
+                }
+            }
+        }
+
+        function toggleAllDat(checked) {
+            document.querySelectorAll('#datTableBody .dat-check').forEach(cb => cb.checked = checked);
+        }
+
+        function selectedDatPlatforms() {
+            return Array.from(document.querySelectorAll('#datTableBody .dat-check:checked')).map(cb => cb.value);
+        }
+
+        async function startDat() {
+            const platforms = selectedDatPlatforms();
+            if (!platforms.length) { showMsg(t('dat_pick_platform','请至少勾选一个平台'), 'error'); return; }
+            const req = { source: datSource, platforms, autoImport: document.getElementById('datAutoImport').checked };
+            try {
+                const r = await fetch('/api/tools/dat/run', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req)
+                });
+                const data = await r.json();
+                if (!data.success) { showMsg(t('dat_run_fail','启动失败')+': '+(data.message||''), 'error'); return; }
+                datTaskId = data.taskId;
+                document.getElementById('datStartBtn').style.display = 'none';
+                document.getElementById('datStopBtn').style.display = '';
+                document.getElementById('datProgressWrap').style.display = 'block';
+                document.getElementById('datLogArea').innerHTML = '';
+                document.getElementById('datProgressFill').style.width = '0';
+                pollDatProgress();
+            } catch (e) {
+                showMsg(t('dat_run_fail','启动失败')+': '+e, 'error');
+            }
+        }
+
+        function pollDatProgress() {
+            if (datPollTimer) clearTimeout(datPollTimer);
+            datPollTimer = setTimeout(async () => {
+                if (!datTaskId) return;
+                try {
+                    const r = await fetch('/api/tools/dat/progress/' + datTaskId);
+                    const data = await r.json();
+                    if (data.success) {
+                        renderDatProgress(data.progress);
+                        if (data.progress.status === 'processing') { pollDatProgress(); }
+                        else { finishDat(data.progress.status); }
+                    } else { finishDat('error'); }
+                } catch (e) { pollDatProgress(); }
+            }, 1000);
+        }
+
+        function renderDatProgress(p) {
+            const total = p.total || 0, completed = p.completed || 0;
+            const pct = total > 0 ? Math.round(completed / total * 100) : 0;
+            document.getElementById('datProgressFill').style.width = pct + '%';
+            document.getElementById('datProgressInfo').textContent =
+                t('tools_progress_info','进度') + ': ' + completed + '/' + total +
+                ' · ' + t('dat_files','文件') + ': ' + (p.filesWritten||0) +
+                ' · ' + t('dat_games','条目') + ': ' + (p.gamesWritten||0) +
+                ' · ' + t('dat_skipped','跳过') + ': ' + (p.skipped||0) +
+                ' · ' + (p.status||'');
+            const logs = p.logs || [];
+            const area = document.getElementById('datLogArea');
+            area.textContent = logs.slice(-200).join('\n');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function finishDat(status) {
+            document.getElementById('datStartBtn').style.display = '';
+            document.getElementById('datStopBtn').style.display = 'none';
+            datTaskId = null;
+            if (datPollTimer) { clearTimeout(datPollTimer); datPollTimer = null; }
+            if (status === 'completed') showMsg(t('dat_done','DAT 生成完成'), 'success');
+            else if (status === 'stopped') showMsg(t('tools_stopped','已停止'), 'success');
+            else if (status === 'error') showMsg(t('dat_fail','DAT 生成失败'), 'error');
+        }
+
+        async function stopDat() {
+            if (!datTaskId) return;
+            try { await fetch('/api/tools/dat/stop/' + datTaskId, { method: 'POST' }); } catch (e) {}
+        }
+
+        // ====== ROM 副本 ======
+        let variantTaskId = null;
+        let variantPollTimer = null;
+        let variantEligibleSystemIds = null;
+        let variantMatrixBySystem = new Map();
+        let variantPlatformSystems = new Map();
+        let VARIANT_FORMAT_DEFS = [];
+        let VARIANT_FORMAT_LABELS = { original: '主文件（原样）' };
+
+        // 格式定义由后端下发，页面不再写死 bare/zip/7z
+        async function loadVariantFormats() {
+            if (VARIANT_FORMAT_DEFS.length) return;
+            try {
+                const r = await fetch('/api/variants/formats');
+                const data = await r.json();
+                if (!data.success) return;
+                VARIANT_FORMAT_DEFS = data.formats || [];
+                const labels = { original: '主文件（原样）' };
+                VARIANT_FORMAT_DEFS.forEach(f => { labels[f.id] = f.label; });
+                VARIANT_FORMAT_LABELS = labels;
+                renderVariantMatrixHead();
+            } catch (e) { /* ignore */ }
+        }
+
+        async function initVariantPanel() {
+            await loadVariantFormats();
+            renderVariantMatrixHead();
+            await loadVariantMatrix();
+        }
+
+        // 副本面板四个子页：矩阵 / 生成 / 体检 / 产线，避免一屏抛下所有表格
+        let variantPipesLoaded = false;
+        function switchVariantTab(which) {
+            const tabs = { matrix: 'varTabMatrix', gen: 'varTabGen', survey: 'varTabSurvey', pipes: 'varTabPipes' };
+            const subs = { matrix: 'varSubMatrix', gen: 'varSubGen', survey: 'varSubSurvey', pipes: 'varSubPipes' };
+            Object.keys(tabs).forEach(key => {
+                const tab = document.getElementById(tabs[key]);
+                const sub = document.getElementById(subs[key]);
+                if (tab) tab.classList.toggle('active', key === which);
+                if (sub) sub.style.display = key === which ? '' : 'none';
+            });
+            if (which === 'pipes' && !variantPipesLoaded) {
+                variantPipesLoaded = true;
+                loadVariantPipelines();
+            }
+        }
+
+        // ====== 平台格式体检（只读，不触发生成） ======
+        const SURVEY_STATUS = {
+            EXISTS: ['已有', '#44ff88'],
+            SAME: ['源即目标', '#44ff88'],
+            READY: ['可补', '#4ea8ff'],
+            DIRECT: ['可直接打包', '#4ea8ff'],
+            INCOMPLETE: ['缺模块', '#8a8a8a'],
+            UNSUPPORTED: ['无产线', '#8a8a8a'],
+            BLOCKED: ['源不可用', '#8a8a8a'],
+            SKIPPED: ['跳过', '#8a8a8a'],
+            STALE: ['已过期', '#ffaa00'],
+            FAILED: ['失败', '#ff6b6b']
+        };
+
+        function surveyBadge(status, tip) {
+            const pair = SURVEY_STATUS[status] || [status || '未知', '#8a8a8a'];
+            return '<span title="' + esc(tip || '') + '" style="color:' + pair[1] + ';white-space:nowrap;">'
+                + esc(pair[0]) + '</span>';
+        }
+
+        async function runVariantSurvey() {
+            const select = document.getElementById('variantSurveyPlatformSelect');
+            const platformId = select ? select.value : '';
+            const summaryBox = document.getElementById('variantSurveySummary');
+            const box = document.getElementById('variantSurveyBox');
+            if (!platformId) { showMsg('请先选择平台', 'error'); return; }
+            box.innerHTML = '<span class="hint">正在按扩展名归类…</span>';
+            summaryBox.innerHTML = '';
+            try {
+                const res = await fetch('/api/variants/platform/' + encodeURIComponent(platformId) + '/survey')
+                    .then(r => r.json());
+                if (!res.success) throw new Error(res.error || '体检失败');
+                renderVariantSurvey(res);
+            } catch (e) {
+                box.innerHTML = '<span style="color:#ff6b6b;">' + esc(e.message) + '</span>';
+            }
+        }
+
+        function renderVariantSurvey(data) {
+            const summary = data.summary || {};
+            const formats = data.formats || [];
+            const summaryBox = document.getElementById('variantSurveySummary');
+            const box = document.getElementById('variantSurveyBox');
+
+            if (data.message) {
+                summaryBox.innerHTML = '';
+                box.innerHTML = '<span class="hint">' + esc(data.message) + '</span>';
+                return;
+            }
+
+            const chip = (label, value, color) =>
+                '<div style="display:inline-block;margin:0 10px 10px 0;padding:6px 14px;border-radius:6px;'
+                + 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);min-width:86px;">'
+                + '<div style="font-size:11px;color:var(--text-tertiary);">' + label + '</div>'
+                + '<div style="font-size:20px;font-weight:600;color:' + color + ';">' + value + '</div></div>';
+
+            let head = chip('游戏总数', summary.totalGames || 0, 'var(--text-primary)')
+                + chip('全部可用', summary.allUsable || 0, '#44ff88')
+                + chip('可补', summary.generatable || 0, '#4ea8ff')
+                + chip('不可生成', summary.blockedOnly || 0, '#8a8a8a')
+                + chip('需要修复', summary.broken || 0, '#ffaa00');
+            if (summary.missingSource > 0) head += chip('主文件缺失', summary.missingSource, '#ff6b6b');
+            if (summary.truncated) {
+                head += '<div class="hint" style="margin-bottom:10px;">游戏较多，仅扫描前 '
+                    + summary.scanned + ' 个</div>';
+            }
+
+            const byFormat = summary.byFormat || {};
+            // 顶部统计只看需产线的镜像格式，zip/7z 这类打包格式在明细里看
+            const countedFormats = summary.countedFormats || formats;
+            if (countedFormats.length && countedFormats.length < formats.length) {
+                head += '<div class="hint" style="margin-bottom:6px;">顶部统计仅基于 '
+                    + countedFormats.map(f => esc(variantFormatText(f))).join(' / ') + '（打包类格式不计入）</div>';
+            }
+            head += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">';
+            formats.forEach(f => {
+                const c = byFormat[f] || {};
+                head += '<span style="margin-right:16px;">' + esc(variantFormatText(f)) + '：'
+                    + '<span style="color:#44ff88;">已有 ' + (c.usable || 0) + '</span> · '
+                    + '<span style="color:#4ea8ff;">可补 ' + (c.generatable || 0) + '</span> · '
+                    + '<span style="color:#8a8a8a;">不可生成 ' + (c.blocked || 0) + '</span>'
+                    + (c.broken ? ' · <span style="color:#ffaa00;">异常 ' + c.broken + '</span>' : '')
+                    + '</span>';
+            });
+            head += '</div>';
+            summaryBox.innerHTML = head;
+
+            const games = data.games || [];
+            if (!games.length) {
+                box.innerHTML = '<span class="hint">该平台没有游戏。</span>';
+                return;
+            }
+
+            const limit = 300;
+            let html = '<table class="engines-table"><thead><tr><th style="min-width:220px;">游戏</th><th>源形态</th>';
+            formats.forEach(f => { html += '<th>' + esc(variantFormatText(f)) + '</th>'; });
+            html += '</tr></thead><tbody>';
+            games.slice(0, limit).forEach(row => {
+                const targets = row.targets || {};
+                html += '<tr><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'
+                    + esc(row.name) + '">' + esc(row.name) + '</td>'
+                    + '<td style="white-space:nowrap;color:'
+                    + (row.sourceExists === false ? '#ff6b6b' : 'var(--text-secondary)') + ';">'
+                    + esc(row.sourceExists === false ? '主文件缺失' : (row.sourceLabel || row.sourceKind || '未知'))
+                    + '</td>';
+                formats.forEach(f => {
+                    const t = targets[f] || {};
+                    const tip = [t.message, t.chainText].filter(Boolean).join('  |  ');
+                    html += '<td>' + surveyBadge(t.status, tip) + '</td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            if (games.length > limit) {
+                html += '<div class="hint" style="margin-top:8px;">仅显示前 ' + limit + ' 条，共 '
+                    + games.length + ' 条。</div>';
+            }
+            box.innerHTML = html;
+        }
+
+        // 模块目录与系统产线（只读展示，随配置与实现状态变化）
+        async function loadVariantPipelines() {
+            const box = document.getElementById('variantPipelineBox');
+            if (!box) return;
+            box.innerHTML = '<span class="hint">加载中...</span>';
+            try {
+                const r = await fetch('/api/variants/pipelines');
+                const data = await r.json();
+                if (!data.success) throw new Error(data.error || '加载失败');
+                let html = '<div style="font-weight:600;color:var(--text-primary);margin-bottom:4px;">模块目录</div>'
+                    + '<table class="engines-table" style="margin-bottom:12px;"><thead><tr>'
+                    + '<th>模块</th><th>输入 → 输出</th><th>状态</th><th>说明</th></tr></thead><tbody>';
+                (data.modules || []).forEach(m => {
+                    html += '<tr><td>' + esc(m.id) + '</td><td>' + esc(m.arrow) + '</td>'
+                        + '<td>' + (m.available
+                            ? '<span style="color:#22c55e;">可用</span>'
+                            : '<span style="color:#f59e0b;">RESERVED</span>') + '</td>'
+                        + '<td>' + esc(m.note || '')
+                        + ((m.externalDeps || []).length ? '<div class="hint">外部依赖: ' + esc(m.externalDeps.join(', ')) + '</div>' : '')
+                        + '</td></tr>';
+                });
+                html += '</tbody></table>';
+
+                html += '<div style="font-weight:600;color:var(--text-primary);margin:8px 0 4px;">系统产线</div>';
+                (data.systems || []).forEach(sys => {
+                    html += '<div style="margin-top:8px;"><span style="color:var(--text-primary);">' + esc(sys.name)
+                        + '</span> <span class="hint">#' + sys.systemId + '</span></div>';
+                    (sys.pipelines || []).forEach(p => {
+                        const color = p.status === 'READY' ? '#22c55e' : (p.status === 'INCOMPLETE' ? '#f59e0b' : '#ef4444');
+                        html += '<div style="margin-left:10px;color:var(--text-secondary);">'
+                            + '<span style="color:' + color + ';">[' + esc(p.status) + ']</span> '
+                            + esc(p.chainText) + ' <span class="hint">→ ' + esc(p.format) + '</span>'
+                            + (p.message ? '<div class="hint" style="margin-left:16px;">' + esc(p.message) + '</div>' : '')
+                            + '</div>';
+                    });
+                });
+                box.innerHTML = html;
+            } catch (e) {
+                box.innerHTML = '<span style="color:#ef4444;">' + esc(e.message || e) + '</span>';
+            }
+        }
+
+        function variantFormatText(format) {
+            return VARIANT_FORMAT_LABELS[String(format || '').toLowerCase()] || format;
+        }
+
+        function variantColumnCount() {
+            return 3 + VARIANT_FORMAT_DEFS.length; // 系统 + 类型 + 各格式列 + 导出首选
+        }
+
+        function renderVariantMatrixHead() {
+            const head = document.getElementById('variantMatrixHead');
+            if (!head) return;
+            let html = '<tr><th>系统</th><th>类型</th>';
+            VARIANT_FORMAT_DEFS.forEach(f => { html += '<th>' + esc(f.label) + '</th>'; });
+            html += '<th>导出首选</th></tr>';
+            head.innerHTML = html;
+        }
+
+        async function loadVariantMatrix() {
+            const body = document.getElementById('variantMatrixBody');
+            const colspan = variantColumnCount();
+            body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:var(--text-tertiary)">加载中...</td></tr>';
+            try {
+                const r = await fetch('/api/variants/matrix');
+                const data = await r.json();
+                if (!data.success) throw new Error(data.error || '加载失败');
+                renderVariantMatrix(data.systems || []);
+            } catch (e) {
+                body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:#ef4444">' + esc(e.message || e) + '</td></tr>';
+            }
+        }
+
+        function renderVariantMatrix(systems) {
+            const body = document.getElementById('variantMatrixBody');
+            const colspan = variantColumnCount();
+            body.innerHTML = '';
+            variantEligibleSystemIds = new Set();
+            variantMatrixBySystem = new Map();
+            if (!systems.length) {
+                body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:var(--text-tertiary)">暂无合格系统</td></tr>';
+                loadVariantPlatforms();
+                return;
+            }
+            systems.forEach(s => {
+                variantEligibleSystemIds.add(Number(s.systemId));
+                variantMatrixBySystem.set(Number(s.systemId), s);
+                const formats = s.formats || {};
+                const cells = VARIANT_FORMAT_DEFS.map(f => {
+                    if (formats[f.id] === undefined) {
+                        return '<td style="color:var(--text-tertiary);text-align:center;">—</td>';
+                    }
+                    return '<td><input type="checkbox" ' + (formats[f.id] ? 'checked' : '')
+                        + ' onchange="toggleVariantCapability(' + s.systemId + ',\'' + f.id + '\',this.checked)"></td>';
+                }).join('');
+                const pref = s.preferredFormat || 'original';
+                const prefOptions = ['original'].concat(VARIANT_FORMAT_DEFS.map(f => f.id).filter(id => formats[id]))
+                    .map(f => '<option value="' + f + '"' + (f === pref ? ' selected' : '') + '>' + esc(variantFormatText(f)) + '</option>')
+                    .join('');
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + esc(s.name || s.nameEn || ('#' + s.systemId))
+                    + '<div class="hint">' + esc(s.extensions || '') + '</div></td>'
+                    + '<td>' + esc((s.type || '') + (s.romType ? '/' + s.romType : '')) + '</td>'
+                    + cells
+                    + '<td><select onchange="saveVariantPref(' + s.systemId + ', this.value)" style="min-width:140px;">'
+                    + prefOptions + '</select></td>';
+                body.appendChild(tr);
+            });
+            loadVariantPlatforms();
+        }
+
+        async function toggleVariantCapability(systemId, format, supported) {
+            try {
+                const r = await fetch('/api/variants/matrix/' + systemId + '/' + format, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ supported: !!supported })
+                });
+                const data = await r.json();
+                if (!data.success) throw new Error(data.error || '保存失败');
+                showMsg('已保存副本能力设置', 'success');
+                loadVariantMatrix();
+            } catch (e) {
+                showMsg('保存失败: ' + (e.message || e), 'error');
+                loadVariantMatrix();
+            }
+        }
+
+        async function saveVariantPref(systemId, format) {
+            try {
+                const r = await fetch('/api/variants/matrix/' + systemId + '/preference', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ format: format })
+                });
+                const data = await r.json();
+                if (!data.success) throw new Error(data.error || '保存失败');
+                showMsg('已保存系统首选格式', 'success');
+            } catch (e) {
+                showMsg('保存失败: ' + (e.message || e), 'error');
+            }
+        }
+
+        async function loadVariantPlatforms() {
+            const sel = document.getElementById('variantPlatformSelect');
+            if (!sel) return;
+            try {
+                const r = await fetch('/api/platforms');
+                const platforms = await r.json();
+                variantPlatformSystems = new Map();
+                const eligible = [];
+                (platforms || []).forEach(p => {
+                    if (!p.systemId) return;
+                    if (variantEligibleSystemIds && !variantEligibleSystemIds.has(Number(p.systemId))) return;
+                    variantPlatformSystems.set(String(p.id), Number(p.systemId));
+                    eligible.push(p);
+                });
+                const optionTags = eligible.map(p => '<option value="' + p.id + '">'
+                    + esc((p.system || '') + ' (' + (p.name || '') + ')') + '</option>').join('');
+                const emptyTag = '<option value="">（无合格平台）</option>';
+                // 生成页不预选平台；体检是只读，默认选上第一个更好用
+                sel.innerHTML = eligible.length ? '<option value="">请选择平台</option>' + optionTags : emptyTag;
+                const surveySel = document.getElementById('variantSurveyPlatformSelect');
+                if (surveySel) surveySel.innerHTML = eligible.length ? optionTags : emptyTag;
+                renderVariantGenFormats();
+            } catch (e) { /* ignore */ }
+        }
+
+        // 生成格式跟着平台能力走：只列该系统适用的格式；默认一个都不勾，生成是写盘操作
+        function renderVariantGenFormats() {
+            const wrap = document.getElementById('variantGenFormats');
+            if (!wrap) return;
+            const platformId = document.getElementById('variantPlatformSelect').value;
+            if (!platformId) {
+                wrap.innerHTML = '<span class="hint">先选择平台</span>';
+                return;
+            }
+            const systemId = variantPlatformSystems.get(String(platformId));
+            const row = systemId === undefined ? null : variantMatrixBySystem.get(systemId);
+            const formats = (row && row.formats) || {};
+            const ids = VARIANT_FORMAT_DEFS.map(f => f.id).filter(id => formats[id] !== undefined);
+            if (!ids.length) {
+                wrap.innerHTML = '<span class="hint">所选平台没有可生成的副本格式</span>';
+                return;
+            }
+            wrap.innerHTML = ids.map(id =>
+                '<label><input type="checkbox" class="variant-gen-format" value="' + id + '"> '
+                + esc(variantFormatText(id)) + '</label>'
+            ).join('');
+            const enabled = ids.filter(id => formats[id]);
+            if (enabled.length) {
+                wrap.innerHTML += '<span class="hint">矩阵中已开启：'
+                    + enabled.map(id => esc(variantFormatText(id))).join('、') + '</span>';
+            }
+        }
+
+        async function startVariantGenerate() {
+            const platformId = document.getElementById('variantPlatformSelect').value;
+            if (!platformId) { showMsg('请选择平台', 'error'); return; }
+            const formats = Array.from(document.querySelectorAll('.variant-gen-format:checked')).map(cb => cb.value);
+            if (!formats.length) { showMsg('请至少选择一种副本格式', 'error'); return; }
+            const force = document.getElementById('variantForceRebuild').checked;
+            const btn = document.getElementById('variantGenBtn');
+            btn.disabled = true;
+            document.getElementById('variantProgressWrap').style.display = 'block';
+            document.getElementById('variantProgressFill').style.width = '0%';
+            document.getElementById('variantProgressInfo').textContent = '正在提交...';
+            document.getElementById('variantLogArea').textContent = '';
+            try {
+                const r = await fetch('/api/variants/platform/' + platformId + '/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ formats: formats, force: force })
+                });
+                const data = await r.json();
+                if (!data.success || !data.taskId) throw new Error(data.error || '提交失败');
+                variantTaskId = data.taskId;
+                showMsg('副本生成任务已启动，可在任务管理查看进度', 'success');
+                pollVariantProgress();
+            } catch (e) {
+                btn.disabled = false;
+                showMsg('启动失败: ' + (e.message || e), 'error');
+            }
+        }
+
+        function pollVariantProgress() {
+            if (variantPollTimer) clearTimeout(variantPollTimer);
+            variantPollTimer = setTimeout(async () => {
+                if (!variantTaskId) return;
+                try {
+                    const r = await fetch('/api/tasks/' + variantTaskId);
+                    const task = await r.json();
+                    if (!task || task.status === undefined) throw new Error('no task');
+                    renderVariantProgress(task);
+                    if (task.status === 'RUNNING' || task.status === 'PENDING') {
+                        pollVariantProgress();
+                    } else {
+                        finishVariantGenerate(task);
+                    }
+                } catch (e) {
+                    pollVariantProgress();
+                }
+            }, 1000);
+        }
+
+        function renderVariantProgress(task) {
+            const total = task.totalItems || 0;
+            const completed = task.processedItems || 0;
+            const pct = task.progress !== undefined && task.progress !== null
+                ? task.progress
+                : (total > 0 ? Math.round(completed / total * 100) : 0);
+            document.getElementById('variantProgressFill').style.width = pct + '%';
+            document.getElementById('variantProgressInfo').textContent =
+                '进度: ' + completed + '/' + total + ' · ' + pct + '% · ' + (task.message || task.status || '');
+            const area = document.getElementById('variantLogArea');
+            if (task.log) {
+                area.textContent = String(task.log).split('\n').slice(-200).join('\n');
+                area.scrollTop = area.scrollHeight;
+            }
+        }
+
+        function finishVariantGenerate(task) {
+            document.getElementById('variantGenBtn').disabled = false;
+            variantTaskId = null;
+            if (variantPollTimer) { clearTimeout(variantPollTimer); variantPollTimer = null; }
+            if (task.status === 'COMPLETED') {
+                document.getElementById('variantProgressFill').style.width = '100%';
+                showMsg(task.message || '副本生成完成', 'success');
+                loadVariantMatrix();
+            } else {
+                showMsg('副本生成失败: ' + (task.errorMessage || task.message || task.status), 'error');
+            }
+        }
+    </script>
+</body>
+</html>

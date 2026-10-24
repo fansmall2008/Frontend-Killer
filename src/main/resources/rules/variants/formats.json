@@ -1,0 +1,62 @@
+{
+  "_comment": "副本格式表：label 用于界面，order 决定列顺序，generic=true 沿用系统类型/扩展名规则；带 scope 的格式只在声明过的系统（systemIds）或扩展名（extensions）上出现。新增格式只改这里。",
+  "formats": [
+    {
+      "id": "bare",
+      "label": "裸 ROM",
+      "order": 10,
+      "extension": "rom",
+      "generic": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "zip",
+      "label": "ZIP",
+      "order": 20,
+      "extension": "zip",
+      "generic": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "7z",
+      "label": "7z",
+      "order": 30,
+      "extension": "7z",
+      "generic": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "iso",
+      "label": "ISO",
+      "order": 40,
+      "extension": "iso",
+      "defaultEnabled": false,
+      "scope": {
+        "systemIds": [57, 61],
+        "extensions": []
+      }
+    },
+    {
+      "id": "cso",
+      "label": "CSO",
+      "order": 50,
+      "extension": "cso",
+      "defaultEnabled": true,
+      "scope": {
+        "systemIds": [57, 61],
+        "extensions": ["cso"]
+      }
+    },
+    {
+      "id": "chd",
+      "label": "CHD",
+      "order": 60,
+      "extension": "chd",
+      "defaultEnabled": true,
+      "scope": {
+        "systemIds": [57, 20, 22, 23, 29, 70, 72, 114, 117],
+        "extensions": ["chd"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamelist.mapper.GameVariantMapper">
+
+    <resultMap id="GameVariantResultMap" type="com.gamelist.model.GameVariant">
+        <id column="id" property="id"/>
+        <result column="game_id" property="gameId"/>
+        <result column="format" property="format"/>
+        <result column="rel_path" property="relPath"/>
+        <result column="size_bytes" property="sizeBytes"/>
+        <result column="source_size" property="sourceSize"/>
+        <result column="source_mtime" property="sourceMtime"/>
+        <result column="status" property="status"/>
+        <result column="recipe" property="recipe"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gamelist.model.GameVariant" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO game_variant
+            (game_id, format, rel_path, size_bytes, source_size, source_mtime,
+             status, recipe, error_message)
+        VALUES
+            (#{gameId}, #{format}, #{relPath}, #{sizeBytes}, #{sourceSize}, #{sourceMtime},
+             #{status}, #{recipe}, #{errorMessage})
+    </insert>
+
+    <update id="update" parameterType="com.gamelist.model.GameVariant">
+        UPDATE game_variant SET
+            game_id = #{gameId},
+            format = #{format},
+            rel_path = #{relPath},
+            size_bytes = #{sizeBytes},
+            source_size = #{sourceSize},
+            source_mtime = #{sourceMtime},
+            status = #{status},
+            recipe = #{recipe},
+            error_message = #{errorMessage},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectByGameIdAndFormat" resultMap="GameVariantResultMap">
+        SELECT * FROM game_variant
+        WHERE game_id = #{gameId} AND format = #{format}
+    </select>
+
+    <select id="selectByGameId" resultMap="GameVariantResultMap">
+        SELECT * FROM game_variant
+        WHERE game_id = #{gameId}
+        ORDER BY format
+    </select>
+
+    <select id="selectByGameIds" resultMap="GameVariantResultMap">
+        SELECT * FROM game_variant
+        WHERE game_id IN
+        <foreach collection="gameIds" item="gameId" open="(" separator="," close=")">
+            #{gameId}
+        </foreach>
+        ORDER BY game_id, format
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM game_variant WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByGameId">
+        DELETE FROM game_variant WHERE game_id = #{gameId}
+    </delete>
+
+</mapper>

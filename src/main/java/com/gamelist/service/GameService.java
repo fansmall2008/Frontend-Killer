@@ -83,6 +83,4 @@ public interface GameService {
     int migrateGames(List<Long> gameIds, Long targetPlatformId);
     int addGame(Game game);
     int batchDeleteGames(List<?> gameIds);
-    int swapTranslations(List<Long> gameIds);
-    int swapTranslationsByPlatformId(Long platformId);
 }

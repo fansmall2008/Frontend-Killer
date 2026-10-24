@@ -1,0 +1,117 @@
+{
+  "_comment": "系统产线声明：每个系统自己声明允许的目标格式与来源形态。全局不假设任何系统能用任何格式，新增系统只需在这里追加 systemId。sources 填 ArtifactKind 短码：iso=2048 扇区镜像，bin=2352 单数据轨，bin-multi=多轨或含音轨，gdi=GD-ROM 索引，nrg=Nero，toc=cdrdao，ecm=错误码建模压缩。chd 需要容器带轨道表，块压缩的 cso 和裸 ecm 都不能直接作为来源；cue 里载荷是 .ecm/.ape 时探测仍按 cue 落到 bin/bin-multi（说明里标注载荷形态），由 CHD 模块在暂存阶段解包与转码。ecm 只声明给 iso/cso，这两条目标依赖尚未实现的 bin2iso，规划会显示 INCOMPLETE。",
+  "systems": [
+    {
+      "systemId": 57,
+      "name": "Sony Playstation",
+      "targets": {
+        "cso": {
+          "enabled": true,
+          "sources": ["iso", "bin", "ecm"]
+        },
+        "iso": {
+          "enabled": false,
+          "sources": ["cso", "bin", "ecm"]
+        },
+        "chd": {
+          "enabled": false,
+          "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 61,
+      "name": "Sony PSP",
+      "targets": {
+        "cso": {
+          "enabled": true,
+          "sources": ["iso"]
+        },
+        "iso": {
+          "enabled": false,
+          "sources": ["cso"]
+        }
+      }
+    },
+    {
+      "systemId": 20,
+      "name": "Sega Mega-CD",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["bin", "bin-multi", "iso", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 22,
+      "name": "Sega Saturn",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["bin", "bin-multi", "iso", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 23,
+      "name": "Sega Dreamcast",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["gdi", "bin", "bin-multi", "iso", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 29,
+      "name": "3DO Interactive Multiplayer",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 70,
+      "name": "SNK Neo Geo CD",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 72,
+      "name": "NEC PC-FX",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 114,
+      "name": "NEC PC Engine CD",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
+        }
+      }
+    },
+    {
+      "systemId": 117,
+      "name": "Philips CD-i",
+      "targets": {
+        "chd": {
+          "enabled": true,
+          "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
+        }
+      }
+    }
+  ]
+}

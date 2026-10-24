@@ -18,10 +18,17 @@ FROM eclipse-temurin:17-jre
 # Set timezone
 ENV TZ=Asia/Shanghai
 
+# chdman (part of MAME tools) generates CHD disc images for the variant pipeline.
+# Licensed GPL-2.0-or-later, independent from this MIT-licensed application:
+# see THIRD-PARTY-NOTICES.md. Do not remove /usr/share/doc/mame-tools.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends mame-tools \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy the built JAR file
-COPY --from=builder /build/target/webGamelistOper-1.3.1.jar app.jar
+COPY --from=builder /build/target/webGamelistOper-1.3.7.jar app.jar
 
 # Copy default rules
 COPY src/main/resources/export-rules/ /app/default-rules/export/
