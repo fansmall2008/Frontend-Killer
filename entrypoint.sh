@@ -31,13 +31,20 @@ fi
 mkdir -p "$RULES_DIR" "$EXPORT_RULES_DIR" "$IMPORT_TEMPLATES_DIR" "$LOG_DIR" "/data/backup" "/data/input" "/data/output" "/data/scraper/system" "/data/scraper/games" "/data/themes"
 
 # 条件性链接附加 ROM 目录（fnOS 等多 ROM 路径场景）
-# compose 将 roms2/roms3 挂载到 /tmp/fk-romsN；仅当目录非空时在 /data/roms 下创建符号链接
+# compose 将 roms2/roms3 挂载到 /tmp/fk-romsN；仅当目录非空时在 /data/roms 下创建符号链接，
+# 这样 ROM 根下不会出现空壳目录。曾经挂过、后来清空的，同步移除残留链接。
 for _rn in 2 3; do
     _src="/tmp/fk-roms${_rn}"
     _dst="/data/roms/roms${_rn}"
+    if [ -e "$_dst" ] && [ ! -L "$_dst" ]; then
+        continue   # 已被 compose 直接挂载，不干预
+    fi
     if [ -d "$_src" ] && [ "$(ls -A "$_src" 2>/dev/null)" ]; then
         ln -sfn "$_src" "$_dst"
         log "已链接附加 ROM 目录 roms${_rn} -> ${_src}"
+    elif [ -L "$_dst" ]; then
+        unlink "$_dst" || true
+        log "附加 ROM 目录 roms${_rn} 为空，已移除链接"
     fi
 done
 
@@ -76,6 +83,16 @@ if [ -d "/app/seed-data" ]; then
     log "data文件夹释放完成"
 fi
 
+# 本地匹配数据与外部工具目录（放在 seed 释放之后，避免预建目录挡住首次数据复制）
+# rom-db：用户自行下载 libretro-database / DAT；tools：chdman / ffmpeg 的约定放法
+mkdir -p "/data/rom-db/metadat/generated" "/data/rom-db/rdb" "/data/tools"
+
+# metadat/generated 是 DAT 生成器的输出目录，不能算作“已有数据”
+if [ -z "$(find /data/rom-db/metadat -type f -iname '*.dat' 2>/dev/null | head -n 1)" ] \
+   && [ -z "$(ls -A /data/rom-db/rdb 2>/dev/null | head -n 1)" ]; then
+    log "本地匹配数据库为空：把 libretro-database 的 .rdb 放进 /data/rom-db/rdb/，DAT 放进 /data/rom-db/metadat/，然后在系统设置里导入"
+fi
+
 if [ -d "$DEFAULT_RULES_DIR" ]; then
     # 复制导出规则（强制覆盖以确保使用最新版本）
     log "复制默认导出规则..."
@@ -111,7 +128,7 @@ if [ "$PUID" != "0" ]; then
     getent group "$PGID" >/dev/null 2>&1 || groupadd -g "$PGID" appuser >/dev/null 2>&1 || true
     getent passwd "$PUID" >/dev/null 2>&1 || useradd -u "$PUID" -g "$PGID" -M -N -s /usr/sbin/nologin appuser >/dev/null 2>&1 || true
     # 修正应用管理目录归属；roms 仅修正挂载点本身（不递归，避免大目录耗时/改动用户 ROM 归属）
-    chown -R "$PUID":"$PGID" /data/database /data/rules /data/logs /data/backup /data/output /data/input /data/scraper 2>/dev/null || true
+    chown -R "$PUID":"$PGID" /data/database /data/rules /data/logs /data/backup /data/output /data/input /data/scraper /data/rom-db /data/tools 2>/dev/null || true
     chown "$PUID":"$PGID" /data /data/roms 2>/dev/null || true
     if setpriv --reuid "$PUID" --regid "$PGID" --init-groups true 2>/dev/null; then
         exec setpriv --reuid "$PUID" --regid "$PGID" --init-groups java $JAVA_OPTS $STATIC_OPTS -jar /app/app.jar

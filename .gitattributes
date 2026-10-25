@@ -1,0 +1,9 @@
+# Shell scripts run inside Linux containers and on fnOS: they must never be
+# checked out with CRLF, or the container fails with "bad interpreter: /bin/bash^M".
+*.sh text eol=lf
+fnos/frontend-killer/cmd/* text eol=lf
+entrypoint.sh text eol=lf
+
+# Windows launchers keep their native line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf

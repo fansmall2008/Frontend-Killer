@@ -22,11 +22,14 @@ FROM docker.io/library/eclipse-temurin:17-jre
 # Set timezone
 ENV TZ=Asia/Shanghai
 
-# chdman (part of MAME tools) generates CHD disc images for the variant pipeline.
-# Licensed GPL-2.0-or-later, independent from this MIT-licensed application:
-# see THIRD-PARTY-NOTICES.md. Do not remove /usr/share/doc/mame-tools.
+# External tools used by the variant pipeline. Both are invoked as separate
+# processes, so neither becomes part of this MIT-licensed application:
+#   chdman  - CHD compression, part of MAME tools      (GPL-2.0-or-later)
+#   ffmpeg  - APE/FLAC track decoding to WAV           (LGPL-2.1-or-later in Debian)
+# See THIRD-PARTY-NOTICES.md. Do not remove /usr/share/doc/mame-tools or
+# /usr/share/doc/ffmpeg.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends mame-tools \
+    && apt-get install -y --no-install-recommends mame-tools ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -51,7 +54,8 @@ RUN chmod +x /entrypoint.sh
 
 # Create persistent directories, then link the app's relative paths (./data, ./logs)
 # to the persistent /data volume so data survives container recreation (unRAID/Docker updates)
-RUN mkdir -p /data/logs /data/database /data/backup /data/input /data/output /data/rules/export /data/rules/import /data/scraper/system /data/scraper/games \
+RUN mkdir -p /data/logs /data/database /data/backup /data/input /data/output /data/rules/export /data/rules/import /data/scraper/system /data/scraper/games /data/themes \
+    /data/rom-db/metadat/generated /data/rom-db/rdb /data/tools \
     && ln -sfn /data /app/data \
     && ln -sfn /data/logs /app/logs
 

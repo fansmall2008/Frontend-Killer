@@ -34,7 +34,8 @@ A new Toolbox page (🧰) with three offline utilities and quick links to Scrape
 - Generate per-system ROM copies in multiple formats (**bare / ZIP / 7z / ISO / CSO / CHD**) once, then select preferred format per-system on the export page
 - **Pure-Java codecs** for ECM ↔ BIN and ISO ↔ CSO (no external dependencies); **chdman** for CHD conversion (CUE+BIN, GDI, NRG, TOC); **ffmpeg** for APE/FLAC audio extraction
 - **Shortest-path planner** (`PipelinePlanner`): finds the minimum-step conversion chain; distinguishes "unsupported" from "not yet implemented"
-- **Four sub-pages**: capability matrix (per-system format toggles), batch generation (4-thread parallel), format health check (10-state diagnostics), and pipeline overview (module catalog + system routes)
+- **Five sub-pages**: capability matrix (per-system format toggles), batch generation (4-thread parallel), format health check (10-state diagnostics), pipeline overview (module catalog + system routes), and external tools (chdman / ffmpeg path, version and source)
+- **External tool paths are configurable in the UI** — saved to `system_settings` and re-probed on save, no restart; leave empty to auto-discover from config → env var → `PATH` → program directory
 - **Graceful fallback**: if a variant is missing, stale, or failed, export automatically falls back to the original ROM file
 - **Media Download Architecture Fix** - Media tasks are now correctly written to and read from the `media_download_task` table, fixing the bug where the UI showed 0 progress despite tasks completing in the background
 - **Dual-Listener Worker Pool** - Added a dedicated `media-download-listener` thread that picks tasks from `media_download_task` with optimistic locking, sharing the same worker pool with automatic slot coordination
@@ -192,6 +193,10 @@ Frontend-Killer is now **published to both the unRAID Community Applications and
 
 A manual unRAID template also ships at `unraid/frontend-killer.xml`: install it from Community Applications, or via Docker → Add Container with image `fansmall/frontendkiller:latest`, port `8080`, volumes `<appdata>:/data` and `<roms>:/data/roms`, and set `PUID=99` / `PGID=100` so files land with correct ownership on unRAID shares.
 
+#### External tools
+
+The image bundles `chdman` (from `mame-tools`) and `ffmpeg`, so CHD compression and APE/FLAC track extraction work out of the box. For JAR / EXE builds, drop `chdman.exe` and `ffmpeg.exe` into `data/tools/` under the working directory (Docker: `./data/tools/`), or set the path in the toolbox (ROM variants → External tools). libretro-database data for local matching goes into `./data/rom-db/rdb` and `./data/rom-db/metadat`. See `INSTALL.md` and `THIRD-PARTY-NOTICES.md`.
+
 ### Access
 http://localhost:8080
 
@@ -275,6 +280,10 @@ Frontend-Killer 现已**同时上架 unRAID 应用商店（Community Application
 
 项目也自带 unRAID 模板 `unraid/frontend-killer.xml`，可通过 Community Applications 安装，或手动：Docker → Add Container，镜像 `fansmall/frontendkiller:latest`，端口 `8080`，卷 `<appdata>:/data` 与 `<roms>:/data/roms`，并设置 `PUID=99` / `PGID=100` 以保证 unRAID 共享目录的文件归属正确。
 
+#### 外部工具
+
+镜像已内置 `chdman`（来自 `mame-tools`）与 `ffmpeg`，CHD 压缩与 APE/FLAC 音轨还原开箱可用。JAR / EXE 版请把 `chdman.exe`、`ffmpeg.exe` 放进启动目录的 `data/tools/`（Docker 即 `./data/tools/`），或在「工具箱 → ROM 副本 → 外部工具」里填路径。本地匹配用的 libretro-database 放进 `./data/rom-db/rdb` 与 `./data/rom-db/metadat`。详见 `INSTALL_zh.md` 与 `THIRD-PARTY-NOTICES.md`。
+
 ### 访问地址
 http://localhost:8080
 
@@ -357,6 +366,10 @@ GitHub Releases から EXE パッケージをダウンロードし、解凍し�
 Frontend-Killer は現在 **unRAID の Community Applications と fnOS（飞牛）アプリストアの両方に公開**されています。いずれかのストアで **Frontend-Killer** を検索してインストールするだけで最新バージョンを利用でき、手動設定は不要です。
 
 unRAID 用テンプレート `unraid/frontend-killer.xml` も同梱しています。Community Applications から導入するか、手動で Docker → Add Container にイメージ `fansmall/frontendkiller:latest`、ポート `8080`、ボリューム `<appdata>:/data` と `<roms>:/data/roms` を設定し、`PUID=99` / `PGID=100` で unRAID 共有のファイル所有権を合わせてください。
+
+#### 外部ツール
+
+イメージには `chdman`（`mame-tools` 由来）と `ffmpeg` が同梱されており、CHD 圧縮と APE/FLAC 音声変換はすぐに使えます。JAR / EXE 版では `chdman.exe` と `ffmpeg.exe` を作業ディレクトリの `data/tools/`（Docker では `./data/tools/`）に置くか、ツールボックス（ROM バリアント → 外部ツール）でパスを指定してください。ローカルマッチング用の libretro-database は `./data/rom-db/rdb` と `./data/rom-db/metadat` に置きます。詳細は `INSTALL.md` と `THIRD-PARTY-NOTICES.md` を参照してください。
 
 ### アクセスアドレス
 http://localhost:8080

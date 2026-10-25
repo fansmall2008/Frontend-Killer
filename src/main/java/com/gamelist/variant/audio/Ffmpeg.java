@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.gamelist.variant.ExternalToolSettings;
+
 /**
  * ffmpeg 外部进程封装：只用来把压缩音轨还原成 WAV。
  * <p>
@@ -37,14 +39,19 @@ public class Ffmpeg {
     /** 转一条音轨的上限；整轨 APE 再长也够用 */
     private static final long TIMEOUT_MS = 10L * 60L * 1000L;
 
-    private final String configuredPath;
+    /** 配置文件里的路径（gamelist.ffmpeg.path / FFMPEG），界面设置为空时才用它 */
+    private final String defaultPath;
+    private final ExternalToolSettings toolSettings;
 
     private volatile Path executable;
     private volatile boolean located;
     private volatile String version = "";
+    private volatile String sourceLabel = "";
 
-    public Ffmpeg(@Value("${gamelist.ffmpeg.path:}") String configuredPath) {
-        this.configuredPath = configuredPath == null ? "" : configuredPath.trim();
+    public Ffmpeg(@Value("${gamelist.ffmpeg.path:}") String configuredPath,
+                  ExternalToolSettings toolSettings) {
+        this.defaultPath = configuredPath == null ? "" : configuredPath.trim();
+        this.toolSettings = toolSettings;
     }
 
     public boolean available() {
@@ -57,13 +64,35 @@ public class Ffmpeg {
             return executable;
         }
         located = true;
-        executable = resolveExecutable();
+        try {
+            executable = resolveExecutable();
+        } catch (RuntimeException e) {
+            // 探测只是辅助信息，不能让一条异常路径把接口整成 500
+            executable = null;
+            sourceLabel = "探测失败：" + e.getMessage();
+            logger.warn("探测 ffmpeg 失败", e);
+        }
         if (executable == null) {
-            logger.info("未找到 ffmpeg，APE/FLAC 音轨无法还原为 WAV（可配置 gamelist.ffmpeg.path 指定路径）");
+            logger.info("未找到 ffmpeg，APE/FLAC 音轨无法还原为 WAV（可在工具箱 → 外部工具里指定路径，或配置 gamelist.ffmpeg.path）{}",
+                    sourceLabel.isEmpty() ? "" : "｜" + sourceLabel);
         } else {
-            logger.info("ffmpeg 可用: {}", executable);
+            logger.info("ffmpeg 可用: {}｜来源: {}", executable, sourceLabel);
         }
         return executable;
+    }
+
+    /** 路径改过之后重新探测，不必重启 */
+    public synchronized void refresh() {
+        located = false;
+        executable = null;
+        version = "";
+        sourceLabel = "";
+    }
+
+    /** 当前生效路径的来源（界面设置 / gamelist.ffmpeg.path / 环境变量 / PATH / 某个目录） */
+    public String source() {
+        locate();
+        return sourceLabel;
     }
 
     public synchronized String version() {
@@ -170,16 +199,26 @@ public class Ffmpeg {
     private Path resolveExecutable() {
         String name = isWindows() ? "ffmpeg.exe" : "ffmpeg";
 
-        Path fromConfig = probe(configuredPath);
-        if (fromConfig != null) {
-            return fromConfig;
+        // 明确写了路径就只认它：填错时报不可用，而不是悄悄换成 PATH 里的另一个版本
+        String fromUi = toolSettings.get(ExternalToolSettings.FFMPEG_PATH);
+        if (!fromUi.isEmpty()) {
+            Path path = probe(fromUi);
+            sourceLabel = path != null ? "界面设置" : "界面设置（路径不可用）";
+            return path;
+        }
+        if (!defaultPath.isEmpty()) {
+            Path path = probe(defaultPath);
+            sourceLabel = path != null ? "gamelist.ffmpeg.path" : "gamelist.ffmpeg.path（路径不可用）";
+            return path;
         }
         Path fromEnv = probe(System.getenv("FFMPEG"));
         if (fromEnv != null) {
+            sourceLabel = "环境变量 FFMPEG";
             return fromEnv;
         }
         Path fromPathEnv = scanPath(name);
         if (fromPathEnv != null) {
+            sourceLabel = "PATH";
             return fromPathEnv;
         }
         Path appDir = Path.of(System.getProperty("user.dir", "."));
@@ -187,9 +226,11 @@ public class Ffmpeg {
             Path dir = sub.isEmpty() ? appDir : appDir.resolve(sub);
             Path candidate = probe(dir.resolve(name).toString());
             if (candidate != null) {
+                sourceLabel = dir.toAbsolutePath().toString();
                 return candidate;
             }
         }
+        sourceLabel = "";
         return null;
     }
 
@@ -202,7 +243,14 @@ public class Ffmpeg {
             if (dir == null || dir.isBlank()) {
                 continue;
             }
-            Path candidate = probe(Path.of(dir, name).toString());
+            // PATH 里偶尔混进用空格拼起来的多目录串，Path.of 会抛 InvalidPathException
+            String candidatePath;
+            try {
+                candidatePath = Path.of(dir.trim(), name).toString();
+            } catch (RuntimeException e) {
+                continue;
+            }
+            Path candidate = probe(candidatePath);
             if (candidate != null) {
                 return candidate;
             }

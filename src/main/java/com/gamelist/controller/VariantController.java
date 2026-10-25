@@ -1,5 +1,6 @@
 package com.gamelist.controller;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,9 +31,12 @@ import com.gamelist.model.VariantSummary;
 import com.gamelist.service.VariantCapabilityService;
 import com.gamelist.service.VariantService;
 import com.gamelist.variant.ConversionModule;
+import com.gamelist.variant.ExternalToolSettings;
 import com.gamelist.variant.FormatRegistry;
 import com.gamelist.variant.ModuleCatalog;
 import com.gamelist.variant.SystemPipelineLibrary;
+import com.gamelist.variant.audio.Ffmpeg;
+import com.gamelist.variant.module.Chdman;
 
 /**
  * ROM 副本管理接口：能力矩阵、生成、查询、删除、导出弹窗选项。
@@ -63,6 +67,64 @@ public class VariantController {
 
     @Autowired
     private FormatRegistry formatRegistry;
+
+    @Autowired
+    private ExternalToolSettings externalToolSettings;
+
+    @Autowired
+    private Chdman chdman;
+
+    @Autowired
+    private Ffmpeg ffmpeg;
+
+    // ---------------------------------------------------------------- 外部工具
+
+    /** 外部工具（chdman / ffmpeg）状态：界面配置值、实际生效路径、来源与版本 */
+    @GetMapping("/tools")
+    public ResponseEntity<Map<String, Object>> tools() {
+        return ResponseEntity.ok(toolsStatus());
+    }
+
+    /** 保存外部工具路径（空 = 跟随自动探测），保存后立即重新探测 */
+    @PostMapping("/tools")
+    public ResponseEntity<Map<String, Object>> saveTools(@RequestBody Map<String, String> body) {
+        try {
+            if (body != null && body.containsKey("chdmanPath")) {
+                externalToolSettings.save(ExternalToolSettings.CHDMAN_PATH, body.get("chdmanPath"));
+            }
+            if (body != null && body.containsKey("ffmpegPath")) {
+                externalToolSettings.save(ExternalToolSettings.FFMPEG_PATH, body.get("ffmpegPath"));
+            }
+            chdman.refresh();
+            ffmpeg.refresh();
+            return ResponseEntity.ok(toolsStatus());
+        } catch (Exception e) {
+            logger.error("保存外部工具路径失败", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", nvl(e.getMessage())));
+        }
+    }
+
+    private Map<String, Object> toolsStatus() {
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("success", true);
+        root.put("chdman", toolRow(chdman.locate(), chdman.version(), chdman.source(),
+                externalToolSettings.get(ExternalToolSettings.CHDMAN_PATH)));
+        root.put("ffmpeg", toolRow(ffmpeg.locate(), ffmpeg.version(), ffmpeg.source(),
+                externalToolSettings.get(ExternalToolSettings.FFMPEG_PATH)));
+        return root;
+    }
+
+    private Map<String, Object> toolRow(Path executable, String version, String source, String configured) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("available", executable != null);
+        row.put("path", executable == null ? "" : executable.toString());
+        row.put("version", nvl(version));
+        row.put("source", nvl(source));
+        row.put("configured", nvl(configured));
+        return row;
+    }
 
     /** 格式表：前端渲染列头与文案用，避免把 bare/zip/7z 写死在页面里 */
     @GetMapping("/formats")

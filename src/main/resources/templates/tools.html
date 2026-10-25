@@ -322,6 +322,7 @@
                         <div class="sub-tab" id="varTabGen" onclick="switchVariantTab('gen')">批量生成</div>
                         <div class="sub-tab" id="varTabSurvey" onclick="switchVariantTab('survey')">格式体检</div>
                         <div class="sub-tab" id="varTabPipes" onclick="switchVariantTab('pipes')">产线总览</div>
+                        <div class="sub-tab" id="varTabTools" onclick="switchVariantTab('tools')">外部工具</div>
                     </div>
 
                     <!-- 能力矩阵 -->
@@ -409,6 +410,18 @@
                         <button class="btn btn-secondary" onclick="loadVariantPipelines()" data-i18n="btn_refresh">刷新</button>
                     </div>
                     <div id="variantPipelineBox" style="font-size:12px;color:var(--text-tertiary);">尚未加载。</div>
+                    </div>
+
+                    <!-- 外部工具（chdman / ffmpeg 路径） -->
+                    <div id="varSubTools" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div>
+                            <h3 style="margin:0;">外部工具</h3>
+                            <span class="hint">chdman 负责 CHD 压缩，ffmpeg 负责把 APE/FLAC 音轨还原为 WAV。这里填的路径存在数据库里，保存即重新探测，不用重启。</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadExternalTools()" data-i18n="btn_refresh">刷新</button>
+                    </div>
+                    <div id="externalToolRows"><span class="hint">正在探测…</span></div>
                     </div>
                 </div>
 
@@ -1014,11 +1027,12 @@
             await loadVariantMatrix();
         }
 
-        // 副本面板四个子页：矩阵 / 生成 / 体检 / 产线，避免一屏抛下所有表格
+        // 副本面板五个子页：矩阵 / 生成 / 体检 / 产线 / 外部工具，避免一屏抛下所有表格
         let variantPipesLoaded = false;
+        let externalToolsLoaded = false;
         function switchVariantTab(which) {
-            const tabs = { matrix: 'varTabMatrix', gen: 'varTabGen', survey: 'varTabSurvey', pipes: 'varTabPipes' };
-            const subs = { matrix: 'varSubMatrix', gen: 'varSubGen', survey: 'varSubSurvey', pipes: 'varSubPipes' };
+            const tabs = { matrix: 'varTabMatrix', gen: 'varTabGen', survey: 'varTabSurvey', pipes: 'varTabPipes', tools: 'varTabTools' };
+            const subs = { matrix: 'varSubMatrix', gen: 'varSubGen', survey: 'varSubSurvey', pipes: 'varSubPipes', tools: 'varSubTools' };
             Object.keys(tabs).forEach(key => {
                 const tab = document.getElementById(tabs[key]);
                 const sub = document.getElementById(subs[key]);
@@ -1028,6 +1042,104 @@
             if (which === 'pipes' && !variantPipesLoaded) {
                 variantPipesLoaded = true;
                 loadVariantPipelines();
+            } else if (which === 'tools' && !externalToolsLoaded) {
+                externalToolsLoaded = true;
+                loadExternalTools();
+            }
+        }
+
+        // ====== 外部工具（chdman / ffmpeg 路径） ======
+        const EXTERNAL_TOOLS = [
+            { key: 'chdman', label: 'chdman', desc: 'CHD 压缩（MAME tools 的一部分）', placeholder: '例如 D:\\tools\\chdman.exe' },
+            { key: 'ffmpeg', label: 'ffmpeg', desc: 'APE / FLAC 音轨还原为 WAV', placeholder: '例如 D:\\tools\\ffmpeg.exe' }
+        ];
+
+        async function loadExternalTools() {
+            const box = document.getElementById('externalToolRows');
+            if (box) box.innerHTML = '<span class="hint">正在探测…</span>';
+            try {
+                const data = await fetch('/api/variants/tools').then(r => r.json());
+                if (!data.success) throw new Error(data.error || '探测失败');
+                renderExternalTools(data);
+            } catch (e) {
+                if (box) box.innerHTML = '<span style="color:#ff6b6b;">' + esc(e.message) + '</span>';
+            }
+        }
+
+        function escAttr(value) {
+            return esc(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function renderExternalTools(data) {
+            const box = document.getElementById('externalToolRows');
+            if (!box) return;
+            box.innerHTML = EXTERNAL_TOOLS.map(def => {
+                const row = data[def.key] || {};
+                const ok = !!row.available;
+                const badge = ok
+                    ? '<span style="color:#44ff88;">● 可用</span>'
+                    : '<span style="color:#ff6b6b;">● 不可用</span>';
+                const rawVersion = row.version || '';
+                // MAME 的版本串很长，完整放行会把左边挤成三四行，截断后放 title 里
+                const shownVersion = rawVersion.length > 30 ? rawVersion.substring(0, 30) + '…' : rawVersion;
+                const version = rawVersion
+                    ? '<span class="hint" style="margin-left:8px;" title="' + escAttr(rawVersion) + '">版本 ' + esc(shownVersion) + '</span>'
+                    : '';
+                const where = row.path
+                    ? '<code style="font-size:12px;">' + esc(row.path) + '</code>'
+                    : '<span class="hint">没有找到可执行文件</span>';
+                const source = row.source ? '<span class="hint"> · 来源：' + esc(row.source) + '</span>' : '';
+                return '<div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 14px;margin-bottom:12px;background:rgba(255,255,255,.02);">'
+                    + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;">'
+                    + '<div style="flex:1;min-width:220px;"><strong>' + esc(def.label) + '</strong> <span class="hint">' + esc(def.desc) + '</span></div>'
+                    + '<div style="flex:0 0 auto;white-space:nowrap;">' + badge + version + '</div>'
+                    + '</div>'
+                    + '<div style="margin:6px 0 10px;font-size:12px;color:var(--text-secondary);word-break:break-all;">' + where + source + '</div>'
+                    + '<div class="form-row" style="margin:0;align-items:flex-end;">'
+                    + '<div class="form-field" style="flex:1;min-width:280px;">'
+                    + '<label>可执行文件路径</label>'
+                    + '<input type="text" id="toolPath_' + def.key + '" value="' + escAttr(row.configured || '') + '" placeholder="' + escAttr(def.placeholder) + '">'
+                    + '</div>'
+                    + '<div class="form-field" style="flex:0 0 auto;flex-direction:row;gap:8px;">'
+                    + '<button class="btn btn-primary" onclick="saveExternalTools()">保存</button>'
+                    + '<button class="btn btn-secondary" onclick="clearExternalTool(\'' + def.key + '\')">清空</button>'
+                    + '</div>'
+                    + '</div>'
+                    + '</div>';
+            }).join('')
+            + '<span class="hint">留空表示自动查找：配置文件 → 环境变量 → PATH → 程序目录（tools/、bin/）。'
+            + 'Docker 镜像已内置 chdman，无需填写。填了路径但探测不到时会明确显示不可用，不会回退到其它版本。</span>';
+        }
+
+        function currentToolPath(key) {
+            const el = document.getElementById('toolPath_' + key);
+            return el ? el.value : '';
+        }
+
+        function saveExternalTools() {
+            postToolPaths({ chdmanPath: currentToolPath('chdman'), ffmpegPath: currentToolPath('ffmpeg') });
+        }
+
+        function clearExternalTool(key) {
+            const el = document.getElementById('toolPath_' + key);
+            if (el) el.value = '';
+            saveExternalTools();
+        }
+
+        async function postToolPaths(payload) {
+            try {
+                const res = await fetch('/api/variants/tools', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(r => r.json());
+                if (!res.success) throw new Error(res.error || '保存失败');
+                renderExternalTools(res);
+                // 产线总览里的模块可用性跟着变，下次切过去重新拉取
+                variantPipesLoaded = false;
+                showMsg('外部工具设置已保存', 'success');
+            } catch (e) {
+                showMsg('保存失败: ' + e.message, 'error');
             }
         }
 
