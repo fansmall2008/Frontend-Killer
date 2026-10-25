@@ -12,6 +12,9 @@ data/input/
 # 排除刮削缓存（可达数 GB）
 data/scraper/
 
+# 排除变体数据（运行时生成，可达数 GB）
+data/variants/
+
 # 排除运行时目录
 output/
 roms/
