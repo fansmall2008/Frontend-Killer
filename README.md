@@ -10,8 +10,32 @@
 
 > **Early Access Release** — This version is a preview / early access build. The new Toolbox features may contain bugs. If you encounter any issues, please report them on [GitHub Issues](https://github.com/fansmall2008/Frontend-Killer/issues).
 
-- **Toolbox** - New `/tools` page with three offline utilities: a batch translation tool (game name / description and `rom_db` name into 10 target languages, with pluggable OpenAI-compatible engines), a DAT generator (export `rom_db` or the game list as ClrMamePro DAT, optionally feeding it straight back), and ROM variants
-- **ROM Variants** - Generate per-system copies (bare / ZIP / 7z / ISO / CSO / CHD) once and reuse them from the export page, which offers a per-system format selector. Pure-Java ECM and CSO codecs, `chdman` for CHD (cue+bin, GDI, NRG, TOC), `ffmpeg` for APE/FLAC audio. A planner picks the shortest chain, and missing / failed / stale copies fall back to the main file
+### Toolbox — New `/tools` Page
+
+A new Toolbox page (🧰) with three offline utilities and quick links to Scraper System List and Database Manager.
+
+#### 🌐 Batch Translation Tool
+- Translate game names, descriptions, and `rom_db` entries into **10 languages** (English, Japanese, Chinese, French, Spanish, German, Italian, Korean, Portuguese, Russian)
+- **Pluggable engine system**: built-in Google / Microsoft / DeepSeek presets + any OpenAI-compatible API (DeepSeek, DashScope, Moonshot, ZhiPu, Ollama, One-API, etc.) — just fill in Base URL + Model + API Key
+- **Smart deduplication**: identical core text is translated only once, results reused across all matching entries, saving API quota
+- **rom_db aware**: trailing annotations like `(USA) (Disc 1)` are preserved as-is; only the core name is translated
+- **Engine management**: add / edit / delete / test connectivity / set default engine; advanced JSON editor for non-standard APIs
+- **Real-time progress**: live progress bar, success/failure counts, and rolling log; stoppable at any time
+- Translations stored in a dedicated `field_translation` table — never pollutes original data
+
+#### 🗃️ DAT Generator
+- Export `rom_db` or the imported game list as standard **ClrMamePro DAT** files
+- **Pre-flight summary**: per-platform row counts, valid entry counts, and system resolution status before generating
+- **Auto-import loop**: optionally feed generated DATs straight back into `rom_db` in one click
+- Outputs to `data/rom-db/metadat/generated/`, auto-scanned by the DAT import pipeline
+- Per-platform progress tracking with skip/fail counts; stoppable mid-run
+
+#### 📚 ROM Variants (副本)
+- Generate per-system ROM copies in multiple formats (**bare / ZIP / 7z / ISO / CSO / CHD**) once, then select preferred format per-system on the export page
+- **Pure-Java codecs** for ECM ↔ BIN and ISO ↔ CSO (no external dependencies); **chdman** for CHD conversion (CUE+BIN, GDI, NRG, TOC); **ffmpeg** for APE/FLAC audio extraction
+- **Shortest-path planner** (`PipelinePlanner`): finds the minimum-step conversion chain; distinguishes "unsupported" from "not yet implemented"
+- **Four sub-pages**: capability matrix (per-system format toggles), batch generation (4-thread parallel), format health check (10-state diagnostics), and pipeline overview (module catalog + system routes)
+- **Graceful fallback**: if a variant is missing, stale, or failed, export automatically falls back to the original ROM file
 - **Media Download Architecture Fix** - Media tasks are now correctly written to and read from the `media_download_task` table, fixing the bug where the UI showed 0 progress despite tasks completing in the background
 - **Dual-Listener Worker Pool** - Added a dedicated `media-download-listener` thread that picks tasks from `media_download_task` with optimistic locking, sharing the same worker pool with automatic slot coordination
 - **SS Quota Sync** - ScreenScraper maxThreads quota is now correctly synced to the UI, showing the actual thread count (e.g. 6) instead of the hardcoded default (4)
