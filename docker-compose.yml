@@ -9,10 +9,13 @@ services:
       - ./data:/data
       # ROM 库（可改为指向你自己的游戏目录）
       - ./roms:/data/roms
+      # 附加 ROM 目录（可选，取消注释并改为自己的路径即可）
+      # - /path/to/roms2:/data/roms2
+      # - /path/to/roms3:/data/roms3
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_TOMCAT_BASEDIR=/data
-      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input
+      - SPRING_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/data,file:/data/roms,file:/data/roms2,file:/data/roms3,file:/data/output,file:/data/input
       - JAVA_OPTS=-Xmx2g -Xms512m -XX:+UseG1GC
       # NAS/unRAID 落盘文件归属（默认 0=root，保持既有行为；unRAID 建议 99/100）
       - PUID=0

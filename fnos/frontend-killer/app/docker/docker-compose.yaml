@@ -8,13 +8,13 @@ services:
     volumes:
       - ${fk_data_path:-/vol1/frontend-killer/data}:/data
       - ${fk_roms_path:-/vol1/frontend-killer/roms}:/data/roms
-      - ${fk_roms2_path:-/tmp/fk-unused-roms2}:/tmp/fk-roms2
-      - ${fk_roms3_path:-/tmp/fk-unused-roms3}:/tmp/fk-roms3
+      - ${fk_roms2_path:-/tmp/fk-unused-roms2}:/data/roms2
+      - ${fk_roms3_path:-/tmp/fk-unused-roms3}:/data/roms3
       - ${fk_output_path:-/vol1/frontend-killer/output}:/data/output
     environment:
       SPRING_PROFILES_ACTIVE: "default"
       SERVER_TOMCAT_BASEDIR: "/data"
-      SPRING_RESOURCES_STATIC_LOCATIONS: "classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input"
+      SPRING_RESOURCES_STATIC_LOCATIONS: "classpath:/static/,file:/data,file:/data/roms,file:/data/roms2,file:/data/roms3,file:/data/output,file:/data/input"
       JAVA_OPTS: "-Xmx2g -Xms512m -XX:+UseG1GC"
       TZ: "Asia/Shanghai"
       PUID: "${fk_puid:-1000}"

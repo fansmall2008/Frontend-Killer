@@ -50,7 +50,7 @@ RUN chmod +x /entrypoint.sh
 
 # Create persistent directories, then link the app's relative paths (./data, ./logs)
 # to the persistent /data volume so data survives container recreation (unRAID/Docker updates)
-RUN mkdir -p /data/logs /data/database /data/backup /data/input /data/output /data/rules/export /data/rules/import /data/scraper/system /data/scraper/games /data/themes \
+RUN mkdir -p /data/logs /data/database /data/backup /data/input /data/output /data/rules/export /data/rules/import /data/scraper/system /data/scraper/games /data/themes /data/roms2 /data/roms3 \
     /data/rom-db/metadat/generated /data/rom-db/rdb /data/tools \
     && ln -sfn /data /app/data \
     && ln -sfn /data/logs /app/logs

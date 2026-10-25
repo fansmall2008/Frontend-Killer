@@ -51,6 +51,10 @@
 
   <Config Name="ROM Library" Target="/data/roms" Default="/mnt/user/data/roms/" Mode="rw" Description="Your ROM library, used as the import source and for CRC/file-existence checks. Point this at the share holding your game files. Optional but recommended." Type="Path" Display="always" Required="false" Mask="false">/mnt/user/data/roms/</Config>
 
+  <Config Name="Extra ROM Library 2" Target="/data/roms2" Default="" Mode="rw" Description="Optional extra ROM directory. Leave empty to skip." Type="Path" Display="always" Required="false" Mask="false"></Config>
+
+  <Config Name="Extra ROM Library 3" Target="/data/roms3" Default="" Mode="rw" Description="Optional extra ROM directory. Leave empty to skip." Type="Path" Display="always" Required="false" Mask="false"></Config>
+
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="Process User ID. Files written to the mapped paths will be owned by this UID (unRAID nobody = 99). Set to 0 to run as root." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
 
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Process Group ID. Files written to the mapped paths will be owned by this GID (unRAID users = 100)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
@@ -63,5 +67,5 @@
 
   <Config Name="Tomcat Base Dir" Target="SERVER_TOMCAT_BASEDIR" Default="/data" Mode="" Description="Tomcat working directory, kept on the persistent volume." Type="Variable" Display="hidden" Required="false" Mask="false">/data</Config>
 
-  <Config Name="Static Resource Locations" Target="SPRING_RESOURCES_STATIC_LOCATIONS" Default="classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input" Mode="" Description="Extra static resource locations so media under /data can be served over HTTP." Type="Variable" Display="hidden" Required="false" Mask="false">classpath:/static/,file:/data,file:/data/roms,file:/data/output,file:/data/input</Config>
+  <Config Name="Static Resource Locations" Target="SPRING_RESOURCES_STATIC_LOCATIONS" Default="classpath:/static/,file:/data,file:/data/roms,file:/data/roms2,file:/data/roms3,file:/data/output,file:/data/input" Mode="" Description="Extra static resource locations so media under /data can be served over HTTP." Type="Variable" Display="hidden" Required="false" Mask="false">classpath:/static/,file:/data,file:/data/roms,file:/data/roms2,file:/data/roms3,file:/data/output,file:/data/input</Config>
 </Container>
