@@ -2,15 +2,21 @@
 
 ## [Unreleased]
 
-## [1.3.1] - 2026-10-22
+## [1.3.7] - 2026-10-25
 
-> Patch release on top of 1.3.0. Headline fix: **batch scraping under "Apply to all search results" silently matched 0 games**.
+> Patch release merging 1.3.1 fixes with critical media download architecture fixes. Headline: **media download tasks were written to the wrong database table, causing the UI to show 0 progress despite tasks completing in the background**.
 
 ### Fixed
 - **Batch scrape under "Apply to all search results" produced no work** — the game-list page sends a nested `filters` object (the same contract every other batch endpoint already reads), but the scrape backend (`ScraperRequest` / `ScraperServiceImpl`) only inspected flat fields, so `hasFilters()` was always false and the batch branch resolved to an empty game list ("no games to scrape"). `ScraperRequest` now accepts the nested `filters` and flattens it (empty arrays/blanks normalized to null to avoid an empty `IN ()` returning 0 rows), and the batch branch now falls back to the **whole platform** when apply-to-all is selected with no filter conditions.
+- **Media download tasks written to wrong database table** — `enqueueMediaTasksFromGameInfo()` created `ScrapeTask` objects inserted into `scrape_task` table, but the `platform-progress` API queried `media_download_task` table for media stats, so media completed/pending/failed counts always showed 0. Fixed to create `MediaDownloadTask` objects inserted via `mediaDownloadTaskMapper.insertBatch()` into `media_download_task` table.
+- **ScrapeWorkerPool unable to dispatch media tasks from `media_download_task`** — The worker pool's listener thread only polled `scrape_task` table, so new media tasks in `media_download_task` were invisible and never dispatched. Added a second listener thread (`media-download-listener`) that picks PENDING tasks from `media_download_task` with optimistic locking (PENDING → DOWNLOADING), processes via `ScraperService.executeMediaDownloadTask(MediaDownloadTask)`, and updates status (COMPLETED/FAILED) in `media_download_task`. Both listeners share the same `workerPool` with automatic slot coordination.
+- **SS quota (maxThreads) not synced to ScrapeStatus for UI display** — `getUserMaxThreads()` fetched the correct value from SS API but only stored it in `cachedMaxThreads` (ScraperServiceImpl field), not syncing to `ScrapeStatus`. Since `platform-progress` API reads `ScrapeStatus.getMaxThreads()`, the UI showed the hardcoded default (4) instead of the actual quota (6). Fixed by calling `scrapeStatus.updateQuotaFromSsuser(ssuserNode)` in `getUserMaxThreads()` after parsing the response.
+- **Failed task modal trigger missing after media-download page rewrite** — The `showFailedTasks()` function existed in JS but no UI element called it after the Thymeleaf template rewrite. Made failed count numbers clickable links (`<a>` tags with `onclick="showFailedTasks('GAME_INFO')"` / `showFailedTasks('MEDIA_DOWNLOAD')`) and added `.md-fail-link` CSS styling (dashed underline, hover glow effect).
 
 ### Added
 - **Full-system filename matching** — `rom_db` now stores the real ROM filename from the DAT (`rom_file`, plus a normalized, indexed `rom_file_norm`), captured for every system (not just arcade) during DAT import. `filename_exact` matching resolves against `rom_file_norm`; content-level hits (crc/serial) stay confirmed (🟢) while name-level hits are flagged suspect (🟡) so they never masquerade as verified matches.
+- **Dual-listener architecture in ScrapeWorkerPool** — `scrape-listener` continues handling `scrape_task` (GAME_INFO + legacy MEDIA_DOWNLOAD), while `media-download-listener` exclusively handles `media_download_task`. Both share the same `ThreadPoolExecutor` with backpressure via `availableSlots` calculation.
+- **MediaDownloadTaskMapper optimistic lock methods** — `pickNextPendingMediaTasks(limit)` and `tryClaimMediaTask(id)` for safe concurrent task claiming from `media_download_task` table.
 
 ## [1.3.0] - 2026-10-17
 

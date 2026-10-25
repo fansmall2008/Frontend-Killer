@@ -6,6 +6,16 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
+## What's New in 1.3.7
+
+- **Media Download Architecture Fix** - Media tasks are now correctly written to and read from the `media_download_task` table, fixing the bug where the UI showed 0 progress despite tasks completing in the background
+- **Dual-Listener Worker Pool** - Added a dedicated `media-download-listener` thread that picks tasks from `media_download_task` with optimistic locking, sharing the same worker pool with automatic slot coordination
+- **SS Quota Sync** - ScreenScraper maxThreads quota is now correctly synced to the UI, showing the actual thread count (e.g. 6) instead of the hardcoded default (4)
+- **Failed Task Modal Restored** - Clicking failed counts on the media-download page now opens the failed tasks modal again
+- **Batch Scrape Filter Fix** - "Apply to all search results" now correctly passes nested filter objects to the scrape backend
+
+---
+
 ## What's New in 1.3.0
 
 - **Fast Local Matching** - Identify ROMs offline against a local `rom_db` before ever calling ScreenScraper. Whitelisted systems take the millisecond-level serial / cartridge-header path; everything else falls back to whole-file CRC32. Match local game data without scraping, or auto-carry the authoritative CRC/serial into scraping for a higher hit rate and fewer wasted API calls
