@@ -8,6 +8,10 @@
 
 ## What's New in 1.3.7
 
+> **Early Access Release** — This version is a preview / early access build. The new Toolbox features may contain bugs. If you encounter any issues, please report them on [GitHub Issues](https://github.com/fansmall2008/Frontend-Killer/issues).
+
+- **Toolbox** - New `/tools` page with three offline utilities: a batch translation tool (game name / description and `rom_db` name into 10 target languages, with pluggable OpenAI-compatible engines), a DAT generator (export `rom_db` or the game list as ClrMamePro DAT, optionally feeding it straight back), and ROM variants
+- **ROM Variants** - Generate per-system copies (bare / ZIP / 7z / ISO / CSO / CHD) once and reuse them from the export page, which offers a per-system format selector. Pure-Java ECM and CSO codecs, `chdman` for CHD (cue+bin, GDI, NRG, TOC), `ffmpeg` for APE/FLAC audio. A planner picks the shortest chain, and missing / failed / stale copies fall back to the main file
 - **Media Download Architecture Fix** - Media tasks are now correctly written to and read from the `media_download_task` table, fixing the bug where the UI showed 0 progress despite tasks completing in the background
 - **Dual-Listener Worker Pool** - Added a dedicated `media-download-listener` thread that picks tasks from `media_download_task` with optimistic locking, sharing the same worker pool with automatic slot coordination
 - **SS Quota Sync** - ScreenScraper maxThreads quota is now correctly synced to the UI, showing the actual thread count (e.g. 6) instead of the hardcoded default (4)
