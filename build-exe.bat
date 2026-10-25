@@ -83,6 +83,20 @@ if exist "%PROJECT_DIR%rules" (
     xcopy "%PROJECT_DIR%rules\*" "%EXE_DIR%\%APP_NAME%\rules\" /E /I /Y >nul
 )
 
+rem Copy documentation
+if exist "%PROJECT_DIR%docs" (
+    xcopy "%PROJECT_DIR%docs\*" "%EXE_DIR%\%APP_NAME%\docs\" /E /I /Y >nul
+)
+
+rem Create empty logs directory
+if not exist "%EXE_DIR%\%APP_NAME%\logs" mkdir "%EXE_DIR%\%APP_NAME%\logs"
+
+rem Copy README, CHANGELOG, INSTALL files
+if exist "%PROJECT_DIR%README.md" copy "%PROJECT_DIR%README.md" "%EXE_DIR%\%APP_NAME%\" /Y >nul
+if exist "%PROJECT_DIR%CHANGELOG.md" copy "%PROJECT_DIR%CHANGELOG.md" "%EXE_DIR%\%APP_NAME%\" /Y >nul
+if exist "%PROJECT_DIR%distribution\INSTALL.md" copy "%PROJECT_DIR%distribution\INSTALL.md" "%EXE_DIR%\%APP_NAME%\" /Y >nul
+if exist "%PROJECT_DIR%distribution\INSTALL_zh.md" copy "%PROJECT_DIR%distribution\INSTALL_zh.md" "%EXE_DIR%\%APP_NAME%\" /Y >nul
+
 echo.
 echo [5/5] Creating launcher script...
 rem Create a start script — cd into Frontend-Killer/ so ./data resolves correctly

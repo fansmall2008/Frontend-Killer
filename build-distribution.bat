@@ -87,6 +87,15 @@ if exist "%PROJECT_DIR%\distribution\entrypoint.sh" (
     copy "%PROJECT_DIR%\distribution\entrypoint.sh" "%DISTRIBUTION_DIR%" /Y
 )
 
+rem 创建用户规则目录（发行包中为空，用户可自行添加）
+echo 创建用户规则目录...
+if not exist "%DISTRIBUTION_DIR%\rules\export" mkdir "%DISTRIBUTION_DIR%\rules\export"
+if not exist "%DISTRIBUTION_DIR%\rules\import" mkdir "%DISTRIBUTION_DIR%\rules\import"
+
+rem 创建空的日志目录
+echo 创建日志目录...
+if not exist "%DISTRIBUTION_DIR%\logs" mkdir "%DISTRIBUTION_DIR%\logs"
+
 echo 构建完成！发行包已准备在 %DISTRIBUTION_DIR% 目录
 
 echo 发行包内容:
