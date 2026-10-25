@@ -70,13 +70,21 @@ if %ERRORLEVEL% neq 0 (
 
 echo.
 echo [4/5] Copying data and rules...
-rem Copy default data directory (exclude scraper cache to keep package small)
+rem Copy default data directory (exclude scraper cache, rom-db user data, and variants to keep package small)
 if exist "%PROJECT_DIR%data\database" (
     xcopy "%PROJECT_DIR%data\database\*" "%EXE_DIR%\%APP_NAME%\data\database\" /E /I /Y >nul
 )
 if exist "%PROJECT_DIR%data\rules" (
     xcopy "%PROJECT_DIR%data\rules\*" "%EXE_DIR%\%APP_NAME%\data\rules\" /E /I /Y >nul
 )
+if exist "%PROJECT_DIR%data\themes" (
+    xcopy "%PROJECT_DIR%data\themes\*" "%EXE_DIR%\%APP_NAME%\data\themes\" /E /I /Y >nul
+)
+rem rom-db: only create empty directory structure, user imports DAT/RDB themselves
+if not exist "%EXE_DIR%\%APP_NAME%\data\rom-db\metadat" mkdir "%EXE_DIR%\%APP_NAME%\data\rom-db\metadat"
+if not exist "%EXE_DIR%\%APP_NAME%\data\rom-db\rdb" mkdir "%EXE_DIR%\%APP_NAME%\data\rom-db\rdb"
+if not exist "%EXE_DIR%\%APP_NAME%\data\input" mkdir "%EXE_DIR%\%APP_NAME%\data\input"
+if not exist "%EXE_DIR%\%APP_NAME%\data\work" mkdir "%EXE_DIR%\%APP_NAME%\data\work"
 
 rem Copy user rules (if exists)
 if exist "%PROJECT_DIR%rules" (

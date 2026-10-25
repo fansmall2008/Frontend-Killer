@@ -37,13 +37,16 @@ rem 拷贝jar文件
 echo 拷贝jar文件...
 copy "%TARGET_DIR%\webGamelistOper-1.3.7.jar" "%DISTRIBUTION_DIR%\webGamelistOper-1.3.7.jar" /Y
 
-rem 拷贝data目录内容
+rem 拷贝data目录（排除 scraper 缓存、rom-db 用户数据和 variants 运行时数据）
 echo 拷贝data目录内容...
-if exist "%PROJECT_DIR%\data" (
-    xcopy "%PROJECT_DIR%\data\*" "%DATA_DIR%" /E /I /Y
-) else (
-    echo 注意: 项目根目录下的data目录不存在，将使用distribution目录下的data
-)
+if exist "%PROJECT_DIR%\data\database" xcopy "%PROJECT_DIR%\data\database\*" "%DATA_DIR%\database\" /E /I /Y >nul
+if exist "%PROJECT_DIR%\data\rules" xcopy "%PROJECT_DIR%\data\rules\*" "%DATA_DIR%\rules\" /E /I /Y >nul
+if exist "%PROJECT_DIR%\data\themes" xcopy "%PROJECT_DIR%\data\themes\*" "%DATA_DIR%\themes\" /E /I /Y >nul
+rem rom-db 只创建空目录结构，用户自行导入 DAT/RDB
+if not exist "%DATA_DIR%\rom-db\metadat" mkdir "%DATA_DIR%\rom-db\metadat"
+if not exist "%DATA_DIR%\rom-db\rdb" mkdir "%DATA_DIR%\rom-db\rdb"
+if not exist "%DATA_DIR%\input" mkdir "%DATA_DIR%\input"
+if not exist "%DATA_DIR%\work" mkdir "%DATA_DIR%\work"
 
 rem 拷贝rules目录内容
 echo 拷贝rules目录内容...
