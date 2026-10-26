@@ -31,7 +31,7 @@ RUN apt-get update \
 WORKDIR /app
 
 # Copy the built JAR file
-COPY --from=builder /build/target/webGamelistOper-1.3.7.jar app.jar
+COPY --from=builder /build/target/webGamelistOper-1.3.8.jar app.jar
 
 # Copy default rules (from rules/ directory, which contains all v2+v3 templates)
 COPY rules/export/ /app/default-rules/export/
