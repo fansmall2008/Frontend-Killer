@@ -1,18 +1,14 @@
 package com.gamelist.service.impl;
 
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,11 +18,9 @@ import com.gamelist.model.ScraperSystem;
 import com.gamelist.service.ScreenScraperApiService;
 import com.gamelist.util.ScreenScraperStatusHandler;
 
-import okhttp3.ConnectionSpec;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.TlsVersion;
 
 @Service
 public class ScreenScraperApiServiceImpl implements ScreenScraperApiService {
@@ -37,71 +31,11 @@ public class ScreenScraperApiServiceImpl implements ScreenScraperApiService {
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     
-    public ScreenScraperApiServiceImpl(ScreenScraperConfig scraperConfig) {
+    public ScreenScraperApiServiceImpl(ScreenScraperConfig scraperConfig, 
+                                       @Qualifier("sharedOkHttpClient") OkHttpClient httpClient) {
         this.scraperConfig = scraperConfig;
-        this.httpClient = createOkHttpClient();
+        this.httpClient = httpClient;
         this.objectMapper = new ObjectMapper();
-    }
-    
-    private OkHttpClient createOkHttpClient() {
-        System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2,TLSv1.3");
-        System.setProperty("jdk.tls.client.protocols", "TLSv1,TLSv1.1,TLSv1.2,TLSv1.3");
-        System.setProperty("jdk.tls.ephemeralDHKeySize", "2048");
-        
-        try {
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, new SecureRandom());
-            
-            logger.info("SSL Context initialized with protocol: {}", sslContext.getProtocol());
-            
-            ConnectionSpec modernSpec = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
-                    .tlsVersions(TlsVersion.TLS_1_3, TlsVersion.TLS_1_2)
-                    .allEnabledCipherSuites()
-                    .build();
-            
-            ConnectionSpec compatibleSpec = new ConnectionSpec.Builder(ConnectionSpec.COMPATIBLE_TLS)
-                    .tlsVersions(TlsVersion.TLS_1_2, TlsVersion.TLS_1_1, TlsVersion.TLS_1_0)
-                    .allEnabledCipherSuites()
-                    .build();
-            
-            return new OkHttpClient.Builder()
-                    .sslSocketFactory(sslContext.getSocketFactory(), new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[0]; }
-                    })
-                    .hostnameVerifier((hostname, session) -> true)
-                    .connectionSpecs(java.util.Arrays.asList(modernSpec, compatibleSpec, ConnectionSpec.CLEARTEXT))
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(120, TimeUnit.SECONDS)
-                    .writeTimeout(60, TimeUnit.SECONDS)
-                    .followRedirects(true)
-                    .followSslRedirects(true)
-                    .retryOnConnectionFailure(true)
-                    .connectionPool(new okhttp3.ConnectionPool(5, 5, TimeUnit.MINUTES))
-                    .eventListener(new okhttp3.EventListener() {
-                        @Override
-                        public void secureConnectStart(okhttp3.Call call) {
-                            logger.debug("SSL handshake starting...");
-                        }
-                        @Override
-                        public void secureConnectEnd(okhttp3.Call call, okhttp3.Handshake handshake) {
-                            logger.info("SSL handshake completed with TLS version: {}", handshake != null ? handshake.tlsVersion() : "N/A");
-                        }
-                    })
-                    .build();
-        } catch (Exception e) {
-            logger.warn("Failed to create custom SSL context: {}, using default", e.getMessage());
-            return new OkHttpClient.Builder()
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(120, TimeUnit.SECONDS)
-                    .writeTimeout(60, TimeUnit.SECONDS)
-                    .retryOnConnectionFailure(true)
-                    .build();
-        }
     }
     
     @Override

@@ -92,4 +92,11 @@ public interface MediaDownloadTaskMapper {
      * @return 1=成功, 0=已被其他线程认领
      */
     int tryClaimMediaTask(@Param("id") Long id);
+    
+    /**
+     * 将指定游戏的 FAILED 状态且 download_url 非空的媒体任务重置为 PENDING。
+     * 用于复用已存储的 SS 媒体 URL，避免重新调用 jeuInfos API。
+     * @return 重置的任务数量
+     */
+    int resetFailedTasksToPending(@Param("gameId") Long gameId);
 }

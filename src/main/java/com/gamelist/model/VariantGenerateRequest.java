@@ -3,7 +3,7 @@ package com.gamelist.model;
 import java.util.List;
 
 /**
- * 生成 ROM 副本的请求体。
+ * 生成 ROM 版本的请求体。
  */
 public class VariantGenerateRequest {
     /** bare / zip / 7z；为空表示该系统支持的全部格式 */

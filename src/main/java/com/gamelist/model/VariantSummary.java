@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 游戏列表第四标志所需的副本摘要。
+ * 游戏列表第四标志所需的版本摘要。
  */
 public class VariantSummary {
     private int readyCount;

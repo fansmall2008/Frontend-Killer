@@ -124,8 +124,8 @@
                     </div>
                     <div class="tool-card" id="cardVariant" onclick="openTool('variant')">
                         <div class="tool-icon">📚</div>
-                        <div class="tool-name">ROM 副本</div>
-                        <div class="tool-desc">按系统能力生成裸 ROM / ZIP / 7z / ISO / CSO 副本，供导出时按格式选择；副本与主文件独立存储。</div>
+                        <div class="tool-name">ROM 版本</div>
+                        <div class="tool-desc">按系统能力生成原始文件 / ZIP / 7z / ISO / CSO 版本，供导出时按格式选择；版本与主文件独立存储。</div>
                     </div>
                 </div>
 
@@ -315,7 +315,7 @@
                     </div>
                 </div>
 
-                <!-- ROM 副本面板 -->
+                <!-- ROM 版本面板 -->
                 <div class="tool-panel" id="panelVariant" style="display:none;">
                     <div class="sub-tabs">
                         <div class="sub-tab active" id="varTabMatrix" onclick="switchVariantTab('matrix')">能力矩阵</div>
@@ -329,8 +329,8 @@
                     <div id="varSubMatrix">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <div>
-                            <h3 style="margin:0;">系统副本能力矩阵</h3>
-                            <span class="hint">只展示已纳入副本机制的系统；勾选表示允许导出该格式的副本，CSO/ISO 由流水线转换。</span>
+                            <h3 style="margin:0;">系统版本能力矩阵</h3>
+                            <span class="hint">只展示已纳入版本机制的系统；勾选表示允许导出该格式的版本，CSO/ISO 由流水线转换。</span>
                         </div>
                         <button class="btn btn-secondary" onclick="initVariantPanel()" data-i18n="btn_refresh">刷新</button>
                     </div>
@@ -350,8 +350,8 @@
 
                     <!-- 批量生成 -->
                     <div id="varSubGen" style="display:none;">
-                    <h3>批量生成副本</h3>
-                    <span class="hint">为所选平台的游戏生成副本文件，在后台任务中执行；副本未生成或过期时导出会自动回退主文件。</span>
+                    <h3>批量生成版本</h3>
+                    <span class="hint">为所选平台的游戏生成版本文件，在后台任务中执行；版本未生成或过期时导出会自动回退主文件。</span>
                     <div class="form-row" style="margin-top:12px;">
                         <div class="form-field">
                             <label>平台</label>
@@ -997,7 +997,7 @@
             try { await fetch('/api/tools/dat/stop/' + datTaskId, { method: 'POST' }); } catch (e) {}
         }
 
-        // ====== ROM 副本 ======
+        // ====== ROM 版本 ======
         let variantTaskId = null;
         let variantPollTimer = null;
         let variantEligibleSystemIds = null;
@@ -1027,7 +1027,7 @@
             await loadVariantMatrix();
         }
 
-        // 副本面板五个子页：矩阵 / 生成 / 体检 / 产线 / 外部工具，避免一屏抛下所有表格
+        // 版本面板五个子页：矩阵 / 生成 / 体检 / 产线 / 外部工具，避免一屏抛下所有表格
         let variantPipesLoaded = false;
         let externalToolsLoaded = false;
         function switchVariantTab(which) {
@@ -1383,7 +1383,7 @@
                 });
                 const data = await r.json();
                 if (!data.success) throw new Error(data.error || '保存失败');
-                showMsg('已保存副本能力设置', 'success');
+                showMsg('已保存版本能力设置', 'success');
                 loadVariantMatrix();
             } catch (e) {
                 showMsg('保存失败: ' + (e.message || e), 'error');
@@ -1445,7 +1445,7 @@
             const formats = (row && row.formats) || {};
             const ids = VARIANT_FORMAT_DEFS.map(f => f.id).filter(id => formats[id] !== undefined);
             if (!ids.length) {
-                wrap.innerHTML = '<span class="hint">所选平台没有可生成的副本格式</span>';
+                wrap.innerHTML = '<span class="hint">所选平台没有可生成的版本格式</span>';
                 return;
             }
             wrap.innerHTML = ids.map(id =>
@@ -1463,7 +1463,7 @@
             const platformId = document.getElementById('variantPlatformSelect').value;
             if (!platformId) { showMsg('请选择平台', 'error'); return; }
             const formats = Array.from(document.querySelectorAll('.variant-gen-format:checked')).map(cb => cb.value);
-            if (!formats.length) { showMsg('请至少选择一种副本格式', 'error'); return; }
+            if (!formats.length) { showMsg('请至少选择一种版本格式', 'error'); return; }
             const force = document.getElementById('variantForceRebuild').checked;
             const btn = document.getElementById('variantGenBtn');
             btn.disabled = true;
@@ -1480,7 +1480,7 @@
                 const data = await r.json();
                 if (!data.success || !data.taskId) throw new Error(data.error || '提交失败');
                 variantTaskId = data.taskId;
-                showMsg('副本生成任务已启动，可在任务管理查看进度', 'success');
+                showMsg('版本生成任务已启动，可在任务管理查看进度', 'success');
                 pollVariantProgress();
             } catch (e) {
                 btn.disabled = false;
@@ -1530,10 +1530,10 @@
             if (variantPollTimer) { clearTimeout(variantPollTimer); variantPollTimer = null; }
             if (task.status === 'COMPLETED') {
                 document.getElementById('variantProgressFill').style.width = '100%';
-                showMsg(task.message || '副本生成完成', 'success');
+                showMsg(task.message || '版本生成完成', 'success');
                 loadVariantMatrix();
             } else {
-                showMsg('副本生成失败: ' + (task.errorMessage || task.message || task.status), 'error');
+                showMsg('版本生成失败: ' + (task.errorMessage || task.message || task.status), 'error');
             }
         }
     </script>

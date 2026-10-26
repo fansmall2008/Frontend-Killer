@@ -17,7 +17,7 @@ public class ExportRequest {
     private Map<String, String> templateVariables;
     // 可选：导出时按此语种从 field_translation 回填 translatedName/translatedDesc（空=不注入，用原文）
     private String translationLang;
-    // 按系统选择副本格式：key=systemId, value=bare/zip/7z/original；未提供时用系统偏好
+    // 按系统选择版本格式：key=systemId, value=bare/zip/7z/original；未提供时用系统偏好
     private Map<String, String> systemVariantFormats;
 
     public Long getPlatformId() {

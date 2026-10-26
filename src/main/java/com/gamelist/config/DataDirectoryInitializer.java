@@ -93,7 +93,7 @@ public class DataDirectoryInitializer implements ApplicationListener<Application
             File variantsDir = new File("./data/variants");
             if (!variantsDir.exists()) {
                 variantsDir.mkdirs();
-                logger.info("副本库目录创建成功: {}", variantsDir.getAbsolutePath());
+                logger.info("版本库目录创建成功: {}", variantsDir.getAbsolutePath());
             }
 
             logger.info("========== 数据目录初始化完成 ==========");

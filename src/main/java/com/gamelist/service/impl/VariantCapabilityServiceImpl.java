@@ -104,7 +104,7 @@ public class VariantCapabilityServiceImpl implements VariantCapabilityService {
             }
         }
 
-        logger.info("副本能力矩阵刷新完成: 合格系统 {} 个", eligibleIds.size());
+        logger.info("版本能力矩阵刷新完成: 合格系统 {} 个", eligibleIds.size());
     }
 
     @Override
@@ -155,7 +155,7 @@ public class VariantCapabilityServiceImpl implements VariantCapabilityService {
      * 通用格式（bare/zip/7z）是否对该系统开放。
      * <p>
      * 除了旧的类型规则，格式表里显式点名过的系统（如 PS1/PSP）也算合格；
-     * 否则 romType=iso 的光盘系统会把裸 ROM/ZIP 一并挡掉。
+     * 否则 romType=iso 的光盘系统会把原始文件/ZIP 一并挡掉。
      */
     private boolean genericEligible(ScraperSystem system, CapabilityRules rules) {
         if (system == null || system.getSystemId() == null) {
@@ -280,7 +280,7 @@ public class VariantCapabilityServiceImpl implements VariantCapabilityService {
         if (!supported && normalized.equals(getPreferredFormat(systemId))) {
             savePreference(systemId, FORMAT_ORIGINAL);
         }
-        logger.info("副本能力手动更新: systemId={}, format={}, supported={}", systemId, normalized, supported);
+        logger.info("版本能力手动更新: systemId={}, format={}, supported={}", systemId, normalized, supported);
     }
 
     /** 当前系统适用的格式及其开关状态（只包含适用格式，不拿全局格式往所有系统上套） */
@@ -351,7 +351,7 @@ public class VariantCapabilityServiceImpl implements VariantCapabilityService {
         CapabilityRules rules = CapabilityRules.defaults();
         ClassPathResource resource = new ClassPathResource(RULES_PATH);
         if (!resource.exists()) {
-            logger.warn("副本能力规则不存在，使用内置默认值: {}", RULES_PATH);
+            logger.warn("版本能力规则不存在，使用内置默认值: {}", RULES_PATH);
             return rules;
         }
         try (InputStream in = resource.getInputStream()) {
@@ -360,7 +360,7 @@ public class VariantCapabilityServiceImpl implements VariantCapabilityService {
             rules.excludeRomTypes = readStringSet(root, "excludeRomTypes", rules.excludeRomTypes);
             rules.eligibleExtensions = readStringSet(root, "eligibleExtensions", rules.eligibleExtensions);
         } catch (Exception e) {
-            logger.warn("读取副本能力规则失败，使用内置默认值: {}", e.getMessage());
+            logger.warn("读取版本能力规则失败，使用内置默认值: {}", e.getMessage());
         }
         return rules;
     }

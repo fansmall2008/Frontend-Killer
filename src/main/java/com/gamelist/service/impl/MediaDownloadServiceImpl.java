@@ -10,16 +10,19 @@ import com.gamelist.service.ThreadResourceManager;
 import com.gamelist.util.RateLimitCounter;
 import com.gamelist.util.ScreenScraperStatusHandler;
 import com.gamelist.util.EncryptionUtil;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,12 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
 
     @Autowired
     private NotificationService notificationService;
+
+    private final OkHttpClient httpClient;
+
+    public MediaDownloadServiceImpl(@Qualifier("sharedOkHttpClient") OkHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final AtomicBoolean isPaused = new AtomicBoolean(false);
@@ -346,43 +355,44 @@ public class MediaDownloadServiceImpl implements MediaDownloadService {
     }
 
     /**
-     * 下载媒体文件，带状态码处理
+     * 下载媒体文件，带状态码处理（使用 OkHttp）
      */
     private Map<String, Object> downloadMediaFileWithStatus(String urlStr, String localPath) {
         try {
             // 解密URL
             String decryptedUrl = EncryptionUtil.decrypt(urlStr);
             String authenticatedUrl = addAuthenticationParams(decryptedUrl);
-            URL url = new URL(authenticatedUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(60000);
-
-            int statusCode = connection.getResponseCode();
+            
             logger.debug("正在下载媒体文件 - URL: {}, 本地路径: {}", maskSensitiveParams(authenticatedUrl), localPath);
-
-            if (statusCode == 200) {
-                // 确保父目录存在
-                java.nio.file.Path filePath = java.nio.file.Paths.get(localPath);
-                java.nio.file.Files.createDirectories(filePath.getParent());
+            
+            Request request = new Request.Builder()
+                    .url(authenticatedUrl)
+                    .get()
+                    .build();
+            
+            try (Response response = httpClient.newCall(request).execute()) {
+                int statusCode = response.code();
                 
-                try (InputStream inputStream = connection.getInputStream();
-                     FileOutputStream outputStream = new FileOutputStream(localPath)) {
-
-                    byte[] buffer = new byte[65536]; // 64KB 缓冲区，提升大文件下载吞吐量
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, bytesRead);
+                if (response.isSuccessful() && response.body() != null) {
+                    // 确保父目录存在
+                    java.nio.file.Path filePath = java.nio.file.Paths.get(localPath);
+                    java.nio.file.Files.createDirectories(filePath.getParent());
+                    
+                    try (InputStream inputStream = response.body().byteStream();
+                         FileOutputStream outputStream = new FileOutputStream(localPath)) {
+                        
+                        byte[] buffer = new byte[65536]; // 64KB 缓冲区，提升大文件下载吞吐量
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
                     }
+                    return Map.of("success", true, "statusCode", 200, "message", "下载成功");
+                } else {
+                    // 处理非200状态码
+                    String errorMessage = ScreenScraperStatusHandler.getStatusInfo(statusCode).getDescription();
+                    return Map.of("success", false, "statusCode", statusCode, "message", errorMessage);
                 }
-                connection.disconnect();
-                return Map.of("success", true, "statusCode", 200, "message", "下载成功");
-            } else {
-                // 处理非200状态码
-                String errorMessage = ScreenScraperStatusHandler.getStatusInfo(statusCode).getDescription();
-                connection.disconnect();
-                return Map.of("success", false, "statusCode", statusCode, "message", errorMessage);
             }
         } catch (Exception e) {
             return Map.of("success", false, "statusCode", -1, "message", e.getMessage());

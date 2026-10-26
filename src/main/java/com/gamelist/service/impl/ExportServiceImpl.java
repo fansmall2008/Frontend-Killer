@@ -296,7 +296,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     /**
-     * 记住本次按系统选择的副本格式，下次导出弹窗自动回填。
+     * 记住本次按系统选择的版本格式，下次导出弹窗自动回填。
      */
     private void rememberVariantPreference(Platform platform, ExportRequest request) {
         if (platform == null || platform.getSystemId() == null || request == null) {
@@ -316,7 +316,7 @@ public class ExportServiceImpl implements ExportService {
         try {
             variantCapabilityService.savePreference(platform.getSystemId(), selected);
         } catch (Exception e) {
-            logger.warn("保存副本格式偏好失败: systemId={}, format={}, error={}",
+            logger.warn("保存版本格式偏好失败: systemId={}, format={}, error={}",
                     platform.getSystemId(), selected, e.getMessage());
         }
     }

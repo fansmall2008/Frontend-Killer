@@ -17,11 +17,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * 格式表：副本的“展示与可用范围”定义。
+ * 格式表：版本的“展示与可用范围”定义。
  * <p>
  * 两类格式：
  * <ul>
- *   <li>{@code generic=true}：沿用系统类型/扩展名规则（裸 ROM、ZIP、7z）</li>
+ *   <li>{@code generic=true}：沿用系统类型/扩展名规则（原始文件、ZIP、7z）</li>
  *   <li>带 {@code scope}：只在声明过的系统或扩展名上出现（ISO、CSO）</li>
  * </ul>
  * 这样开 CSO 不会连带把几十个光盘系统暴露出来；给新系统开格式只改 JSON。
@@ -109,7 +109,7 @@ public class FormatRegistry {
     /**
      * 格式表里被显式点名的系统（有 scope 声明）。
      * <p>
-     * 这些系统已明确纳入副本机制，通用的 bare/zip/7z 不应再被类型规则（如 romType=iso）挡在外面。
+     * 这些系统已明确纳入版本机制，通用的 bare/zip/7z 不应再被类型规则（如 romType=iso）挡在外面。
      */
     public Set<Integer> declaredSystemIds() {
         Set<Integer> ids = new LinkedHashSet<>();
@@ -154,7 +154,7 @@ public class FormatRegistry {
         ClassPathResource resource = new ClassPathResource(PATH);
         if (!resource.exists()) {
             logger.warn("格式表不存在，使用内置兜底: {}", PATH);
-            formats.add(new Format("bare", "裸 ROM", 10, "rom", true, true, null));
+            formats.add(new Format("bare", "原始文件（解压后）", 10, "rom", true, true, null));
             formats.add(new Format("zip", "ZIP", 20, "zip", true, true, null));
             formats.add(new Format("7z", "7z", 30, "7z", true, true, null));
             return List.copyOf(formats);
@@ -204,7 +204,7 @@ public class FormatRegistry {
             logger.warn("读取格式表失败: {}", e.getMessage());
         }
         if (formats.isEmpty()) {
-            formats.add(new Format("bare", "裸 ROM", 10, "rom", true, true, null));
+            formats.add(new Format("bare", "原始文件（解压后）", 10, "rom", true, true, null));
             formats.add(new Format("zip", "ZIP", 20, "zip", true, true, null));
             formats.add(new Format("7z", "7z", 30, "7z", true, true, null));
         }

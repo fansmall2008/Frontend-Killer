@@ -217,4 +217,12 @@
         WHERE id = #{id} AND status = 'PENDING'
     </update>
 
+    <!-- 将指定游戏的 FAILED 且 download_url 非空的任务重置为 PENDING（复用已存储 URL） -->
+    <update id="resetFailedTasksToPending">
+        UPDATE media_download_task 
+        SET status = 'PENDING', updated_at = CURRENT_TIMESTAMP 
+        WHERE game_id = #{gameId} AND status = 'FAILED' 
+        AND download_url IS NOT NULL AND download_url != ''
+    </update>
+
 </mapper>

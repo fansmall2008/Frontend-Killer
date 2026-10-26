@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,14 +55,13 @@ public class GameManifestService {
     @Autowired
     private ScraperSettingsService scraperSettingsService;
 
-    private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
-            .build();
+    private final OkHttpClient httpClient;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public GameManifestService(@Qualifier("sharedOkHttpClient") OkHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     /**
      * 是否已缓存该 SS 游戏的 manifest（仅判断 DB 行存在，不解析）。

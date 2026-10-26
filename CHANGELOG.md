@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [1.3.8] - 2026-10-26
+
+> 版本机制重构 + ScreenScraper 刮削性能优化三项（统一连接池 / manifest 缓存全覆盖 / FAILED 任务 URL 复用）。
+
+### 版本机制重构
+- **术语统一**："副本" 更名为 "版本"（UI 文案、日志、注释）；"裸 ROM" 更名为 "原始文件"（formats.json label、UI 显示）
+- **运行时 version 属性**：游戏新增 `game.version`，从文件路径扩展名自动获取（如 `.nes` → `nes`、`.iso` → `iso`），不入库
+- **导入自动识别**：导入时自动识别文件格式版本，无需手动指定
+- `Game.java` 新增 `getVersion()` 瞬态方法；`formats.json` bare 格式 label 改为 "原始文件（解压后）"，id 保持 `bare` 不变
+- 转换管线（bare/zip/7z/iso/cso/chd）逻辑完全不变；数据库表名和 Java 类名保持不变
+
+### ScreenScraper 刮削优化
+- **P0 — 统一 OkHttpClient 连接池**：新建 `OkHttpClientConfig.java` 共享 Bean（ConnectionPool 20/5min），`ScreenScraperApiServiceImpl`、`ScraperServiceImpl`、`GameManifestService`、`MediaDownloadServiceImpl` 全部改为注入共享客户端；媒体下载从 `HttpURLConnection` 迁移到 OkHttp，复用 TCP 连接节省 TLS 握手开销
+- **P1 — manifest 缓存全覆盖**：`storeManifest()` 触发条件从"手动刮削+街机"简化为"所有刮削成功的游戏"（`ssGameId != null` 即缓存），后续刮削直接复用缓存 manifest，0 次 SS API 调用
+- **P2 — FAILED 任务 URL 复用**：新增 `resetFailedTasksToPending()` 方法，重试时复用已存储的加密下载 URL，避免重新调用 jeuInfos 浪费配额
+
 ## [1.3.7] - 2026-10-25
 
 > Patch release merging 1.3.1 fixes with critical media download architecture fixes, plus a brand-new **Toolbox** (translation / DAT generator / ROM variants). Headline: **media download tasks were written to the wrong database table, causing the UI to show 0 progress despite tasks completing in the background**.

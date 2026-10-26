@@ -33,13 +33,13 @@ import org.slf4j.LoggerFactory;
 import org.tukaani.xz.LZMA2Options;
 
 /**
- * zip / 7z 单文件读写工具，供 ROM 副本生成使用。
+ * zip / 7z 单文件读写工具，供 ROM 版本生成使用。
  * <p>
  * 设计约束：
  * <ul>
  *   <li>纯 Java 实现，不调用外部 7z 进程；</li>
  *   <li>加密包、分卷包、PPMd 等模拟器无法直接加载的形态一律拒绝；</li>
- *   <li>所有写入都先落临时文件，再原子移动，避免生成半截副本；</li>
+ *   <li>所有写入都先落临时文件，再原子移动，避免生成半截文件；</li>
  *   <li>解压前校验条目路径与大小，防止 zip-slip 与压缩炸弹。</li>
  * </ul>
  */
@@ -364,7 +364,7 @@ public final class ArchiveUtil {
         }
     }
 
-    /** 复制文件（先写临时文件再原子移动），供 original 副本使用 */
+    /** 复制文件（先写临时文件再原子移动），供 original 版本使用 */
     public static void copyFile(Path source, Path target) {
         requireReadable(source);
         Path temp = tempFor(target);
@@ -401,13 +401,13 @@ public final class ArchiveUtil {
     /** 将数据库中的相对路径安全地解析到根目录下 */
     public static Path resolveInside(Path root, String relative) {
         if (relative == null || relative.isBlank()) {
-            throw new ArchiveException(ArchiveException.Reason.UNSAFE_ENTRY, "副本相对路径为空");
+            throw new ArchiveException(ArchiveException.Reason.UNSAFE_ENTRY, "版本相对路径为空");
         }
         Path normalizedRoot = root.toAbsolutePath().normalize();
         Path resolved = normalizedRoot.resolve(relative.replace('\\', '/')).normalize();
         if (!resolved.startsWith(normalizedRoot)) {
             throw new ArchiveException(ArchiveException.Reason.UNSAFE_ENTRY,
-                    "副本路径越界: " + relative);
+                    "版本路径越界: " + relative);
         }
         return resolved;
     }

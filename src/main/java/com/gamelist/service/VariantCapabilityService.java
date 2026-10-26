@@ -6,7 +6,7 @@ import java.util.Map;
 import com.gamelist.model.ScraperSystem;
 
 /**
- * 系统副本能力矩阵。
+ * 系统版本能力矩阵。
  * <p>
  * 能力由 scraper_system 的 type/rom_type/extensions 自动派生，
  * 用户在系统管理页手动调整后 source=manual，初始化器不再覆盖。
@@ -19,7 +19,7 @@ public interface VariantCapabilityService {
     /** 只返回合格系统的矩阵行。 */
     List<Map<String, Object>> getMatrix();
 
-    /** 属性规则判定：该系统是否进入副本体系。 */
+    /** 属性规则判定：该系统是否进入版本体系。 */
     boolean isEligible(ScraperSystem system);
 
     /** 系统是否支持某格式（original 恒为 true）。 */

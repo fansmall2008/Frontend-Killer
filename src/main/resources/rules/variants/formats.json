@@ -1,9 +1,9 @@
 {
-  "_comment": "副本格式表：label 用于界面，order 决定列顺序，generic=true 沿用系统类型/扩展名规则；带 scope 的格式只在声明过的系统（systemIds）或扩展名（extensions）上出现。新增格式只改这里。",
+  "_comment": "版本格式表：label 用于界面，order 决定列顺序，generic=true 沿用系统类型/扩展名规则；带 scope 的格式只在声明过的系统（systemIds）或扩展名（extensions）上出现。新增格式只改这里。",
   "formats": [
     {
       "id": "bare",
-      "label": "裸 ROM",
+      "label": "原始文件（解压后）",
       "order": 10,
       "extension": "rom",
       "generic": true,

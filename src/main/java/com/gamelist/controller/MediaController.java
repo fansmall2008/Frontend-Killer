@@ -163,6 +163,85 @@ public class MediaController {
         }
     }
 
+    /** 列表图标自动优先级链（与前端 autoIconChain 保持一致） */
+    private static final String[] AUTO_ICON_FIELDS = {
+        "box2d", "box3D", "steamgrid", "image", "boxFront", "poster", "ss", "sstitle", "fanart", "wheel"
+    };
+
+    /**
+     * 列表图标解析代理：优先读 game 表的媒体字段路径，缺失时回退到固定缓存目录
+     * ({systemId}/{ssGameId}/{nomcourt}.*) 扫描，使游戏列表图标与编辑页 (/api/media/status) 口径一致。
+     * @param field 具体 Java 字段名（如 box2d）；传 "auto" 或不传则按 AUTO_ICON_FIELDS 依次尝试
+     */
+    @GetMapping("/icon")
+    public ResponseEntity<?> viewIcon(@RequestParam Long gameId,
+                                      @RequestParam(required = false) String field) {
+        try {
+            Game game = gameMapper.selectGameById(gameId);
+            if (game == null) {
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("success", false);
+                resp.put("message", "游戏不存在: " + gameId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resp);
+            }
+            Platform platform = game.getPlatformId() != null ? platformService.getPlatformById(game.getPlatformId()) : null;
+            Integer systemId = platform != null ? platform.getSystemId() : null;
+            Path gameMediaDir = PathResolver.resolveGameMediaDir(game, systemId);
+
+            String[] candidates;
+            if (field == null || field.isEmpty() || "auto".equalsIgnoreCase(field)) {
+                candidates = AUTO_ICON_FIELDS;
+            } else {
+                candidates = new String[] { canonicalizeField(field) };
+            }
+
+            for (String f : candidates) {
+                com.gamelist.model.MediaType mt = com.gamelist.model.MediaType.fromJavaField(f);
+                if (mt == null) continue;
+                // 1) DB 字段路径
+                String val = getGameFieldValue(game, mt);
+                if (val != null && !val.isEmpty()) {
+                    String clean = val.replace("\\", "/");
+                    if (clean.startsWith("./")) clean = clean.substring(2);
+                    Path p = resolveMediaPath(clean, game.getPlatformId(), gameId, game.getPlatformPath());
+                    if (p != null && Files.exists(p)) return serveMediaFile(p);
+                }
+                // 2) 固定缓存目录兜底扫描 {nomcourt}.*
+                Path fromDir = PathResolver.findExistingMedia(gameMediaDir, mt.getNomcourt());
+                if (fromDir != null && Files.exists(fromDir)) return serveMediaFile(fromDir);
+            }
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("success", false);
+            resp.put("message", "无可用图标");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resp);
+        } catch (IOException e) {
+            logger.error("列表图标解析失败 gameId={}: {}", gameId, e.getMessage());
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("success", false);
+            resp.put("message", "读取失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resp);
+        }
+    }
+
+    /** 修正大小写/别名，返回与 MediaType 精确匹配的 Java 字段名（如 box3d -> box3D） */
+    private String canonicalizeField(String field) {
+        if (field == null) return "box2d";
+        if (com.gamelist.model.MediaType.fromJavaField(field) != null) return field;
+        for (com.gamelist.model.MediaType mt : com.gamelist.model.MediaType.values()) {
+            if (mt.getJavaField().equalsIgnoreCase(field)) return mt.getJavaField();
+        }
+        return field;
+    }
+
+    /** 以图片/视频字节流方式返回媒体文件（带 1 天缓存头） */
+    private ResponseEntity<?> serveMediaFile(Path path) throws IOException {
+        MediaType contentType = detectMediaType(path.getFileName().toString());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("max-age=86400, must-revalidate");
+        return ResponseEntity.ok().headers(headers).contentType(contentType)
+                .body(new InputStreamResource(Files.newInputStream(path)));
+    }
+
     /**
      * 按优先级解析媒体路径。
      * <p>

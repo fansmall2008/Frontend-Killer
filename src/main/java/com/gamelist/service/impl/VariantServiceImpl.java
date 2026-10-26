@@ -196,7 +196,7 @@ public class VariantServiceImpl implements VariantService {
         Platform platform = platformId != null ? platformMapper.selectPlatformById(platformId) : null;
         String platformName = platform != null && platform.getName() != null
                 ? platform.getName() : String.valueOf(platformId);
-        BackgroundTask task = taskService.createTask("variant", "生成 ROM 副本: " + platformName, true);
+        BackgroundTask task = taskService.createTask("variant", "生成 ROM 版本: " + platformName, true);
 
         ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
             Thread thread = new Thread(r, "variant-generate-" + task.getId());
@@ -205,22 +205,22 @@ public class VariantServiceImpl implements VariantService {
         });
         executor.submit(() -> {
             try {
-                taskService.updateTaskProgress(task.getId(), 0, "开始生成 ROM 副本", 0, 100);
+                taskService.updateTaskProgress(task.getId(), 0, "开始生成 ROM 版本", 0, 100);
                 VariantGenerateResult result = generateForPlatform(platformId, formats, force, task.getId());
-                String message = String.format("副本生成完成: 成功 %d, 跳过 %d, 失败 %d",
+                String message = String.format("版本生成完成: 成功 %d, 跳过 %d, 失败 %d",
                         result.getSuccess(), result.getSkipped(), result.getFailed());
                 // “一个都没生成”不是成功：用警告色把原因顶到通知栏，不打绿勾
                 String notificationType = "success";
                 if (result.getSuccess() == 0 && result.getSkipped() > 0) {
                     notificationType = "warning";
-                    message += "；没有任何副本生成，原因见结果详情";
+                    message += "；没有任何版本生成，原因见结果详情";
                 } else if (result.getFailed() > 0) {
                     notificationType = "warning";
                 }
                 taskService.completeTask(task.getId(), message, buildResultDetail(result), notificationType);
             } catch (Exception e) {
-                logger.error("生成 ROM 副本失败: platformId={}", platformId, e);
-                taskService.failTask(task.getId(), "生成 ROM 副本失败", e.getMessage());
+                logger.error("生成 ROM 版本失败: platformId={}", platformId, e);
+                taskService.failTask(task.getId(), "生成 ROM 版本失败", e.getMessage());
             }
         });
         executor.shutdown();
@@ -257,7 +257,7 @@ public class VariantServiceImpl implements VariantService {
                     int done = completed.incrementAndGet();
                     if (taskId != null && total > 0) {
                         taskService.updateTaskProgress(taskId, done * 100 / total,
-                                "生成副本 " + done + "/" + total, done, total);
+                                "生成版本 " + done + "/" + total, done, total);
                     }
                     return single;
                 }));
@@ -273,7 +273,7 @@ public class VariantServiceImpl implements VariantService {
                 result.addFailed("生成任务异常: " + e.getMessage());
             }
         }
-        logger.info("平台副本生成完成: platform={}, 成功={}, 跳过={}, 失败={}",
+        logger.info("平台版本生成完成: platform={}, 成功={}, 跳过={}, 失败={}",
                 platform.getName(), result.getSuccess(), result.getSkipped(), result.getFailed());
         return result;
     }
@@ -287,7 +287,7 @@ public class VariantServiceImpl implements VariantService {
         }
         String displayName = game.getName() != null ? game.getName() : String.valueOf(game.getId());
         if (Boolean.TRUE.equals(game.getMultiFile())) {
-            result.addSkipped(displayName + ": 多文件游戏不支持副本");
+            result.addSkipped(displayName + ": 多文件游戏不支持版本");
             return result;
         }
 
@@ -299,7 +299,7 @@ public class VariantServiceImpl implements VariantService {
 
         List<String> targets = normalizeFormats(formats, systemId);
         if (targets.isEmpty()) {
-            result.addSkipped(displayName + ": 系统不支持所选副本格式");
+            result.addSkipped(displayName + ": 系统不支持所选版本格式");
             return result;
         }
 
@@ -435,7 +435,7 @@ public class VariantServiceImpl implements VariantService {
                 plan.chainText(), plan.missingModuleId());
     }
 
-    /** 单个目标格式的判定结果；与 {@link PipelinePlan.Status} 的差别是多了 DIRECT 与“已有副本”的合并空间 */
+    /** 单个目标格式的判定结果；与 {@link PipelinePlan.Status} 的差别是多了 DIRECT 与“已有版本”的合并空间 */
     private record TargetDiagnosis(String status, String message, String pipelineId,
                                    String chainText, String missingModule) {
     }
@@ -497,7 +497,7 @@ public class VariantServiceImpl implements VariantService {
                 break;
             default:
                 throw new ArchiveException(ArchiveException.Reason.NOT_ARCHIVE,
-                        "不支持的副本格式: " + format);
+                        "不支持的版本格式: " + format);
         }
 
         Path dir = variantRootPath()
@@ -538,7 +538,7 @@ public class VariantServiceImpl implements VariantService {
         variant.setStatus(STATUS_READY);
         variant.setRecipe(recipe);
         variant.setErrorMessage(null);
-        logger.debug("副本生成完成: game={}, format={}, target={}", game.getName(), format, target);
+        logger.debug("版本生成完成: game={}, format={}, target={}", game.getName(), format, target);
         return variant;
     }
 
@@ -562,10 +562,10 @@ public class VariantServiceImpl implements VariantService {
 
     private void handleFailure(Game game, Platform platform, String format, GameVariant existing,
                                long sourceSize, long sourceMtime, String message) {
-        // 已有可用副本时保留原记录，避免强制重建失败后把可用副本标成失败
+        // 已有可用版本时保留原记录，避免强制重建失败后把可用版本标成失败
         if (existing != null && STATUS_READY.equalsIgnoreCase(existing.getStatus())
                 && variantFile(existing) != null && Files.isRegularFile(variantFile(existing))) {
-            logger.warn("副本重建失败，保留旧副本: game={}, format={}, error={}",
+            logger.warn("版本重建失败，保留旧版本: game={}, format={}, error={}",
                     game.getName(), format, message);
             return;
         }
@@ -733,7 +733,7 @@ public class VariantServiceImpl implements VariantService {
             return body;
         }
         if (supported.isEmpty()) {
-            body.put("message", "该系统未声明任何副本格式，无法体检");
+            body.put("message", "该系统未声明任何版本格式，无法体检");
             return body;
         }
 
@@ -806,10 +806,10 @@ public class VariantServiceImpl implements VariantService {
                 row.put("sourceKind", "MULTI_FILE");
                 row.put("sourceLabel", "多文件游戏");
                 row.put("sourceExists", true);
-                row.put("sourceDisplay", "m3u/多碟条目，不参与副本机制");
+                row.put("sourceDisplay", "m3u/多碟条目，不参与版本机制");
                 row.put("sourceBytes", 0);
                 for (String format : supported) {
-                    Map<String, Object> skipped = targetRow("SKIPPED", "多文件游戏不支持副本", null, null);
+                    Map<String, Object> skipped = targetRow("SKIPPED", "多文件游戏不支持版本", null, null);
                     targets.put(format, skipped);
                     byFormat.get(format).merge("blocked", 1, Integer::sum);
                 }
@@ -868,7 +868,7 @@ public class VariantServiceImpl implements VariantService {
                         status = "EXISTS";
                     } else {
                         status = "STALE";
-                        message = sourceExists ? "副本已过期" : "主文件缺失，无法校验新鲜度";
+                        message = sourceExists ? "版本已过期" : "主文件缺失，无法校验新鲜度";
                     }
                 } else {
                     TargetDiagnosis diagnosis = diagnoseTarget(platform, format, artifact);
@@ -1029,7 +1029,7 @@ public class VariantServiceImpl implements VariantService {
             Files.createDirectories(root);
         } catch (IOException e) {
             throw new ArchiveException(ArchiveException.Reason.IO,
-                    "创建副本目录失败: " + root + " (" + e.getMessage() + ")", e);
+                    "创建版本目录失败: " + root + " (" + e.getMessage() + ")", e);
         }
         return root;
     }
@@ -1041,7 +1041,7 @@ public class VariantServiceImpl implements VariantService {
         try {
             return ArchiveUtil.resolveInside(variantRootPath(), variant.getRelPath());
         } catch (ArchiveException e) {
-            logger.warn("副本路径非法: {}", variant.getRelPath());
+            logger.warn("版本路径非法: {}", variant.getRelPath());
             return null;
         }
     }
@@ -1062,7 +1062,7 @@ public class VariantServiceImpl implements VariantService {
                 }
             }
         } catch (IOException e) {
-            logger.warn("删除副本文件失败: {} ({})", file, e.getMessage());
+            logger.warn("删除版本文件失败: {} ({})", file, e.getMessage());
         }
     }
 

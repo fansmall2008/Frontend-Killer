@@ -1,9 +1,9 @@
 package com.gamelist.model;
 
 /**
- * ROM 副本记录。
+ * ROM 版本记录。
  * <p>
- * 副本是同一游戏的另一种物理格式（如 contra.zip 与 contra.nes 同时存在），
+ * 版本是同一游戏的另一种物理格式（如 contra.zip 与 contra.nes 同时存在），
  * 只用于导出选择，不参与匹配/刮削/存在性检测。
  */
 public class GameVariant {
@@ -11,7 +11,7 @@ public class GameVariant {
     private Long gameId;
     /** bare / zip / 7z */
     private String format;
-    /** 相对副本库根目录的路径，统一使用 / 分隔 */
+    /** 相对版本库根目录的路径，统一使用 / 分隔 */
     private String relPath;
     private Long sizeBytes;
     /** 生成时的主文件大小，用于判断源文件是否变化 */

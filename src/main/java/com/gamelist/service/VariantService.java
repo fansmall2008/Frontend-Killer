@@ -9,9 +9,9 @@ import com.gamelist.model.VariantGenerateResult;
 import com.gamelist.model.VariantSummary;
 
 /**
- * ROM 副本的生成、查询与删除。
+ * ROM 版本的生成、查询与删除。
  * <p>
- * 副本是真实落盘文件，生成与导出完全分离；导出只通过 {@code VariantResolver} 查表复制。
+ * 版本是真实落盘文件，生成与导出完全分离；导出只通过 {@code VariantResolver} 查表复制。
  */
 public interface VariantService {
 
@@ -34,27 +34,27 @@ public interface VariantService {
     Map<Long, VariantSummary> getSummaries(List<Game> games);
 
     /**
-     * 同步生成单个游戏的副本。
+     * 同步生成单个游戏的版本。
      *
      * @param formats 目标格式（bare/zip/7z/iso/cso/chd），空集合表示该系统支持的全部格式
-     * @param force   true 时忽略已存在且未过期的副本，强制重建
+     * @param force   true 时忽略已存在且未过期的版本，强制重建
      */
     VariantGenerateResult generateForGame(Long gameId, List<String> formats, boolean force);
 
     /**
-     * 同步生成整个平台的副本（跨游戏 4 线程并行）。
+     * 同步生成整个平台的版本（跨游戏 4 线程并行）。
      */
     VariantGenerateResult generateForPlatform(Long platformId, List<String> formats, boolean force);
 
     /**
-     * 后台任务方式生成整个平台的副本，返回任务 ID。
+     * 后台任务方式生成整个平台的版本，返回任务 ID。
      */
     Long generateForPlatformAsync(Long platformId, List<String> formats, boolean force);
 
-    /** 删除单个格式的副本（文件 + 数据库记录） */
+    /** 删除单个格式的版本（文件 + 数据库记录） */
     boolean deleteVariant(Long gameId, String format);
 
-    /** 删除某个游戏的全部副本（文件 + 数据库记录） */
+    /** 删除某个游戏的全部版本（文件 + 数据库记录） */
     int deleteByGameId(Long gameId);
 
     /**

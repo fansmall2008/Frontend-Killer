@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 副本生成结果（同步接口返回，或后台任务汇总）。
+ * 版本生成结果（同步接口返回，或后台任务汇总）。
  */
 public class VariantGenerateResult {
     private int success;

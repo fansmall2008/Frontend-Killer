@@ -1041,13 +1041,14 @@
             tableBody.innerHTML = '';
             _platformRows.forEach(({ platform, stat }) => {
                 const logoUrl = getPlatformLogoUrl(platform);
+                const logoBase = getPlatformLogoBase(platform);
                 const row = document.createElement('tr');
                 row.setAttribute('data-platform-id', platform.id);
                 row.innerHTML = `
                     <td style="text-align:center;"><input type="checkbox" class="pm-batch-cb" value="${platform.id}" onchange="onPlatformCheckboxChange()"></td>
                     <td>${platform.id}</td>
                     <td>
-                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px; cursor: pointer;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" onmouseenter="showPlatformPreviewById(event, ${platform.id})" onmouseleave="hidePlatformPreview()"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
+                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo" data-base="${logoBase}" data-extidx="0" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px; cursor: pointer;" onerror="handleLogoError(this)" onmouseenter="showPlatformPreviewById(event, ${platform.id})" onmouseleave="hidePlatformPreview()"><span style="display: none; color: #888;">${_pi18n('logo_none', '无')}</span>` : '<span style="color: #888;">' + _pi18n('logo_none', '无') + '</span>'}
                     </td>
                     <td class="editable" data-field="name" data-platform-id="${platform.id}">${platform.name || platform.system}</td>
                     <td>${stat.totalGames}</td>
@@ -1333,25 +1334,45 @@
         }
 
         // 获取平台 logo URL
-        function getPlatformLogoUrl(platform) {
+        // 平台 logo 可能的扩展名候选（按优先级顺序逐个回退，兼容仅存 svg 的类型如 logo-svg）
+        const LOGO_EXT_LIST = ['png', 'svg', 'jpg', 'jpeg', 'gif'];
+
+        // 返回不带扩展名的 logo 基础路径，供 <img> onerror 逐扩展名回退使用
+        function getPlatformLogoBase(platform) {
             if (!platform.systemId) {
                 return null;
             }
-            
+
             // 使用用户设置的 logo 配置，如果没有设置则使用默认值
             const logoRegion = platform.logoRegion || 'wor';
             const logoType = platform.logoType || 'icon';
-            
-            // 构建可能的文件路径（支持多种扩展名）
-            const possibleExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif'];
-            
-            for (const ext of possibleExtensions) {
-                const url = `/scraper/system/${platform.systemId}/${logoRegion}/${logoType}/${logoType}.${ext}`;
-                // 检查文件是否存在（这里我们直接返回URL，让浏览器处理404）
-                return url;
+
+            return `/scraper/system/${platform.systemId}/${logoRegion}/${logoType}/${logoType}`;
+        }
+
+        function getPlatformLogoUrl(platform) {
+            const base = getPlatformLogoBase(platform);
+            if (!base) {
+                return null;
             }
-            
-            return null;
+            // 首选第一个扩展名；若 404，由 handleLogoError 逐个尝试后续扩展名
+            return base + '.' + LOGO_EXT_LIST[0];
+        }
+
+        // <img> 加载失败时按 LOGO_EXT_LIST 顺序尝试下一个扩展名，全部失败才隐藏并显示占位
+        function handleLogoError(img) {
+            const base = img.getAttribute('data-base');
+            let idx = parseInt(img.getAttribute('data-extidx') || '0', 10);
+            if (base && idx + 1 < LOGO_EXT_LIST.length) {
+                idx += 1;
+                img.setAttribute('data-extidx', String(idx));
+                img.src = base + '.' + LOGO_EXT_LIST[idx];
+                return;
+            }
+            // 所有候选扩展名均失败
+            img.style.display = 'none';
+            const sibling = img.nextElementSibling;
+            if (sibling) sibling.style.display = 'inline';
         }
 
         // 获取系统视频URL
@@ -1441,6 +1462,22 @@
             const logoImg = document.getElementById('platformPreviewLogo');
             const logoUrl = getPlatformLogoUrl(platform);
             if (logoUrl) {
+                const logoBase = getPlatformLogoBase(platform);
+                logoImg.style.display = '';
+                logoImg.setAttribute('data-base', logoBase || '');
+                logoImg.setAttribute('data-extidx', '0');
+                // 按 LOGO_EXT_LIST 逐个回退扩展名，全部失败才隐藏整个 logo 区
+                logoImg.onerror = function () {
+                    const b = logoImg.getAttribute('data-base');
+                    let idx = parseInt(logoImg.getAttribute('data-extidx') || '0', 10);
+                    if (b && idx + 1 < LOGO_EXT_LIST.length) {
+                        idx += 1;
+                        logoImg.setAttribute('data-extidx', String(idx));
+                        logoImg.src = b + '.' + LOGO_EXT_LIST[idx];
+                    } else {
+                        logoDiv.style.display = 'none';
+                    }
+                };
                 logoImg.src = logoUrl;
                 logoDiv.style.display = 'flex';
             } else {

@@ -36,6 +36,7 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -169,13 +170,8 @@ public class ScraperServiceImpl implements ScraperService {
     private final AtomicInteger failedCount = new AtomicInteger(0);
     private final AtomicInteger stoppedCount = new AtomicInteger(0);
     
-    public ScraperServiceImpl() {
-        this.httpClient = new OkHttpClient.Builder()
-                .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
-                .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
-                .build();
+    public ScraperServiceImpl(@Qualifier("sharedOkHttpClient") OkHttpClient httpClient) {
+        this.httpClient = httpClient;
         this.objectMapper = new ObjectMapper();
     }
     
@@ -2893,21 +2889,17 @@ public class ScraperServiceImpl implements ScraperService {
                 game.setMatched(true);
             }
 
-            // 方案C：手动刮削(single/batch=用户显式操作)无条件落缓存（不限平台）；
-            //        平台全量刮削保持"街机 + 自动缓存开关"门。
-            //        用手里已有的完整 jeu 落 manifest（零额外请求）+ 从 roms[] 投影 parent_rom
-            //        + 按真实落库结果置 cached。任何异常都不得影响刮削。
+            // 所有刮削成功的游戏无条件缓存 manifest（只要有 ssGameId 就缓存）
+            // 用手里已有的完整 jeu 落 manifest（零额外请求）+ 从 roms[] 投影 parent_rom
+            // + 按真实落库结果置 cached。任何异常都不得影响刮削。
             try {
                 Long ssGameIdForCache = game.getSsGameId();
-                boolean manualScrape = "single".equals(request.getType()) || "batch".equals(request.getType());
-                boolean autoCacheArcade = systemSettingsService.getBoolean("auto_cache_game_info", false)
-                        && isArcadePlatform(game);
-                if (ssGameIdForCache != null && (manualScrape || autoCacheArcade)) {
+                if (ssGameIdForCache != null) {
                     boolean stored = gameManifestService.storeManifest(ssGameIdForCache, jeu);
                     game.setParentRom(gameManifestService.projectParentRom(jeu, game.getCrc32()));
                     game.setCached(stored);
-                    logger.info("缓存 manifest {}: game={}, ssGameId={}, parentRom={}, type={}",
-                            stored ? "成功" : "失败", game.getName(), ssGameIdForCache, game.getParentRom(), request.getType());
+                    logger.info("缓存 manifest {}: game={}, ssGameId={}, parentRom={}",
+                            stored ? "成功" : "失败", game.getName(), ssGameIdForCache, game.getParentRom());
                 }
             } catch (Exception e) {
                 logger.warn("缓存 manifest/投影父rom失败(忽略，不影响刮削): {}", e.getMessage());
@@ -3722,8 +3714,20 @@ public class ScraperServiceImpl implements ScraperService {
                         logger.info("游戏已缓存，无媒体需求，跳过: gameId={}", game.getId());
                     }
                 } else {
-                    // 已刮削但未缓存：跳过 API 调用
+                    // 已刮削但未缓存：跳过 SS API 调用，但尝试复用已有的 FAILED 媒体任务 URL
                     logger.info("游戏已刮削，跳过 SS API 调用: gameId={}", game.getId());
+                    
+                    // 复用 FAILED 任务的已存储 URL（避免重新调 jeuInfos）
+                    if (task.getMediaScope() != null) {
+                        try {
+                            int reused = mediaDownloadTaskMapper.resetFailedTasksToPending(game.getId());
+                            if (reused > 0) {
+                                logger.info("复用 {} 条 FAILED 媒体任务的已存储 URL，重置为 PENDING: gameId={}", reused, game.getId());
+                            }
+                        } catch (Exception e) {
+                            logger.warn("复用 FAILED 媒体任务失败（不影响流程）: gameId={}, err={}", game.getId(), e.getMessage());
+                        }
+                    }
                 }
                 return true;
             }

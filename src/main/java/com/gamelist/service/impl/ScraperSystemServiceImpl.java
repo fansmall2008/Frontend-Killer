@@ -142,7 +142,7 @@ public class ScraperSystemServiceImpl implements ScraperSystemService {
         try {
             variantCapabilityService.refresh();
         } catch (Exception e) {
-            logger.warn("刷新副本能力矩阵失败: {}", e.getMessage());
+            logger.warn("刷新版本能力矩阵失败: {}", e.getMessage());
         }
     }
 

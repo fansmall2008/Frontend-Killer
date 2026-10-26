@@ -96,7 +96,7 @@ public class ExportOrchestrator {
         // 按所选语种从 field_translation 回填瞬态 translatedName/translatedDesc（供 coalesce/-translated 模板消费）
         applyTranslationInjection(games, request.getTranslationLang());
 
-        // 按系统选择副本格式；未选择时用系统偏好（无偏好则 original）
+        // 按系统选择版本格式；未选择时用系统偏好（无偏好则 original）
         Map<Long, ResolvedVariant> resolvedVariants = Collections.emptyMap();
         boolean useVariants = request.isCopyRoms()
                 && output.getRoms() != null && output.getRoms().isEnabled()
@@ -277,10 +277,10 @@ public class ExportOrchestrator {
             }
         }
         if (variantUsed > 0 || variantFallback > 0) {
-            logger.info("副本使用情况: 使用副本 {} 个, 回退主文件 {} 个", variantUsed, variantFallback);
+            logger.info("版本使用情况: 使用版本 {} 个, 回退主文件 {} 个", variantUsed, variantFallback);
             if (taskId != null && variantFallback > 0) {
                 taskService.updateTaskLog(taskId,
-                        "副本回退: " + variantFallback + " 个游戏使用主文件（副本未生成/已过期）");
+                        "版本回退: " + variantFallback + " 个游戏使用主文件（版本未生成/已过期）");
             }
         }
         return missingParents;
@@ -428,7 +428,7 @@ public class ExportOrchestrator {
                                      Platform platform, Map<String, String> vars,
                                      boolean enableM3U, TemplateV3.RomOutput romsConfig,
                                      Long taskId, ResolvedVariant resolved) throws Exception {
-        // 确定源路径：有可用副本则用副本，否则回退主文件
+        // 确定源路径：有可用版本则用版本，否则回退主文件
         Path sourcePath = resolved != null && resolved.getSourcePath() != null
                 ? resolved.getSourcePath() : resolveSourcePath(game);
         if (sourcePath == null || !Files.exists(sourcePath)) {
@@ -440,10 +440,10 @@ public class ExportOrchestrator {
 
         boolean appliedVariant = resolved != null && resolved.isVariant();
         if (appliedVariant) {
-            // 让 path / ext 表达式先看到副本扩展名，确保文件名模板求出正确后缀
+            // 让 path / ext 表达式先看到版本扩展名，确保文件名模板求出正确后缀
             game.setPath(replaceExtension(game.getPath(), resolved.getExtension()));
             if (resolved.getFallbackReason() == null) {
-                logger.debug("使用副本: game={}, format={}", game.getName(), resolved.getFormat());
+                logger.debug("使用版本: game={}, format={}", game.getName(), resolved.getFormat());
             }
         }
 
@@ -468,18 +468,18 @@ public class ExportOrchestrator {
         copyFile(sourcePath, targetPath);
 
         if (taskId != null) {
-            String prefix = appliedVariant ? "复制副本(" + resolved.getFormat() + "): " : "复制 ROM: ";
+            String prefix = appliedVariant ? "复制版本(" + resolved.getFormat() + "): " : "复制 ROM: ";
             taskService.updateTaskLog(taskId, prefix + sourcePath.getFileName() + " → " + targetFileName);
         }
 
         if (appliedVariant) {
             // 数据文件里的 path 必须指向实际导出的文件名（扩展名可能已变）；
-            // absolutePath 保持源主文件路径，避免后续父 ROM 定位误把副本目录当源目录
+            // absolutePath 保持源主文件路径，避免后续父 ROM 定位误把版本目录当源目录
             game.setPath(targetFileName);
         } else if (resolved != null && resolved.getFallbackReason() != null
                 && resolved.getRequestedFormat() != null
                 && !VariantService.FORMAT_ORIGINAL.equals(resolved.getRequestedFormat())) {
-            logger.info("副本不可用，回退主文件: game={}, format={}, reason={}",
+            logger.info("版本不可用，回退主文件: game={}, format={}, reason={}",
                     game.getName(), resolved.getRequestedFormat(), resolved.getFallbackReason());
         }
 
@@ -490,7 +490,7 @@ public class ExportOrchestrator {
     }
 
     /**
-     * 解析本次导出请求的副本格式（按 systemId 取值）。
+     * 解析本次导出请求的版本格式（按 systemId 取值）。
      * 返回 null 表示未显式指定，由 VariantResolver 使用系统偏好。
      */
     private String resolveRequestedVariantFormat(ExportRequest request, Platform platform) {
@@ -509,7 +509,7 @@ public class ExportOrchestrator {
     }
 
     /**
-     * 把 path 的扩展名替换为副本扩展名，保留目录前缀与 # 片段。
+     * 把 path 的扩展名替换为版本扩展名，保留目录前缀与 # 片段。
      */
     private String replaceExtension(String path, String extension) {
         if (path == null || path.isEmpty()) {

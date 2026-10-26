@@ -160,7 +160,7 @@
                     <option value="auto" data-i18n="icon_auto">自动（封面优先）</option>
                     <option value="box2d" data-i18n="icon_box2d">封面（2D Box）</option>
                     <option value="ss" data-i18n="icon_ss">截图（Screenshot）</option>
-                    <option value="wheelCarbon" data-i18n="icon_wheel">Logo（Wheel）</option>
+                    <option value="wheel" data-i18n="icon_wheel">Logo（Wheel）</option>
                     <option value="steamgrid" data-i18n="icon_steamgrid">Steam Grid</option>
                     <option value="fanart" data-i18n="icon_fanart">同人画（Fanart）</option>
                     <option value="image" data-i18n="icon_image">原始图片（Image）</option>
@@ -324,16 +324,16 @@
         </div>
     </div>
     
-    <!-- ROM 副本弹窗（第四指示物点击） -->
+    <!-- ROM 版本弹窗（第四指示物点击） -->
     <div id="variantModal" class="gm-modal" style="display:none;">
         <div class="gm-modal-content" style="max-width: 620px;">
             <span class="close" onclick="closeVariantDialog()">&times;</span>
-            <h2 style="color: var(--accent-primary); font-size: 18px; margin-bottom: 4px;">ROM 副本</h2>
+            <h2 style="color: var(--accent-primary); font-size: 18px; margin-bottom: 4px;">ROM 版本</h2>
             <div id="variantGameName" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;"></div>
             <div id="variantBody" style="font-size: 13px;"></div>
             <div id="variantDiag" style="font-size: 13px;"></div>
             <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap;">
-                <button type="button" class="action-btn" onclick="generateVariantDialog(false)">生成缺失副本</button>
+                <button type="button" class="action-btn" onclick="generateVariantDialog(false)">生成缺失版本</button>
                 <button type="button" class="action-btn" onclick="generateVariantDialog(true)">强制重建</button>
                 <button type="button" class="action-btn" style="color:#ff4444;" onclick="deleteAllVariantsDialog()">删除全部</button>
                 <button type="button" class="action-btn" onclick="closeVariantDialog()">关闭</button>
@@ -607,6 +607,19 @@
             // 相对路径，通过后端代理加载
             return '/api/media/view?localPath=' + encodeURIComponent(mediaPath) + '&platformId=' + platformId;
         }
+        /**
+         * 解析媒体为可加载 URL，DB 字段为空时回退到 /api/media/icon 按固定缓存目录兜底解析，
+         * 与编辑页/图标列口径一致。
+         * @param field 回退时传给 /api/media/icon 的媒体类型 Java 字段名（如 ss / sstitle / auto）
+         */
+        function resolveMediaWithFallback(game, dbPath, field) {
+            const direct = resolveMediaUrl(dbPath);
+            if (direct) return direct;
+            if (game && (game.ssGameId || game.cached || game.matched)) {
+                return '/api/media/icon?gameId=' + encodeURIComponent(game.id) + '&field=' + encodeURIComponent(field || 'auto');
+            }
+            return '';
+        }
         let totalPages = 0;
         let currentSearchTerm = '';
         let currentSearchParams = {};
@@ -706,14 +719,14 @@
             const mediaInd = hasMedia ? 'ind ind-triangle ind-purple' : 'ind ind-triangle ind-gray';
             const mediaTitle = hasMedia ? 'media-indicator-tooltip-has' : 'media-indicator-tooltip-empty';
 
-            // 副本指示物 (叠层，四态：灰/蓝/黄/红，由 loadVariantSummaries 刷新)
+            // 版本指示物 (叠层，四态：灰/蓝/黄/红，由 loadVariantSummaries 刷新)
             const variantInd = 'ind ind-layers ind-gray variant-indicator';
 
             return `<span class="status-triple" title="">
                 <span class="${matchInd}" data-i18n-title="${matchTitle}" title="匹配" ${matchClick}></span>
                 <span class="${infoInd}" data-i18n-title="${infoTitle}" title="信息"></span>
                 <span class="${mediaInd}" data-i18n-title="${mediaTitle}" title="媒体"></span>
-                <span class="${variantInd}" data-variant-game="${game.id}" title="ROM 副本" onclick="event.stopPropagation(); openVariantDialog(${game.id});"></span>
+                <span class="${variantInd}" data-variant-game="${game.id}" title="ROM 版本" onclick="event.stopPropagation(); openVariantDialog(${game.id});"></span>
             </span>`;
         }
         
@@ -915,15 +928,19 @@
                                 if (savedIconField && savedIconField !== 'auto') {
                                     iconField = game[savedIconField] ? savedIconField : '';
                                 } else {
-                                    const autoIconChain = ['box2d', 'steamgrid', 'image', 'boxFront', 'poster', 'ss', 'fanart'];
+                                    const autoIconChain = ['box2d', 'box3D', 'steamgrid', 'image', 'boxFront', 'poster', 'ss', 'sstitle', 'fanart', 'wheel'];
                                     iconField = autoIconChain.find(f => game[f]) || '';
                                 }
                                 const iconPath = game[iconField] || '';
-                                const resolvedIconUrl = resolveMediaUrl(iconPath);
-                                const isWheel = iconField.startsWith('wheel');
+                                let resolvedIconUrl = resolveMediaUrl(iconPath);
+                                // DB 字段为空时，回退到后端按固定缓存目录解析（与编辑页口径一致）
+                                if (!resolvedIconUrl && (game.ssGameId || game.cached || game.matched)) {
+                                    resolvedIconUrl = '/api/media/icon?gameId=' + encodeURIComponent(game.id) + '&field=' + encodeURIComponent(savedIconField || 'auto');
+                                }
+                                const isWheel = iconField.startsWith('wheel') || (savedIconField && String(savedIconField).indexOf('wheel') === 0);
                                 const iconWidth = isWheel ? '60px' : '40px';
-                                const screenshotPath = resolveMediaUrl(game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '');
-                                const titleScreenPath = resolveMediaUrl(game.sstitle || '');
+                                const screenshotPath = resolveMediaWithFallback(game, game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '', 'ss');
+                                const titleScreenPath = resolveMediaWithFallback(game, game.sstitle || '', 'sstitle');
                                 const videoPath = resolveMediaUrl(game.video || game.videoNormalized || '');
                                 const gameName = game.name || '';
                                 const iconContent = resolvedIconUrl ? 
@@ -1024,6 +1041,7 @@
                     object-fit: contain;
                 `;
                 screenshotImg.alt = '游戏截图';
+                screenshotImg.onerror = function(){ this.style.display = 'none'; };
                 screenshotDiv.appendChild(screenshotImg);
                 
                 const titleScreenDiv = document.createElement('div');
@@ -1047,6 +1065,7 @@
                     object-fit: contain;
                 `;
                 titleScreenImg.alt = '标题截图';
+                titleScreenImg.onerror = function(){ document.getElementById('previewTitleScreenDiv').style.display = 'none'; };
                 titleScreenDiv.appendChild(titleScreenImg);
                 
                 const previewTitle = document.createElement('div');
@@ -1970,7 +1989,7 @@
             document.getElementById('fuzzyMatchModal').style.display = 'none';
         }
 
-        // ==================== ROM 副本（第四指示物 + 弹窗）====================
+        // ==================== ROM 版本（第四指示物 + 弹窗）====================
         // 格式标签由后端格式表下发，页面不再写死 bare/zip/7z
         let VARIANT_LABELS = { original: '主文件（原样）' };
 
@@ -2008,7 +2027,7 @@
                     if (!res || !res.success) return;
                     applyVariantSummaries(res.summaries || {});
                 })
-                .catch(err => console.warn('加载副本摘要失败:', err && err.message));
+                .catch(err => console.warn('加载版本摘要失败:', err && err.message));
         }
 
         function refreshVariantSummaries() {
@@ -2022,7 +2041,7 @@
                 el.classList.remove('ind-gray', 'ind-blue', 'ind-yellow', 'ind-red');
                 if (!s) {
                     el.classList.add('ind-gray');
-                    el.title = 'ROM 副本：未生成';
+                    el.title = 'ROM 版本：未生成';
                     return;
                 }
                 const parts = [];
@@ -2038,7 +2057,7 @@
                 } else {
                     el.classList.add('ind-gray');
                 }
-                el.title = 'ROM 副本：' + (parts.length ? parts.join(' / ') : '未生成');
+                el.title = 'ROM 版本：' + (parts.length ? parts.join(' / ') : '未生成');
             });
         }
 
@@ -2068,7 +2087,7 @@
             fetch('/api/variants/game/' + encodeURIComponent(gameId))
                 .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
                 .then(res => {
-                    if (!res || !res.success) throw new Error((res && res.error) || '加载副本信息失败');
+                    if (!res || !res.success) throw new Error((res && res.error) || '加载版本信息失败');
                     _variantDialogData = res;
                     renderVariantDialog();
                 })
@@ -2160,7 +2179,7 @@
             const body = document.getElementById('variantBody');
             const formats = data.supportedFormats || [];
             if (!data.eligible || formats.length === 0) {
-                body.innerHTML = '<div style="color:#888;">该系统不参与 ROM 副本机制（仅主机/掌机且非光盘类系统可用）。</div>';
+                body.innerHTML = '<div style="color:#888;">该系统不参与 ROM 版本机制（仅主机/掌机且非光盘类系统可用）。</div>';
                 return;
             }
 
@@ -2202,11 +2221,11 @@
                     stateHtml = '<span style="color:#888;">' + escapeHtml(status || '未生成') + '</span>';
                 }
                 const detail = v && v.errorMessage ? '<div style="color:#ff8888;font-size:11px;margin-top:2px;">' + escapeHtml(v.errorMessage) + '</div>' : '';
-                // 已有且未过期的副本不受产线影响；只有“要生成/更新”时才需要提示为何补不了
+                // 已有且未过期的版本不受产线影响；只有“要生成/更新”时才需要提示为何补不了
                 const needsGeneration = !v || status === 'stale' || status === 'failed';
                 const blocked = needsGeneration && !variantSameAsSource(fmt) ? variantBlockedReason(fmt) : null;
                 if (blocked) {
-                    // 只拿掉生成类按钮，删除已有副本的入口要留着
+                    // 只拿掉生成类按钮，删除已有版本的入口要留着
                     actions = actions.replace(/<button[^>]*>(生成|重建|更新|重试)<\/button>/g, '')
                         + '<span style="color:#8a8a8a;font-size:11px;" title="' + escapeHtml(blocked) + '">不可生成</span>';
                     stateHtml += '<div style="color:#777;font-size:11px;margin-top:2px;max-width:220px;">'
@@ -2227,7 +2246,7 @@
                 + '<th style="padding:6px 8px;">大小</th><th style="padding:6px 8px;text-align:right;">操作</th>'
                 + '</tr></thead><tbody>' + rows + '</tbody></table>'
                 + '<div style="margin-top:10px;color:#777;font-size:11px;line-height:1.6;">'
-                + '副本会随主文件变化而标记为过期；导出时若副本缺失/过期将自动回退主文件。</div>';
+                + '版本会随主文件变化而标记为过期；导出时若版本缺失/过期将自动回退主文件。</div>';
         }
 
         function generateVariantDialog(force, onlyFormat) {
@@ -2235,7 +2254,7 @@
             if (!gameId) return;
             const body = document.getElementById('variantBody');
             const previous = body.innerHTML;
-            body.innerHTML = '<div style="color:#00ffff;">正在生成副本，请稍候...</div>';
+            body.innerHTML = '<div style="color:#00ffff;">正在生成版本，请稍候...</div>';
             const payload = { force: !!force };
             if (onlyFormat) payload.formats = [onlyFormat];
             fetch('/api/variants/game/' + encodeURIComponent(gameId) + '/generate', {
@@ -2251,35 +2270,35 @@
                     const created = result.success || 0;
                     const messages = result.messages || [];
                     if (failed > 0) {
-                        showNotification('副本生成失败 ' + failed + ' 项：' + (messages[0] || '部分格式生成失败'), 'error');
+                        showNotification('版本生成失败 ' + failed + ' 项：' + (messages[0] || '部分格式生成失败'), 'error');
                     } else if (!res || res.success === false) {
-                        showNotification('副本生成失败: ' + ((res && res.error) || '请查看日志'), 'error');
+                        showNotification('版本生成失败: ' + ((res && res.error) || '请查看日志'), 'error');
                     } else if (created === 0 && skipped > 0) {
                         // 一个都没生成时不能报绿：把跳过的原因直接抛给用户
-                        showNotification('副本未生成：' + (messages[0] || '没有可用的产线'), 'warning');
+                        showNotification('版本未生成：' + (messages[0] || '没有可用的产线'), 'warning');
                     } else {
-                        showNotification('副本生成完成' + (skipped > 0 ? '（跳过 ' + skipped + ' 项）' : ''), 'success');
+                        showNotification('版本生成完成' + (skipped > 0 ? '（跳过 ' + skipped + ' 项）' : ''), 'success');
                     }
                     refreshVariantSummaries();
                     loadVariantDialog(gameId);
                 })
                 .catch(err => {
                     body.innerHTML = previous;
-                    showNotification('副本生成失败: ' + err.message, 'error');
+                    showNotification('版本生成失败: ' + err.message, 'error');
                 });
         }
 
         function deleteVariantFormat(format) {
             const gameId = _variantDialogGameId;
             if (!gameId) return;
-            if (!confirm('确定删除该格式的副本文件？')) return;
+            if (!confirm('确定删除该格式版本文件？')) return;
             fetch('/api/variants/game/' + encodeURIComponent(gameId) + '/' + encodeURIComponent(format), {
                 method: 'DELETE'
             })
                 .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
                 .then(res => {
                     if (!res || !res.success) throw new Error((res && res.error) || '删除失败');
-                    showNotification('已删除副本', 'success');
+                    showNotification('已删除版本', 'success');
                     refreshVariantSummaries();
                     loadVariantDialog(gameId);
                 })
@@ -2289,14 +2308,14 @@
         function deleteAllVariantsDialog() {
             const gameId = _variantDialogGameId;
             if (!gameId) return;
-            if (!confirm('确定删除该游戏的全部副本文件？')) return;
+            if (!confirm('确定删除该游戏的全部版本文件？')) return;
             fetch('/api/variants/game/' + encodeURIComponent(gameId), {
                 method: 'DELETE'
             })
                 .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
                 .then(res => {
                     if (!res || !res.success) throw new Error((res && res.error) || '删除失败');
-                    showNotification('已删除全部副本', 'success');
+                    showNotification('已删除全部版本', 'success');
                     refreshVariantSummaries();
                     loadVariantDialog(gameId);
                 })
@@ -3292,15 +3311,19 @@
                             iconField = game[savedIconField] ? savedIconField : '';
                         } else {
                             // 自动模式：优先使用封面类媒体，避免混用 logo/截图
-                            const autoIconChain = ['box2d', 'steamgrid', 'image', 'boxFront', 'poster', 'ss', 'fanart'];
+                            const autoIconChain = ['box2d', 'box3D', 'steamgrid', 'image', 'boxFront', 'poster', 'ss', 'sstitle', 'fanart', 'wheel'];
                             iconField = autoIconChain.find(f => game[f]) || '';
                         }
                         const iconPath = game[iconField] || '';
-                        const resolvedIconUrl = resolveMediaUrl(iconPath);
-                        const isWheel = iconField.startsWith('wheel');
+                        let resolvedIconUrl = resolveMediaUrl(iconPath);
+                        // DB 字段为空时，回退到后端按固定缓存目录解析（与编辑页口径一致）
+                        if (!resolvedIconUrl && (game.ssGameId || game.cached || game.matched)) {
+                            resolvedIconUrl = '/api/media/icon?gameId=' + encodeURIComponent(game.id) + '&field=' + encodeURIComponent(savedIconField || 'auto');
+                        }
+                        const isWheel = iconField.startsWith('wheel') || (savedIconField && String(savedIconField).indexOf('wheel') === 0);
                         const iconWidth = isWheel ? '60px' : '40px';
-                        const screenshotPath = resolveMediaUrl(game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '');
-                        const titleScreenPath = resolveMediaUrl(game.sstitle || '');
+                        const screenshotPath = resolveMediaWithFallback(game, game.ss || game.sstitle || game.box2d || game.boxFront || game.image || game.fanart || '', 'ss');
+                        const titleScreenPath = resolveMediaWithFallback(game, game.sstitle || '', 'sstitle');
                         const videoPath = resolveMediaUrl(game.video || game.videoNormalized || '');
                         const gameName = game.name || '';
                         const iconContent = resolvedIconUrl ? 
@@ -3340,7 +3363,7 @@
             if (window.I18n && typeof I18n.updatePage === 'function') {
                 try { I18n.updatePage(); } catch (_) {}
             }
-            // 回填第四指示物（副本状态），并记住当前页用于生成后刷新
+            // 回填第四指示物（版本状态），并记住当前页用于生成后刷新
             window.__lastGames = games;
             loadVariantSummaries(games);
         }

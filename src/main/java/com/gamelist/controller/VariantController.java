@@ -39,7 +39,7 @@ import com.gamelist.variant.audio.Ffmpeg;
 import com.gamelist.variant.module.Chdman;
 
 /**
- * ROM 副本管理接口：能力矩阵、生成、查询、删除、导出弹窗选项。
+ * ROM 版本管理接口：能力矩阵、生成、查询、删除、导出弹窗选项。
  */
 @RestController
 @RequestMapping("/api/variants")
@@ -143,7 +143,7 @@ public class VariantController {
             }
             return ResponseEntity.ok(Map.of("success", true, "formats", rows));
         } catch (Exception e) {
-            logger.error("读取副本格式表失败", e);
+            logger.error("读取版本格式表失败", e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", String.valueOf(e.getMessage())));
@@ -208,7 +208,7 @@ public class VariantController {
             body.putIfAbsent("success", true);
             return ResponseEntity.ok(body);
         } catch (Exception e) {
-            logger.error("诊断副本产线失败: gameId={}", gameId, e);
+            logger.error("诊断版本产线失败: gameId={}", gameId, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", String.valueOf(e.getMessage())));
@@ -238,14 +238,14 @@ public class VariantController {
                     "success", true,
                     "systems", capabilityService.getMatrix()));
         } catch (Exception e) {
-            logger.error("读取副本能力矩阵失败", e);
+            logger.error("读取版本能力矩阵失败", e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 手动开关某个系统的副本格式 */
+    /** 手动开关某个系统的版本格式 */
     @PutMapping("/matrix/{systemId}/{format}")
     public ResponseEntity<Map<String, Object>> updateCapability(@PathVariable Integer systemId,
                                                                @PathVariable String format,
@@ -255,7 +255,7 @@ public class VariantController {
             capabilityService.updateCapability(systemId, format, supported);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            logger.error("更新副本能力失败: systemId={}, format={}", systemId, format, e);
+            logger.error("更新版本能力失败: systemId={}, format={}", systemId, format, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
@@ -276,14 +276,14 @@ public class VariantController {
             capabilityService.savePreference(systemId, String.valueOf(format));
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            logger.error("保存副本偏好失败: systemId={}", systemId, e);
+            logger.error("保存版本偏好失败: systemId={}", systemId, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 导出弹窗：按系统聚合所选平台的可选格式、偏好与副本数量 */
+    /** 导出弹窗：按系统聚合所选平台的可选格式、偏好与版本数量 */
     @GetMapping("/options")
     public ResponseEntity<Map<String, Object>> options(@RequestParam("platformIds") List<Long> platformIds) {
         try {
@@ -347,14 +347,14 @@ public class VariantController {
 
             return ResponseEntity.ok(Map.of("success", true, "systems", systems));
         } catch (Exception e) {
-            logger.error("读取副本导出选项失败", e);
+            logger.error("读取版本导出选项失败", e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 单个游戏的副本列表与摘要 */
+    /** 单个游戏的版本列表与摘要 */
     @GetMapping("/game/{gameId}")
     public ResponseEntity<Map<String, Object>> gameVariants(@PathVariable Long gameId) {
         try {
@@ -387,7 +387,7 @@ public class VariantController {
             result.put("summary", summary);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            logger.error("读取游戏副本失败: gameId={}", gameId, e);
+            logger.error("读取游戏版本失败: gameId={}", gameId, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
@@ -408,14 +408,14 @@ public class VariantController {
             Map<Long, VariantSummary> summaries = variantService.getSummaries(games);
             return ResponseEntity.ok(Map.of("success", true, "summaries", summaries));
         } catch (Exception e) {
-            logger.error("读取副本摘要失败", e);
+            logger.error("读取版本摘要失败", e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 同步生成单个游戏的副本 */
+    /** 同步生成单个游戏的版本 */
     @PostMapping("/game/{gameId}/generate")
     public ResponseEntity<Map<String, Object>> generateForGame(@PathVariable Long gameId,
                                                                @RequestBody(required = false) VariantGenerateRequest request) {
@@ -428,14 +428,14 @@ public class VariantController {
             body.put("result", result);
             return ResponseEntity.ok(body);
         } catch (Exception e) {
-            logger.error("生成游戏副本失败: gameId={}", gameId, e);
+            logger.error("生成游戏版本失败: gameId={}", gameId, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 后台生成整个平台的副本 */
+    /** 后台生成整个平台的版本 */
     @PostMapping("/platform/{platformId}/generate")
     public ResponseEntity<Map<String, Object>> generateForPlatform(@PathVariable Long platformId,
                                                                    @RequestBody(required = false) VariantGenerateRequest request) {
@@ -445,14 +445,14 @@ public class VariantController {
             Long taskId = variantService.generateForPlatformAsync(platformId, formats, force);
             return ResponseEntity.ok(Map.of("success", true, "taskId", taskId));
         } catch (Exception e) {
-            logger.error("生成平台副本失败: platformId={}", platformId, e);
+            logger.error("生成平台版本失败: platformId={}", platformId, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 删除单个格式的副本 */
+    /** 删除单个格式的版本 */
     @DeleteMapping("/game/{gameId}/{format}")
     public ResponseEntity<Map<String, Object>> deleteVariant(@PathVariable Long gameId,
                                                              @PathVariable String format) {
@@ -460,21 +460,21 @@ public class VariantController {
             boolean deleted = variantService.deleteVariant(gameId, format);
             return ResponseEntity.ok(Map.of("success", deleted));
         } catch (Exception e) {
-            logger.error("删除副本失败: gameId={}, format={}", gameId, format, e);
+            logger.error("删除版本失败: gameId={}, format={}", gameId, format, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));
         }
     }
 
-    /** 删除某个游戏的全部副本 */
+    /** 删除某个游戏的全部版本 */
     @DeleteMapping("/game/{gameId}")
     public ResponseEntity<Map<String, Object>> deleteGameVariants(@PathVariable Long gameId) {
         try {
             int deleted = variantService.deleteByGameId(gameId);
             return ResponseEntity.ok(Map.of("success", true, "deleted", deleted));
         } catch (Exception e) {
-            logger.error("删除游戏副本失败: gameId={}", gameId, e);
+            logger.error("删除游戏版本失败: gameId={}", gameId, e);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", e.getMessage()));

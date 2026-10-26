@@ -26,9 +26,9 @@ import com.gamelist.util.ArchiveException;
 import com.gamelist.util.ArchiveUtil;
 
 /**
- * 导出时的副本解析：只读数据库 + 文件系统，不做任何格式转换。
+ * 导出时的版本解析：只读数据库 + 文件系统，不做任何格式转换。
  * <p>
- * 解析顺序：请求格式 → 系统偏好 → original；副本缺失/过期/失败时回退主文件。
+ * 解析顺序：请求格式 → 系统偏好 → original；版本缺失/过期/失败时回退主文件。
  */
 @Service
 public class VariantResolver {
@@ -81,7 +81,7 @@ public class VariantResolver {
             return VariantService.FORMAT_ORIGINAL;
         }
         if (!capabilityService.isSupported(systemId, target)) {
-            logger.debug("系统不支持副本格式，回退主文件: systemId={}, format={}", systemId, target);
+            logger.debug("系统不支持版本格式，回退主文件: systemId={}, format={}", systemId, target);
             return VariantService.FORMAT_ORIGINAL;
         }
         return target;
@@ -125,15 +125,15 @@ public class VariantResolver {
 
         GameVariant row = find(rows, target);
         if (row == null) {
-            return fallback(main, mainExtension, target, "副本未生成");
+            return fallback(main, mainExtension, target, "版本未生成");
         }
         if (!VariantService.STATUS_READY.equalsIgnoreCase(row.getStatus())) {
-            return fallback(main, mainExtension, target, "副本状态为 " + row.getStatus());
+            return fallback(main, mainExtension, target, "版本状态为 " + row.getStatus());
         }
 
         Path variantFile = variantFile(row);
         if (variantFile == null || !Files.isRegularFile(variantFile)) {
-            return fallback(main, mainExtension, target, "副本文件缺失");
+            return fallback(main, mainExtension, target, "版本文件缺失");
         }
 
         if (main != null && Files.isRegularFile(main)) {
@@ -143,10 +143,10 @@ public class VariantResolver {
                 boolean stale = (row.getSourceSize() != null && row.getSourceSize() != size)
                         || (row.getSourceMtime() != null && row.getSourceMtime() != mtime);
                 if (stale) {
-                    return fallback(main, mainExtension, target, "主文件已变化，副本已过期");
+                    return fallback(main, mainExtension, target, "主文件已变化，版本已过期");
                 }
             } catch (IOException e) {
-                logger.debug("校验副本源文件失败: {} ({})", main, e.getMessage());
+                logger.debug("校验版本源文件失败: {} ({})", main, e.getMessage());
             }
         }
 
@@ -155,7 +155,7 @@ public class VariantResolver {
     }
 
     private ResolvedVariant fallback(Path main, String mainExtension, String target, String reason) {
-        logger.debug("副本回退主文件: target={}, reason={}", target, reason);
+        logger.debug("版本回退主文件: target={}, reason={}", target, reason);
         return new ResolvedVariant(main, VariantService.FORMAT_ORIGINAL, mainExtension,
                 false, null, target, reason);
     }
@@ -197,7 +197,7 @@ public class VariantResolver {
             Path root = Paths.get(variantRoot).toAbsolutePath().normalize();
             return ArchiveUtil.resolveInside(root, row.getRelPath());
         } catch (ArchiveException e) {
-            logger.warn("副本路径非法: gameId={}, relPath={}", row.getGameId(), row.getRelPath());
+            logger.warn("版本路径非法: gameId={}, relPath={}", row.getGameId(), row.getRelPath());
             return null;
         }
     }

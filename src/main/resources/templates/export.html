@@ -190,9 +190,9 @@
                 </div>
                 
                 <div class="form-group" id="variantFormatGroup" style="display:none;">
-                    <label>ROM 副本格式</label>
+                    <label>ROM 版本格式</label>
                     <div id="variantFormatList"></div>
-                    <small>按系统选择导出时使用的副本格式；副本未生成或已过期时自动回退主文件。可在工具箱 → ROM 副本中批量生成。</small>
+                    <small>按系统选择导出时使用的版本格式；版本未生成或已过期时自动回退主文件。可在工具箱 → ROM 版本中批量生成。</small>
                 </div>
 
                 <div class="form-group">
@@ -703,7 +703,7 @@
             return result;
         }
         
-        // ========== ROM 副本格式选择 ==========
+        // ========== ROM 版本格式选择 ==========
         // 格式文案由后端格式表下发，页面不再写死 bare/zip/7z
         let VARIANT_FORMAT_TEXT = { original: '主文件（原样）' };
         let variantOptions = [];
@@ -738,12 +738,12 @@
             fetch('/api/variants/options?platformIds=' + ids.join(','))
                 .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
                 .then(res => {
-                    if (!res || !res.success) throw new Error((res && res.error) || '加载副本选项失败');
+                    if (!res || !res.success) throw new Error((res && res.error) || '加载版本选项失败');
                     variantOptions = res.systems || [];
                     renderVariantOptions();
                 })
                 .catch(err => {
-                    console.warn('加载副本选项失败:', err && err.message);
+                    console.warn('加载版本选项失败:', err && err.message);
                     variantOptions = [];
                     group.style.display = 'none';
                 });
@@ -820,7 +820,7 @@
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ format: format })
-            }).catch(err => console.warn('保存副本偏好失败:', err && err.message));
+            }).catch(err => console.warn('保存版本偏好失败:', err && err.message));
         }
 
         // Click outside to close combobox

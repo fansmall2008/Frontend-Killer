@@ -1,7 +1,7 @@
 package com.gamelist.model;
 
 /**
- * 系统副本能力：某个系统是否支持 bare / zip / 7z。
+ * 系统版本能力：某个系统是否支持 bare / zip / 7z。
  * <p>
  * source=auto 由属性规则派生，source=manual 由用户在系统管理页手动调整；
  * 初始化器不会覆盖 manual 行。

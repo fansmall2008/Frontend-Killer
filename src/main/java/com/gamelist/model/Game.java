@@ -211,6 +211,21 @@ public class Game {
         this.path = path;
     }
 
+    /**
+     * 运行时计算的游戏版本（文件扩展名），不持久化。
+     * 从 path 字段提取，如 "contra/contra.nes" → "nes"
+     */
+    public String getVersion() {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        int dot = path.lastIndexOf('.');
+        if (dot < 0 || dot == path.length() - 1) {
+            return null;
+        }
+        return path.substring(dot + 1).toLowerCase();
+    }
+
     public String getName() {
         return name;
     }
