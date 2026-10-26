@@ -127,6 +127,11 @@
                         <div class="tool-name">ROM 版本</div>
                         <div class="tool-desc">按系统能力生成原始文件 / ZIP / 7z / ISO / CSO 版本，供导出时按格式选择；版本与主文件独立存储。</div>
                     </div>
+                    <div class="tool-card" id="cardColumnOps" onclick="openTool('columnOps')">
+                        <div class="tool-icon">&#128295;</div>
+                        <div class="tool-name" data-i18n="tool_column_ops">列操作</div>
+                        <div class="tool-desc" data-i18n="tool_column_ops_desc">批量复制、互换、覆盖或替换游戏列数据</div>
+                    </div>
                 </div>
 
                 <!-- 翻译工具面板 -->
@@ -318,38 +323,15 @@
                 <!-- ROM 版本面板 -->
                 <div class="tool-panel" id="panelVariant" style="display:none;">
                     <div class="sub-tabs">
-                        <div class="sub-tab active" id="varTabMatrix" onclick="switchVariantTab('matrix')">能力矩阵</div>
-                        <div class="sub-tab" id="varTabGen" onclick="switchVariantTab('gen')">批量生成</div>
+                        <div class="sub-tab active" id="varTabGen" onclick="switchVariantTab('gen')">批量生成</div>
                         <div class="sub-tab" id="varTabSurvey" onclick="switchVariantTab('survey')">格式体检</div>
                         <div class="sub-tab" id="varTabPipes" onclick="switchVariantTab('pipes')">产线总览</div>
                         <div class="sub-tab" id="varTabTools" onclick="switchVariantTab('tools')">外部工具</div>
-                    </div>
-
-                    <!-- 能力矩阵 -->
-                    <div id="varSubMatrix">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <div>
-                            <h3 style="margin:0;">系统版本能力矩阵</h3>
-                            <span class="hint">只展示已纳入版本机制的系统；勾选表示允许导出该格式的版本，CSO/ISO 由流水线转换。</span>
-                        </div>
-                        <button class="btn btn-secondary" onclick="initVariantPanel()" data-i18n="btn_refresh">刷新</button>
-                    </div>
-                    <table class="engines-table">
-                        <thead id="variantMatrixHead">
-                            <tr>
-                                <th>系统</th>
-                                <th>类型</th>
-                                <th>导出首选</th>
-                            </tr>
-                        </thead>
-                        <tbody id="variantMatrixBody">
-                            <tr><td colspan="3" style="color:var(--text-tertiary)">加载中...</td></tr>
-                        </tbody>
-                    </table>
+                        <div class="sub-tab" id="varTabMatrix" onclick="switchVariantTab('matrix')">能力矩阵</div>
                     </div>
 
                     <!-- 批量生成 -->
-                    <div id="varSubGen" style="display:none;">
+                    <div id="varSubGen">
                     <h3>批量生成版本</h3>
                     <span class="hint">为所选平台的游戏生成版本文件，在后台任务中执行；版本未生成或过期时导出会自动回退主文件。</span>
                     <div class="form-row" style="margin-top:12px;">
@@ -423,6 +405,77 @@
                     </div>
                     <div id="externalToolRows"><span class="hint">正在探测…</span></div>
                     </div>
+
+                    <!-- 能力矩阵 -->
+                    <div id="varSubMatrix" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div>
+                            <h3 style="margin:0;">系统版本能力矩阵</h3>
+                            <span class="hint">只展示已纳入版本机制的系统；勾选表示允许导出该格式的版本，CSO/ISO 由流水线转换。</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="initVariantPanel()" data-i18n="btn_refresh">刷新</button>
+                    </div>
+                    <table class="engines-table">
+                        <thead id="variantMatrixHead">
+                            <tr>
+                                <th>系统</th>
+                                <th>类型</th>
+                                <th>导出首选</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variantMatrixBody">
+                            <tr><td colspan="3" style="color:var(--text-tertiary)">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+
+                <!-- 列操作面板 -->
+                <div class="tool-panel" id="panelColumnOps" style="display:none;">
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label>操作平台</label>
+                      <select id="colOpPlatform" onchange="onColOpPlatformChange()">
+                        <option value="">全部平台</option>
+                      </select>
+                      <span class="hint">仅影响已匹配 ScreenScraper 系统的平台</span>
+                    </div>
+                    <div class="form-field">
+                      <label>操作模式</label>
+                      <div class="scope-options" id="colOpModes">
+                        <label><input type="radio" name="colOpMode" value="copy" checked onchange="onColOpModeChange()"> 复制</label>
+                        <label><input type="radio" name="colOpMode" value="swap" onchange="onColOpModeChange()"> 互换</label>
+                        <label><input type="radio" name="colOpMode" value="overwrite" onchange="onColOpModeChange()"> 覆盖</label>
+                        <label><input type="radio" name="colOpMode" value="replace" onchange="onColOpModeChange()"> 批量替换</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-row" id="colOpColumnsRow">
+                    <div class="form-field">
+                      <label>源列</label>
+                      <select id="colOpSource"></select>
+                    </div>
+                    <div class="form-field">
+                      <label>目标列</label>
+                      <select id="colOpTarget"></select>
+                    </div>
+                  </div>
+                  <div class="form-row" id="colOpReplaceRow" style="display:none;">
+                    <div class="form-field">
+                      <label>查找文本</label>
+                      <input type="text" id="colOpFindText" placeholder="要查找的文本">
+                    </div>
+                    <div class="form-field">
+                      <label>替换为</label>
+                      <input type="text" id="colOpReplaceText" placeholder="替换后的文本">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <button class="btn btn-secondary" onclick="previewColumnOp()">预览影响</button>
+                    <button class="btn btn-primary" id="colOpExecBtn" onclick="executeColumnOp()" disabled style="margin-left:8px;">确认执行</button>
+                  </div>
+                  <div id="colOpPreview" class="status-msg" style="display:none;"></div>
+                  <div id="colOpLog" class="log-area" style="display:none;max-height:200px;"></div>
                 </div>
 
                 <!-- 独立页面入口（点击跳转，非页内面板） -->
@@ -673,8 +726,8 @@
         }
 
         function openTool(which) {
-            const cards = { translation: 'cardTranslation', dat: 'cardDat', variant: 'cardVariant' };
-            const panels = { translation: 'panelTranslation', dat: 'panelDat', variant: 'panelVariant' };
+            const cards = { translation: 'cardTranslation', dat: 'cardDat', variant: 'cardVariant', columnOps: 'cardColumnOps' };
+            const panels = { translation: 'panelTranslation', dat: 'panelDat', variant: 'panelVariant', columnOps: 'panelColumnOps' };
             Object.keys(cards).forEach(key => {
                 const card = document.getElementById(cards[key]);
                 const panel = document.getElementById(panels[key]);
@@ -688,6 +741,8 @@
                 loadDatMeta();
             } else if (which === 'variant') {
                 initVariantPanel();
+            } else if (which === 'columnOps') {
+                initColumnOpsPanel();
             }
         }
 
@@ -1535,6 +1590,158 @@
             } else {
                 showMsg('版本生成失败: ' + (task.errorMessage || task.message || task.status), 'error');
             }
+        }
+
+        // ========== 列操作工具 ==========
+        let colOpColumns = [];
+        let colOpPlatforms = [];
+        let colOpPreviewResult = null;
+
+        function initColumnOpsPanel() {
+            // 加载列列表
+            fetch('/api/tools/column/columns')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        colOpColumns = data.columns;
+                        renderColOpSelects();
+                    }
+                })
+                .catch(e => console.error('加载列列表失败:', e));
+
+            // 加载平台列表
+            if (typeof loadVariantPlatforms === 'function') {
+                fetch('/api/platforms')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && Array.isArray(data.platforms)) {
+                            colOpPlatforms = data.platforms;
+                            renderColOpPlatforms();
+                        }
+                    })
+                    .catch(e => console.error('加载平台列表失败:', e));
+            }
+        }
+
+        function renderColOpSelects() {
+            const sourceSel = document.getElementById('colOpSource');
+            const targetSel = document.getElementById('colOpTarget');
+            const opts = colOpColumns.map(c => `<option value="${c.name}">${c.label}</option>`).join('');
+            sourceSel.innerHTML = '<option value="">请选择</option>' + opts;
+            targetSel.innerHTML = '<option value="">请选择</option>' + opts;
+        }
+
+        function renderColOpPlatforms() {
+            const sel = document.getElementById('colOpPlatform');
+            const opts = colOpPlatforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            sel.innerHTML = '<option value="">全部平台（仅影响已匹配 SS 系统的平台）</option>' + opts;
+        }
+
+        function onColOpModeChange() {
+            const mode = document.querySelector('input[name="colOpMode"]:checked').value;
+            const columnsRow = document.getElementById('colOpColumnsRow');
+            const replaceRow = document.getElementById('colOpReplaceRow');
+            if (mode === 'replace') {
+                columnsRow.style.display = 'none';
+                replaceRow.style.display = '';
+            } else {
+                columnsRow.style.display = '';
+                replaceRow.style.display = 'none';
+            }
+            // 重置预览状态
+            colOpPreviewResult = null;
+            document.getElementById('colOpExecBtn').disabled = true;
+            document.getElementById('colOpPreview').style.display = 'none';
+            document.getElementById('colOpLog').style.display = 'none';
+        }
+
+        function onColOpPlatformChange() {
+            colOpPreviewResult = null;
+            document.getElementById('colOpExecBtn').disabled = true;
+            document.getElementById('colOpPreview').style.display = 'none';
+        }
+
+        function getColOpRequestBody() {
+            const mode = document.querySelector('input[name="colOpMode"]:checked').value;
+            const body = { operation: mode };
+            const platformId = document.getElementById('colOpPlatform').value;
+            if (platformId) body.platformId = parseInt(platformId);
+
+            if (mode === 'replace') {
+                body.targetColumn = document.getElementById('colOpTarget').value;
+                body.findText = document.getElementById('colOpFindText').value;
+                body.replaceText = document.getElementById('colOpReplaceText').value;
+            } else {
+                body.sourceColumn = document.getElementById('colOpSource').value;
+                body.targetColumn = document.getElementById('colOpTarget').value;
+            }
+            return body;
+        }
+
+        function previewColumnOp() {
+            const body = getColOpRequestBody();
+            // 基本校验
+            if (body.operation !== 'replace' && (!body.sourceColumn || !body.targetColumn)) {
+                showColOpPreview('请先选择源列和目标列', true);
+                return;
+            }
+            if (body.operation === 'replace' && (!body.targetColumn || !body.findText)) {
+                showColOpPreview('请先选择目标列并填写查找文本', true);
+                return;
+            }
+
+            fetch('/api/tools/column/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    colOpPreviewResult = data;
+                    showColOpPreview(`预计影响 <strong>${data.affectedRows}</strong> 条记录`, false);
+                    document.getElementById('colOpExecBtn').disabled = false;
+                } else {
+                    showColOpPreview(data.error || '预览失败', true);
+                }
+            })
+            .catch(e => showColOpPreview('请求失败: ' + e.message, true));
+        }
+
+        function executeColumnOp() {
+            if (!colOpPreviewResult) return;
+            const mode = document.querySelector('input[name="colOpMode"]:checked').value;
+            const modeLabels = { copy: '复制', swap: '互换', overwrite: '覆盖', replace: '批量替换' };
+            const msg = `确定要执行${modeLabels[mode]}操作吗？将影响 ${colOpPreviewResult.affectedRows} 条记录，此操作不可撤销。`;
+            if (!confirm(msg)) return;
+
+            const body = getColOpRequestBody();
+            document.getElementById('colOpExecBtn').disabled = true;
+
+            fetch('/api/tools/column/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const log = document.getElementById('colOpLog');
+                    log.style.display = '';
+                    log.innerHTML = `[${new Date().toLocaleTimeString()}] 操作完成：${modeLabels[mode]}，影响 ${data.affectedRows} 条记录\n` + log.innerHTML;
+                    showColOpPreview(`执行成功，影响 ${data.affectedRows} 条记录`, false);
+                } else {
+                    showColOpPreview(data.error || '执行失败', true);
+                }
+            })
+            .catch(e => showColOpPreview('请求失败: ' + e.message, true));
+        }
+
+        function showColOpPreview(msg, isError) {
+            const el = document.getElementById('colOpPreview');
+            el.style.display = '';
+            el.className = 'status-msg' + (isError ? ' error' : ' success');
+            el.textContent = msg;
         }
     </script>
 </body>

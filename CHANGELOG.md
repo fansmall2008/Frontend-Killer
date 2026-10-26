@@ -6,6 +6,9 @@
 
 > 版本机制重构 + ScreenScraper 刮削性能优化三项（统一连接池 / manifest 缓存全覆盖 / FAILED 任务 URL 复用）。
 
+### Added
+- **Column Operations tool**: batch copy/swap/overwrite/replace game column data with preview confirmation
+
 ### 版本机制重构
 - **术语统一**："副本" 更名为 "版本"（UI 文案、日志、注释）；"裸 ROM" 更名为 "原始文件"（formats.json label、UI 显示）
 - **运行时 version 属性**：游戏新增 `game.version`，从文件路径扩展名自动获取（如 `.nes` → `nes`、`.iso` → `iso`），不入库

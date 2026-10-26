@@ -1294,6 +1294,8 @@
     "tool_translation_desc": "批量翻译游戏名称/描述/ROM名到任意目标语种，结果写入独立译文表。",
     "tool_dat_name": "DAT 生成器",
     "tool_dat_desc": "把 rom_db 或现有游戏列表导出为标准 ClrMamePro DAT，可回流导入 rom_db。",
+    "tool_column_ops": "列操作",
+    "tool_column_ops_desc": "批量复制、互换、覆盖或替换游戏列数据",
     "dat_source_romdb": "来源：rom_db",
     "dat_source_game": "来源：游戏列表",
     "dat_precheck_hint": "勾选要导出的平台；“有效”列为名称非空且(有 CRC 或 serial)的可导出条目数。",

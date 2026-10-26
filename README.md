@@ -6,6 +6,14 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
+## What's New in 1.3.8
+
+- **Column Operations tool**: batch copy, swap, overwrite, or replace game column data with preview and confirmation
+- **Version mechanism refactoring**: “副本” renamed to “版本”, runtime `game.version` auto-derived from file extension, auto-detected on import
+- **ScreenScraper scraping optimization**: unified OkHttpClient connection pool, manifest cache full coverage, FAILED task URL reuse
+
+---
+
 ## What's New in 1.3.7
 
 > **Early Access Release** — This version is a preview / early access build. The new Toolbox features may contain bugs. If you encounter any issues, please report them on [GitHub Issues](https://github.com/fansmall2008/Frontend-Killer/issues).
@@ -542,4 +550,4 @@ Without your effort and support, this idea would never have existed, let alone c
 
 ---
 
-**Version**: 1.3.7
+**Version**: 1.3.8

@@ -1294,6 +1294,8 @@
     "tool_translation_desc": "ゲーム名/説明/ROM名を任意の言語に一括翻訳し、専用の翻訳テーブルに保存します。",
     "tool_dat_name": "DAT ジェネレーター",
     "tool_dat_desc": "rom_db または現在のゲームリストを標準 ClrMamePro DAT に出力し、rom_db に再インポートできます。",
+    "tool_column_ops": "列操作",
+    "tool_column_ops_desc": "ゲームの列データを一括コピー、入れ替え、上書き、置換",
     "dat_source_romdb": "ソース：rom_db",
     "dat_source_game": "ソース：ゲームリスト",
     "dat_precheck_hint": "出力するプラットフォームにチェック；「有効」列は名前が空でなく（CRC または serial あり）の出力可能件数です。",

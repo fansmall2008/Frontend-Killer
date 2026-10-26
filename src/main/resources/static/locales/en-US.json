@@ -1294,6 +1294,8 @@
     "tool_translation_desc": "Batch translate game name/desc/ROM name into any target language, stored in a dedicated translation table.",
     "tool_dat_name": "DAT Generator",
     "tool_dat_desc": "Export rom_db or the current game list as standard ClrMamePro DAT, importable back into rom_db.",
+    "tool_column_ops": "Column Operations",
+    "tool_column_ops_desc": "Batch copy, swap, overwrite or replace game column data",
     "dat_source_romdb": "Source: rom_db",
     "dat_source_game": "Source: Game List",
     "dat_precheck_hint": "Check platforms to export; the \"Valid\" column counts entries with a name and (CRC or serial).",
