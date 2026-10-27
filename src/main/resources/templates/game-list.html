@@ -3742,101 +3742,100 @@
                     <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="scrape_scope">刮削范围</label>
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="checkbox" name="scrapeScope" value="gameInfo" checked style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">游戏信息</span>
+                            <input type="checkbox" name="scrapeScope" value="gameInfo" checked onchange="onScrapeScopeChange()" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;" data-i18n="scrape_scope_game_info">游戏信息</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 15px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="checkbox" name="scrapeScope" value="media" checked style="margin-right: 8px; accent-color: #00ffff;">
-                            <span style="color: #ccc;">媒体文件</span>
+                            <input type="checkbox" name="scrapeScope" value="media" checked onchange="onScrapeScopeChange()" style="margin-right: 8px; accent-color: #00ffff;">
+                            <span style="color: #ccc;" data-i18n="scrape_scope_media">媒体文件</span>
                         </label>
                     </div>
                 </div>
-                
+
                 <!-- 选择语种（单选） -->
                 <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
                     <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_language">选择语种</label>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="cn" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">中文 (CN)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="en" checked style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">English (EN)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="jp" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">日本語 (JP)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="fr" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Français (FR)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="de" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Deutsch (DE)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="es" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Español (ES)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="it" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Italiano (IT)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="pt" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Português (PT)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="kr" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">한국어 (KR)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="tw" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">繁體中文 (TW)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="ru" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Русский (RU)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="nl" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Nederlands (NL)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="pl" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Polski (PL)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;">
-                            <input type="radio" name="scrapeLanguage" value="se" style="margin-right: 6px; accent-color: #00ffff;">
-                            <span style="color: #ccc; font-size: 12px;">Svenska (SE)</span>
-                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="cn" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">中文 (CN)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="en" checked style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">English (EN)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="jp" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">日本語 (JP)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="fr" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Français (FR)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="de" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Deutsch (DE)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="es" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Español (ES)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="it" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Italiano (IT)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="pt" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Português (PT)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="kr" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">한국어 (KR)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="tw" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">繁體中文 (TW)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="ru" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Русский (RU)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="nl" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Nederlands (NL)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="pl" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Polski (PL)</span></label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; transition: all 0.3s ease;"><input type="radio" name="scrapeLanguage" value="se" style="margin-right: 6px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">Svenska (SE)</span></label>
                     </div>
                     <p style="color: #888; font-size: 12px; margin-top: 10px; text-align: right;" data-i18n="language_tip">游戏介绍优先使用所选语种，其他字段默认使用WOR区域</p>
                 </div>
-                
-                <!-- 刮削全部媒体选项 -->
+
+                <!-- 保护开关 -->
                 <div class="form-group" style="margin-bottom: 25px;">
-                    <label style="display: flex; align-items: center; cursor: pointer; padding: 12px 15px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); transition: all 0.3s ease;">
-                        <input type="checkbox" id="scrapeAllMedia" onchange="toggleAllMediaSelection()" style="margin-right: 10px; accent-color: #ffd700;">
-                        <span style="color: #ffd700; font-weight: bold;" data-i18n="scrape_all_media">刮削全部媒体</span>
+                    <label style="display: flex; align-items: center; cursor: pointer; padding: 12px 15px; background: rgba(0, 255, 255, 0.08); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2); transition: all 0.3s ease;">
+                        <input type="checkbox" id="scrapeProtectExisting" style="margin-right: 10px; accent-color: #00ffff;">
+                        <span style="color: #ccc;" data-i18n="scrape_protect_existing">保护已有数据（不覆盖已填写的字段）</span>
                     </label>
-                    <p style="color: #888; font-size: 12px; margin-top: 8px;" data-i18n="scrape_all_media_tip">选中后将自动刮削API返回的所有媒体类型，按区域优先级下载</p>
                 </div>
-                
-                <!-- 选择媒体类型（多选） -->
-                <div class="form-group" style="margin-bottom: 25px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_media_types">选择媒体类型</label>
-                    <!-- 从模板预选 -->
-                    <div class="scrape-template-preset" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(255, 215, 0, 0.06); border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.25);">
-                        <label style="color: #ffd700; font-size: 13px; font-weight: bold; white-space: nowrap; margin: 0;" data-i18n="scrape_template_preset">从模板预选</label>
-                        <select id="scrapeTemplatePreset" style="flex: 1; min-width: 180px; padding: 7px 10px; background: #1a1a2e; color: #ccc; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 6px; font-size: 13px;">
-                            <option value="">选择导出模板...</option>
-                        </select>
-                        <button type="button" onclick="applyTemplatePreset()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #ffd700, #ffb300); color: #000; font-weight: bold; white-space: nowrap;" data-i18n="btn_apply_template">应用模板</button>
-                        <button type="button" onclick="clearMediaSelection()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #666, #444); color: #fff; white-space: nowrap;" data-i18n="btn_clear_selection">清空</button>
+
+                <!-- 折叠：信息字段设置 -->
+                <div id="fieldSettingsSection" class="scrape-collapse-section" style="margin-bottom: 25px;">
+                    <div class="scrape-collapse-header" onclick="toggleScrapeCollapse('fieldSettingsBody', 'fieldSettingsArrow')" style="cursor: pointer; padding: 10px 15px; background: rgba(255, 107, 157, 0.08); border-radius: 8px; border: 1px solid rgba(255, 107, 157, 0.2); user-select: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
+                        <span class="scrape-collapse-arrow" id="fieldSettingsArrow" style="font-size: 12px; color: #ff6b9d; transition: transform 0.2s;">&#9654;</span>
+                        <span style="color: #ff6b9d; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="scrape_field_settings">信息字段设置</span>
                     </div>
+                    <div id="fieldSettingsBody" class="scrape-collapse-body" style="display: none; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 0 0 8px 8px; margin-top: -1px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="name" id="field_name" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_name">游戏名称</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="desc" id="field_desc" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_desc">描述</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="translatedName" id="field_translatedName" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_translated_name">翻译名称</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="translatedDesc" id="field_translatedDesc" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_translated_desc">翻译描述</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="developer" id="field_developer" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_developer">开发商</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="publisher" id="field_publisher" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_publisher">发行商</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="genre" id="field_genre" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_genre">类型</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="lang" id="field_lang" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_lang">语言</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="releasedate" id="field_releasedate" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_releasedate">发行日期</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="players" id="field_players" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_players">玩家数</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px;"><input class="scrape-field-cb" type="checkbox" value="rating" id="field_rating" checked style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;" data-i18n="scrape_field_rating">评分</span></label>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button type="button" onclick="setAllFields(true)" class="btn" style="padding: 4px 12px; font-size: 12px; background: linear-gradient(45deg, #00ff88, #00cc66); color: #000; font-weight: bold;" data-i18n="scrape_select_all">全选</button>
+                            <button type="button" onclick="setAllFields(false)" class="btn" style="padding: 4px 12px; font-size: 12px; background: linear-gradient(45deg, #666, #444); color: #fff;" data-i18n="scrape_select_none">全不选</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 折叠：媒体类型设置 -->
+                <div id="mediaSettingsSection" class="scrape-collapse-section" style="margin-bottom: 25px;">
+                    <div class="scrape-collapse-header" onclick="toggleScrapeCollapse('mediaSettingsBody', 'mediaSettingsArrow')" style="cursor: pointer; padding: 10px 15px; background: rgba(255, 215, 0, 0.08); border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.2); user-select: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
+                        <span class="scrape-collapse-arrow" id="mediaSettingsArrow" style="font-size: 12px; color: #ffd700; transition: transform 0.2s;">&#9654;</span>
+                        <span style="color: #ffd700; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="scrape_media_settings">媒体类型设置</span>
+                    </div>
+                    <div id="mediaSettingsBody" class="scrape-collapse-body" style="display: none; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 0 0 8px 8px; margin-top: -1px;">
+                        <!-- 刮削全部媒体选项 -->
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 12px 15px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); transition: all 0.3s ease;">
+                                <input type="checkbox" id="scrapeAllMedia" onchange="toggleAllMediaSelection()" style="margin-right: 10px; accent-color: #ffd700;">
+                                <span style="color: #ffd700; font-weight: bold;" data-i18n="scrape_all_media">刮削全部媒体</span>
+                            </label>
+                            <p style="color: #888; font-size: 12px; margin-top: 8px;" data-i18n="scrape_all_media_tip">选中后将自动刮削API返回的所有媒体类型，按区域优先级下载</p>
+                        </div>
+                        <!-- 选择媒体类型（多选） -->
+                        <div class="form-group" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
+                            <label style="color: #ff6b9d; font-weight: bold; display: block; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" data-i18n="select_media_types">选择媒体类型</label>
+                            <!-- 从模板预选 -->
+                            <div class="scrape-template-preset" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(255, 215, 0, 0.06); border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.25);">
+                                <label style="color: #ffd700; font-size: 13px; font-weight: bold; white-space: nowrap; margin: 0;" data-i18n="scrape_template_preset">从模板预选</label>
+                                <select id="scrapeTemplatePreset" style="flex: 1; min-width: 180px; padding: 7px 10px; background: #1a1a2e; color: #ccc; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 6px; font-size: 13px;">
+                                    <option value="">选择导出模板...</option>
+                                </select>
+                                <button type="button" onclick="applyTemplatePreset()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #ffd700, #ffb300); color: #000; font-weight: bold; white-space: nowrap;" data-i18n="btn_apply_template">应用模板</button>
+                                <button type="button" onclick="clearMediaSelection()" class="btn" style="padding: 7px 14px; font-size: 13px; background: linear-gradient(45deg, #666, #444); color: #fff; white-space: nowrap;" data-i18n="btn_clear_selection">清空</button>
+                            </div>
                     <div class="media-type-grid" id="mediaTypeGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
                         <!-- 截图类 -->
                         <div class="media-category" style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 12px;">
@@ -3915,24 +3914,18 @@
                             <label style="display: block; cursor: pointer;"><input type="checkbox" name="scrapeMediaType" value="themehs" style="margin-right: 8px; accent-color: #00ffff;"><span style="color: #ccc; font-size: 12px;">主题HS</span></label>
                         </div>
                     </div>
-                    <p style="color: #888; font-size: 12px; margin-top: 12px;">至少选择一种媒体类型</p>
+                            <p style="color: #888; font-size: 12px; margin-top: 12px;" data-i18n="mt_at_least_one">至少选择一种媒体类型</p>
+                        </div>
+                        <!-- 覆盖选项 -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 10px 15px; background: rgba(0, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 255, 0.15);">
+                                <input type="checkbox" id="scrapeOverwrite" style="margin-right: 10px; accent-color: #00ffff;">
+                                <span style="color: #ccc;" data-i18n="scrape_overwrite">覆盖已存在的媒体文件</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                
-                <!-- 其他选项（多选） -->
-                <div class="form-group" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 255, 0.2);">
-                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 10px;">
-                        <input type="checkbox" id="scrapeOverwrite" style="margin-right: 10px; accent-color: #00ffff;">
-                        <span style="color: #ccc;" data-i18n="scrape_overwrite">覆盖已存在的媒体文件</span>
-                    </label>
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="scrapeOnlyMissing" style="margin-right: 10px; accent-color: #00ffff;">
-                        <span style="color: #ccc;">仅刮削信息不全的游戏</span>
-                    </label>
-                    <label style="display: flex; align-items: center; cursor: pointer; margin-top: 10px;">
-                        <input type="checkbox" id="scrapePreserveLocal" checked style="margin-right: 10px; accent-color: #00ffff;">
-                        <span style="color: #ccc;" data-i18n="preserve_local_data">保留本地已有数据（不覆盖开发商/发行商/年份等）</span>
-                    </label>
-                </div>
+
                 </form>
             </div>
             <div class="gm-modal-footer" style="display: flex; justify-content: flex-end; gap: 15px; padding: 20px 25px; border-top: 1px solid rgba(0, 255, 255, 0.2);">
@@ -3947,6 +3940,41 @@
         let scrapeModalType = '';  // 'platform' | 'batch' | 'single'
         let scrapePlatformId = 0;
         let scrapeGameIds = [];
+
+        // 折叠切换
+        function toggleScrapeCollapse(bodyId, arrowId) {
+            const body = document.getElementById(bodyId);
+            const arrow = document.getElementById(arrowId);
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                arrow.innerHTML = '&#9660;';
+            } else {
+                body.style.display = 'none';
+                arrow.innerHTML = '&#9654;';
+            }
+        }
+
+        // 全选/全不选字段
+        function setAllFields(checked) {
+            document.querySelectorAll('.scrape-field-cb').forEach(cb => { cb.checked = checked; });
+        }
+
+        // 获取勾选的字段列表
+        function getScrapeFieldsToUpdate() {
+            const checkboxes = document.querySelectorAll('.scrape-field-cb:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // scope 变化时控制折叠区域显隐
+        function onScrapeScopeChange() {
+            const gameInfoChecked = document.getElementById('scrapeScopeGameInfo') ? 
+                document.querySelectorAll('input[name="scrapeScope"][value="gameInfo"]')[0]?.checked : true;
+            const mediaChecked = document.querySelectorAll('input[name="scrapeScope"][value="media"]')[0]?.checked;
+            const fieldSection = document.getElementById('fieldSettingsSection');
+            const mediaSection = document.getElementById('mediaSettingsSection');
+            if (fieldSection) fieldSection.style.display = gameInfoChecked ? '' : 'none';
+            if (mediaSection) mediaSection.style.display = mediaChecked ? '' : 'none';
+        }
         
         // 切换全部媒体选择状态
         function toggleAllMediaSelection() {
@@ -4162,8 +4190,8 @@
             const selectedMedia = scrapeAllMedia ? ['ALL'] : Array.from(document.querySelectorAll('input[name="scrapeMediaType"]:checked'))
                 .map(cb => cb.value);
             const overwrite = document.getElementById('scrapeOverwrite').checked;
-            const onlyMissing = document.getElementById('scrapeOnlyMissing').checked;
-                        const preserveLocal = document.getElementById('scrapePreserveLocal').checked;
+            const preserveLocal = document.getElementById('scrapeProtectExisting').checked;
+            const fieldsToUpdate = getScrapeFieldsToUpdate();
             
             console.log('scrapeScope:', scrapeScope);
             console.log('language:', language);
@@ -4171,7 +4199,8 @@
             console.log('scrapeAllMedia:', scrapeAllMedia);
             console.log('selectedMedia:', selectedMedia);
             console.log('overwrite:', overwrite);
-            console.log('onlyMissing:', onlyMissing);
+            console.log('fieldsToUpdate:', fieldsToUpdate);
+            console.log('preserveLocalData:', preserveLocal);
             
             // 验证至少选择一个刮削范围
             if (scrapeScope.length === 0) {
@@ -4196,8 +4225,8 @@
                 scrapeAllMedia: scrapeAllMedia,
                 searchMode: searchMode,
                 overwrite: overwrite,
-                onlyMissing: onlyMissing,
-                preserveLocalData: preserveLocal
+                preserveLocalData: preserveLocal,
+                fieldsToUpdate: fieldsToUpdate
             };
             
             // “应用于所有搜索结果”模式：附加筛选参数

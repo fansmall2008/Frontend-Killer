@@ -174,6 +174,25 @@ public class ScraperServiceImpl implements ScraperService {
         this.httpClient = httpClient;
         this.objectMapper = new ObjectMapper();
     }
+
+    /** 所有可被用户选择更新的信息字段集合 */
+    private static final Set<String> ALL_INFO_FIELDS = Set.of(
+        "name", "desc", "translatedName", "translatedDesc",
+        "developer", "publisher", "genre", "players", "rating", "releasedate"
+    );
+
+    /** 根据用户请求解析出本次刮削需要更新的字段集合；空/null 表示全部更新 */
+    private Set<String> resolveFieldsToUpdate(ScraperRequest request) {
+        List<String> fields = request.getFieldsToUpdate();
+        if (fields == null || fields.isEmpty()) {
+            return ALL_INFO_FIELDS;
+        }
+        return new HashSet<>(fields);
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
     
     @Override
     public Map<String, Object> startScraping(ScraperRequest request) {
@@ -2214,15 +2233,7 @@ public class ScraperServiceImpl implements ScraperService {
             default:
                 games = new ArrayList<>();
         }
-        
-        // 如果勾选了"仅刮削信息不全的游戏"，过滤掉已完全刮削的游戏
-        if (Boolean.TRUE.equals(request.getOnlyMissing())) {
-            games = games.stream()
-                .filter(game -> game.getScraped() == null || !game.getScraped())
-                .collect(Collectors.toList());
-            logger.info("仅刮削信息不全的游戏，过滤后剩余 {} 个游戏", games.size());
-        }
-        
+                
         return games;
     }
     
@@ -2754,6 +2765,11 @@ public class ScraperServiceImpl implements ScraperService {
             // 获取用户选择的语种，默认为WOR
             String preferredLang = getLanguageMapping(request.getLanguage());
             logger.info("preferredLang: {}", preferredLang);
+
+            // 解析用户选择的更新字段和保护模式
+            Set<String> fields = resolveFieldsToUpdate(request);
+            boolean protect = Boolean.TRUE.equals(request.getPreserveLocalData());
+            logger.info("fieldsToUpdate: {}, preserveLocalData: {}", fields, protect);
             
             // 游戏ID
             if (jeu.has("id")) {
@@ -2767,7 +2783,8 @@ public class ScraperServiceImpl implements ScraperService {
             }
             
             // 游戏名称 - 从 noms 数组中提取，优先使用用户选择的语种
-            if (jeu.has("noms") && jeu.get("noms").isArray()) {
+            boolean translatedNameWritten = false;
+            if (fields.contains("name") && jeu.has("noms") && jeu.get("noms").isArray()) {
                 // 优先使用用户选择的语种
                 String gameName = extractTextFromRegionArray(jeu.get("noms"), preferredLang);
                 // 如果用户选择的语种没有，使用WOR
@@ -2775,53 +2792,60 @@ public class ScraperServiceImpl implements ScraperService {
                     gameName = extractTextFromRegionArray(jeu.get("noms"), "wor");
                 }
                 if (gameName != null && !gameName.isEmpty()) {
-                    game.setName(gameName);
+                    if (!protect || isBlank(game.getName())) {
+                        game.setName(gameName);
+                    }
                 }
                 
                 // 尝试获取中文翻译名称作为备用
-                if (!"zh".equals(preferredLang)) {
+                if (fields.contains("translatedName") && !"zh".equals(preferredLang)) {
                     String translatedName = extractTextFromRegionArray(jeu.get("noms"), "zh");
                     if (translatedName != null && !translatedName.isEmpty() && !translatedName.equals(gameName)) {
-                        game.setTranslatedName(translatedName);
+                        if (!protect || isBlank(game.getTranslatedName())) {
+                            game.setTranslatedName(translatedName);
+                        }
+                        translatedNameWritten = true;
                     }
                 }
             }
             
             // 发行商
-            if (jeu.has("editeur")) {
+            if (fields.contains("publisher") && jeu.has("editeur")) {
                 String ssPublisher = getTextValue(jeu.get("editeur"));
-                boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
-                if (!preserve || game.getPublisher() == null || game.getPublisher().isBlank()) {
+                if (!protect || isBlank(game.getPublisher())) {
                     game.setPublisher(ssPublisher);
                 }
             }
             
             // 开发商
-            if (jeu.has("developpeur")) {
+            if (fields.contains("developer") && jeu.has("developpeur")) {
                 String ssDeveloper = getTextValue(jeu.get("developpeur"));
-                boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
-                if (!preserve || game.getDeveloper() == null || game.getDeveloper().isBlank()) {
+                if (!protect || isBlank(game.getDeveloper())) {
                     game.setDeveloper(ssDeveloper);
                 }
             }
             
             // 玩家数量
-            if (jeu.has("joueurs")) {
-                game.setPlayers(getTextValue(jeu.get("joueurs")));
+            if (fields.contains("players") && jeu.has("joueurs")) {
+                if (!protect || isBlank(game.getPlayers())) {
+                    game.setPlayers(getTextValue(jeu.get("joueurs")));
+                }
             }
             
             // 评分
-            if (jeu.has("note")) {
+            if (fields.contains("rating") && jeu.has("note")) {
                 String note = getTextValue(jeu.get("note"));
                 try {
-                    game.setRating(Double.parseDouble(note));
+                    if (!protect || game.getRating() == null) {
+                        game.setRating(Double.parseDouble(note));
+                    }
                 } catch (NumberFormatException e) {
                     logger.warn("解析评分失败: {}", note);
                 }
             }
             
             // 类型 - 从 genres 数组中提取（SS 结构: [{id, noms:[{langue,text}]}]）
-            if (jeu.has("genres") && jeu.get("genres").isArray()) {
+            if (fields.contains("genre") && jeu.has("genres") && jeu.get("genres").isArray()) {
                 StringBuilder genreBuilder = new StringBuilder();
                 StringBuilder genreIdBuilder = new StringBuilder();
                 for (JsonNode genreNode : jeu.get("genres")) {
@@ -2836,15 +2860,15 @@ public class ScraperServiceImpl implements ScraperService {
                     genreBuilder.append(genreText);
                     genreIdBuilder.append(isInvalidText(genreId) ? "" : genreId);
                 }
-                boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
-                if (!preserve || game.getGenre() == null || game.getGenre().isBlank()) {
+                if (!protect || isBlank(game.getGenre())) {
                     game.setGenre(genreBuilder.toString());
                     game.setGenreid(genreIdBuilder.toString());
                 }
             }
             
             // 简介 - 从 synopsis 数组中提取，优先使用用户选择的语种
-            if (jeu.has("synopsis") && jeu.get("synopsis").isArray()) {
+            boolean translatedDescWritten = false;
+            if (fields.contains("desc") && jeu.has("synopsis") && jeu.get("synopsis").isArray()) {
                 // 优先使用用户选择的语种
                 String desc = extractTextFromRegionArray(jeu.get("synopsis"), preferredLang);
                 // 如果用户选择的语种没有，使用WOR
@@ -2852,25 +2876,29 @@ public class ScraperServiceImpl implements ScraperService {
                     desc = extractTextFromRegionArray(jeu.get("synopsis"), "wor");
                 }
                 if (desc != null && !desc.isEmpty()) {
-                    game.setDesc(desc);
+                    if (!protect || isBlank(game.getDesc())) {
+                        game.setDesc(desc);
+                    }
                 }
                 
                 // 尝试获取中文翻译简介作为备用
-                if (!"zh".equals(preferredLang)) {
+                if (fields.contains("translatedDesc") && !"zh".equals(preferredLang)) {
                     String translatedDesc = extractTextFromRegionArray(jeu.get("synopsis"), "zh");
                     if (translatedDesc != null && !translatedDesc.isEmpty() && !translatedDesc.equals(desc)) {
-                        game.setTranslatedDesc(translatedDesc);
+                        if (!protect || isBlank(game.getTranslatedDesc())) {
+                            game.setTranslatedDesc(translatedDesc);
+                        }
+                        translatedDescWritten = true;
                     }
                 }
             }
             
             // 发行日期 - 从 dates 数组中提取（使用WOR区域）
-            if (jeu.has("dates") && jeu.get("dates").isArray()) {
+            if (fields.contains("releasedate") && jeu.has("dates") && jeu.get("dates").isArray()) {
                 String releaseDate = extractDateFromRegionArray(jeu.get("dates"), "wor");
                 if (releaseDate != null && !releaseDate.isEmpty()) {
-                    boolean preserve = Boolean.TRUE.equals(request.getPreserveLocalData());
                     // 保留本地数据时：只有当本地只有年份（≤4字符）时才允许 SS 覆盖为完整日期
-                    if (!preserve || game.getReleasedate() == null || game.getReleasedate().isBlank()
+                    if (!protect || isBlank(game.getReleasedate())
                             || game.getReleasedate().length() <= 4) {
                         game.setReleasedate(releaseDate);
                     }
@@ -2908,10 +2936,10 @@ public class ScraperServiceImpl implements ScraperService {
             gameService.updateGame(game);
             // 刮削免费得到的中文名称/简介写入通用译文表（lang=zh），接管旧 translated_name/desc 列
             if (game.getId() != null) {
-                if (game.getTranslatedName() != null && !game.getTranslatedName().isBlank()) {
+                if (translatedNameWritten && game.getTranslatedName() != null && !game.getTranslatedName().isBlank()) {
                     fieldTranslationMapper.upsert(new FieldTranslation("game", game.getId(), "name", "zh", game.getTranslatedName()));
                 }
-                if (game.getTranslatedDesc() != null && !game.getTranslatedDesc().isBlank()) {
+                if (translatedDescWritten && game.getTranslatedDesc() != null && !game.getTranslatedDesc().isBlank()) {
                     fieldTranslationMapper.upsert(new FieldTranslation("game", game.getId(), "desc", "zh", game.getTranslatedDesc()));
                 }
             }
@@ -3335,13 +3363,8 @@ public class ScraperServiceImpl implements ScraperService {
             Path existingFile = PathResolver.findExistingMedia(gameMediaDir, mediaType);
             boolean fileExists = existingFile != null;
             boolean overwrite = Boolean.TRUE.equals(request.getOverwrite());
-            boolean onlyMissing = Boolean.TRUE.equals(request.getOnlyMissing());
 
             if (fileExists && !overwrite) {
-                if (onlyMissing) {
-                    // 仅刮削缺失内容模式：文件已存在则完全跳过
-                    return;
-                }
                 // 文件已存在但不覆盖：创建已完成状态的任务，并直接更新游戏记录的媒体路径
                 MediaDownloadTask existingTask = new MediaDownloadTask();
                 existingTask.setTaskId(taskId);

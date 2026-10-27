@@ -15,8 +15,8 @@ public class ScraperRequest {
     private Boolean scrapeAllMedia;         // 是否刮削全部媒体
     private String searchMode;              // crc | filename | name
     private Boolean overwrite;              // 是否覆盖已存在文件
-    private Boolean onlyMissing;            // 是否仅刮削缺失内容
-    private Boolean preserveLocalData;      // 保留本地已有数据（不覆盖开发商/发行商/年份等）
+    private List<String> fieldsToUpdate;    // 用户选择要更新的字段列表（空/null=全部更新）
+    private Boolean preserveLocalData;      // 保留本地已有数据（已有值的字段不被覆盖）
     
     // ========== “应用于所有搜索结果”模式：筛选参数 ==========
     private String search;                   // 搜索关键词
@@ -147,12 +147,12 @@ public class ScraperRequest {
         this.overwrite = overwrite;
     }
 
-    public Boolean getOnlyMissing() {
-        return onlyMissing;
+    public List<String> getFieldsToUpdate() {
+        return fieldsToUpdate;
     }
 
-    public void setOnlyMissing(Boolean onlyMissing) {
-        this.onlyMissing = onlyMissing;
+    public void setFieldsToUpdate(List<String> fieldsToUpdate) {
+        this.fieldsToUpdate = fieldsToUpdate;
     }
 
     public Boolean getPreserveLocalData() {
