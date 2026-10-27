@@ -124,8 +124,8 @@
                     </div>
                     <div class="tool-card" id="cardVariant" onclick="openTool('variant')">
                         <div class="tool-icon">📚</div>
-                        <div class="tool-name">ROM 版本</div>
-                        <div class="tool-desc">按系统能力生成原始文件 / ZIP / 7z / ISO / CSO 版本，供导出时按格式选择；版本与主文件独立存储。</div>
+                        <div class="tool-name" data-i18n="tool_variant_name">ROM 版本</div>
+                        <div class="tool-desc" data-i18n="tool_variant_desc">按系统能力生成原始文件 / ZIP / 7z / ISO / CSO 版本，供导出时按格式选择；版本与主文件独立存储。</div>
                     </div>
                     <div class="tool-card" id="cardColumnOps" onclick="openTool('columnOps')">
                         <div class="tool-icon">&#128295;</div>
@@ -323,35 +323,35 @@
                 <!-- ROM 版本面板 -->
                 <div class="tool-panel" id="panelVariant" style="display:none;">
                     <div class="sub-tabs">
-                        <div class="sub-tab active" id="varTabGen" onclick="switchVariantTab('gen')">批量生成</div>
-                        <div class="sub-tab" id="varTabSurvey" onclick="switchVariantTab('survey')">格式体检</div>
-                        <div class="sub-tab" id="varTabPipes" onclick="switchVariantTab('pipes')">产线总览</div>
-                        <div class="sub-tab" id="varTabTools" onclick="switchVariantTab('tools')">外部工具</div>
-                        <div class="sub-tab" id="varTabMatrix" onclick="switchVariantTab('matrix')">能力矩阵</div>
+                        <div class="sub-tab active" id="varTabGen" onclick="switchVariantTab('gen')" data-i18n="tools_variant_tab_gen">批量生成</div>
+                        <div class="sub-tab" id="varTabSurvey" onclick="switchVariantTab('survey')" data-i18n="tools_variant_tab_survey">格式体检</div>
+                        <div class="sub-tab" id="varTabPipes" onclick="switchVariantTab('pipes')" data-i18n="tools_variant_tab_pipes">产线总览</div>
+                        <div class="sub-tab" id="varTabTools" onclick="switchVariantTab('tools')" data-i18n="tools_variant_tab_tools">外部工具</div>
+                        <div class="sub-tab" id="varTabMatrix" onclick="switchVariantTab('matrix')" data-i18n="tools_variant_tab_matrix">能力矩阵</div>
                     </div>
 
                     <!-- 批量生成 -->
                     <div id="varSubGen">
-                    <h3>批量生成版本</h3>
-                    <span class="hint">为所选平台的游戏生成版本文件，在后台任务中执行；版本未生成或过期时导出会自动回退主文件。</span>
+                    <h3 data-i18n="tools_variant_gen_title">批量生成版本</h3>
+                    <span class="hint" data-i18n="tools_variant_gen_desc">为所选平台的游戏生成版本文件，在后台任务中执行；版本未生成或过期时导出会自动回退主文件。</span>
                     <div class="form-row" style="margin-top:12px;">
                         <div class="form-field">
-                            <label>平台</label>
-                            <select id="variantPlatformSelect" onchange="renderVariantGenFormats()"><option value="">加载中...</option></select>
+                            <label data-i18n="tools_variant_platform">平台</label>
+                            <select id="variantPlatformSelect" onchange="renderVariantGenFormats()"><option value="" data-i18n="tools_variant_loading">加载中...</option></select>
                         </div>
                         <div class="form-field">
-                            <label>生成格式</label>
+                            <label data-i18n="tools_variant_gen_format">生成格式</label>
                             <div class="scope-options" id="variantGenFormats">
-                                <span class="hint">选择平台后加载</span>
+                                <span class="hint" data-i18n="tools_variant_gen_select_platform">选择平台后加载</span>
                             </div>
                         </div>
                         <div class="form-field checkbox-field">
                             <input type="checkbox" id="variantForceRebuild">
-                            <label for="variantForceRebuild">强制重建</label>
+                            <label for="variantForceRebuild" data-i18n="tools_variant_force_rebuild">强制重建</label>
                         </div>
                     </div>
                     <div class="form-row">
-                        <button class="btn btn-primary" id="variantGenBtn" onclick="startVariantGenerate()">开始生成</button>
+                        <button class="btn btn-primary" id="variantGenBtn" onclick="startVariantGenerate()" data-i18n="tools_variant_gen_start">开始生成</button>
                     </div>
 
                     <div class="progress-wrap" id="variantProgressWrap">
@@ -365,66 +365,66 @@
                     <div id="varSubSurvey" style="display:none;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <div>
-                            <h3 style="margin:0;">平台格式体检</h3>
-                            <span class="hint">按扩展名归类（不读文件头），列出“已有 / 可补 / 不可生成”；只读，不生成也不落盘。单游戏的精确诊断在游戏列表里看。</span>
+                            <h3 style="margin:0;" data-i18n="tools_variant_survey_title">平台格式体检</h3>
+                            <span class="hint" data-i18n="tools_variant_survey_desc">按扩展名归类（不读文件头），列出"已有 / 可补 / 不可生成"；只读，不生成也不落盘。单游戏的精确诊断在游戏列表里看。</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-field">
-                            <label>平台</label>
-                            <select id="variantSurveyPlatformSelect"><option value="">加载中...</option></select>
+                            <label data-i18n="tools_variant_platform">平台</label>
+                            <select id="variantSurveyPlatformSelect"><option value="" data-i18n="tools_variant_loading">加载中...</option></select>
                         </div>
                         <div class="form-field" style="flex:0 0 auto;justify-content:flex-end;">
-                            <button class="btn btn-secondary" onclick="runVariantSurvey()">开始体检</button>
+                            <button class="btn btn-secondary" onclick="runVariantSurvey()" data-i18n="tools_variant_survey_start">开始体检</button>
                         </div>
                     </div>
                     <div id="variantSurveySummary"></div>
-                    <div id="variantSurveyBox" style="margin-top:10px;font-size:12px;color:var(--text-tertiary);">选择平台后点击“开始体检”。</div>
+                    <div id="variantSurveyBox" style="margin-top:10px;font-size:12px;color:var(--text-tertiary);" data-i18n="tools_variant_survey_hint">选择平台后点击"开始体检"。</div>
                     </div>
 
                     <!-- 产线总览 -->
                     <div id="varSubPipes" style="display:none;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <div>
-                            <h3 style="margin:0;">产线总览</h3>
-                            <span class="hint">模块目录 + 各系统声明的转换路线；RESERVED 为尚未实现的占位模块，自动选路时会跳过。</span>
+                            <h3 style="margin:0;" data-i18n="tools_variant_pipes_title">产线总览</h3>
+                            <span class="hint" data-i18n="tools_variant_pipes_desc">模块目录 + 各系统声明的转换路线；RESERVED 为尚未实现的占位模块，自动选路时会跳过。</span>
                         </div>
                         <button class="btn btn-secondary" onclick="loadVariantPipelines()" data-i18n="btn_refresh">刷新</button>
                     </div>
-                    <div id="variantPipelineBox" style="font-size:12px;color:var(--text-tertiary);">尚未加载。</div>
+                    <div id="variantPipelineBox" style="font-size:12px;color:var(--text-tertiary);" data-i18n="tools_variant_pipes_not_loaded">尚未加载。</div>
                     </div>
 
                     <!-- 外部工具（chdman / ffmpeg 路径） -->
                     <div id="varSubTools" style="display:none;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <div>
-                            <h3 style="margin:0;">外部工具</h3>
-                            <span class="hint">chdman 负责 CHD 压缩，ffmpeg 负责把 APE/FLAC 音轨还原为 WAV。这里填的路径存在数据库里，保存即重新探测，不用重启。</span>
+                            <h3 style="margin:0;" data-i18n="tools_variant_ext_tools_title">外部工具</h3>
+                            <span class="hint" data-i18n="tools_variant_ext_tools_desc">chdman 负责 CHD 压缩，ffmpeg 负责把 APE/FLAC 音轨还原为 WAV。这里填的路径存在数据库里，保存即重新探测，不用重启。</span>
                         </div>
                         <button class="btn btn-secondary" onclick="loadExternalTools()" data-i18n="btn_refresh">刷新</button>
                     </div>
-                    <div id="externalToolRows"><span class="hint">正在探测…</span></div>
+                    <div id="externalToolRows"><span class="hint" data-i18n="tools_variant_detecting">正在探测…</span></div>
                     </div>
 
                     <!-- 能力矩阵 -->
                     <div id="varSubMatrix" style="display:none;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <div>
-                            <h3 style="margin:0;">系统版本能力矩阵</h3>
-                            <span class="hint">只展示已纳入版本机制的系统；勾选表示允许导出该格式的版本，CSO/ISO 由流水线转换。</span>
+                            <h3 style="margin:0;" data-i18n="tools_variant_matrix_title">系统版本能力矩阵</h3>
+                            <span class="hint" data-i18n="tools_variant_matrix_desc">只展示已纳入版本机制的系统；勾选表示允许导出该格式的版本，CSO/ISO 由流水线转换。</span>
                         </div>
                         <button class="btn btn-secondary" onclick="initVariantPanel()" data-i18n="btn_refresh">刷新</button>
                     </div>
                     <table class="engines-table">
                         <thead id="variantMatrixHead">
                             <tr>
-                                <th>系统</th>
-                                <th>类型</th>
-                                <th>导出首选</th>
+                                <th data-i18n="tools_variant_matrix_system">系统</th>
+                                <th data-i18n="tools_variant_matrix_type">类型</th>
+                                <th data-i18n="tools_variant_matrix_preferred">导出首选</th>
                             </tr>
                         </thead>
                         <tbody id="variantMatrixBody">
-                            <tr><td colspan="3" style="color:var(--text-tertiary)">加载中...</td></tr>
+                            <tr><td colspan="3" style="color:var(--text-tertiary)" data-i18n="tools_variant_loading">加载中...</td></tr>
                         </tbody>
                     </table>
                     </div>
@@ -434,44 +434,44 @@
                 <div class="tool-panel" id="panelColumnOps" style="display:none;">
                   <div class="form-row">
                     <div class="form-field">
-                      <label>操作平台</label>
+                      <label data-i18n="tools_col_platform">操作平台</label>
                       <select id="colOpPlatform" onchange="onColOpPlatformChange()">
-                        <option value="">全部平台</option>
+                        <option value="" data-i18n="tools_col_all_platforms">全部平台</option>
                       </select>
                     </div>
                     <div class="form-field">
-                      <label>操作模式</label>
+                      <label data-i18n="tools_col_mode">操作模式</label>
                       <div class="scope-options" id="colOpModes">
-                        <label><input type="radio" name="colOpMode" value="copy" checked onchange="onColOpModeChange()"> 复制</label>
-                        <label><input type="radio" name="colOpMode" value="swap" onchange="onColOpModeChange()"> 互换</label>
-                        <label><input type="radio" name="colOpMode" value="overwrite" onchange="onColOpModeChange()"> 覆盖</label>
-                        <label><input type="radio" name="colOpMode" value="replace" onchange="onColOpModeChange()"> 批量替换</label>
+                        <label><input type="radio" name="colOpMode" value="copy" checked onchange="onColOpModeChange()"> <span data-i18n="tools_col_copy">复制</span></label>
+                        <label><input type="radio" name="colOpMode" value="swap" onchange="onColOpModeChange()"> <span data-i18n="tools_col_swap">互换</span></label>
+                        <label><input type="radio" name="colOpMode" value="overwrite" onchange="onColOpModeChange()"> <span data-i18n="tools_col_overwrite">覆盖</span></label>
+                        <label><input type="radio" name="colOpMode" value="replace" onchange="onColOpModeChange()"> <span data-i18n="tools_col_replace">批量替换</span></label>
                       </div>
                     </div>
                   </div>
                   <div class="form-row" id="colOpColumnsRow">
                     <div class="form-field">
-                      <label>源列</label>
+                      <label data-i18n="tools_col_source">源列</label>
                       <select id="colOpSource"></select>
                     </div>
                     <div class="form-field">
-                      <label>目标列</label>
+                      <label data-i18n="tools_col_target">目标列</label>
                       <select id="colOpTarget"></select>
                     </div>
                   </div>
                   <div class="form-row" id="colOpReplaceRow" style="display:none;">
                     <div class="form-field">
-                      <label>查找文本</label>
-                      <input type="text" id="colOpFindText" placeholder="要查找的文本">
+                      <label data-i18n="tools_col_find_text">查找文本</label>
+                      <input type="text" id="colOpFindText" data-i18n-placeholder="tools_col_find_placeholder" placeholder="要查找的文本">
                     </div>
                     <div class="form-field">
-                      <label>替换为</label>
-                      <input type="text" id="colOpReplaceText" placeholder="替换后的文本">
+                      <label data-i18n="tools_col_replace_with">替换为</label>
+                      <input type="text" id="colOpReplaceText" data-i18n-placeholder="tools_col_replace_placeholder" placeholder="替换后的文本">
                     </div>
                   </div>
                   <div class="form-row">
-                    <button class="btn btn-secondary" onclick="previewColumnOp()">预览影响</button>
-                    <button class="btn btn-primary" id="colOpExecBtn" onclick="executeColumnOp()" disabled style="margin-left:8px;">确认执行</button>
+                    <button class="btn btn-secondary" onclick="previewColumnOp()" data-i18n="tools_col_preview">预览影响</button>
+                    <button class="btn btn-primary" id="colOpExecBtn" onclick="executeColumnOp()" disabled style="margin-left:8px;" data-i18n="tools_col_execute">确认执行</button>
                   </div>
                   <div id="colOpPreview" class="status-msg" style="display:none;"></div>
                   <div id="colOpLog" class="log-area" style="display:none;max-height:200px;"></div>
@@ -1058,7 +1058,7 @@
         let variantMatrixBySystem = new Map();
         let variantPlatformSystems = new Map();
         let VARIANT_FORMAT_DEFS = [];
-        let VARIANT_FORMAT_LABELS = { original: '主文件（原样）' };
+        let VARIANT_FORMAT_LABELS = { original: t('tools_variant_format_original', '主文件（原样）') };
 
         // 格式定义由后端下发，页面不再写死 bare/zip/7z
         async function loadVariantFormats() {
@@ -1068,7 +1068,7 @@
                 const data = await r.json();
                 if (!data.success) return;
                 VARIANT_FORMAT_DEFS = data.formats || [];
-                const labels = { original: '主文件（原样）' };
+                const labels = { original: t('tools_variant_format_original', '主文件（原样）') };
                 VARIANT_FORMAT_DEFS.forEach(f => { labels[f.id] = f.label; });
                 VARIANT_FORMAT_LABELS = labels;
                 renderVariantMatrixHead();
@@ -1104,13 +1104,13 @@
 
         // ====== 外部工具（chdman / ffmpeg 路径） ======
         const EXTERNAL_TOOLS = [
-            { key: 'chdman', label: 'chdman', desc: 'CHD 压缩（MAME tools 的一部分）', placeholder: '例如 D:\\tools\\chdman.exe' },
-            { key: 'ffmpeg', label: 'ffmpeg', desc: 'APE / FLAC 音轨还原为 WAV', placeholder: '例如 D:\\tools\\ffmpeg.exe' }
+            { key: 'chdman', label: 'chdman', descKey: 'tools_ext_chdman_desc', placeholderKey: 'tools_ext_chdman_ph' },
+            { key: 'ffmpeg', label: 'ffmpeg', descKey: 'tools_ext_ffmpeg_desc', placeholderKey: 'tools_ext_ffmpeg_ph' }
         ];
 
         async function loadExternalTools() {
             const box = document.getElementById('externalToolRows');
-            if (box) box.innerHTML = '<span class="hint">正在探测…</span>';
+            if (box) box.innerHTML = '<span class="hint">' + esc(t('tools_variant_detecting', '正在探测…')) + '</span>';
             try {
                 const data = await fetch('/api/variants/tools').then(r => r.json());
                 if (!data.success) throw new Error(data.error || '探测失败');
@@ -1131,38 +1131,36 @@
                 const row = data[def.key] || {};
                 const ok = !!row.available;
                 const badge = ok
-                    ? '<span style="color:#44ff88;">● 可用</span>'
-                    : '<span style="color:#ff6b6b;">● 不可用</span>';
+                    ? '<span style="color:#44ff88;">● ' + esc(t('tools_available', '可用')) + '</span>'
+                    : '<span style="color:#ff6b6b;">● ' + esc(t('tools_unavailable', '不可用')) + '</span>';
                 const rawVersion = row.version || '';
-                // MAME 的版本串很长，完整放行会把左边挤成三四行，截断后放 title 里
                 const shownVersion = rawVersion.length > 30 ? rawVersion.substring(0, 30) + '…' : rawVersion;
                 const version = rawVersion
-                    ? '<span class="hint" style="margin-left:8px;" title="' + escAttr(rawVersion) + '">版本 ' + esc(shownVersion) + '</span>'
+                    ? '<span class="hint" style="margin-left:8px;" title="' + escAttr(rawVersion) + '">' + esc(t('tools_version_prefix', '版本')) + ' ' + esc(shownVersion) + '</span>'
                     : '';
                 const where = row.path
                     ? '<code style="font-size:12px;">' + esc(row.path) + '</code>'
-                    : '<span class="hint">没有找到可执行文件</span>';
-                const source = row.source ? '<span class="hint"> · 来源：' + esc(row.source) + '</span>' : '';
+                    : '<span class="hint">' + esc(t('tools_exec_not_found', '没有找到可执行文件')) + '</span>';
+                const source = row.source ? '<span class="hint"> · ' + esc(t('tools_source_prefix', '来源：')) + esc(row.source) + '</span>' : '';
                 return '<div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 14px;margin-bottom:12px;background:rgba(255,255,255,.02);">'
                     + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;">'
-                    + '<div style="flex:1;min-width:220px;"><strong>' + esc(def.label) + '</strong> <span class="hint">' + esc(def.desc) + '</span></div>'
+                    + '<div style="flex:1;min-width:220px;"><strong>' + esc(def.label) + '</strong> <span class="hint">' + esc(t(def.descKey, '')) + '</span></div>'
                     + '<div style="flex:0 0 auto;white-space:nowrap;">' + badge + version + '</div>'
                     + '</div>'
                     + '<div style="margin:6px 0 10px;font-size:12px;color:var(--text-secondary);word-break:break-all;">' + where + source + '</div>'
                     + '<div class="form-row" style="margin:0;align-items:flex-end;">'
                     + '<div class="form-field" style="flex:1;min-width:280px;">'
-                    + '<label>可执行文件路径</label>'
-                    + '<input type="text" id="toolPath_' + def.key + '" value="' + escAttr(row.configured || '') + '" placeholder="' + escAttr(def.placeholder) + '">'
+                    + '<label>' + esc(t('tools_exec_path_label', '可执行文件路径')) + '</label>'
+                    + '<input type="text" id="toolPath_' + def.key + '" value="' + escAttr(row.configured || '') + '" placeholder="' + escAttr(t(def.placeholderKey, '')) + '">'
                     + '</div>'
                     + '<div class="form-field" style="flex:0 0 auto;flex-direction:row;gap:8px;">'
-                    + '<button class="btn btn-primary" onclick="saveExternalTools()">保存</button>'
-                    + '<button class="btn btn-secondary" onclick="clearExternalTool(\'' + def.key + '\')">清空</button>'
+                    + '<button class="btn btn-primary" onclick="saveExternalTools()">' + esc(t('btn_save', '保存')) + '</button>'
+                    + '<button class="btn btn-secondary" onclick="clearExternalTool(\'' + def.key + '\')">' + esc(t('btn_clear', '清空')) + '</button>'
                     + '</div>'
                     + '</div>'
                     + '</div>';
             }).join('')
-            + '<span class="hint">留空表示自动查找：配置文件 → 环境变量 → PATH → 程序目录（tools/、bin/）。'
-            + 'Docker 镜像已内置 chdman，无需填写。填了路径但探测不到时会明确显示不可用，不会回退到其它版本。</span>';
+            + '<span class="hint">' + esc(t('tools_ext_path_hint', '留空表示自动查找：配置文件 → 环境变量 → PATH → 程序目录（tools/、bin/）。Docker 镜像已内置 chdman，无需填写。填了路径但探测不到时会明确显示不可用，不会回退到其它版本。')) + '</span>';
         }
 
         function currentToolPath(key) {
@@ -1187,32 +1185,32 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 }).then(r => r.json());
-                if (!res.success) throw new Error(res.error || '保存失败');
+                if (!res.success) throw new Error(res.error || t('tools_save_fail', '保存失败'));
                 renderExternalTools(res);
                 // 产线总览里的模块可用性跟着变，下次切过去重新拉取
                 variantPipesLoaded = false;
-                showMsg('外部工具设置已保存', 'success');
+                showMsg(t('tools_ext_settings_saved', '外部工具设置已保存'), 'success');
             } catch (e) {
-                showMsg('保存失败: ' + e.message, 'error');
+                showMsg(t('tools_save_fail', '保存失败') + ': ' + e.message, 'error');
             }
         }
 
         // ====== 平台格式体检（只读，不触发生成） ======
         const SURVEY_STATUS = {
-            EXISTS: ['已有', '#44ff88'],
-            SAME: ['源即目标', '#44ff88'],
-            READY: ['可补', '#4ea8ff'],
-            DIRECT: ['可直接打包', '#4ea8ff'],
-            INCOMPLETE: ['缺模块', '#8a8a8a'],
-            UNSUPPORTED: ['无产线', '#8a8a8a'],
-            BLOCKED: ['源不可用', '#8a8a8a'],
-            SKIPPED: ['跳过', '#8a8a8a'],
-            STALE: ['已过期', '#ffaa00'],
-            FAILED: ['失败', '#ff6b6b']
+            EXISTS: [t('tools_survey_exists', '已有'), '#44ff88'],
+            SAME: [t('tools_survey_same', '源即目标'), '#44ff88'],
+            READY: [t('tools_survey_ready', '可补'), '#4ea8ff'],
+            DIRECT: [t('tools_survey_direct', '可直接打包'), '#4ea8ff'],
+            INCOMPLETE: [t('tools_survey_incomplete', '缺模块'), '#8a8a8a'],
+            UNSUPPORTED: [t('tools_survey_unsupported', '无产线'), '#8a8a8a'],
+            BLOCKED: [t('tools_survey_blocked', '源不可用'), '#8a8a8a'],
+            SKIPPED: [t('tools_survey_skipped', '跳过'), '#8a8a8a'],
+            STALE: [t('tools_survey_stale', '已过期'), '#ffaa00'],
+            FAILED: [t('tools_survey_failed', '失败'), '#ff6b6b']
         };
 
         function surveyBadge(status, tip) {
-            const pair = SURVEY_STATUS[status] || [status || '未知', '#8a8a8a'];
+            const pair = SURVEY_STATUS[status] || [status || t('tools_survey_unknown', '未知'), '#8a8a8a'];
             return '<span title="' + esc(tip || '') + '" style="color:' + pair[1] + ';white-space:nowrap;">'
                 + esc(pair[0]) + '</span>';
         }
@@ -1222,13 +1220,13 @@
             const platformId = select ? select.value : '';
             const summaryBox = document.getElementById('variantSurveySummary');
             const box = document.getElementById('variantSurveyBox');
-            if (!platformId) { showMsg('请先选择平台', 'error'); return; }
-            box.innerHTML = '<span class="hint">正在按扩展名归类…</span>';
+            if (!platformId) { showMsg(t('tools_variant_please_select_platform', '请先选择平台'), 'error'); return; }
+            box.innerHTML = '<span class="hint">' + esc(t('tools_survey_classifying', '正在按扩展名归类…')) + '</span>';
             summaryBox.innerHTML = '';
             try {
                 const res = await fetch('/api/variants/platform/' + encodeURIComponent(platformId) + '/survey')
                     .then(r => r.json());
-                if (!res.success) throw new Error(res.error || '体检失败');
+                if (!res.success) throw new Error(res.error || t('tools_survey_fail', '体检失败'));
                 renderVariantSurvey(res);
             } catch (e) {
                 box.innerHTML = '<span style="color:#ff6b6b;">' + esc(e.message) + '</span>';
@@ -1253,32 +1251,32 @@
                 + '<div style="font-size:11px;color:var(--text-tertiary);">' + label + '</div>'
                 + '<div style="font-size:20px;font-weight:600;color:' + color + ';">' + value + '</div></div>';
 
-            let head = chip('游戏总数', summary.totalGames || 0, 'var(--text-primary)')
-                + chip('全部可用', summary.allUsable || 0, '#44ff88')
-                + chip('可补', summary.generatable || 0, '#4ea8ff')
-                + chip('不可生成', summary.blockedOnly || 0, '#8a8a8a')
-                + chip('需要修复', summary.broken || 0, '#ffaa00');
-            if (summary.missingSource > 0) head += chip('主文件缺失', summary.missingSource, '#ff6b6b');
+            let head = chip(t('tools_survey_total_games', '游戏总数'), summary.totalGames || 0, 'var(--text-primary)')
+                + chip(t('tools_survey_all_usable', '全部可用'), summary.allUsable || 0, '#44ff88')
+                + chip(t('tools_survey_ready', '可补'), summary.generatable || 0, '#4ea8ff')
+                + chip(t('tools_survey_blocked_gen', '不可生成'), summary.blockedOnly || 0, '#8a8a8a')
+                + chip(t('tools_survey_need_fix', '需要修复'), summary.broken || 0, '#ffaa00');
+            if (summary.missingSource > 0) head += chip(t('tools_survey_source_missing', '主文件缺失'), summary.missingSource, '#ff6b6b');
             if (summary.truncated) {
-                head += '<div class="hint" style="margin-bottom:10px;">游戏较多，仅扫描前 '
-                    + summary.scanned + ' 个</div>';
+                head += '<div class="hint" style="margin-bottom:10px;">' + esc(t('tools_survey_scanned_prefix', '游戏较多，仅扫描前')) + ' '
+                    + summary.scanned + ' ' + esc(t('tools_survey_scanned_suffix', '个')) + '</div>';
             }
 
             const byFormat = summary.byFormat || {};
             // 顶部统计只看需产线的镜像格式，zip/7z 这类打包格式在明细里看
             const countedFormats = summary.countedFormats || formats;
             if (countedFormats.length && countedFormats.length < formats.length) {
-                head += '<div class="hint" style="margin-bottom:6px;">顶部统计仅基于 '
-                    + countedFormats.map(f => esc(variantFormatText(f))).join(' / ') + '（打包类格式不计入）</div>';
+                head += '<div class="hint" style="margin-bottom:6px;">' + esc(t('tools_survey_top_stats_only', '顶部统计仅基于')) + ' '
+                    + countedFormats.map(f => esc(variantFormatText(f))).join(' / ') + esc(t('tools_survey_pack_excluded', '（打包类格式不计入）')) + '</div>';
             }
             head += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">';
             formats.forEach(f => {
                 const c = byFormat[f] || {};
                 head += '<span style="margin-right:16px;">' + esc(variantFormatText(f)) + '：'
-                    + '<span style="color:#44ff88;">已有 ' + (c.usable || 0) + '</span> · '
-                    + '<span style="color:#4ea8ff;">可补 ' + (c.generatable || 0) + '</span> · '
-                    + '<span style="color:#8a8a8a;">不可生成 ' + (c.blocked || 0) + '</span>'
-                    + (c.broken ? ' · <span style="color:#ffaa00;">异常 ' + c.broken + '</span>' : '')
+                    + '<span style="color:#44ff88;">' + esc(t('tools_survey_has', '已有')) + ' ' + (c.usable || 0) + '</span> · '
+                    + '<span style="color:#4ea8ff;">' + esc(t('tools_survey_can_add', '可补')) + ' ' + (c.generatable || 0) + '</span> · '
+                    + '<span style="color:#8a8a8a;">' + esc(t('tools_survey_cannot_gen', '不可生成')) + ' ' + (c.blocked || 0) + '</span>'
+                    + (c.broken ? ' · <span style="color:#ffaa00;">' + esc(t('tools_survey_abnormal', '异常')) + ' ' + c.broken + '</span>' : '')
                     + '</span>';
             });
             head += '</div>';
@@ -1286,12 +1284,12 @@
 
             const games = data.games || [];
             if (!games.length) {
-                box.innerHTML = '<span class="hint">该平台没有游戏。</span>';
+                box.innerHTML = '<span class="hint">' + esc(t('tools_survey_no_games', '该平台没有游戏。')) + '</span>';
                 return;
             }
 
             const limit = 300;
-            let html = '<table class="engines-table"><thead><tr><th style="min-width:220px;">游戏</th><th>源形态</th>';
+            let html = '<table class="engines-table"><thead><tr><th style="min-width:220px;">' + esc(t('tools_survey_game_col', '游戏')) + '</th><th>' + esc(t('tools_survey_source_form', '源形态')) + '</th>';
             formats.forEach(f => { html += '<th>' + esc(variantFormatText(f)) + '</th>'; });
             html += '</tr></thead><tbody>';
             games.slice(0, limit).forEach(row => {
@@ -1300,7 +1298,7 @@
                     + esc(row.name) + '">' + esc(row.name) + '</td>'
                     + '<td style="white-space:nowrap;color:'
                     + (row.sourceExists === false ? '#ff6b6b' : 'var(--text-secondary)') + ';">'
-                    + esc(row.sourceExists === false ? '主文件缺失' : (row.sourceLabel || row.sourceKind || '未知'))
+                    + esc(row.sourceExists === false ? t('tools_survey_source_missing', '主文件缺失') : (row.sourceLabel || row.sourceKind || t('tools_survey_unknown', '未知')))
                     + '</td>';
                 formats.forEach(f => {
                     const t = targets[f] || {};
@@ -1311,8 +1309,8 @@
             });
             html += '</tbody></table>';
             if (games.length > limit) {
-                html += '<div class="hint" style="margin-top:8px;">仅显示前 ' + limit + ' 条，共 '
-                    + games.length + ' 条。</div>';
+                html += '<div class="hint" style="margin-top:8px;">' + esc(t('tools_survey_show_prefix', '仅显示前')) + ' ' + limit + ' ' + esc(t('tools_survey_show_suffix', '条，共')) + ' '
+                    + games.length + ' ' + esc(t('tools_survey_show_end', '条。')) + '</div>';
             }
             box.innerHTML = html;
         }
@@ -1321,26 +1319,26 @@
         async function loadVariantPipelines() {
             const box = document.getElementById('variantPipelineBox');
             if (!box) return;
-            box.innerHTML = '<span class="hint">加载中...</span>';
+            box.innerHTML = '<span class="hint">' + esc(t('tools_variant_loading', '加载中...')) + '</span>';
             try {
                 const r = await fetch('/api/variants/pipelines');
                 const data = await r.json();
-                if (!data.success) throw new Error(data.error || '加载失败');
-                let html = '<div style="font-weight:600;color:var(--text-primary);margin-bottom:4px;">模块目录</div>'
+                if (!data.success) throw new Error(data.error || t('tools_load_fail', '加载失败'));
+                let html = '<div style="font-weight:600;color:var(--text-primary);margin-bottom:4px;">' + esc(t('tools_pipeline_module_dir', '模块目录')) + '</div>'
                     + '<table class="engines-table" style="margin-bottom:12px;"><thead><tr>'
-                    + '<th>模块</th><th>输入 → 输出</th><th>状态</th><th>说明</th></tr></thead><tbody>';
+                    + '<th>' + esc(t('tools_pipeline_module', '模块')) + '</th><th>' + esc(t('tools_pipeline_io', '输入 → 输出')) + '</th><th>' + esc(t('tools_pipeline_status', '状态')) + '</th><th>' + esc(t('tools_pipeline_note', '说明')) + '</th></tr></thead><tbody>';
                 (data.modules || []).forEach(m => {
                     html += '<tr><td>' + esc(m.id) + '</td><td>' + esc(m.arrow) + '</td>'
                         + '<td>' + (m.available
-                            ? '<span style="color:#22c55e;">可用</span>'
+                            ? '<span style="color:#22c55e;">' + esc(t('tools_available', '可用')) + '</span>'
                             : '<span style="color:#f59e0b;">RESERVED</span>') + '</td>'
                         + '<td>' + esc(m.note || '')
-                        + ((m.externalDeps || []).length ? '<div class="hint">外部依赖: ' + esc(m.externalDeps.join(', ')) + '</div>' : '')
+                        + ((m.externalDeps || []).length ? '<div class="hint">' + esc(t('tools_ext_deps', '外部依赖')) + ': ' + esc(m.externalDeps.join(', ')) + '</div>' : '')
                         + '</td></tr>';
                 });
                 html += '</tbody></table>';
 
-                html += '<div style="font-weight:600;color:var(--text-primary);margin:8px 0 4px;">系统产线</div>';
+                html += '<div style="font-weight:600;color:var(--text-primary);margin:8px 0 4px;">' + esc(t('tools_pipeline_system_lines', '系统产线')) + '</div>';
                 (data.systems || []).forEach(sys => {
                     html += '<div style="margin-top:8px;"><span style="color:var(--text-primary);">' + esc(sys.name)
                         + '</span> <span class="hint">#' + sys.systemId + '</span></div>';
@@ -1370,20 +1368,20 @@
         function renderVariantMatrixHead() {
             const head = document.getElementById('variantMatrixHead');
             if (!head) return;
-            let html = '<tr><th>系统</th><th>类型</th>';
+            let html = '<tr><th>' + esc(t('tools_variant_matrix_system', '系统')) + '</th><th>' + esc(t('tools_variant_matrix_type', '类型')) + '</th>';
             VARIANT_FORMAT_DEFS.forEach(f => { html += '<th>' + esc(f.label) + '</th>'; });
-            html += '<th>导出首选</th></tr>';
+            html += '<th>' + esc(t('tools_variant_matrix_preferred', '导出首选')) + '</th></tr>';
             head.innerHTML = html;
         }
 
         async function loadVariantMatrix() {
             const body = document.getElementById('variantMatrixBody');
             const colspan = variantColumnCount();
-            body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:var(--text-tertiary)">加载中...</td></tr>';
+            body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:var(--text-tertiary)">' + esc(t('tools_variant_loading', '加载中...')) + '</td></tr>';
             try {
                 const r = await fetch('/api/variants/matrix');
                 const data = await r.json();
-                if (!data.success) throw new Error(data.error || '加载失败');
+                if (!data.success) throw new Error(data.error || t('tools_load_fail', '加载失败'));
                 renderVariantMatrix(data.systems || []);
             } catch (e) {
                 body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:#ef4444">' + esc(e.message || e) + '</td></tr>';
@@ -1397,7 +1395,7 @@
             variantEligibleSystemIds = new Set();
             variantMatrixBySystem = new Map();
             if (!systems.length) {
-                body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:var(--text-tertiary)">暂无合格系统</td></tr>';
+                body.innerHTML = '<tr><td colspan="' + colspan + '" style="color:var(--text-tertiary)">' + esc(t('tools_no_qualified_system', '暂无合格系统')) + '</td></tr>';
                 loadVariantPlatforms();
                 return;
             }
@@ -1436,11 +1434,11 @@
                     body: JSON.stringify({ supported: !!supported })
                 });
                 const data = await r.json();
-                if (!data.success) throw new Error(data.error || '保存失败');
-                showMsg('已保存版本能力设置', 'success');
+                if (!data.success) throw new Error(data.error || t('tools_save_fail', '保存失败'));
+                showMsg(t('tools_variant_saved', '已保存版本能力设置'), 'success');
                 loadVariantMatrix();
             } catch (e) {
-                showMsg('保存失败: ' + (e.message || e), 'error');
+                showMsg(t('tools_save_fail', '保存失败') + ': ' + (e.message || e), 'error');
                 loadVariantMatrix();
             }
         }
@@ -1453,10 +1451,10 @@
                     body: JSON.stringify({ format: format })
                 });
                 const data = await r.json();
-                if (!data.success) throw new Error(data.error || '保存失败');
-                showMsg('已保存系统首选格式', 'success');
+                if (!data.success) throw new Error(data.error || t('tools_save_fail', '保存失败'));
+                showMsg(t('tools_variant_pref_saved', '已保存系统首选格式'), 'success');
             } catch (e) {
-                showMsg('保存失败: ' + (e.message || e), 'error');
+                showMsg(t('tools_save_fail', '保存失败') + ': ' + (e.message || e), 'error');
             }
         }
 
@@ -1476,9 +1474,9 @@
                 });
                 const optionTags = eligible.map(p => '<option value="' + p.id + '">'
                     + esc((p.system || '') + ' (' + (p.name || '') + ')') + '</option>').join('');
-                const emptyTag = '<option value="">（无合格平台）</option>';
+                const emptyTag = '<option value="">' + esc(t('tools_no_qualified_platform', '（无合格平台）')) + '</option>';
                 // 生成页不预选平台；体检是只读，默认选上第一个更好用
-                sel.innerHTML = eligible.length ? '<option value="">请选择平台</option>' + optionTags : emptyTag;
+                sel.innerHTML = eligible.length ? '<option value="">' + esc(t('tools_please_select_platform', '请选择平台')) + '</option>' + optionTags : emptyTag;
                 const surveySel = document.getElementById('variantSurveyPlatformSelect');
                 if (surveySel) surveySel.innerHTML = eligible.length ? optionTags : emptyTag;
                 renderVariantGenFormats();
@@ -1491,7 +1489,7 @@
             if (!wrap) return;
             const platformId = document.getElementById('variantPlatformSelect').value;
             if (!platformId) {
-                wrap.innerHTML = '<span class="hint">先选择平台</span>';
+                wrap.innerHTML = '<span class="hint">' + esc(t('tools_variant_select_platform_first', '先选择平台')) + '</span>';
                 return;
             }
             const systemId = variantPlatformSystems.get(String(platformId));
@@ -1499,7 +1497,7 @@
             const formats = (row && row.formats) || {};
             const ids = VARIANT_FORMAT_DEFS.map(f => f.id).filter(id => formats[id] !== undefined);
             if (!ids.length) {
-                wrap.innerHTML = '<span class="hint">所选平台没有可生成的版本格式</span>';
+                wrap.innerHTML = '<span class="hint">' + esc(t('tools_variant_no_gen_format', '所选平台没有可生成的版本格式')) + '</span>';
                 return;
             }
             wrap.innerHTML = ids.map(id =>
@@ -1508,22 +1506,22 @@
             ).join('');
             const enabled = ids.filter(id => formats[id]);
             if (enabled.length) {
-                wrap.innerHTML += '<span class="hint">矩阵中已开启：'
+                wrap.innerHTML += '<span class="hint">' + esc(t('tools_variant_matrix_enabled', '矩阵中已开启：'))
                     + enabled.map(id => esc(variantFormatText(id))).join('、') + '</span>';
             }
         }
 
         async function startVariantGenerate() {
             const platformId = document.getElementById('variantPlatformSelect').value;
-            if (!platformId) { showMsg('请选择平台', 'error'); return; }
+            if (!platformId) { showMsg(t('tools_variant_please_select_platform', '请选择平台'), 'error'); return; }
             const formats = Array.from(document.querySelectorAll('.variant-gen-format:checked')).map(cb => cb.value);
-            if (!formats.length) { showMsg('请至少选择一种版本格式', 'error'); return; }
+            if (!formats.length) { showMsg(t('tools_variant_select_format', '请至少选择一种版本格式'), 'error'); return; }
             const force = document.getElementById('variantForceRebuild').checked;
             const btn = document.getElementById('variantGenBtn');
             btn.disabled = true;
             document.getElementById('variantProgressWrap').style.display = 'block';
             document.getElementById('variantProgressFill').style.width = '0%';
-            document.getElementById('variantProgressInfo').textContent = '正在提交...';
+            document.getElementById('variantProgressInfo').textContent = t('tools_submitting', '正在提交...');
             document.getElementById('variantLogArea').textContent = '';
             try {
                 const r = await fetch('/api/variants/platform/' + platformId + '/generate', {
@@ -1532,13 +1530,13 @@
                     body: JSON.stringify({ formats: formats, force: force })
                 });
                 const data = await r.json();
-                if (!data.success || !data.taskId) throw new Error(data.error || '提交失败');
+                if (!data.success || !data.taskId) throw new Error(data.error || t('tools_submit_fail', '提交失败'));
                 variantTaskId = data.taskId;
-                showMsg('版本生成任务已启动，可在任务管理查看进度', 'success');
+                showMsg(t('tools_variant_gen_started', '版本生成任务已启动，可在任务管理查看进度'), 'success');
                 pollVariantProgress();
             } catch (e) {
                 btn.disabled = false;
-                showMsg('启动失败: ' + (e.message || e), 'error');
+                showMsg(t('tools_run_fail', '启动失败') + ': ' + (e.message || e), 'error');
             }
         }
 
@@ -1570,7 +1568,7 @@
                 : (total > 0 ? Math.round(completed / total * 100) : 0);
             document.getElementById('variantProgressFill').style.width = pct + '%';
             document.getElementById('variantProgressInfo').textContent =
-                '进度: ' + completed + '/' + total + ' · ' + pct + '% · ' + (task.message || task.status || '');
+                t('tools_progress_info', '进度') + ': ' + completed + '/' + total + ' · ' + pct + '% · ' + (task.message || task.status || '');
             const area = document.getElementById('variantLogArea');
             if (task.log) {
                 area.textContent = String(task.log).split('\n').slice(-200).join('\n');
@@ -1584,10 +1582,10 @@
             if (variantPollTimer) { clearTimeout(variantPollTimer); variantPollTimer = null; }
             if (task.status === 'COMPLETED') {
                 document.getElementById('variantProgressFill').style.width = '100%';
-                showMsg(task.message || '版本生成完成', 'success');
+                showMsg(task.message || t('tools_variant_gen_done', '版本生成完成'), 'success');
                 loadVariantMatrix();
             } else {
-                showMsg('版本生成失败: ' + (task.errorMessage || task.message || task.status), 'error');
+                showMsg(t('tools_variant_gen_fail', '版本生成失败') + ': ' + (task.errorMessage || task.message || task.status), 'error');
             }
         }
 
@@ -1625,14 +1623,14 @@
             const sourceSel = document.getElementById('colOpSource');
             const targetSel = document.getElementById('colOpTarget');
             const opts = colOpColumns.map(c => `<option value="${c.name}">${c.label}</option>`).join('');
-            sourceSel.innerHTML = '<option value="">请选择</option>' + opts;
-            targetSel.innerHTML = '<option value="">请选择</option>' + opts;
+            sourceSel.innerHTML = '<option value="">' + esc(t('tools_col_select', '请选择')) + '</option>' + opts;
+            targetSel.innerHTML = '<option value="">' + esc(t('tools_col_select', '请选择')) + '</option>' + opts;
         }
 
         function renderColOpPlatforms() {
             const sel = document.getElementById('colOpPlatform');
             const opts = colOpPlatforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            sel.innerHTML = '<option value="">全部平台</option>' + opts;
+            sel.innerHTML = '<option value="">' + esc(t('tools_col_all_platforms', '全部平台')) + '</option>' + opts;
         }
 
         function onColOpModeChange() {
@@ -1680,11 +1678,11 @@
             const body = getColOpRequestBody();
             // 基本校验
             if (body.operation !== 'replace' && (!body.sourceColumn || !body.targetColumn)) {
-                showColOpPreview('请先选择源列和目标列', true);
+                showColOpPreview(t('tools_col_select_source_target', '请先选择源列和目标列'), true);
                 return;
             }
             if (body.operation === 'replace' && (!body.targetColumn || !body.findText)) {
-                showColOpPreview('请先选择目标列并填写查找文本', true);
+                showColOpPreview(t('tools_col_select_target_find', '请先选择目标列并填写查找文本'), true);
                 return;
             }
 
@@ -1697,20 +1695,20 @@
             .then(data => {
                 if (data.success) {
                     colOpPreviewResult = data;
-                    showColOpPreview(`预计影响 <strong>${data.affectedRows}</strong> 条记录`, false);
+                    showColOpPreview(t('tools_col_affected_prefix', '预计影响') + ' <strong>' + data.affectedRows + '</strong> ' + t('tools_col_affected_suffix', '条记录'), false);
                     document.getElementById('colOpExecBtn').disabled = false;
                 } else {
-                    showColOpPreview(data.error || '预览失败', true);
+                    showColOpPreview(data.error || t('tools_col_preview_fail', '预览失败'), true);
                 }
             })
-            .catch(e => showColOpPreview('请求失败: ' + e.message, true));
+            .catch(e => showColOpPreview(t('tools_request_fail', '请求失败') + ': ' + e.message, true));
         }
 
         function executeColumnOp() {
             if (!colOpPreviewResult) return;
             const mode = document.querySelector('input[name="colOpMode"]:checked').value;
-            const modeLabels = { copy: '复制', swap: '互换', overwrite: '覆盖', replace: '批量替换' };
-            const msg = `确定要执行${modeLabels[mode]}操作吗？将影响 ${colOpPreviewResult.affectedRows} 条记录，此操作不可撤销。`;
+            const modeLabels = { copy: t('tools_col_copy', '复制'), swap: t('tools_col_swap', '互换'), overwrite: t('tools_col_overwrite', '覆盖'), replace: t('tools_col_replace', '批量替换') };
+            const msg = t('tools_col_confirm_prefix', '确定要执行') + modeLabels[mode] + t('tools_col_confirm_suffix', '操作吗？将影响') + ' ' + colOpPreviewResult.affectedRows + ' ' + t('tools_col_confirm_end', '条记录，此操作不可撤销。');
             if (!confirm(msg)) return;
 
             const body = getColOpRequestBody();
@@ -1726,13 +1724,13 @@
                 if (data.success) {
                     const log = document.getElementById('colOpLog');
                     log.style.display = '';
-                    log.innerHTML = `[${new Date().toLocaleTimeString()}] 操作完成：${modeLabels[mode]}，影响 ${data.affectedRows} 条记录\n` + log.innerHTML;
-                    showColOpPreview(`执行成功，影响 ${data.affectedRows} 条记录`, false);
+                    log.innerHTML = '[' + new Date().toLocaleTimeString() + '] ' + t('tools_col_done_prefix', '操作完成：') + modeLabels[mode] + t('tools_col_done_suffix', '，影响') + ' ' + data.affectedRows + ' ' + t('tools_col_done_records', '条记录') + '\n' + log.innerHTML;
+                    showColOpPreview(t('tools_col_exec_success', '执行成功，影响') + ' ' + data.affectedRows + ' ' + t('tools_col_done_records', '条记录'), false);
                 } else {
-                    showColOpPreview(data.error || '执行失败', true);
+                    showColOpPreview(data.error || t('tools_col_exec_fail', '执行失败'), true);
                 }
             })
-            .catch(e => showColOpPreview('请求失败: ' + e.message, true));
+            .catch(e => showColOpPreview(t('tools_request_fail', '请求失败') + ': ' + e.message, true));
         }
 
         function showColOpPreview(msg, isError) {

@@ -9,8 +9,10 @@ import java.util.LinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,11 +28,16 @@ public class ColumnToolController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     private static final LinkedHashMap<String, String> COLUMN_ORDER = new LinkedHashMap<>();
     static {
         // 第一组 - 游戏核心信息
         COLUMN_ORDER.put("name", "游戏名称");
+        COLUMN_ORDER.put("translated_name", "翻译名称");
         COLUMN_ORDER.put("desc", "描述");
+        COLUMN_ORDER.put("translated_desc", "翻译描述");
         // 第二组 - 元数据
         COLUMN_ORDER.put("developer", "开发商");
         COLUMN_ORDER.put("publisher", "发行商");
@@ -85,6 +92,40 @@ public class ColumnToolController {
             "default", "unique", "not", "null", "and", "or", "like", "between", "in",
             "is", "as", "on", "join", "having", "case", "when", "then", "else", "end"
     );
+
+    // --- Translation column helpers ---
+
+    private boolean isTranslationColumn(String column) {
+        return "translated_name".equals(column) || "translated_desc".equals(column);
+    }
+
+    private String getTranslationSrcField(String column) {
+        if ("translated_name".equals(column)) return "name";
+        if ("translated_desc".equals(column)) return "desc";
+        return null;
+    }
+
+    private String getTranslationValue(Long gameId, String srcField) {
+        try {
+            return jdbcTemplate.queryForObject(
+                "SELECT trans_value FROM field_translation WHERE src_table='game' AND src_id=? AND src_field=? AND lang='zh'",
+                String.class, gameId, srcField);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    private void upsertTranslation(Long gameId, String srcField, String value) {
+        if (value == null || value.isEmpty()) {
+            jdbcTemplate.update(
+                "DELETE FROM field_translation WHERE src_table='game' AND src_id=? AND src_field=? AND lang='zh'",
+                gameId, srcField);
+        } else {
+            jdbcTemplate.update(
+                "MERGE INTO field_translation (src_table, src_id, src_field, lang, trans_value) KEY (src_table, src_id, src_field, lang) VALUES ('game', ?, ?, 'zh', ?)",
+                gameId, srcField, value);
+        }
+    }
 
     private void validateColumn(String column) {
         if (!ALLOWED_COLUMNS.contains(column)) {
@@ -285,107 +326,520 @@ public class ColumnToolController {
     // --- Preview methods ---
 
     private int previewCopy(String source, String target, Long platformId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
+        boolean srcTrans = isTranslationColumn(source);
+        boolean tgtTrans = isTranslationColumn(target);
+
+        if (!srcTrans && !tgtTrans) {
+            // 两个都是 game 表列
+            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
+                    .append(quoteColumn(source)).append(" IS NOT NULL");
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else if (srcTrans && !tgtTrans) {
+            // 源是翻译列，目标是 game 列
+            String srcField = getTranslationSrcField(source);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM field_translation ft JOIN game g ON g.id = ft.src_id WHERE ft.src_table='game' AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value IS NOT NULL");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else if (!srcTrans && tgtTrans) {
+            // 源是 game 列，目标是翻译列
+            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
+                    .append(quoteColumn(source)).append(" IS NOT NULL");
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else {
+            // 两个都是翻译列
+            String srcField = getTranslationSrcField(source);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM field_translation WHERE src_table='game' AND src_field=? AND lang='zh' AND trans_value IS NOT NULL");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            if (platformId != null) {
+                sql.append(" AND src_id IN (SELECT id FROM game WHERE platform_id = ?)");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        }
+    }
+
+    private int previewSwap(String source, String target, Long platformId) {
+        boolean srcTrans = isTranslationColumn(source);
+        boolean tgtTrans = isTranslationColumn(target);
+
+        if (!srcTrans && !tgtTrans) {
+            // 两个都是 game 表列
+            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE (")
+                    .append(quoteColumn(source)).append(" IS NOT NULL OR ")
+                    .append(quoteColumn(target)).append(" IS NOT NULL)");
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else if (srcTrans && !tgtTrans) {
+            // 源是翻译列，目标是 game 列：任一有值即算
+            String srcField = getTranslationSrcField(source);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM game g LEFT JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE (g.")
+                .append(quoteColumn(target)).append(" IS NOT NULL OR ft.trans_value IS NOT NULL)");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else if (!srcTrans && tgtTrans) {
+            // 源是 game 列，目标是翻译列
+            String tgtField = getTranslationSrcField(target);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM game g LEFT JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE (g.")
+                .append(quoteColumn(source)).append(" IS NOT NULL OR ft.trans_value IS NOT NULL)");
+            List<Object> params = new ArrayList<>();
+            params.add(tgtField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else {
+            // 两个都是翻译列
+            String srcField = getTranslationSrcField(source);
+            String tgtField = getTranslationSrcField(target);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM game g WHERE EXISTS (SELECT 1 FROM field_translation WHERE src_table='game' AND src_id=g.id AND src_field IN (?, ?) AND lang='zh' AND trans_value IS NOT NULL)");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            params.add(tgtField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        }
+    }
+
+    private int previewOverwrite(String source, String target, Long platformId) {
+        boolean srcTrans = isTranslationColumn(source);
+        boolean tgtTrans = isTranslationColumn(target);
+
+        if (!srcTrans && !tgtTrans) {
+            // 两个都是 game 表列
+            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
+                    .append(quoteColumn(source)).append(" IS NOT NULL AND (")
+                    .append(quoteColumn(target)).append(" IS NULL OR ")
+                    .append(quoteColumn(target)).append(" = '')");
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else if (srcTrans && !tgtTrans) {
+            // 源是翻译列，目标是 game 列：目标为空时
+            String srcField = getTranslationSrcField(source);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM game g JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE ft.trans_value IS NOT NULL AND (g.")
+                .append(quoteColumn(target)).append(" IS NULL OR g.").append(quoteColumn(target)).append(" = '')");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else if (!srcTrans && tgtTrans) {
+            // 源是 game 列，目标是翻译列：目标（翻译）不存在或为空时
+            String tgtField = getTranslationSrcField(target);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM game g WHERE g.")
+                .append(quoteColumn(source)).append(" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM field_translation ft WHERE ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value IS NOT NULL AND ft.trans_value <> '')");
+            List<Object> params = new ArrayList<>();
+            params.add(tgtField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else {
+            // 两个都是翻译列
+            String srcField = getTranslationSrcField(source);
+            String tgtField = getTranslationSrcField(target);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM game g WHERE EXISTS (SELECT 1 FROM field_translation WHERE src_table='game' AND src_id=g.id AND src_field=? AND lang='zh' AND trans_value IS NOT NULL) AND NOT EXISTS (SELECT 1 FROM field_translation WHERE src_table='game' AND src_id=g.id AND src_field=? AND lang='zh' AND trans_value IS NOT NULL AND trans_value <> '')");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            params.add(tgtField);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        }
+    }
+
+    private int previewReplace(String column, String findText, Long platformId) {
+        if (isTranslationColumn(column)) {
+            String srcField = getTranslationSrcField(column);
+            StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM field_translation ft JOIN game g ON g.id = ft.src_id WHERE ft.src_table='game' AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value LIKE CONCAT('%', ?, '%')");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            params.add(findText);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        } else {
+            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
+                    .append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
+            List<Object> params = new ArrayList<>();
+            params.add(findText);
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
+            return count != null ? count : 0;
+        }
+    }
+
+    // --- Execute methods ---
+
+    private int executeCopy(String source, String target, Long platformId) {
+        boolean srcTrans = isTranslationColumn(source);
+        boolean tgtTrans = isTranslationColumn(target);
+
+        if (!srcTrans && !tgtTrans) {
+            // 两个都是 game 表列
+            StringBuilder sql = new StringBuilder("UPDATE game SET ")
+                    .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" WHERE platform_id = ?");
+                params.add(platformId);
+            }
+            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+        } else if (srcTrans && !tgtTrans) {
+            // 源是翻译列，目标是 game 列
+            return executeCopyTransToGame(source, target, platformId);
+        } else if (!srcTrans && tgtTrans) {
+            // 源是 game 列，目标是翻译列
+            return executeCopyGameToTrans(source, target, platformId);
+        } else {
+            // 两个都是翻译列
+            return executeCopyTransToTrans(source, target, platformId);
+        }
+    }
+
+    private int executeCopyTransToGame(String source, String target, Long platformId) {
+        String srcField = getTranslationSrcField(source);
+        // 获取受影响的 game id 列表
+        StringBuilder sql = new StringBuilder(
+            "SELECT g.id, ft.trans_value FROM game g JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value IS NOT NULL");
+        List<Object> params = new ArrayList<>();
+        params.add(srcField);
+        if (platformId != null) {
+            sql.append(" AND g.platform_id = ?");
+            params.add(platformId);
+        }
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+        int count = 0;
+        for (Map<String, Object> row : rows) {
+            Long gameId = ((Number) row.get("id")).longValue();
+            String transValue = (String) row.get("trans_value");
+            int updated = jdbcTemplate.update("UPDATE game SET " + quoteColumn(target) + " = ? WHERE id = ?", transValue, gameId);
+            count += updated;
+        }
+        return count;
+    }
+
+    private int executeCopyGameToTrans(String source, String target, Long platformId) {
+        String tgtField = getTranslationSrcField(target);
+        StringBuilder sql = new StringBuilder("SELECT id, ").append(quoteColumn(source)).append(" AS src_val FROM game WHERE ")
                 .append(quoteColumn(source)).append(" IS NOT NULL");
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-        return count != null ? count : 0;
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+        int count = 0;
+        for (Map<String, Object> row : rows) {
+            Long gameId = ((Number) row.get("id")).longValue();
+            String srcValue = (String) row.get("src_val");
+            upsertTranslation(gameId, tgtField, srcValue);
+            count++;
+        }
+        return count;
     }
 
-    private int previewSwap(String source, String target, Long platformId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE (")
-                .append(quoteColumn(source)).append(" IS NOT NULL OR ")
-                .append(quoteColumn(target)).append(" IS NOT NULL)");
+    private int executeCopyTransToTrans(String source, String target, Long platformId) {
+        String srcField = getTranslationSrcField(source);
+        String tgtField = getTranslationSrcField(target);
+        StringBuilder sql = new StringBuilder(
+            "SELECT g.id, ft.trans_value FROM game g JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value IS NOT NULL");
         List<Object> params = new ArrayList<>();
+        params.add(srcField);
         if (platformId != null) {
-            sql.append(" AND platform_id = ?");
+            sql.append(" AND g.platform_id = ?");
             params.add(platformId);
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-        return count != null ? count : 0;
-    }
-
-    private int previewOverwrite(String source, String target, Long platformId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
-                .append(quoteColumn(source)).append(" IS NOT NULL AND (")
-                .append(quoteColumn(target)).append(" IS NULL OR ")
-                .append(quoteColumn(target)).append(" = '')");
-        List<Object> params = new ArrayList<>();
-        if (platformId != null) {
-            sql.append(" AND platform_id = ?");
-            params.add(platformId);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+        int count = 0;
+        for (Map<String, Object> row : rows) {
+            Long gameId = ((Number) row.get("id")).longValue();
+            String transValue = (String) row.get("trans_value");
+            upsertTranslation(gameId, tgtField, transValue);
+            count++;
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-        return count != null ? count : 0;
-    }
-
-    private int previewReplace(String column, String findText, Long platformId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
-                .append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
-        List<Object> params = new ArrayList<>();
-        params.add(findText);
-        if (platformId != null) {
-            sql.append(" AND platform_id = ?");
-            params.add(platformId);
-        }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-        return count != null ? count : 0;
-    }
-
-    // --- Execute methods ---
-
-    private int executeCopy(String source, String target, Long platformId) {
-        StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
-        List<Object> params = new ArrayList<>();
-        if (platformId != null) {
-            sql.append(" WHERE platform_id = ?");
-            params.add(platformId);
-        }
-        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+        return count;
     }
 
     private int executeSwap(String source, String target, Long platformId) {
-        StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(quoteColumn(source)).append(" = ").append(quoteColumn(target)).append(", ")
-                .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
+        boolean srcTrans = isTranslationColumn(source);
+        boolean tgtTrans = isTranslationColumn(target);
+
+        if (!srcTrans && !tgtTrans) {
+            // 两个都是 game 表列
+            StringBuilder sql = new StringBuilder("UPDATE game SET ")
+                    .append(quoteColumn(source)).append(" = ").append(quoteColumn(target)).append(", ")
+                    .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" WHERE platform_id = ?");
+                params.add(platformId);
+            }
+            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+        } else if (srcTrans && !tgtTrans) {
+            // 源是翻译列，目标是 game 列
+            return transactionTemplate.execute(status -> executeSwapCrossTable(platformId, target, source));
+        } else if (!srcTrans && tgtTrans) {
+            // 源是 game 列，目标是翻译列
+            return transactionTemplate.execute(status -> executeSwapCrossTable(platformId, source, target));
+        } else {
+            // 两个都是翻译列
+            return transactionTemplate.execute(status -> executeSwapTransToTrans(source, target, platformId));
+        }
+    }
+
+    /**
+     * 跨表 swap：game 列 ↔ 翻译列，按游戏逐行处理保证 1-to-1 对应
+     */
+    private int executeSwapCrossTable(Long platformId, String gameColumn, String translationColumn) {
+        String srcField = getTranslationSrcField(translationColumn);
+        // 获取所有相关游戏 ID
+        StringBuilder sql = new StringBuilder("SELECT id FROM game");
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" WHERE platform_id = ?");
             params.add(platformId);
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+        List<Long> gameIds = jdbcTemplate.queryForList(sql.toString(), Long.class, params.toArray(new Object[0]));
+        int count = 0;
+        for (Long gameId : gameIds) {
+            // 1. 读 game 表值
+            String gameValue = jdbcTemplate.queryForObject(
+                "SELECT " + quoteColumn(gameColumn) + " FROM game WHERE id = ?",
+                String.class, gameId);
+
+            // 2. 读 field_translation 值
+            String transValue = getTranslationValue(gameId, srcField);
+
+            // 3. 写 game 表（用翻译值覆盖）
+            jdbcTemplate.update(
+                "UPDATE game SET " + quoteColumn(gameColumn) + " = ? WHERE id = ?",
+                transValue, gameId);
+
+            // 4. 写 field_translation（用 game 值覆盖）
+            upsertTranslation(gameId, srcField, gameValue);
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * 两个翻译列互换
+     */
+    private int executeSwapTransToTrans(String source, String target, Long platformId) {
+        String srcField = getTranslationSrcField(source);
+        String tgtField = getTranslationSrcField(target);
+        StringBuilder sql = new StringBuilder("SELECT id FROM game");
+        List<Object> params = new ArrayList<>();
+        if (platformId != null) {
+            sql.append(" WHERE platform_id = ?");
+            params.add(platformId);
+        }
+        List<Long> gameIds = jdbcTemplate.queryForList(sql.toString(), Long.class, params.toArray(new Object[0]));
+        int count = 0;
+        for (Long gameId : gameIds) {
+            String srcValue = getTranslationValue(gameId, srcField);
+            String tgtValue = getTranslationValue(gameId, tgtField);
+            upsertTranslation(gameId, srcField, tgtValue);
+            upsertTranslation(gameId, tgtField, srcValue);
+            count++;
+        }
+        return count;
     }
 
     private int executeOverwrite(String source, String target, Long platformId) {
-        StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(quoteColumn(target)).append(" = ").append(quoteColumn(source))
-                .append(" WHERE (").append(quoteColumn(target)).append(" IS NULL OR ")
-                .append(quoteColumn(target)).append(" = '')");
+        boolean srcTrans = isTranslationColumn(source);
+        boolean tgtTrans = isTranslationColumn(target);
+
+        if (!srcTrans && !tgtTrans) {
+            // 两个都是 game 表列
+            StringBuilder sql = new StringBuilder("UPDATE game SET ")
+                    .append(quoteColumn(target)).append(" = ").append(quoteColumn(source))
+                    .append(" WHERE (").append(quoteColumn(target)).append(" IS NULL OR ")
+                    .append(quoteColumn(target)).append(" = '')");
+            List<Object> params = new ArrayList<>();
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+        } else if (srcTrans && !tgtTrans) {
+            // 源是翻译列，目标是 game 列：仅当 game 列为空时写入
+            return executeOverwriteTransToGame(source, target, platformId);
+        } else if (!srcTrans && tgtTrans) {
+            // 源是 game 列，目标是翻译列：仅当翻译为空时写入
+            return executeOverwriteGameToTrans(source, target, platformId);
+        } else {
+            // 两个都是翻译列
+            return executeOverwriteTransToTrans(source, target, platformId);
+        }
+    }
+
+    private int executeOverwriteTransToGame(String source, String target, Long platformId) {
+        String srcField = getTranslationSrcField(source);
+        StringBuilder sql = new StringBuilder(
+            "SELECT g.id, ft.trans_value FROM game g JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE ft.trans_value IS NOT NULL AND (g.")
+            .append(quoteColumn(target)).append(" IS NULL OR g.").append(quoteColumn(target)).append(" = '')");
         List<Object> params = new ArrayList<>();
+        params.add(srcField);
         if (platformId != null) {
-            sql.append(" AND platform_id = ?");
+            sql.append(" AND g.platform_id = ?");
             params.add(platformId);
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+        int count = 0;
+        for (Map<String, Object> row : rows) {
+            Long gameId = ((Number) row.get("id")).longValue();
+            String transValue = (String) row.get("trans_value");
+            count += jdbcTemplate.update("UPDATE game SET " + quoteColumn(target) + " = ? WHERE id = ?", transValue, gameId);
+        }
+        return count;
+    }
+
+    private int executeOverwriteGameToTrans(String source, String target, Long platformId) {
+        String tgtField = getTranslationSrcField(target);
+        StringBuilder sql = new StringBuilder(
+            "SELECT g.id, g.").append(quoteColumn(source)).append(" AS src_val FROM game g WHERE g.")
+            .append(quoteColumn(source)).append(" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM field_translation ft WHERE ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value IS NOT NULL AND ft.trans_value <> '')");
+        List<Object> params = new ArrayList<>();
+        params.add(tgtField);
+        if (platformId != null) {
+            sql.append(" AND g.platform_id = ?");
+            params.add(platformId);
+        }
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+        int count = 0;
+        for (Map<String, Object> row : rows) {
+            Long gameId = ((Number) row.get("id")).longValue();
+            String srcValue = (String) row.get("src_val");
+            upsertTranslation(gameId, tgtField, srcValue);
+            count++;
+        }
+        return count;
+    }
+
+    private int executeOverwriteTransToTrans(String source, String target, Long platformId) {
+        String srcField = getTranslationSrcField(source);
+        String tgtField = getTranslationSrcField(target);
+        StringBuilder sql = new StringBuilder(
+            "SELECT g.id, ft_src.trans_value FROM game g JOIN field_translation ft_src ON ft_src.src_table='game' AND ft_src.src_id=g.id AND ft_src.src_field=? AND ft_src.lang='zh' WHERE ft_src.trans_value IS NOT NULL AND NOT EXISTS (SELECT 1 FROM field_translation ft_tgt WHERE ft_tgt.src_table='game' AND ft_tgt.src_id=g.id AND ft_tgt.src_field=? AND ft_tgt.lang='zh' AND ft_tgt.trans_value IS NOT NULL AND ft_tgt.trans_value <> '')");
+        List<Object> params = new ArrayList<>();
+        params.add(srcField);
+        params.add(tgtField);
+        if (platformId != null) {
+            sql.append(" AND g.platform_id = ?");
+            params.add(platformId);
+        }
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+        int count = 0;
+        for (Map<String, Object> row : rows) {
+            Long gameId = ((Number) row.get("id")).longValue();
+            String transValue = (String) row.get("trans_value");
+            upsertTranslation(gameId, tgtField, transValue);
+            count++;
+        }
+        return count;
     }
 
     private int executeReplace(String column, String findText, String replaceText, Long platformId) {
-        StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(quoteColumn(column)).append(" = REPLACE(").append(quoteColumn(column)).append(", ?, ?)")
-                .append(" WHERE ").append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
-        List<Object> params = new ArrayList<>();
-        params.add(findText);
-        params.add(replaceText);
-        params.add(findText);
-        if (platformId != null) {
-            sql.append(" AND platform_id = ?");
-            params.add(platformId);
+        if (isTranslationColumn(column)) {
+            String srcField = getTranslationSrcField(column);
+            StringBuilder sql = new StringBuilder(
+                "SELECT ft.id, ft.trans_value, g.id AS game_id FROM field_translation ft JOIN game g ON g.id = ft.src_id WHERE ft.src_table='game' AND ft.src_field=? AND ft.lang='zh' AND ft.trans_value LIKE CONCAT('%', ?, '%')");
+            List<Object> params = new ArrayList<>();
+            params.add(srcField);
+            params.add(findText);
+            if (platformId != null) {
+                sql.append(" AND g.platform_id = ?");
+                params.add(platformId);
+            }
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql.toString(), params.toArray(new Object[0]));
+            int count = 0;
+            for (Map<String, Object> row : rows) {
+                Long gameId = ((Number) row.get("game_id")).longValue();
+                String oldValue = (String) row.get("trans_value");
+                String newValue = oldValue.replace(findText, replaceText);
+                upsertTranslation(gameId, srcField, newValue);
+                count++;
+            }
+            return count;
+        } else {
+            StringBuilder sql = new StringBuilder("UPDATE game SET ")
+                    .append(quoteColumn(column)).append(" = REPLACE(").append(quoteColumn(column)).append(", ?, ?)")
+                    .append(" WHERE ").append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
+            List<Object> params = new ArrayList<>();
+            params.add(findText);
+            params.add(replaceText);
+            params.add(findText);
+            if (platformId != null) {
+                sql.append(" AND platform_id = ?");
+                params.add(platformId);
+            }
+            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
     }
 }
