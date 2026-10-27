@@ -118,7 +118,11 @@
         function applyI18n() {
             $('[data-i18n]').each(function() {
                 const key = $(this).data('i18n');
-                $(this).text(getI18nText(key));
+                const translation = I18n.t(key);
+                // 翻译缺失时保留 HTML 默认文本，避免空翻译表把键名写入页面
+                if (translation && translation !== key) {
+                    $(this).text(translation);
+                }
             });
         }
         
@@ -222,7 +226,13 @@
         
         // 页面加载完成后执行
         $(document).ready(function() {
-            applyI18n();
+            // 时机修复：等 I18n 语言包加载完成后再应用翻译，避免空翻译表把键名写入页面
+            const lang = I18n.getCurrentLanguage();
+            if (I18n.translations && Object.keys(I18n.translations).length > 0) {
+                applyI18n();
+            } else {
+                I18n.loadLanguage(lang).then(function() { applyI18n(); });
+            }
             loadPlatforms();
             
             // 绑定事件

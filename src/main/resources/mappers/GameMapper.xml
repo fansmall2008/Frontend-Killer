@@ -1513,11 +1513,6 @@
         GROUP BY platform_id
     </select>
 
-    <!-- 导出预检：统计单平台未刮削(scraped!=true)游戏数，O(1) 计数，供关联性强校验分流 -->
-    <select id="countUnscrapedGamesByPlatformId" parameterType="java.lang.Long" resultType="java.lang.Long">
-        SELECT COUNT(*) FROM game WHERE platform_id = #{platformId} AND (scraped IS NULL OR scraped != true)
-    </select>
-    
     <!-- 获取唯一的开发商 -->
     <select id="selectUniqueDevelopers" resultType="java.lang.String">
         SELECT DISTINCT developer FROM game WHERE developer IS NOT NULL AND developer != '' ORDER BY developer

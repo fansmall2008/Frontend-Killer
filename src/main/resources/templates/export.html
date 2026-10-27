@@ -226,17 +226,32 @@
             localStorage.setItem('language', lang);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                el.textContent = getI18nText(key);
+                const translation = I18n.t(key);
+                // 翻译缺失时保留 HTML 默认文本，避免空翻译表把键名写入页面
+                if (translation && translation !== key) {
+                    el.textContent = translation;
+                }
             });
-            document.querySelectorAll('option[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                el.textContent = getI18nText(key);
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                const translation = I18n.t(key);
+                if (translation && translation !== key) {
+                    el.setAttribute('placeholder', translation);
+                }
             });
         }
         
         function initLanguage() {
             const lang = I18n.getCurrentLanguage();
-            changeLanguage(lang);
+            currentLanguage = lang;
+            // 时机修复：等 I18n 语言包加载完成后再应用翻译，避免空翻译表把键名写入页面
+            if (I18n.translations && Object.keys(I18n.translations).length > 0) {
+                changeLanguage(lang);
+            } else {
+                I18n.loadLanguage(lang).then(ok => {
+                    if (ok) changeLanguage(lang);
+                });
+            }
         }
         
         // 显示通知
@@ -397,37 +412,13 @@
                 TemplateVars.open(declarations, {
                     onConfirm: function (values) {
                         baseData.templateVariables = values;
-                        runExportFlow(baseData, selected);
+                        doExport(baseData, selected, false);
                     }
                 });
                 return;
             }
-            runExportFlow(baseData, selected);
+            doExport(baseData, selected, false);
         });
-
-        // 预检仅关乎 ROM 关联性：未勾选游戏文件时纯模板导出，无风险，直接执行
-        function runExportFlow(baseData, selected) {
-            if (!baseData.copyRoms) {
-                doExport(baseData, selected, false);
-                return;
-            }
-
-            setLoading(true);
-            fetch('/api/export/preflight', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ platformIds: baseData.platformIds, frontend: baseData.frontend })
-            })
-            .then(r => r.json())
-            .then(pf => {
-                setLoading(false);
-                if (!pf || !pf.success) { doExport(baseData, selected, false); return; }
-                if (pf.action === 'split') { showSplitDialog(pf.platforms); return; }
-                if (pf.action === 'suggest_whole_dir') { showWholeDirDialog(pf.platforms, baseData, selected); return; }
-                doExport(baseData, selected, false);
-            })
-            .catch(() => { setLoading(false); doExport(baseData, selected, false); });
-        }
 
         function setLoading(on) {
             document.getElementById('loading').style.display = on ? 'inline-block' : 'none';
@@ -466,67 +457,6 @@
             });
         }
 
-        // ========== 导出预检弹窗 ==========
-        function escapeHtml(s) {
-            return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
-
-        function ensureChoiceModal() {
-            let m = document.getElementById('preflightModal');
-            if (m) return m;
-            m = document.createElement('div');
-            m.id = 'preflightModal';
-            m.style.cssText = 'display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;';
-            m.innerHTML = '<div style="max-width:520px;width:90%;background:#1e1e2e;color:#e0e0e0;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.5);">'
-                + '<h3 id="preflightModalTitle" style="margin:0 0 12px 0;font-size:18px;"></h3>'
-                + '<div id="preflightModalBody" style="font-size:14px;line-height:1.6;margin-bottom:20px;"></div>'
-                + '<div id="preflightModalButtons" style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;"></div>'
-                + '</div>';
-            document.body.appendChild(m);
-            return m;
-        }
-
-        function showChoiceDialog(title, bodyHtml, buttons) {
-            const m = ensureChoiceModal();
-            document.getElementById('preflightModalTitle').textContent = title;
-            document.getElementById('preflightModalBody').innerHTML = bodyHtml;
-            const btnArea = document.getElementById('preflightModalButtons');
-            btnArea.innerHTML = '';
-            buttons.forEach(b => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn ' + (b.cls || 'btn-secondary');
-                btn.textContent = b.label;
-                btn.onclick = () => { m.style.display = 'none'; if (b.onClick) b.onClick(); };
-                btnArea.appendChild(btn);
-            });
-            m.style.display = 'flex';
-        }
-
-        function renderUnscrapedLines(platforms) {
-            return '<ul style="margin:8px 0 0 0;padding-left:20px;">' + platforms.map(p =>
-                '<li>' + escapeHtml(p.platformName) + ' \u2014 ' + I18n.t('preflight_unscraped', '未刮削') + ' ' + p.unscraped + '/' + p.total + '</li>'
-            ).join('') + '</ul>';
-        }
-
-        function showSplitDialog(platforms) {
-            const withUn = platforms.filter(p => p.unscraped > 0);
-            const title = I18n.t('preflight_split_title', '存在未刮削游戏，无法导出');
-            const body = '<p>' + I18n.t('preflight_split_msg', '勾选的多个平台中存在未刮削的游戏，无法保证关联性。请单独导出以下平台：') + '</p>' + renderUnscrapedLines(withUn);
-            showChoiceDialog(title, body, [{ label: I18n.t('preflight_got_it', '知道了'), cls: 'btn-primary' }]);
-        }
-
-        function showWholeDirDialog(platforms, baseData, selected) {
-            const withUn = platforms.filter(p => p.unscraped > 0);
-            const title = I18n.t('preflight_whole_dir_title', '检测到未刮削游戏');
-            const body = '<p>' + I18n.t('preflight_whole_dir_msg', '该平台存在未刮削的游戏，逐游戏导出可能遗漏父 rom / 关联文件。建议整目录拷贝（直接复制源目录全部文件）。') + '</p>' + renderUnscrapedLines(withUn);
-            showChoiceDialog(title, body, [
-                { label: I18n.t('preflight_cancel', '取消'), cls: 'btn-secondary' },
-                { label: I18n.t('preflight_normal_export', '照常导出'), cls: 'btn-secondary', onClick: () => doExport(baseData, selected, false) },
-                { label: I18n.t('preflight_whole_dir_confirm', '整目录拷贝'), cls: 'btn-primary', onClick: () => doExport(baseData, selected, true) }
-            ]);
-        }
-        
         // 更新前端规则描述和导出选项
         function updateFrontendDescription() {
             const frontendSelect = document.getElementById('frontend');

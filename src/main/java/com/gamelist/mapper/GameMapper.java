@@ -73,9 +73,6 @@ public interface GameMapper {
     // DAT 预检：按平台统计总游戏数与有效数（name 非空且(crc32 或 disc_serial 非空)）
     List<Map<String, Object>> countDatStatsByPlatform();
 
-    // 导出预检：统计单平台未刮削游戏数（scraped != true）
-    long countUnscrapedGamesByPlatformId(Long platformId);
-    
     // 获取唯一值
     List<String> selectUniqueDevelopers();
     List<String> selectUniquePublishers();

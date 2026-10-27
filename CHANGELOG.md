@@ -21,6 +21,10 @@
 - **P1 — manifest 缓存全覆盖**：`storeManifest()` 触发条件从"手动刮削+街机"简化为"所有刮削成功的游戏"（`ssGameId != null` 即缓存），后续刮削直接复用缓存 manifest，0 次 SS API 调用
 - **P2 — FAILED 任务 URL 复用**：新增 `resetFailedTasksToPending()` 方法，重试时复用已存储的加密下载 URL，避免重新调用 jeuInfos 浪费配额
 
+### Fixed
+- **移除导出前 scraped 预检**：删除 export.html 预检流程与弹窗函数、`ExportController` `/preflight` 端点、`ExportService(Impl)` preflight 方法及 `GameMapper` `countUnscrapedGamesByPlatformId` 查询，多平台导出不再因未刮削游戏弹警告阻断；三语 locale 同步删除 9 个 `preflight_*` 键
+- **i18n 语言包解析失败修复**：`zh-CN.json` 的 `confirm_reject_match` 值含未转义 ASCII 双引号导致 `response.json()` 抛异常、翻译表为空，数据导出/数据合并页面整页显示 i18n 键名；修复引号后，两页面自定义 i18n 应用逻辑增加 `translation !== key` 保护并消除异步加载时序竞态，三语补齐 8 个缺失文案（platforms_loaded、loading_frontends、frontends_loaded、please_select、merge_started、log_task_started、log_check_task_status、log_conflict_resolution）
+
 ## [1.3.7] - 2026-10-25
 
 > Patch release merging 1.3.1 fixes with critical media download architecture fixes, plus a brand-new **Toolbox** (translation / DAT generator / ROM variants). Headline: **media download tasks were written to the wrong database table, causing the UI to show 0 progress despite tasks completing in the background**.
