@@ -16,7 +16,11 @@
     "roms": {
       "enabled": true,
       "directory": "{outputPath}/{platform.system}",
-      "filename": "if(genre, trim(mapFirst(genre) + \"/\" + default(name, filename) + ext), default(name, filename) + ext)"
+      "filename": "if(genre, trim(mapFirst(genre) + \"/\" + default(name, filename) + ext), default(name, filename) + ext)",
+      "m3u": {
+        "enabled": true
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "media": {
       "directory": "{outputPath}/thumbnails/{platform.name}",

@@ -28,7 +28,11 @@
       "showWarning": false
     },
     "roms": {
-      "enabled": false
+      "enabled": false,
+      "m3u": {
+        "enabled": false
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "readme": {
       "enabled": true,

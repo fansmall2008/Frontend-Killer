@@ -87,6 +87,11 @@ platform.system + "_" + filename
 | `trim` | `trim(str)` | Trim whitespace | `trim(desc)` |
 | `replace` | `replace(str, from, to)` | String replacement | `replace(path, "\", "/")` |
 | `len` | `len(str)` | String length | `len(name)` |
+| `before` | `before(str, sep)` | Return the part before the separator; returns the original string when no separator is found | `before(path, "#")` |
+| `after` | `after(str, sep)` | Return the part after the separator; returns the original string when no separator is found | `after(path, "#")` |
+| `concat` | `concat(f1, f2, ...)` | Concatenate all arguments, skipping empty values | `concat(cdn, '/', filename)` |
+| `sanitize` | `sanitize(str, charset)` | Replace each character found in `charset` with `_` | `sanitize(name, "&*/:\\<>?\|")` |
+| `matches` | `matches(str, regex)` | Full regex match, returns `true`/`false` | `matches(crc32, '^[0-9A-Fa-f]{8}\\|crc$')` |
 
 #### 2.2.2 Path Functions
 
@@ -124,14 +129,22 @@ platform.system + "_" + filename
 
 | Function | Syntax | Description | Example |
 |----------|--------|-------------|---------|
-| `map` | `map(value[, category])` | Dialect mapping: returns the mapped target word on hit, otherwise the original value | `map(genre, "genre")` |
+| `map` | `map(value[, category])` | Dialect mapping: on hit returns the mapped target word (multi-value input maps segment by segment, joined with `-`), on miss returns the original value | `map(genre, "genre")` |
+| `mapFirst` | `mapFirst(value[, category])` | Dialect mapping returning only the first mapped result (for single-value contexts such as directory names) | `mapFirst(genre)` |
 
-`map()` performs deterministic translation using the system's **dialect mapping table** (term_mapping, maintained in System Settings), e.g. normalizing scraped English genres to Chinese: `Beat-'Em-Up` → `清版游戏`.
+`map()` / `mapFirst()` perform deterministic translation using the system's **dialect mapping table** (term_mapping, maintained in System Settings), e.g. normalizing scraped English genres to Chinese: `Beat-'Em-Up` → `清版游戏`.
 
 - `map(value)`: searches all mapping categories (the `system_alias` category is internal to platform-system matching and is excluded); if one word hits multiple categories, the first in category-name dictionary order is used for deterministic results
 - `map(value, category)`: searches only the specified category
 - Source words are normalized before lookup (lowercased, spaces and punctuation stripped), so `Beat'em Up`, `beat-em-up` and `BEAT EM UP` are treated as the same word
 - On miss the input value is returned unchanged, no error is raised
+
+#### 2.2.6 General Syntax Notes
+
+- **Function names are case-insensitive**: `mapFirst(...)` equals `mapfirst(...)`
+- **String literals**: both double `"..."` and single `'...'` quotes are supported; commas and parentheses inside quoted arguments need no escaping
+- **Lazy evaluation**: `default`, `if` and `coalesce` evaluate arguments on demand; branches not selected are never evaluated, avoiding spurious errors
+- **Unknown functions**: return null and log a WARN, without interrupting the export
 
 ### 2.3 Expression Examples
 
@@ -162,11 +175,22 @@ default(desc, "No description")
 
 # Dialect mapping
 map(genre, "genre")
-map(desc)
+mapFirst(genre)
+
+# Separator handling (common in RetroArch playlists)
+before(path, '#')
+ext(before(path, '#'))
+
+# Filename sanitizing (RetroArch thumbnail rules)
+sanitize(name, "&*/:\\<>?|")
+
+# Regex validation
+matches(crc32, '^[0-9A-Fa-f]{8}\\|crc$')
 
 # Complex expressions
 (name or filename) + ".jpg"
 coalesce(box-2D, screenshot, image)
+concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 ```
 
 ---
@@ -182,16 +206,17 @@ All game fields can be referenced directly by field name. Three naming conventio
 | Field | Description | Example Value |
 |-------|-------------|---------------|
 | `name` | Game name | "Super Mario Bros" |
+| `translatedName` | Translated game name (injected before export per selected language; often combined with `coalesce`) | "超级马里奥兄弟" |
 | `desc` | Game description | "A classic platform game..." |
+| `translatedDesc` | Translated game description | "经典平台游戏..." |
 | `releasedate` | Release date | "1985-09-13" |
 | `developer` | Developer | "Nintendo" |
 | `publisher` | Publisher | "Nintendo" |
 | `genre` | Genre | "Platform" |
 | `players` | Player count | "1-2" |
 | `rating` | Rating | "0.85" |
-| `path` | Game path | "./roms/nes/supermario.nes" |
+| `path` | Game path (first line for multi-disc games) | "./roms/nes/supermario.nes" |
 | `lang` | Language | "en" |
-| `region` | Region | "us" |
 | `sort-by` | Sort field | "Mario" |
 | `gameId` | Game ID | "12345" |
 | `hash` | File hash | "abc123..." |
@@ -199,6 +224,8 @@ All game fields can be referenced directly by field name. Three naming conventio
 | `md5` | MD5 checksum | "abcdef..." |
 | `source` | Data source | "screenscraper" |
 | `platformType` | Platform type | "console" |
+| `multiFile` | Whether the game is multi-disc (boolean; `"true"` or empty string in expressions) | "true" |
+| `multiFileContent` | Multi-disc file list text (one file per line, written by multiFileDetection at import) | "disc1.bin\ndisc2.bin" |
 
 #### 3.1.2 Computed Fields (Read-only)
 
@@ -206,6 +233,9 @@ All game fields can be referenced directly by field name. Three naming conventio
 |-------|-------------|-------------|
 | `filename` | Filename without extension | Extracted from `path` |
 | `releaseYear` | Release year | First 4 chars of `releasedate` |
+| `m3uPath` | m3u filename of a multi-disc game (non-empty only when `multiFile=true`) | `stem(first line of path) + ".m3u"`, illegal characters replaced with `_` |
+
+`m3uPath` is commonly combined with `if` to rewrite multi-disc paths: `if(multiFile, m3uPath, path)` (used by the ES-DE / EmuELEC / RetroBat export templates).
 
 #### 3.1.3 Field Aliases
 
@@ -215,10 +245,12 @@ The following aliases can be used instead of standard field names:
 |-------|---------|
 | `description` | `desc` |
 | `file` | `path` |
-| `region` | `lang` |
+| `region` | `lang` (note: there is no standalone "region" field; region values come from `lang`) |
 | `category` | `genre` |
 | `releaseDate` | `releasedate` |
 | `manuel` | `manual` |
+
+> Matching is case-insensitive with `-`/`_` normalized, so `box2dfront`, `Box-2D` and `box_2d` all resolve to the same field.
 
 ### 3.2 Platform Variables
 
@@ -233,10 +265,24 @@ Access platform information via the `platform.` prefix:
 | `platform.database` | Database name | "screenscraper" |
 | `platform.web` | Website URL | "https://screenscraper.fr" |
 | `platform.folderPath` | Platform folder path | "/roms/nes" |
+| `platform.sortBy` | Platform sort value (Pegasus sort-by line) | "064" |
+| `platform.extensions` | Platform extension list (Pegasus extensions line) | "nes\|fds" |
+| `platform.ignoreFiles` | Ignored-files list (Pegasus ignore-files line) | "*.bak" |
 
-### 3.3 Computed Variables (Auto-injected during Import)
+### 3.3 Computed Variables (computedVariables Declaration Injection)
 
-The system automatically injects the following computed variables in import templates:
+Import templates can declare custom computed variables via `game.computedVariables` (key = variable name, value = expression); at import time each game is evaluated and the results injected into the variable table:
+
+```json
+"computedVariables": {
+  "filename": "stem(path)",
+  "filepath": "replace(path or '', './', '')",
+  "safeName": "sanitize(label, '&*/:\\<>?|')"
+}
+```
+
+- Computed variables can be referenced in **subsequent field mappings and mediaDiscovery rules** (e.g. the RetroArch import template uses `{playlistName}`/`{safeName}` to build thumbnail paths)
+- When the template declares no `computedVariables` (backward compatibility), injection falls back to the built-in defaults:
 
 | Variable | Description | Computation |
 |----------|-------------|-------------|
@@ -247,6 +293,8 @@ The system automatically injects the following computed variables in import temp
 - `path` = `./roms/nes/supermario.nes`
 - `filename` = `supermario`
 - `filepath` = `roms/nes/supermario`
+
+The export direction also has built-in variables: `{outputPath}` (export path), `{gameName}` (game name, used in media targets), `{filename}`, `{ext}` (used in filename templates; the version extension during version replacement), plus template variables declared in the top-level `variables` block (see 3.4).
 
 ### 3.4 Template Variables (variables block)
 
@@ -387,12 +435,16 @@ The system automatically recognizes and maps them to the same field.
     "version": 3,
     "direction": "import",
     "dataFileType": "data|text",
-    "format": "xml|text",
+    "format": "xml|json|text",
     "dataFile": "gamelist.xml",
     "delimiter": ":"
   },
+  "parsing": {
+    // Parser behavior parameters (optional, see 5.2)
+  },
   "system": {
     "systemTag": "provider",
+    "gameStartMarker": "game:",
     "fields": {
       "platform.system": ["system"],
       "platform.software": ["software"]
@@ -400,6 +452,13 @@ The system automatically recognizes and maps them to the same field.
   },
   "game": {
     "gameStartMarker": "game",
+    "multiLine": true,
+    "multiFileDetection": {
+      // Multi-disc detection (optional, see 5.3)
+    },
+    "computedVariables": {
+      // Computed variable declarations (optional, see 3.3)
+    },
     "gameInfo": {
       "name": ["name", "sortname"],
       "desc": ["desc", "description"]
@@ -409,13 +468,100 @@ The system automatically recognizes and maps them to the same field.
       "ss": ["screenshot"]
     },
     "mediaDiscovery": {
-      // Media discovery configuration (optional)
+      // Media discovery configuration (optional, see 5.6)
     }
   }
 }
 ```
 
-### 5.2 gameInfo Field Mapping
+### 5.2 parsing Configuration
+
+The `parsing` block defines parser behavior parameters so the same engine can handle different frontends' formats. Defaults keep backward compatibility when omitted.
+
+**text type**:
+
+```json
+"parsing": {
+  "text": {
+    "delimiter": ":",
+    "commentChars": ["#"],
+    "entrySeparator": "emptyLine",
+    "keyCase": "lower",
+    "encoding": "UTF-8",
+    "multiLine": {
+      "enabled": true,
+      "indentChars": ["  ", "\t"]
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `delimiter` | Attribute separator (e.g. `":"`, `"="`) |
+| `commentChars` | Comment markers; matching lines are skipped |
+| `entrySeparator` | Entry separation mode; `"emptyLine"` splits entries on blank lines |
+| `keyCase` | Key case strategy: `lower` / `upper` / `preserve` |
+| `encoding` | File encoding (default UTF-8) |
+| `multiLine.enabled` | Whether indented continuation lines are supported (Pegasus `files:` blocks rely on this) |
+| `multiLine.indentChars` | List of continuation-line indent characters |
+
+**json type** (RetroArch playlists, etc.):
+
+```json
+"parsing": {
+  "json": {
+    "root": "items",
+    "encoding": "UTF-8"
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `root` | JSON path (dot-separated) to the game entry array, default `"items"` |
+| `encoding` | File encoding (default UTF-8) |
+
+### 5.3 multiFileDetection (Multi-disc Detection)
+
+`multiFileDetection` writes multi-disc info into the Game record's `multiFile=true` + `multiFileContent` fields; once triggered the game **stays as a single record** (it is not expanded into multiple Games):
+
+```json
+"multiFileDetection": {
+  "enabled": true,
+  "source": "path",
+  "trigger": "endsWith",
+  "pattern": ".m3u",
+  "content": "fileContent",
+  "pathFrom": "firstLine"
+}
+```
+
+| Field | Values | Description |
+|-------|--------|-------------|
+| `source` | Field name | Detection source field (e.g. `path`, `files`) |
+| `trigger` | `fieldExists` \| `endsWith` | Trigger condition: field exists / field's first line ends with pattern (case-insensitive) |
+| `pattern` | e.g. `".m3u"` | Match pattern for `endsWith`, default `".m3u"` |
+| `content` | `fieldValue` \| `fileContent` | Content source: cleaned field value / file content read from disk (m3u) |
+| `pathFrom` | `firstLine` | Optional; with `firstLine`, path becomes the first cleaned line |
+
+**Two typical modes** (differences among built-in import templates):
+
+| Mode | Configuration | Templates |
+|------|---------------|-----------|
+| Pegasus multi-line block | `source=files, trigger=fieldExists, content=fieldValue, pathFrom=firstLine` | pegasus-v3 |
+| m3u pointer | `source=path, trigger=endsWith(.m3u), content=fileContent` | esde / emuelec / retrobat / skraper-es / webgamelistoper |
+
+**Cleaning rules** (applied before `content` is written to `multiFileContent`):
+- `#` comment lines and blank lines are removed, each line trimmed
+- Leading `./` or `.\` prefixes are removed
+- **No cue→bin expansion**: entries are kept as-is; cue companion-file collection only happens at export time (see 6.7 roms.cue)
+- **The directory base is uniformly the platform ROM root**: in `fileContent` mode the cleaned lines do not carry the m3u's own directory prefix; if the m3u lives in a subdirectory and uses relative references, export resolves entries against the platform root, so **sub-directory relative references lose their base**
+- Pegasus `files:` continuation lines are cleaned by the same rules before being stored in `multiFileContent`
+
+**Multi-disc expansion (legacy semantics)**: the `game.multiFile` block (`enabled`/`field`/`separator`) splits a multi-value field into multiple Game records; it is mutually exclusive with `multiFileDetection` (detection wins and keeps a single record). New templates should use `multiFileDetection` only.
+
+### 5.4 gameInfo Field Mapping
 
 `gameInfo` defines the mapping from data file fields to system fields:
 
@@ -440,7 +586,7 @@ The system automatically recognizes and maps them to the same field.
 - Keys (e.g., `name`) are system field names
 - Values (e.g., `["name", "sortname"]`) are lists of possible data file field names, matched by priority
 
-### 5.3 mediaInfo Field Mapping
+### 5.5 mediaInfo Field Mapping
 
 `mediaInfo` defines the mapping from media file paths to system media fields:
 
@@ -453,7 +599,7 @@ The system automatically recognizes and maps them to the same field.
 }
 ```
 
-### 5.4 mediaDiscovery Configuration
+### 5.6 mediaDiscovery Configuration
 
 `mediaDiscovery` is used to automatically find media files on disk:
 
@@ -461,7 +607,7 @@ The system automatically recognizes and maps them to the same field.
 "mediaDiscovery": {
   "enabled": true,
   "baseDir": "media",
-  "subDirPattern": "{filename}",
+  "subDirPatterns": ["{filename}", "{name}"],
   "extensions": ["png", "jpg", "jpeg", "gif", "webp", "mp4", "mkv", "avi", "webm"],
   "rules": {
     "box-2D": [
@@ -483,14 +629,16 @@ The system automatically recognizes and maps them to the same field.
 
 **Configuration Notes**:
 - `enabled`: Whether to enable media discovery
-- `baseDir`: Base directory for media files
-- `subDirPattern`: Subdirectory pattern, supports `{filename}` variable
+- `baseDir`: Base directory for media files (relative to the data file's directory; may be a relative path like `"../thumbnails"`)
+- `subDirPatterns`: **Prioritized list** of sub-directory naming strategies (array, tried in order; e.g. `["{filename}", "{name}"]` tries the ROM filename first, then the display name)
 - `extensions`: List of file extensions to search
-- `rules`: Search rules for each media type, supports `{filename}` and `{ext}` variables
+- `rules`: Search rules per media type, supporting `{filename}`, `{ext}` and variables declared in computedVariables (e.g. `{safeName}`)
 
 **Variable Substitution**:
 - `{filename}`: Game filename without extension
+- `{name}`: Game display name
 - `{ext}`: Current file extension being searched
+- Variables declared in computedVariables (e.g. `{playlistName}`, `{safeName}` in the RetroArch template)
 
 **Example**:
 For game `supermario.nes`, the system searches for `box-2D` media in this order:
@@ -514,153 +662,263 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "version": 3,
     "direction": "export",
     "dataFileType": "data|text",
+    "format": "xml|json|text",
     "delimiter": ": ",
     "dataFile": "metadata.pegasus.txt"
   },
+  "variables": [
+    // Optional: template variables set via dialog before export (see 3.4)
+  ],
   "system": {
-    "header": [
-      "collection: {platform.system}",
-      "sort-by: 064",
-      "{platform.launch}",
-      ""
-    ],
-    "fields": {
-      "collection": "platform.system",
-      "launch": "platform.launch"
-    }
+    "header": [ /* data file header lines */ ],
+    "footer": [ /* data file footer lines */ ],
+    "fields": { /* field mappings used in header/footer lines (optional) */ }
   },
   "game": {
     "gameStartMarker": "game:",
     "entrySeparator": "\n\n",
-    "gameInfo": {
-      "game": "name",
-      "file": "path",
-      "description": "desc"
-    },
-    "mediaInfo": {
-      "assets.box_front": "box-2D",
-      "assets.screenshot": "ss"
-    }
+    "gameInfo": { /* game field → data file field mappings (values are expressions) */ },
+    "mediaInfo": { /* data file media tags → source media fields (nomcourt) */ }
   },
   "output": {
-    "filename": "metadata.pegasus.txt",
-    "pathFormat": "relative",
-    "directory": {
-      "roms": "{outputPath}/{platform.system}",
-      "media": "{outputPath}/{platform.system}/media"
-    },
-    "media": {
-      "video": {
-        "source": "video",
-        "target": "{mediaPath}/{gameName}/video.mp4"
-      }
-    }
+    "exportOptions": { /* UI export option declarations */ },
+    "roms": { /* ROM file copying: enabled/directory/filename/m3u/cue */ },
+    "media": { /* media file copying: directory/rules */ },
+    "dataFile": { /* data file: directory/filename/pathFormat etc. */ },
+    "readme": { /* optional: usage readme generation */ }
   }
 }
 ```
 
-### 6.2 system.header Configuration
+### 6.2 output.exportOptions Export Option Declarations
 
-`header` defines the header lines of the data file:
+`exportOptions` declares the export scope supported by the target frontend, controlling which options are available on the export form and their defaults:
+
+```json
+"exportOptions": {
+  "gameFiles": true,
+  "mediaFiles": true,
+  "gameListFile": true,
+  "showWarning": false
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `gameFiles` | Whether ROM file export is allowed (controls whether the roms block takes effect) |
+| `mediaFiles` | Whether media file export is allowed (controls whether the media block takes effect) |
+| `gameListFile` | Whether data file generation is allowed (controls whether the dataFile block takes effect) |
+| `showWarning` | Whether to show a limitation warning in the UI (e.g. "metadata and media only, ROMs are not exported") |
+
+The user's actual checkboxes on the export form decide which output blocks take effect at runtime.
+
+### 6.3 system.header / footer
+
+`header` / `footer` define the header and footer lines of the data file:
 
 ```json
 "header": [
-  "collection: {platform.system}",
-  "sort-by: 064",
+  "collection: {platform.name}",
+  "sort-by: {platform.sortBy}",
   "{platform.launch}",
   ""
 ]
 ```
 
 **Note**:
-- Each line is a string
-- Supports `{platform.xxx}` variables
-- Empty string represents a blank line
+- Each line is a string, supporting `{platform.xxx}` placeholders and expressions
+- Empty strings represent blank lines
+- `fields` is optional and declares the field mappings used in header/footer lines
 
-### 6.3 game.gameInfo Configuration
+### 6.4 game.gameInfo / game.mediaInfo
 
-`gameInfo` defines the mapping from system fields to data file fields:
-
-```json
-"gameInfo": {
-  "game": "name",
-  "file": "path",
-  "sort-by": "sort-by",
-  "developer": "developer",
-  "description": "desc"
-}
-```
-
-**Note**:
-- Keys (e.g., `game`) are field names in the data file
-- Values (e.g., `name`) are system field names or expressions
-
-**Expression Support**:
+**gameInfo** (keys = data file fields/tags, values = expressions):
 
 ```json
 "gameInfo": {
-  "title": "name or filename",
-  "year": "sub(releasedate, 0, 4)",
-  "path": "replace(path, '\\', '/')"
+  "game": "coalesce(name, translatedName)",
+  "file": "if(multiFile, '', path)",
+  "files": "multiFileContent",
+  "path": "if(multiFile, m3uPath, path)",
+  "crc32": "if(crc32, concat(crc32, '|crc'), 'DETECT')"
 }
 ```
 
-### 6.4 game.mediaInfo Configuration
+- Values support the full expression syntax (Section 2)
+- When an expression references `path` or `m3uPath`, the result is automatically formatted per `output.dataFile.pathFormat` (see 6.9)
+- Empty values are not output
+- **Multi-disc output**: when the value is multi-line text (e.g. Pegasus `files: multiFileContent`), it renders as "first line key+separator, following lines indented two spaces" — i.e. Pegasus's `files:` multi-line block
 
-`mediaInfo` defines the mapping from data file media tags to system media fields:
+**mediaInfo** (keys = media tags in the data file, values = source media nomcourt):
 
 ```json
 "mediaInfo": {
-  "assets.box_front": "box-2D",
-  "assets.screenshot": "ss",
-  "assets.video": "video"
+  "image": "box-2D",
+  "assets.video": "video",
+  "assets.boxFront": "box-2D"
 }
 ```
 
-**Note**:
-- Keys (e.g., `assets.box_front`) are media tags in the data file
-- Values (e.g., `box-2D`) are system media field names
+- Media paths **prefer** the export-path override computed via the matching `dataFileTag` in `output.media.rules` (see 6.8); without an override the original media path from the database is used
+- Media types without a `dataFileTag` in rules are copied only, not written into the data file
+- rules keys are not limited to the 54 ScreenScraper nomcourt values; legacy field names (e.g. `image`, `banner`, `manual`) also work — the engine accesses the Game field the same way
 
-### 6.5 output Configuration
+### 6.5 output.roms ROM File Copying
 
-`output` defines export behavior:
+`output.roms` defines ROM file copying behavior:
 
 ```json
-"output": {
-  "filename": "metadata.pegasus.txt",
-  "pathFormat": "relative",
-  "directory": {
-    "roms": "{outputPath}/{platform.system}",
-    "media": "{outputPath}/{platform.system}/media"
-  },
-  "media": {
-    "video": {
-      "source": "video",
-      "target": "{mediaPath}/{gameName}/video.mp4"
-    }
-  },
+"roms": {
+  "enabled": true,
+  "directory": "{outputPath}/{platform.system}",
+  "filename": "{filename}{ext}",
   "m3u": {
-    "enabled": false
+    "enabled": false,
+    "target": "{outputPath}/{platform.system}"
+  },
+  "cue": { "enabled": true, "onMissing": "warn" }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `enabled` | Whether to perform ROM copying; **when false, the entire ROM copy phase (including m3u generation and cue companion-file collection) is skipped, making the m3u/cue settings moot** |
+| `directory` | Target directory template; supports per-game expressions (e.g. `if(genre, concat('{outputPath}/', platform.system, '/', mapFirst(genre)), '{outputPath}/{platform.system}')` to group by genre) |
+| `filename` | Target filename template, down to the filename level; default `{filename}{ext}` keeps the original name; supports expressions like sanitize/concat |
+
+> In whole-directory copy mode (choosing "whole directory copy" on the export form), per-game companion resolution is skipped; the platform source ROM directory is copied as a whole to `roms.directory`, and m3u/cue per-game logic does not participate.
+
+### 6.6 output.roms.m3u Playlist Processing
+
+`roms.m3u` controls M3U handling at export time, default `enabled=false`. It involves **two different m3u paths**:
+
+**Path 1: regenerate m3u for multiFile games**
+- After a multi-disc game (`multiFile=true`, content from the `multiFileContent` stored at import) has its discs copied, a `{filename}.m3u` is generated in the ROM directory
+- Content = cleaned lines of `multiFileContent` (comments/blank lines/`./` prefixes removed, separators normalized to `/`)
+
+**Path 2: parse-and-rewrite for legacy data whose path points to an .m3u**
+- When a game's `path` points to an `.m3u` file (resolved to multiFile at import, or existing as an m3u file), all companion files referenced by the m3u are copied and the **m3u content is rewritten**
+- Rewrite rule: each line becomes a path relative to the m3u's own directory, separators normalized to `/`; missing entry lines are kept as-is
+- `m3u.target`: optional, designates a unified target directory template for referenced files (default: the target directory where the m3u itself lands)
+- When an m3u entry is a `.cue`, companion files are collected per the cue rules (see 6.7); when it is an `.m3u`, it is expanded further
+
+**Important semantics**:
+- m3u content is based on the **snapshot stored at import time** (`multiFileContent` or the path recorded in the database); manually edited m3u files after import are **not** reflected at export
+- When `roms.enabled=false`, the entire ROM copy phase is skipped and m3u settings do not apply
+- The `filename` template variable is the stem of the path's first line in the multi-disc scenario
+
+### 6.7 output.roms.cue CUE/BIN Companion-File Collection
+
+`roms.cue` controls automatic collection of CUE disc-image companion files (`.bin`/`.wav` etc.); it is the default v3 export behavior:
+
+```json
+"cue": { "enabled": true, "onMissing": "warn" }
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `enabled` | `true` | **Templates without a cue section are treated as enabled=true**, keeping behavior backward compatible; when false, FILE references inside cue files are not parsed |
+| `onMissing` | `warn` | Handling of missing referenced files: `warn` (task log + completion summary list) / `skip` (silent, debug log only) / `fail` (log to task log, then abort **that game's** copying without interrupting the whole batch); unknown values fall back to warn |
+
+**Trigger scenarios** (when cue.enabled=true):
+1. A single-file game whose exported target ends with `.cue` → parse FILE references inside the cue and collect companion files
+2. When a multiFile game's discs are copied and a `multiFileContent` entry is a `.cue` → collect its FILE references
+3. During m3u parse-and-rewrite, when an m3u entry is a `.cue` → collect its FILE references
+
+**Recursive expansion**:
+- `FILE` lines inside a cue are parsed one by one: both quoted (spaces allowed inside quotes) and unquoted forms are supported; blank lines, `;`/`#` comments and BOM are skipped
+- **Paths inside a cue resolve against the cue's own directory**; referenced files land next to the cue target preserving their relative structure (leading `../` or cross-drive paths degrade to a flat filename)
+- **All multi-track bins are collected**: each FILE line corresponds to one companion file, all collected and copied
+- cue referencing cue → expand further; entry is an `.m3u` → expand its entries in turn
+- Nested expansion is capped at **depth 16** (m3u→cue→m3u chains), with a visited-set preventing infinite recursion
+- All pending files are deduplicated by source absolute path and copied in one pass
+
+**Missing-file handling details**:
+- `warn`: missing files are logged to the task log and summarized as "CUE missing N" in the export completion result (**up to 20 entries**, truncated with … beyond that)
+- `fail`: only the current game's copying is aborted (caught by the per-game exception handler); subsequent games continue
+- Missing multiFile entries / m3u entries themselves are also handled per `onMissing` (even when cue.enabled=false)
+
+### 6.8 output.media Media Copying
+
+`output.media` defines media file copying:
+
+```json
+"media": {
+  "directory": "{outputPath}/{platform.system}/media",
+  "rules": {
+    "box-2D": {
+      "source": "box-2D",
+      "target": "boxfront/{filename}.png",
+      "dataFileTag": "image"
+    }
   }
 }
 ```
 
-**Configuration Notes**:
-- `filename`: Output data file name
-- `pathFormat`: Path format (`relative` or `absolute`)
-- `directory`: Directory structure configuration
-  - `roms`: ROM file directory
-  - `media`: Media file directory
-- `media`: Media file copy rules
-  - `source`: Source media field
-  - `target`: Target path template
-- `m3u`: M3U playlist processing configuration
+| Field | Description |
+|-------|-------------|
+| `directory` | Media root directory template (supports `{outputPath}`, `{platform.xxx}`, `{gameName}` etc.) |
+| `rules` | Output rules per media type; key = source nomcourt |
+| `rules.*.source` | Source media field (same as key, kept for readability) |
+| `rules.*.target` | Target path template (relative to media.directory); supports `{filename}`, `{gameName}` variables and expressions (e.g. `sanitize`, `concat`) |
+| `rules.*.dataFileTag` | Corresponding tag in the data file; **when set, that media path in the data file is rewritten to the post-export path** (recomputed relative to the data file directory); when unset the file is copied without rewriting |
 
-**Supported Variables**:
-- `{outputPath}`: Export path
-- `{platform.system}`: Platform system name
-- `{mediaPath}`: Media directory path
-- `{gameName}`: Game name
+Media paths in the data file = full path of media.directory + target, relativized against the data file directory, then formatted per `pathFormat` (see 6.9).
+
+### 6.9 output.dataFile Data File
+
+`output.dataFile` defines data file output:
+
+```json
+"dataFile": {
+  "directory": "{outputPath}/gamelists/{platform.system}",
+  "filename": "gamelist.xml",
+  "pathFormat": "relative",
+  "pathPrefix": "./",
+  "jsonItemsKey": "items",
+  "jsonTopLevelFields": [
+    {"key": "version", "value": "1.5", "type": "string"}
+  ]
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `directory` / `filename` | Data file directory and filename templates (e.g. `{platform.name}.lpl`) |
+| `pathFormat` | Path format, see below |
+| `pathPrefix` | Reserved field (not read by the current engine; prefix handling is done by pathFormat) |
+| `jsonItemsKey` | JSON type: key of the game entry array, default `"items"` |
+| `jsonTopLevelFields` | JSON type: top-level fields output before the entry array (order preserved); each item has `key`/`value`/optional `type` (`string`/`number`/`boolean`/`null`, auto-inferred by default, preventing `"1.5"` from being misread as a number) |
+
+**Exact pathFormat semantics** (`formatExportPath` only adds/removes prefixes, **never truly relativizes**):
+
+| Value | Behavior |
+|-------|----------|
+| `relative` | Strips a leading `./` prefix (default behavior; also applied for non-relative values) |
+| `absoluteWithDot` | Ensures the path carries a `./` prefix (except Windows drive-letter paths and `/`-rooted absolute paths) |
+| `absolute` / others | Same as relative: only strips the `./` prefix |
+
+- **Path-type fields** (expressions referencing `path`/`m3uPath`): only prefix add/remove as above, no relativization — whatever path is written is what gets output (with pathFormat prefix handling)
+- **Media paths**: first truly relativized from the data file directory → media file full path (falling back to string computation across drive letters), then prefix-processed per `pathFormat`
+
+### 6.10 output.readme Usage Readme Generation
+
+`output.readme` is optional; after export it generates a usage readme file in the export directory:
+
+```json
+"readme": {
+  "enabled": true,
+  "directory": "{outputPath}",
+  "filename": "使用说明-{platform.name}.md",
+  "content": [
+    "# {platform.name} playlist export notes",
+    "..."
+  ]
+}
+```
+
+- `content` is output line by line, supporting `{platform.xxx}`, `{outputPath}` and other placeholder substitutions
+- Reference templates: `rules/export/retroarch-v3.json`, `rules/export/retroarch-folder-v3.json`
 
 ---
 
@@ -688,6 +946,17 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
   },
   "game": {
     "gameStartMarker": "game",
+    "multiFileDetection": {
+      "enabled": true,
+      "source": "path",
+      "trigger": "endsWith",
+      "pattern": ".m3u",
+      "content": "fileContent"
+    },
+    "computedVariables": {
+      "filename": "stem(path)",
+      "filepath": "replace(path or '', './', '')"
+    },
     "gameInfo": {
       "name": ["name", "sortname"],
       "desc": ["desc", "description"],
@@ -701,21 +970,29 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
       "lang": ["lang"],
       "region": ["region"],
       "sort-by": ["sortname"],
-      "gameId": ["attr_id"]
+      "gameId": ["attr_id"],
+      "genreid": ["genreid"]
     },
     "mediaInfo": {
       "box-2D": ["boxart", "image"],
       "ss": ["screenshot"],
       "video": ["video"],
-      "wheel": ["wheel", "marquee"],
-      "mix": ["mix", "image"],
-      "marquee": ["marquee"]
+      "wheel": ["wheel"],
+      "marquee": ["marquee"],
+      "fanart": ["fanart"],
+      "sstitle": ["titlescreen"],
+      "box-2D-back": ["boxback"],
+      "box-3D": ["box3d"],
+      "bezel-16-9": ["bezel"],
+      "support-2D": ["cartridge"],
+      "steamgrid": ["steamgrid"],
+      "manuel": ["manual"]
     }
   }
 }
 ```
 
-### 7.2 Pegasus Import Template Example (with mediaDiscovery)
+### 7.2 Pegasus Import Template Example (with multiFileDetection and mediaDiscovery)
 
 ```json
 {
@@ -728,16 +1005,43 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "author": "Frontend-Killer",
     "description": "Pegasus Frontend import template (v3 unified format)"
   },
+  "parsing": {
+    "text": {
+      "delimiter": ":",
+      "commentChars": ["#"],
+      "entrySeparator": "emptyLine",
+      "keyCase": "lower",
+      "encoding": "UTF-8",
+      "multiLine": {
+        "enabled": true,
+        "indentChars": ["  ", "\t"]
+      }
+    }
+  },
   "system": {
     "gameStartMarker": "game:",
     "fields": {
-      "platform.system": ["collection"],
-      "platform.launch": ["launch", "command"]
+      "platform.name": ["collection"],
+      "platform.launch": ["launch", "command"],
+      "platform.sortBy": ["sort-by"],
+      "platform.extensions": ["extensions"],
+      "platform.ignoreFiles": ["ignore-files"]
     }
   },
   "game": {
     "gameStartMarker": "game:",
     "multiLine": true,
+    "multiFileDetection": {
+      "enabled": true,
+      "source": "files",
+      "trigger": "fieldExists",
+      "content": "fieldValue",
+      "pathFrom": "firstLine"
+    },
+    "computedVariables": {
+      "filename": "stem(path)",
+      "filepath": "replace(path or '', './', '')"
+    },
     "gameInfo": {
       "name": ["game", "title"],
       "desc": ["description", "desc", "summary"],
@@ -754,10 +1058,10 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "mediaInfo": {
       "box-2D": ["assets.box_front", "assets.boxfront"],
       "box-2D-back": ["assets.box_back", "assets.boxback"],
+      "box-2D-side": ["assets.box_spine", "assets.boxspine"],
       "ss": ["assets.screenshot"],
       "video": ["assets.video"],
       "wheel-carbon": ["assets.logo"],
-      "wheel": ["assets.wheel"],
       "marquee": ["assets.marquee"],
       "fanart": ["assets.fanart"],
       "bezel-16-9": ["assets.bezel"]
@@ -765,16 +1069,20 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "mediaDiscovery": {
       "enabled": true,
       "baseDir": "media",
-      "subDirPattern": "{filename}",
-      "extensions": ["png", "jpg", "jpeg", "gif", "webp", "mp4", "mkv"],
+      "subDirPatterns": ["{filename}", "{name}"],
+      "extensions": ["png", "jpg", "jpeg", "gif", "webp", "mp4", "mkv", "avi", "webm"],
       "rules": {
         "box-2D": [
           "{filename}/boxFront.{ext}",
           "{filename}/box_front.{ext}",
-          "boxFront/{filename}.{ext}"
+          "{filename}/box-2D.{ext}",
+          "boxFront/{filename}.{ext}",
+          "box2dfront/{filename}.{ext}",
+          "images/{filename}.{ext}"
         ],
         "video": [
           "{filename}/video.{ext}",
+          "{filename}/trailer.{ext}",
           "videos/{filename}.{ext}"
         ]
       }
@@ -794,65 +1102,164 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "format": "xml",
     "dataFile": "gamelist.xml",
     "author": "Frontend-Killer",
-    "description": "EmulationStation / ES-DE export template (v3 unified format)"
+    "description": "EmulationStation DE",
+    "notes": "输出 gamelist.xml 格式。注意：仅导出元数据和媒体文件，不导出 ROM 文件"
   },
   "system": {
+    "systemTag": "provider",
     "header": [
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-      "<gameList>"
+      "<gameList>",
+      "  <provider>",
+      "    <system>{platform.system}</system>",
+      "    <software>Frontend-Killer</software>",
+      "  </provider>"
     ],
     "footer": [
       "</gameList>"
     ],
-    "fields": {}
+    "fields": {
+      "system": "platform.system"
+    }
   },
   "game": {
     "gameStartMarker": "game",
     "gameInfo": {
-      "name": "name",
+      "path": "if(multiFile, m3uPath, path)",
+      "name": "coalesce(name, translatedName)",
       "sortname": "sort-by",
-      "description": "desc",
+      "desc": "coalesce(desc, translatedDesc)",
+      "rating": "rating",
       "releasedate": "releasedate",
       "developer": "developer",
       "publisher": "publisher",
       "genre": "genre",
       "players": "players",
-      "rating": "rating",
       "lang": "lang",
-      "region": "region"
+      "region": "region",
+      "hash": "hash",
+      "genreid": "genreid"
     },
     "mediaInfo": {
       "image": "box-2D",
       "video": "video",
-      "marquee": "wheel",
-      "thumbnail": "ss"
+      "marquee": "marquee",
+      "fanart": "fanart",
+      "screenshot": "ss",
+      "titlescreen": "sstitle",
+      "wheel": "wheel",
+      "boxback": "box-2D-back",
+      "box3d": "box-3D",
+      "bezel": "bezel-16-9",
+      "cartridge": "support-2D",
+      "steamgrid": "steamgrid",
+      "manual": "manuel"
     }
   },
   "output": {
-    "filename": "gamelist.xml",
-    "pathFormat": "relative",
-    "directory": {
-      "roms": "{outputPath}/roms/{platform.system}",
-      "media": "{outputPath}/downloaded_media/{platform.system}",
-      "gamelist": "{outputPath}/gamelists/{platform.system}"
+    "exportOptions": {
+      "gameFiles": false,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": true
+    },
+    "roms": {
+      "enabled": false,
+      "directory": "{outputPath}/roms/{platform.system}",
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": true
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "media": {
-      "boxfront": {
-        "source": "box-2D",
-        "target": "{mediaPath}/boxfront/{filename}.png"
-      },
-      "screenshot": {
-        "source": "ss",
-        "target": "{mediaPath}/screenshot/{filename}.png"
-      },
-      "video": {
-        "source": "video",
-        "target": "{mediaPath}/video/{filename}.mp4"
+      "directory": "{outputPath}/downloaded_media/{platform.system}",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "boxfront/{filename}.png",
+          "dataFileTag": "image"
+        },
+        "box-2D-back": {
+          "source": "box-2D-back",
+          "target": "boxback/{filename}.png",
+          "dataFileTag": "boxback"
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "box3d/{filename}.png",
+          "dataFileTag": "box3d"
+        },
+        "sstitle": {
+          "source": "sstitle",
+          "target": "titlescreen/{filename}.png",
+          "dataFileTag": "titlescreen"
+        },
+        "marquee": {
+          "source": "marquee",
+          "target": "marquee/{filename}.png",
+          "dataFileTag": "marquee"
+        },
+        "fanart": {
+          "source": "fanart",
+          "target": "fanart/{filename}.jpg",
+          "dataFileTag": "fanart"
+        },
+        "video": {
+          "source": "video",
+          "target": "video/{filename}.mp4",
+          "dataFileTag": "video"
+        },
+        "manuel": {
+          "source": "manuel",
+          "target": "manual/{filename}.pdf",
+          "dataFileTag": "manual"
+        },
+        "wheel": {
+          "source": "wheel",
+          "target": "wheel/{filename}.png",
+          "dataFileTag": "wheel"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "screenshot/{filename}.png",
+          "dataFileTag": "screenshot"
+        },
+        "support-2D": {
+          "source": "support-2D",
+          "target": "support-2d/{filename}.png",
+          "dataFileTag": "cartridge"
+        },
+        "bezel-16-9": {
+          "source": "bezel-16-9",
+          "target": "bezel/{filename}.png",
+          "dataFileTag": "bezel"
+        },
+        "steamgrid": {
+          "source": "steamgrid",
+          "target": "steamgrid/{filename}.png",
+          "dataFileTag": "steamgrid"
+        }
       }
+    },
+    "dataFile": {
+      "directory": "{outputPath}/gamelists/{platform.system}",
+      "filename": "gamelist.xml",
+      "pathFormat": "relative",
+      "pathPrefix": "./"
     }
   }
 }
 ```
+
+Key points (this example matches `rules/export/esde-v3.json` exactly):
+
+- **gameFiles: false + roms.enabled: false**: metadata and media only; the entire ROM copy phase (including m3u generation and cue collection) is skipped, and the roms settings have no effect
+- **path expression `if(multiFile, m3uPath, path)`**: multi-disc games point to the generated .m3u, single-file games output the original path
+- **name/desc use coalesce with translated-name fallback**: translated names (translatedName/translatedDesc) take priority
+- **media.rules.dataFileTag**: after media copying, the corresponding tag (e.g. `<image>`) in the data file is rewritten to the post-export location (relativized first, then prefix-processed per pathFormat)
+- **pathFormat: "relative"**: path-type fields (path/m3uPath) only get `./` prefix handling, no true relativization; media paths are relativized against the data file directory first, then prefix-processed
+- **pathPrefix: "./"**: reserved field, unused in the current version
 
 ### 7.4 Pegasus Export Template Example
 
@@ -865,17 +1272,26 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "delimiter": ": ",
     "dataFile": "metadata.pegasus.txt",
     "author": "Frontend-Killer",
-    "description": "Pegasus Frontend export template (v3 unified format)"
+    "description": "Pegasus Frontend",
+    "notes": "输出 metadata.pegasus.txt 格式，支持多盘游戏的 files 多行输出"
   },
   "system": {
     "header": [
-      "collection: {platform.system}",
-      "sort-by: 064",
-      "{platform.launch}",
+      "collection: {platform.name}",
+      "sort-by: {platform.sortBy}",
+      "extensions: {platform.extensions}",
+      "ignore-files: {platform.ignoreFiles}",
+      "launch: {platform.launch}",
       ""
     ],
+    "footer": [
+      "# End of file"
+    ],
     "fields": {
-      "collection": "platform.system",
+      "collection": "platform.name",
+      "sort-by": "platform.sortBy",
+      "extensions": "platform.extensions",
+      "ignore-files": "platform.ignoreFiles",
       "launch": "platform.launch"
     }
   },
@@ -883,60 +1299,152 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
     "gameStartMarker": "game:",
     "entrySeparator": "\n\n",
     "gameInfo": {
-      "game": "name",
-      "file": "path",
+      "game": "coalesce(name, translatedName)",
+      "file": "if(multiFile, '', path)",
+      "files": "multiFileContent",
       "sort-by": "sort-by",
       "developer": "developer",
       "publisher": "publisher",
       "genre": "genre",
       "players": "players",
-      "description": "desc",
+      "description": "coalesce(desc, translatedDesc)",
       "rating": "rating",
-      "release": "releasedate"
+      "release": "releasedate",
+      "region": "region"
     },
     "mediaInfo": {
-      "assets.box_front": "box-2D",
-      "assets.box_back": "box-2D-back",
-      "assets.screenshot": "ss",
-      "assets.video": "video",
+      "assets.boxFront": "box-2D",
+      "assets.boxBack": "box-2D-back",
+      "assets.boxSpine": "box-2D-side",
+      "assets.box3d": "box-3D",
+      "assets.cartridge": "support-2D",
       "assets.logo": "wheel-carbon",
-      "assets.wheel": "wheel",
+      "assets.poster": "flyer",
       "assets.marquee": "marquee",
+      "assets.bezel": "bezel-16-9",
       "assets.fanart": "fanart",
-      "assets.bezel": "bezel-16-9"
+      "assets.steam": "steamgrid",
+      "assets.background": "background",
+      "assets.screenshot": "ss",
+      "assets.titlescreen": "sstitle",
+      "assets.video": "video"
     }
   },
   "output": {
-    "filename": "metadata.pegasus.txt",
-    "pathFormat": "relative",
-    "directory": {
-      "roms": "{outputPath}/{platform.system}",
-      "media": "{outputPath}/{platform.system}/media"
+    "exportOptions": {
+      "gameFiles": true,
+      "mediaFiles": true,
+      "gameListFile": true,
+      "showWarning": false
+    },
+    "roms": {
+      "enabled": true,
+      "directory": "if(genre, concat('{outputPath}/', platform.system, '/', mapFirst(genre)), '{outputPath}/{platform.system}')",
+      "filename": "{filename}{ext}",
+      "m3u": {
+        "enabled": false,
+        "target": "{outputPath}/{platform.system}"
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "media": {
-      "video": {
-        "source": "video",
-        "target": "{mediaPath}/{gameName}/video.mp4"
-      },
-      "box_front": {
-        "source": "box-2D",
-        "target": "{mediaPath}/{gameName}/boxFront.png"
-      },
-      "screenshot": {
-        "source": "ss",
-        "target": "{mediaPath}/{gameName}/screenshot.png"
-      },
-      "logo": {
-        "source": "wheel-carbon",
-        "target": "{mediaPath}/{gameName}/logo.png"
+      "directory": "{outputPath}/{platform.system}/media",
+      "rules": {
+        "video": {
+          "source": "video",
+          "target": "{gameName}/video.mp4",
+          "dataFileTag": "assets.video"
+        },
+        "box-2D": {
+          "source": "box-2D",
+          "target": "{gameName}/boxFront.png",
+          "dataFileTag": "assets.boxFront"
+        },
+        "box-2D-back": {
+          "source": "box-2D-back",
+          "target": "{gameName}/boxBack.png",
+          "dataFileTag": "assets.boxBack"
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "{gameName}/box3d.png",
+          "dataFileTag": "assets.box3d"
+        },
+        "ss": {
+          "source": "ss",
+          "target": "{gameName}/screenshot.png",
+          "dataFileTag": "assets.screenshot"
+        },
+        "marquee": {
+          "source": "marquee",
+          "target": "{gameName}/marquee.png",
+          "dataFileTag": "assets.marquee"
+        },
+        "fanart": {
+          "source": "fanart",
+          "target": "{gameName}/fanart.png",
+          "dataFileTag": "assets.fanart"
+        },
+        "bezel-16-9": {
+          "source": "bezel-16-9",
+          "target": "{gameName}/bezel.png",
+          "dataFileTag": "assets.bezel"
+        },
+        "background": {
+          "source": "background",
+          "target": "{gameName}/background.png",
+          "dataFileTag": "assets.background"
+        },
+        "box-2D-side": {
+          "source": "box-2D-side",
+          "target": "{gameName}/boxSpine.png",
+          "dataFileTag": "assets.boxSpine"
+        },
+        "sstitle": {
+          "source": "sstitle",
+          "target": "{gameName}/titlescreen.png",
+          "dataFileTag": "assets.titlescreen"
+        },
+        "wheel-carbon": {
+          "source": "wheel-carbon",
+          "target": "{gameName}/logo.png",
+          "dataFileTag": "assets.logo"
+        },
+        "support-2D": {
+          "source": "support-2D",
+          "target": "{gameName}/cartridge.png",
+          "dataFileTag": "assets.cartridge"
+        },
+        "flyer": {
+          "source": "flyer",
+          "target": "{gameName}/poster.png",
+          "dataFileTag": "assets.poster"
+        },
+        "steamgrid": {
+          "source": "steamgrid",
+          "target": "{gameName}/steam.png",
+          "dataFileTag": "assets.steam"
+        }
       }
     },
-    "m3u": {
-      "enabled": false
+    "dataFile": {
+      "directory": "{outputPath}/{platform.system}",
+      "filename": "metadata.pegasus.txt",
+      "pathFormat": "relative",
+      "pathPrefix": ""
     }
   }
 }
 ```
+
+Key points (this example matches `rules/export/pegasus-v3.json` exactly):
+
+- **file expression `if(multiFile, '', path)`**: file is left empty for multi-disc games (disc paths are expressed by the files list), avoiding a wrong first-file path
+- **files expression `multiFileContent`**: outputs a multi-line block (first line `files:`, following lines indented two spaces), parsed by the text multiLine indent rules
+- **roms.m3u.enabled: false**: Pegasus uses the files multi-line list, no .m3u regeneration needed; roms.cue stays enabled (.cue references inside multiFileContent entries are still collected)
+- **roms.directory groups by genre**: `mapFirst(genre)` takes the first genre as the directory name, falling back to `{outputPath}/{platform.system}` when absent
+- **media.target uses {gameName}**: one directory per game (e.g. `media/Super Mario/boxFront.png`), with dataFileTag mapping to `assets.*` nested tags
+- **pathFormat: "relative" + pathPrefix: ""**: path-type fields only get their `./` prefix stripped
 
 ---
 
@@ -960,6 +1468,13 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
 - Use `default` function to provide defaults: `default(desc, "No description")`
 - Use `coalesce` for multi-level fallbacks: `coalesce(box-2D, screenshot, image)`
 - Use parentheses to clarify priority: `(name or filename) + ".jpg"`
+
+### 8.4 ROM and Playlist Export Recommendations
+
+- Multi-disc games depend on multiFileDetection recognition at import: if the template does not configure it or it is not triggered, the game is not marked multiFile and neither m3u nor cue intervenes at export
+- For CUE/BIN sets keep `onMissing: "warn"`: missing files are summarized without interrupting, making it easy to re-add files later; use `fail` only when strict validation is required
+- Whether to generate .m3u depends on the target frontend: ES-DE/RetroBat/EmuELEC need it and enable it; Pegasus uses the files multi-line list and disables it by default
+- m3u content comes from the snapshot stored at import; manually editing the source m3u after import is not reflected at export
 
 ---
 
@@ -993,6 +1508,23 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
 3. Check if `extensions` includes the target file extensions
 4. Check logs to understand the search process
 
+### 9.4 CUE/BIN Missing-File Notices
+
+**Problem**: logs show "missing file" during multi-disc export, or the completion result lists missing files
+
+**Notes**:
+- `roms.cue.onMissing` controls missing-file behavior: `warn` (default; logged and summarized in the completion result) / `skip` (silent) / `fail` (aborts only that game's copying, other games unaffected)
+- The completion result lists at most 20 missing entries, truncated with `…` beyond that
+- `cue.enabled: false` only skips parsing FILE references inside cue files; missing m3u/multiFile entries are still handled per onMissing
+
+### 9.5 No .m3u Generated After Multi-disc Export
+
+**Solutions**:
+1. Confirm the game was recognized as multi-disc at import (multiFileDetection triggered, multiFile=true)
+2. Confirm `output.roms.enabled: true` (when false the entire ROM copy phase is skipped, and m3u/cue settings do not apply)
+3. Confirm `output.roms.m3u.enabled: true`
+4. The Pegasus template disables m3u by default (the files multi-line list suffices); this is expected behavior
+
 ---
 
 ## 10. Appendix
@@ -1004,19 +1536,19 @@ For game `supermario.nes`, the system searches for `box-2D` media in this order:
 | Field Naming | Uses javaField (e.g., `box2d`) | Supports nomcourt / dbColumn / javaField |
 | Expressions | Simple variable substitution | Supports functions, operators, conditions |
 | Media Discovery | Manual path configuration | Automatic mediaDiscovery rules |
-| Computed Variables | None | Auto-injects `filename`, `filepath` |
-| Multi-disc Games | Not supported | Auto-expansion |
+| Computed Variables | None | Declared via template `computedVariables` (legacy templates fall back to built-in `filename`/`filepath`) |
+| Multi-disc Games | Not supported | multiFileDetection keeps a single record (content stored in `multiFileContent`), no splitting |
 
 ### 10.2 Total Supported ScreenScraper Media Types
 
-- **Total**: 50 official media types
-- **Images**: 40 types
+- **Total**: 54 official media types
+- **Images**: 43 types
 - **Videos**: 8 types
 - **Documents**: 1 type (manuel)
 - **Themes**: 2 types (themehb, themehs)
 
 ### 10.3 Version Information
 
-- **Document Version**: 3.0
-- **Last Updated**: 2026-09-13
+- **Document Version**: 3.1
+- **Last Updated**: 2026-10-27
 - **Applicable System**: Frontend Killer v1.0.5+

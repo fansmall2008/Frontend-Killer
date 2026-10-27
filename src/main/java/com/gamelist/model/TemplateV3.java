@@ -434,6 +434,7 @@ public class TemplateV3 {
         private String directory;              // 目录模板
         private String filename;               // 文件名模板（支持表达式引擎）
         private M3uConfig m3u;                 // M3U 处理配置
+        private CueConfig cue;                 // CUE/BIN 关联文件收集配置
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -446,6 +447,9 @@ public class TemplateV3 {
 
         public M3uConfig getM3u() { return m3u; }
         public void setM3u(M3uConfig m3u) { this.m3u = m3u; }
+
+        public CueConfig getCue() { return cue; }
+        public void setCue(CueConfig cue) { this.cue = cue; }
     }
 
     /**
@@ -463,6 +467,26 @@ public class TemplateV3 {
 
         public String getTarget() { return target; }
         public void setTarget(String target) { this.target = target; }
+    }
+
+    /**
+     * CUE/BIN 关联文件收集配置。
+     * <p>
+     * 当 ROM 文件为 .cue 格式（或 m3u/多文件条目中出现 .cue）时，
+     * 控制是否解析 cue 内 FILE 引用并收集关联文件（如 .bin/.wav）。
+     * <p>
+     * 缺省（旧模板无 cue 段）时 enabled=true，行为向后兼容。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CueConfig {
+        private boolean enabled = true;        // 是否解析 cue FILE 引用收集关联文件
+        private String onMissing = "warn";     // 引用文件缺失处理：warn（任务日志+汇总）/ skip（静默）/ fail（中断该游戏复制）
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public String getOnMissing() { return onMissing; }
+        public void setOnMissing(String onMissing) { this.onMissing = onMissing; }
     }
 
     /**

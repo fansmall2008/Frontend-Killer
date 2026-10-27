@@ -78,7 +78,8 @@
       "m3u": {
         "enabled": false,
         "target": "{outputPath}/{platform.system}"
-      }
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "media": {
       "directory": "{outputPath}/{platform.system}/media",

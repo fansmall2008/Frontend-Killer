@@ -40,7 +40,11 @@
     "roms": {
       "enabled": true,
       "directory": "if(genre, concat('{outputPath}/roms/', platform.name, '/', mapFirst(genre)), '{outputPath}/roms/{platform.name}')",
-      "filename": "concat(sanitize(coalesce(name, translatedName), '&*/:\\<>?|'), ext(before(path, '#')))"
+      "filename": "concat(sanitize(coalesce(name, translatedName), '&*/:\\<>?|'), ext(before(path, '#')))",
+      "m3u": {
+        "enabled": false
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "readme": {
       "enabled": true,

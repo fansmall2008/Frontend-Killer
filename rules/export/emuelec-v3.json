@@ -59,7 +59,8 @@
       "filename": "{filename}{ext}",
       "m3u": {
         "enabled": true
-      }
+      },
+      "cue": { "enabled": true, "onMissing": "warn" }
     },
     "media": {
       "directory": "{outputPath}/downloaded_images/{platform.system}",

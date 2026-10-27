@@ -7,8 +7,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +119,7 @@ public class ExportOrchestrator {
             createDirectories(output, platform, vars);
 
             // 2. 复制 ROM 文件
-            List<String> missingParents = new ArrayList<>();
+            RomCopyResult copyResult = new RomCopyResult();
             if (request.isCopyRoms() && output.getRoms() != null && output.getRoms().isEnabled()) {
                 if (request.isWholeDirectoryCopy()) {
                     // 整目录拷贝：不逐游戏依赖 scraped 关联性，直接把平台源 ROM 目录全量搬到 romsDir
@@ -123,7 +128,7 @@ public class ExportOrchestrator {
                     copyWholeDirectory(platform, romsDir, task.getId());
                 } else {
                     taskService.updateTaskProgress(task.getId(), 10, "开始复制游戏文件", 0, 100);
-                    missingParents = copyGameFiles(games, output.getRoms(), platform, vars,
+                    copyResult = copyGameFiles(games, output.getRoms(), platform, vars,
                             task.getId(), resolvedVariants);
                 }
                 progress = 40;
@@ -157,7 +162,7 @@ public class ExportOrchestrator {
                 generateReadme(output.getReadme(), platform, vars);
             }
 
-            taskService.completeTask(task.getId(), "v3 导出完成", buildCompletionResult(request.getOutputPath(), missingParents));
+            taskService.completeTask(task.getId(), "v3 导出完成", buildCompletionResult(request.getOutputPath(), copyResult));
             logger.info("v3 导出完成: {}", platform.getName());
 
         } catch (Exception e) {
@@ -238,8 +243,10 @@ public class ExportOrchestrator {
      * <p>
      * 文件名由 output.roms.filename 模板驱动（支持表达式引擎）。
      * 默认 "{filename}{ext}" 表示保持原名。
+     *
+     * @return 缺件报告（父 rom 缺失 + CUE 关联文件缺件，按 roms.cue.onMissing 规则收集）
      */
-    private List<String> copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
+    private RomCopyResult copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
                                 Platform platform, Map<String, String> vars,
                                 Long taskId, Map<Long, ResolvedVariant> resolvedVariants) {
         // roms.directory 可能含 per-game 表达式（如 if(genre,...)），在 createDirectories 中已创建基础路径
@@ -253,8 +260,16 @@ public class ExportOrchestrator {
         logger.info("复制 ROM 文件: {} 个游戏 → {}, 文件名模板: {}", games.size(), baseRomsDir, filenameTemplate);
 
         boolean enableM3U = romsConfig.getM3u() != null && romsConfig.getM3u().isEnabled();
-        // 窄口径缺件报告：仅收集"父 rom 在源目录找不到"的游戏（线程安全）
-        final List<String> missingParents = java.util.Collections.synchronizedList(new ArrayList<>());
+        // cue 配置：缺省（旧模板无 cue 段）视为 enabled=true，行为向后兼容
+        TemplateV3.CueConfig cueConfig = romsConfig.getCue();
+        boolean cueEnabled = cueConfig == null || cueConfig.isEnabled();
+        String cueOnMissing = (cueConfig != null && cueConfig.getOnMissing() != null
+                && !cueConfig.getOnMissing().trim().isEmpty())
+                ? cueConfig.getOnMissing().trim().toLowerCase() : "warn";
+        CueContext cueCtx = new CueContext(taskId, cueEnabled, cueOnMissing);
+        // 窄口径缺件报告：父 rom 缺失 + CUE 关联文件缺件（线程安全）
+        RomCopyResult result = new RomCopyResult();
+        final List<String> missingParents = result.missingParents;
         int variantUsed = 0;
         int variantFallback = 0;
 
@@ -269,10 +284,12 @@ public class ExportOrchestrator {
             try {
                 // 为当前游戏重新求值 roms.directory（支持 genre 等 per-game 字段）
                 String romsDirForGame = resolveRomDirForGame(rawDirTemplate, game, platform, vars);
-                copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars, enableM3U, romsConfig, taskId, resolved);
+                copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars,
+                        enableM3U, romsConfig, taskId, resolved, cueCtx);
                 // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
                 copyParentRomIfMissing(game, romsDirForGame, taskId, missingParents);
             } catch (Exception e) {
+                // cue.onMissing=fail 时也会在此捕获：仅中断该游戏的复制，不中断整批导出
                 logger.error("复制 ROM 文件失败: {}", game.getName(), e);
             }
         }
@@ -283,7 +300,7 @@ public class ExportOrchestrator {
                         "版本回退: " + variantFallback + " 个游戏使用主文件（版本未生成/已过期）");
             }
         }
-        return missingParents;
+        return result;
     }
 
     /**
@@ -383,19 +400,28 @@ public class ExportOrchestrator {
     }
 
     /**
-     * 组装导出结果字符串；若有缺件父 rom，则附窄口径清单（最多列 20 条）。
+     * 组装导出结果字符串；若有缺件父 rom / CUE 关联文件缺件，则附窄口径清单（各最多列 20 条）。
      */
-    private String buildCompletionResult(String outputPath, List<String> missingParents) {
+    private String buildCompletionResult(String outputPath, RomCopyResult copyResult) {
         StringBuilder sb = new StringBuilder("导出路径: " + outputPath);
-        if (missingParents != null && !missingParents.isEmpty()) {
-            sb.append("；缺失父rom ").append(missingParents.size()).append(" 个: ");
-            int show = Math.min(20, missingParents.size());
-            sb.append(String.join(" | ", missingParents.subList(0, show)));
-            if (missingParents.size() > show) {
-                sb.append(" …");
-            }
+        if (copyResult != null) {
+            appendMissingSummary(sb, "缺失父rom", copyResult.missingParents);
+            appendMissingSummary(sb, "CUE缺件", copyResult.missingCueFiles);
         }
         return sb.toString();
+    }
+
+    /**
+     * 追加一类缺件清单摘要（最多列 20 条，超出以 … 截断）。
+     */
+    private void appendMissingSummary(StringBuilder sb, String label, List<String> items) {
+        if (items == null || items.isEmpty()) return;
+        sb.append("；").append(label).append(" ").append(items.size()).append(" 个: ");
+        int show = Math.min(20, items.size());
+        sb.append(String.join(" | ", items.subList(0, show)));
+        if (items.size() > show) {
+            sb.append(" …");
+        }
     }
 
     /**
@@ -427,7 +453,7 @@ public class ExportOrchestrator {
     private void copySingleGameFile(Game game, String romsDir, String filenameTemplate,
                                      Platform platform, Map<String, String> vars,
                                      boolean enableM3U, TemplateV3.RomOutput romsConfig,
-                                     Long taskId, ResolvedVariant resolved) throws Exception {
+                                     Long taskId, ResolvedVariant resolved, CueContext cueCtx) throws Exception {
         // 确定源路径：有可用版本则用版本，否则回退主文件
         Path sourcePath = resolved != null && resolved.getSourcePath() != null
                 ? resolved.getSourcePath() : resolveSourcePath(game);
@@ -456,7 +482,7 @@ public class ExportOrchestrator {
         // 多文件游戏：拷贝多文件文本中的所有盘文件，并按模板 m3u 配置生成 m3u 文件
         if (Boolean.TRUE.equals(game.getMultiFile())
                 && game.getMultiFileContent() != null && !game.getMultiFileContent().isEmpty()) {
-            copyMultiFileGameFiles(game, romsDir, gameVars, enableM3U, taskId);
+            copyMultiFileGameFiles(game, romsDir, gameVars, enableM3U, taskId, cueCtx);
             return;
         }
 
@@ -485,7 +511,12 @@ public class ExportOrchestrator {
 
         // 处理 M3U 文件（path 指向 m3u 文件的旧数据：复制 m3u 引用的所有文件）
         if (enableM3U && targetFileName.toLowerCase().endsWith(".m3u")) {
-            processM3UFile(sourcePath, targetPath, romsDir, romsConfig, game, platform, gameVars);
+            processM3UFile(sourcePath, targetPath, romsDir, romsConfig, game, platform, gameVars, cueCtx, taskId);
+        }
+
+        // 处理 CUE 文件（裸 cue 游戏：解析 FILE 引用收集 bin/wav 等关联文件，缺失按 cue.onMissing 处理）
+        if (cueCtx.enabled && targetFileName.toLowerCase().endsWith(".cue")) {
+            copyCueReferencedFiles(sourcePath, targetPath, cueCtx, game, taskId);
         }
     }
 
@@ -527,10 +558,15 @@ public class ExportOrchestrator {
 
     /**
      * 拷贝多文件游戏（多盘/合盘）：将多文件文本中的每个文件复制到 romsDir（保持相对目录结构）。
+     * <p>
+     * 条目递归展开：条目为 .cue → 同时收集其 FILE 引用的关联文件（如 .bin）；
+     * 条目为 .m3u → 继续展开其中条目（visited 集合 + 深度限制防无限递归）。
+     * 所有待复制文件去重后统一复制；引用文件缺失按 cue.onMissing 规则处理。
+     * <p>
      * 模板 roms.m3u.enabled=true 时额外生成 {filename}.m3u 文件（内容为各盘相对路径）。
      */
     private void copyMultiFileGameFiles(Game game, String romsDir, Map<String, String> gameVars,
-                                        boolean enableM3U, Long taskId) throws Exception {
+                                        boolean enableM3U, Long taskId, CueContext cueCtx) throws Exception {
         // 平台 ROM 根目录：多文件文本中的路径相对此目录解析
         Path romRoot = null;
         String platformPath = game.getPlatformPath();
@@ -544,6 +580,10 @@ public class ExportOrchestrator {
         }
 
         List<String> lines = new ArrayList<>();
+        // 统一收集待复制文件（LinkedHashMap 按源绝对路径保序去重）：源绝对路径 → 目标绝对路径
+        Map<Path, Path> pending = new LinkedHashMap<>();
+        Set<Path> visited = new HashSet<>();
+
         for (String line : game.getMultiFileContent().split("\\r?\\n")) {
             String t = line.trim();
             if (t.isEmpty() || t.startsWith("#")) continue;
@@ -551,23 +591,24 @@ public class ExportOrchestrator {
             t = t.replace('\\', '/');
             lines.add(t);
 
-            Path src;
-            Path p = Paths.get(t);
-            if (p.isAbsolute()) {
-                src = p;
-            } else if (romRoot != null) {
-                src = romRoot.resolve(t);
-            } else {
-                src = p; // 相对工作目录，尽力而为
-            }
+            Path src = resolveEntrySource(Paths.get(t), romRoot);
             if (!Files.exists(src)) {
-                logger.warn("多文件条目文件不存在: {}", src);
+                // 条目缺失：按 cue.onMissing 规则处理（warn → 任务日志+汇总；fail → 中断该游戏复制）
+                cueCtx.handleMissing(game, "多盘条目 " + t);
                 continue;
             }
-            Path target = Paths.get(romsDir, t);
-            copyFile(src, target);
+            // 防目录逃逸：绝对路径/前导 ../ 段降级，目标保持在 romsDir 内
+            Path target = Paths.get(romsDir, safeRelativePath(t));
+            pending.putIfAbsent(src.normalize().toAbsolutePath(), target);
+            // 条目为 cue/m3u 时递归展开关联文件
+            collectEntryChain(src, target, pending, cueCtx, game, taskId, visited, 0);
+        }
+
+        // 统一复制（去重后）
+        for (Map.Entry<Path, Path> e : pending.entrySet()) {
+            copyFile(e.getKey(), e.getValue());
             if (taskId != null) {
-                taskService.updateTaskLog(taskId, "复制多盘文件: " + t);
+                taskService.updateTaskLog(taskId, "复制多盘文件: " + e.getValue().getFileName());
             }
         }
 
@@ -905,20 +946,260 @@ public class ExportOrchestrator {
         return result;
     }
 
+    // ==================== CUE/M3U 关联文件收集 ====================
+
+    /** CUE 文件 FILE 行（带引号形式，引号内可含空格路径） */
+    private static final Pattern CUE_FILE_QUOTED =
+            Pattern.compile("^FILE\\s+\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);
+    /** CUE 文件 FILE 行（不带引号形式，文件名不含空格） */
+    private static final Pattern CUE_FILE_UNQUOTED =
+            Pattern.compile("^FILE\\s+(\\S+)", Pattern.CASE_INSENSITIVE);
+
+    /** 条目嵌套展开的最大深度（m3u→cue→m3u 链），防无限递归 */
+    private static final int MAX_NESTING_DEPTH = 16;
+
+    /**
+     * CUE 关联文件收集上下文：封装 roms.cue 配置（enabled/onMissing）与缺件清单。
+     * <p>
+     * onMissing 规则：
+     * <ul>
+     *   <li>warn（默认）— 记录任务日志并收集到完成结果汇总</li>
+     *   <li>skip — 静默（仅 debug 日志）</li>
+     *   <li>fail — 写任务日志后抛异常，中断该游戏的复制（由 copyGameFiles 的单游戏 try-catch 捕获）</li>
+     * </ul>
+     */
+    private class CueContext {
+        final boolean enabled;
+        final String onMissing;
+        final Long taskId;
+        final List<String> missing = Collections.synchronizedList(new ArrayList<>());
+
+        CueContext(Long taskId, boolean enabled, String onMissing) {
+            this.taskId = taskId;
+            this.enabled = enabled;
+            this.onMissing = onMissing;
+        }
+
+        /**
+         * 按 onMissing 规则处理一条缺件记录。
+         *
+         * @param game   所属游戏（用于汇总清单定位）
+         * @param detail 缺件描述（如 "Game.cue 引用的 Track1.bin"）
+         */
+        void handleMissing(Game game, String detail) {
+            String gameName = (game != null && game.getName() != null) ? game.getName() : "?";
+            String item = gameName + " → " + detail;
+            if ("skip".equals(onMissing)) {
+                logger.debug("CUE 关联文件缺失(skip): {}", item);
+                return;
+            }
+            if ("fail".equals(onMissing)) {
+                if (taskId != null) {
+                    taskService.updateTaskLog(taskId, "CUE缺件(中断): " + item);
+                }
+                logger.warn("CUE 关联文件缺失(fail): {}", item);
+                throw new IllegalStateException("CUE 关联文件缺失: " + item);
+            }
+            // warn（含未知取值回退）
+            missing.add(item);
+            if (taskId != null) {
+                taskService.updateTaskLog(taskId, "CUE缺件: " + item);
+            }
+            logger.warn("CUE 关联文件缺失: {}", item);
+        }
+    }
+
+    /**
+     * ROM 复制阶段的缺件报告：父 rom 缺失清单 + CUE 关联文件缺件清单。
+     */
+    private static class RomCopyResult {
+        final List<String> missingParents = Collections.synchronizedList(new ArrayList<>());
+        final List<String> missingCueFiles = Collections.synchronizedList(new ArrayList<>());
+    }
+
+    /**
+     * 解析 CUE 文件中的 FILE 引用行，返回以 cue 所在目录为基准解析的引用文件路径列表。
+     * <p>
+     * 支持带引号（引号内空格路径）与不带引号两种形式；跳过空行、;/# 注释与 BOM；
+     * 不校验文件是否存在（由调用方按 cue.onMissing 规则处理）。
+     */
+    private List<Path> parseCueFileReferences(Path cueFile) throws Exception {
+        List<Path> refs = new ArrayList<>();
+        Path baseDir = cueFile.getParent() != null ? cueFile.getParent() : Paths.get(".");
+        for (String rawLine : Files.readAllLines(cueFile)) {
+            if (rawLine.startsWith("\uFEFF")) {
+                rawLine = rawLine.substring(1); // 去 UTF-8 BOM
+            }
+            String line = rawLine.trim();
+            if (line.isEmpty() || line.startsWith(";") || line.startsWith("#")) continue;
+            String name = null;
+            Matcher quoted = CUE_FILE_QUOTED.matcher(line);
+            if (quoted.find()) {
+                name = quoted.group(1);
+            } else {
+                Matcher unquoted = CUE_FILE_UNQUOTED.matcher(line);
+                if (unquoted.find()) {
+                    name = unquoted.group(1);
+                }
+            }
+            if (name == null || name.trim().isEmpty()) continue;
+            refs.add(baseDir.resolve(name.trim().replace('\\', '/')).normalize());
+        }
+        return refs;
+    }
+
+    /**
+     * 处理 CUE 文件（单文件分支）：解析 cue 内 FILE 引用，收集关联文件复制到 cue 目标旁。
+     * 引用文件缺失按 cue.onMissing 规则处理（warn → 任务日志 + 完成汇总；skip → 静默；fail → 中断该游戏复制）。
+     */
+    private void copyCueReferencedFiles(Path sourceCue, Path targetCue, CueContext cueCtx,
+                                        Game game, Long taskId) throws Exception {
+        Map<Path, Path> pending = new LinkedHashMap<>();
+        collectEntryChain(sourceCue, targetCue, pending, cueCtx, game, taskId, new HashSet<>(), 0);
+        for (Map.Entry<Path, Path> e : pending.entrySet()) {
+            copyFile(e.getKey(), e.getValue());
+            if (taskId != null) {
+                taskService.updateTaskLog(taskId, "复制 CUE 关联文件: " + e.getValue().getFileName()
+                        + " → " + targetCue.getParent().getFileName());
+            }
+        }
+    }
+
+    /**
+     * 递归收集一个 ROM 条目的关联文件到 pending（源绝对路径 → 目标绝对路径，保序去重）。
+     * <p>
+     * 条目为 .cue（cueCtx.enabled 时）→ 解析 FILE 引用，关联文件按源中相对 cue 的位置落到 cue 目标旁；
+     * 条目为 .m3u → 继续展开其中条目（visited 集合 + MAX_NESTING_DEPTH 深度限制防无限递归）。
+     * 引用文件缺失按 cue.onMissing 规则处理；调用方负责将条目自身放入 pending。
+     */
+    private void collectEntryChain(Path src, Path target, Map<Path, Path> pending,
+                                   CueContext cueCtx, Game game, Long taskId,
+                                   Set<Path> visited, int depth) throws Exception {
+        if (depth > MAX_NESTING_DEPTH) {
+            logger.warn("条目嵌套展开深度超过 {}，跳过: {}", MAX_NESTING_DEPTH, src);
+            return;
+        }
+        String name = src.getFileName() != null ? src.getFileName().toString() : src.toString();
+        String lower = name.toLowerCase();
+        Path baseDir = src.getParent() != null ? src.getParent() : Paths.get(".");
+        Path targetBaseDir = target.getParent() != null ? target.getParent() : Paths.get(".");
+
+        if (lower.endsWith(".cue")) {
+            if (!cueCtx.enabled) return;
+            for (Path ref : parseCueFileReferences(src)) {
+                if (!Files.exists(ref)) {
+                    cueCtx.handleMissing(game, name + " 引用的 " + ref.getFileName());
+                    continue;
+                }
+                String refRel = relativizeSafe(baseDir, ref);
+                Path refTarget = targetBaseDir.resolve(refRel);
+                boolean first = pending.putIfAbsent(ref.normalize().toAbsolutePath(), refTarget) == null;
+                // 链式 cue（cue 引用 cue）继续展开；重复出现过的不再展开（防环）
+                if (first && ref.getFileName().toString().toLowerCase().endsWith(".cue")) {
+                    collectEntryChain(ref, refTarget, pending, cueCtx, game, taskId, visited, depth + 1);
+                }
+            }
+        } else if (lower.endsWith(".m3u")) {
+            // visited 防环：同一 m3u 只展开一次
+            if (!visited.add(src.normalize().toAbsolutePath())) return;
+            for (String raw : Files.readAllLines(src)) {
+                String t = raw.trim();
+                if (t.isEmpty() || t.startsWith("#")) continue;
+                if (t.startsWith("./") || t.startsWith(".\\")) t = t.substring(2);
+                t = t.replace('\\', '/');
+                Path child = baseDir.resolve(t).normalize();
+                if (!Files.exists(child)) {
+                    cueCtx.handleMissing(game, name + " 引用的 " + t);
+                    continue;
+                }
+                String childRel = relativizeSafe(baseDir, child);
+                Path childTarget = targetBaseDir.resolve(childRel);
+                boolean first = pending.putIfAbsent(child.normalize().toAbsolutePath(), childTarget) == null;
+                if (first) {
+                    collectEntryChain(child, childTarget, pending, cueCtx, game, taskId, visited, depth + 1);
+                }
+            }
+        }
+    }
+
+    /**
+     * 解析多文件条目的源路径：绝对路径直接用；相对路径以 romRoot（平台 ROM 根目录）为基准。
+     */
+    private Path resolveEntrySource(Path entry, Path romRoot) {
+        if (entry.isAbsolute()) return entry;
+        if (romRoot != null) return romRoot.resolve(entry);
+        return entry; // 相对工作目录，尽力而为
+    }
+
+    /**
+     * 计算条目目标相对路径（防目录逃逸）：绝对路径降级为文件名，前导 ../ 段丢弃，
+     * 确保目标路径不会逃出 romsDir。
+     */
+    private String safeRelativePath(String rel) {
+        String result = rel.replace('\\', '/');
+        try {
+            Path p = Paths.get(result);
+            if (p.isAbsolute()) {
+                return p.getFileName() != null ? p.getFileName().toString() : result;
+            }
+        } catch (Exception e) {
+            // 非法路径字符等，降级用原始串继续处理
+        }
+        while (result.startsWith("../")) {
+            result = result.substring(3);
+        }
+        return result;
+    }
+
+    /**
+     * 计算 file 相对 baseDir 的相对路径并归一分隔符为 /；
+     * 若逃逸出 baseDir（前导 ../）或无法 relativize（跨盘符），降级返回文件名。
+     */
+    private String relativizeSafe(Path baseDir, Path file) {
+        try {
+            String rel = baseDir.relativize(file.normalize()).toString().replace('\\', '/');
+            if (rel.startsWith("../") || rel.equals("..")) {
+                return file.getFileName().toString();
+            }
+            return rel;
+        } catch (IllegalArgumentException e) {
+            // 跨盘符等无法 relativize 的情况，降级为文件名
+            return file.getFileName().toString();
+        }
+    }
+
     // ==================== M3U 处理 ====================
 
     /**
      * 处理 M3U 文件：复制 M3U 引用的所有文件到目标目录。
+     * <p>
+     * 条目递归展开：条目为 .cue → 同时收集其 FILE 引用的关联文件；
+     * 条目为 .m3u → 继续展开其中条目（visited 集合 + 深度限制防无限递归）。
+     * 所有待复制文件去重后统一复制；引用文件缺失按 cue.onMissing 规则处理。
+     * 重写的引用行路径分隔符归一为 /。
      */
     private void processM3UFile(Path sourceM3U, Path targetM3U, String romsDir,
                                  TemplateV3.RomOutput romsConfig, Game game,
-                                 Platform platform, Map<String, String> gameVars) throws Exception {
+                                 Platform platform, Map<String, String> gameVars,
+                                 CueContext cueCtx, Long taskId) throws Exception {
         List<String> lines = Files.readAllLines(sourceM3U);
         List<String> updatedLines = new ArrayList<>();
         Path sourceDir = sourceM3U.getParent();
         Path targetDir = targetM3U.getParent();
 
         String m3uTarget = romsConfig.getM3u().getTarget();
+        // 引用文件统一目标目录（模板 m3u.target 优先，否则 m3u 本体所在目标目录）
+        Path refTargetDir = targetDir;
+        if (m3uTarget != null && !m3uTarget.isEmpty()) {
+            String resolvedTarget = resolveTemplateString(m3uTarget, platform, gameVars);
+            if (resolvedTarget != null && !resolvedTarget.isEmpty()) {
+                refTargetDir = Paths.get(resolvedTarget);
+            }
+        }
+
+        // 统一收集待复制文件（按源绝对路径保序去重）：源绝对路径 → 目标绝对路径
+        Map<Path, Path> pending = new LinkedHashMap<>();
+        Set<Path> visited = new HashSet<>();
 
         for (String line : lines) {
             if (line.startsWith("#") || line.trim().isEmpty()) {
@@ -933,24 +1214,29 @@ public class ExportOrchestrator {
                 filePath = sourceDir.resolve(line).normalize();
             }
 
-            if (Files.exists(filePath)) {
-                // 确定引用文件的目标路径
-                Path refTargetDir;
-                if (m3uTarget != null && !m3uTarget.isEmpty()) {
-                    String resolvedTarget = resolveTemplateString(m3uTarget, platform, gameVars);
-                    refTargetDir = Paths.get(resolvedTarget);
-                } else {
-                    refTargetDir = targetDir;
-                }
-
-                Path relativePath = sourceDir.relativize(filePath);
-                Path refTargetPath = refTargetDir.resolve(relativePath.toString());
-                copyFile(filePath, refTargetPath);
-
-                updatedLines.add(sourceDir.relativize(filePath).toString());
-            } else {
-                logger.warn("M3U 引用文件不存在: {}", filePath);
+            if (!Files.exists(filePath)) {
+                // 引用缺失：按 cue.onMissing 规则处理，m3u 行保留原样
+                cueCtx.handleMissing(game, sourceM3U.getFileName() + " 引用的 " + filePath.getFileName());
                 updatedLines.add(line);
+                continue;
+            }
+
+            // 重写行：相对 m3u 所在目录的路径，分隔符归一为 /
+            String rel = relativizeSafe(sourceDir, filePath);
+            Path refTargetPath = refTargetDir.resolve(rel);
+            pending.putIfAbsent(filePath.normalize().toAbsolutePath(), refTargetPath);
+            // 条目为 cue/m3u 时递归展开关联文件
+            collectEntryChain(filePath, refTargetPath, pending, cueCtx, game, taskId, visited, 0);
+
+            updatedLines.add(rel);
+        }
+
+        // 统一复制（去重后）
+        for (Map.Entry<Path, Path> e : pending.entrySet()) {
+            copyFile(e.getKey(), e.getValue());
+            if (taskId != null) {
+                taskService.updateTaskLog(taskId, "复制 M3U 引用文件: " + e.getValue().getFileName()
+                        + " → " + e.getValue().getParent().getFileName());
             }
         }
 
