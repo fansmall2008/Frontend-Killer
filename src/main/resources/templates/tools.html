@@ -438,7 +438,6 @@
                       <select id="colOpPlatform" onchange="onColOpPlatformChange()">
                         <option value="">全部平台</option>
                       </select>
-                      <span class="hint">仅影响已匹配 ScreenScraper 系统的平台</span>
                     </div>
                     <div class="form-field">
                       <label>操作模式</label>
@@ -1633,7 +1632,7 @@
         function renderColOpPlatforms() {
             const sel = document.getElementById('colOpPlatform');
             const opts = colOpPlatforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            sel.innerHTML = '<option value="">全部平台（仅影响已匹配 SS 系统的平台）</option>' + opts;
+            sel.innerHTML = '<option value="">全部平台</option>' + opts;
         }
 
         function onColOpModeChange() {

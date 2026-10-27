@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.LinkedHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,72 +26,59 @@ public class ColumnToolController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final Set<String> ALLOWED_COLUMNS = Set.of(
-            "name", "desc", "translated_name", "translated_desc",
-            "developer", "publisher", "genre", "lang",
-            "crc32", "md5", "hash", "disc_serial",
-            "sort_by", "parent_rom", "releasedate", "players", "rating",
-            "source", "image", "thumbnail",
-            "box2d", "wheel", "ss", "sstitle", "marquee", "video", "manuel",
-            "fanart", "flyer", "steamgrid", "overlay", "maps", "figurine",
-            "bezel_4_3", "bezel_16_9", "mixrbv1", "mixrbv2",
-            "themehb", "themehs", "support2d", "box2d_back", "box2d_side",
-            "box3d", "box_scan", "support_scan", "screenmarquee", "video_normalized",
-            "platform_type", "game_id", "ss_game_id"
-    );
+    private static final LinkedHashMap<String, String> COLUMN_ORDER = new LinkedHashMap<>();
+    static {
+        // 第一组 - 游戏核心信息
+        COLUMN_ORDER.put("name", "游戏名称");
+        COLUMN_ORDER.put("desc", "描述");
+        COLUMN_ORDER.put("translated_name", "翻译名称");
+        COLUMN_ORDER.put("translated_desc", "翻译描述");
+        // 第二组 - 元数据
+        COLUMN_ORDER.put("developer", "开发商");
+        COLUMN_ORDER.put("publisher", "发行商");
+        COLUMN_ORDER.put("genre", "类型");
+        COLUMN_ORDER.put("lang", "语言");
+        COLUMN_ORDER.put("releasedate", "发行日期");
+        COLUMN_ORDER.put("players", "玩家数");
+        COLUMN_ORDER.put("rating", "评分");
+        COLUMN_ORDER.put("sort_by", "排序名");
+        COLUMN_ORDER.put("parent_rom", "父ROM");
+        COLUMN_ORDER.put("source", "来源");
+        // 第三组 - 媒体路径
+        COLUMN_ORDER.put("image", "图片");
+        COLUMN_ORDER.put("thumbnail", "缩略图");
+        COLUMN_ORDER.put("box2d", "2D盒子");
+        COLUMN_ORDER.put("box2d_back", "2D盒子背面");
+        COLUMN_ORDER.put("box2d_side", "2D盒子侧面");
+        COLUMN_ORDER.put("box3d", "3D盒子");
+        COLUMN_ORDER.put("box_scan", "盒子扫描");
+        COLUMN_ORDER.put("wheel", "滚轮");
+        COLUMN_ORDER.put("ss", "截图");
+        COLUMN_ORDER.put("sstitle", "SS标题");
+        COLUMN_ORDER.put("marquee", "遮罩");
+        COLUMN_ORDER.put("video", "视频");
+        COLUMN_ORDER.put("video_normalized", "标准化视频");
+        COLUMN_ORDER.put("manuel", "手册");
+        COLUMN_ORDER.put("fanart", "同人画");
+        COLUMN_ORDER.put("flyer", "传单");
+        COLUMN_ORDER.put("steamgrid", "Steam网格");
+        COLUMN_ORDER.put("overlay", "覆盖层");
+        COLUMN_ORDER.put("maps", "地图");
+        COLUMN_ORDER.put("figurine", "手办");
+        COLUMN_ORDER.put("bezel_4_3", "边框4:3");
+        COLUMN_ORDER.put("bezel_16_9", "边框16:9");
+        COLUMN_ORDER.put("mixrbv1", "混合RBV1");
+        COLUMN_ORDER.put("mixrbv2", "混合RBV2");
+        COLUMN_ORDER.put("themehb", "主题HB");
+        COLUMN_ORDER.put("themehs", "主题HS");
+        COLUMN_ORDER.put("support2d", "支撑2D");
+        COLUMN_ORDER.put("support_scan", "支撑扫描");
+        COLUMN_ORDER.put("screenmarquee", "屏幕遮罩");
+    }
 
-    private static final Map<String, String> COLUMN_LABELS = Map.ofEntries(
-            Map.entry("name", "游戏名称"),
-            Map.entry("desc", "描述"),
-            Map.entry("translated_name", "翻译名称"),
-            Map.entry("translated_desc", "翻译描述"),
-            Map.entry("developer", "开发商"),
-            Map.entry("publisher", "发行商"),
-            Map.entry("genre", "类型"),
-            Map.entry("lang", "语言"),
-            Map.entry("crc32", "CRC32"),
-            Map.entry("md5", "MD5"),
-            Map.entry("hash", "哈希"),
-            Map.entry("disc_serial", "光盘序列号"),
-            Map.entry("sort_by", "排序名"),
-            Map.entry("parent_rom", "父ROM"),
-            Map.entry("releasedate", "发行日期"),
-            Map.entry("players", "玩家数"),
-            Map.entry("rating", "评分"),
-            Map.entry("source", "来源"),
-            Map.entry("image", "图片"),
-            Map.entry("thumbnail", "缩略图"),
-            Map.entry("box2d", "2D盒子"),
-            Map.entry("wheel", "滚轮"),
-            Map.entry("ss", "截图"),
-            Map.entry("sstitle", "SS标题"),
-            Map.entry("marquee", "遮罩"),
-            Map.entry("video", "视频"),
-            Map.entry("manuel", "手册"),
-            Map.entry("fanart", "同人画"),
-            Map.entry("flyer", "传单"),
-            Map.entry("steamgrid", "Steam网格"),
-            Map.entry("overlay", "覆盖层"),
-            Map.entry("maps", "地图"),
-            Map.entry("figurine", "手办"),
-            Map.entry("bezel_4_3", "边框4:3"),
-            Map.entry("bezel_16_9", "边框16:9"),
-            Map.entry("mixrbv1", "混合RBV1"),
-            Map.entry("mixrbv2", "混合RBV2"),
-            Map.entry("themehb", "主题HB"),
-            Map.entry("themehs", "主题HS"),
-            Map.entry("support2d", "支撑2D"),
-            Map.entry("box2d_back", "2D盒子背面"),
-            Map.entry("box2d_side", "2D盒子侧面"),
-            Map.entry("box3d", "3D盒子"),
-            Map.entry("box_scan", "盒子扫描"),
-            Map.entry("support_scan", "支撑扫描"),
-            Map.entry("screenmarquee", "屏幕遮罩"),
-            Map.entry("video_normalized", "标准化视频"),
-            Map.entry("platform_type", "平台类型"),
-            Map.entry("game_id", "游戏ID"),
-            Map.entry("ss_game_id", "SS游戏ID")
-    );
+    private static final List<String> ALLOWED_COLUMNS = new ArrayList<>(COLUMN_ORDER.keySet());
+
+    private static final Map<String, String> COLUMN_LABELS = Map.copyOf(COLUMN_ORDER);
 
     private void validateColumn(String column) {
         if (!ALLOWED_COLUMNS.contains(column)) {
@@ -113,7 +100,6 @@ public class ColumnToolController {
                 entry.put("label", COLUMN_LABELS.getOrDefault(col, col));
                 columns.add(entry);
             }
-            columns.sort((a, b) -> a.get("name").compareTo(b.get("name")));
             return ResponseEntity.ok(Map.of("success", true, "columns", columns));
         } catch (Exception e) {
             logger.error("获取列列表失败: {}", e.getMessage(), e);
