@@ -1595,6 +1595,10 @@
         let colOpPreviewResult = null;
 
         function initColumnOpsPanel() {
+            // 重置预览状态，防止旧状态残留
+            colOpPreviewResult = null;
+            document.getElementById('colOpExecBtn').disabled = true;
+
             // 加载列列表
             fetch('/api/tools/column/columns')
                 .then(r => r.json())
@@ -1638,10 +1642,15 @@
             const columnsRow = document.getElementById('colOpColumnsRow');
             const replaceRow = document.getElementById('colOpReplaceRow');
             if (mode === 'replace') {
-                columnsRow.style.display = 'none';
+                // replace 模式：显示源列选择器（用户需选择要替换的列），隐藏目标列
+                columnsRow.style.display = '';
+                const targetField = document.getElementById('colOpTarget').closest('.form-field');
+                if (targetField) targetField.style.display = 'none';
                 replaceRow.style.display = '';
             } else {
                 columnsRow.style.display = '';
+                const targetField = document.getElementById('colOpTarget').closest('.form-field');
+                if (targetField) targetField.style.display = '';
                 replaceRow.style.display = 'none';
             }
             // 重置预览状态
@@ -1664,7 +1673,8 @@
             if (platformId) body.platformId = parseInt(platformId);
 
             if (mode === 'replace') {
-                body.targetColumn = document.getElementById('colOpTarget').value;
+                // replace 模式下目标列就是源列自身
+                body.targetColumn = document.getElementById('colOpSource').value;
                 body.findText = document.getElementById('colOpFindText').value;
                 body.replaceText = document.getElementById('colOpReplaceText').value;
             } else {
@@ -1691,7 +1701,12 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+                }
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     colOpPreviewResult = data;
@@ -1705,13 +1720,19 @@
         }
 
         function executeColumnOp() {
-            if (!colOpPreviewResult) return;
+            console.log('[ColumnOp] colOpPreviewResult:', colOpPreviewResult);
+            if (!colOpPreviewResult) {
+                showColOpPreview(t('tools_col_need_preview', '请先点击"预览影响"获取预计影响的记录数'), true);
+                return;
+            }
             const mode = document.querySelector('input[name="colOpMode"]:checked').value;
+            console.log('[ColumnOp] mode:', mode);
             const modeLabels = { copy: t('tools_col_copy', '复制'), swap: t('tools_col_swap', '互换'), overwrite: t('tools_col_overwrite', '覆盖'), replace: t('tools_col_replace', '批量替换') };
             const msg = t('tools_col_confirm_prefix', '确定要执行') + modeLabels[mode] + t('tools_col_confirm_suffix', '操作吗？将影响') + ' ' + colOpPreviewResult.affectedRows + ' ' + t('tools_col_confirm_end', '条记录，此操作不可撤销。');
             if (!confirm(msg)) return;
 
             const body = getColOpRequestBody();
+            console.log('[ColumnOp] request body:', body);
             document.getElementById('colOpExecBtn').disabled = true;
 
             fetch('/api/tools/column/execute', {
@@ -1719,7 +1740,12 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+                }
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     const log = document.getElementById('colOpLog');
@@ -1730,14 +1756,18 @@
                     showColOpPreview(data.error || t('tools_col_exec_fail', '执行失败'), true);
                 }
             })
-            .catch(e => showColOpPreview(t('tools_request_fail', '请求失败') + ': ' + e.message, true));
+            .catch(e => {
+                console.error('[ColumnOp] execute failed:', e);
+                showColOpPreview(t('tools_request_fail', '请求失败') + ': ' + e.message, true);
+                document.getElementById('colOpExecBtn').disabled = false;
+            });
         }
 
         function showColOpPreview(msg, isError) {
             const el = document.getElementById('colOpPreview');
             el.style.display = '';
             el.className = 'status-msg' + (isError ? ' error' : ' success');
-            el.textContent = msg;
+            el.innerHTML = msg;
         }
     </script>
 </body>

@@ -1557,6 +1557,7 @@
     "tools_col_done_records": "条记录",
     "tools_col_exec_success": "执行成功，影响",
     "tools_col_exec_fail": "执行失败",
+    "tools_col_need_preview": "请先点击\"预览影响\"获取预计影响的记录数",
     "empty_filter_empty": "为空",
     "empty_filter_not_empty": "不为空",
     "variant_title": "ROM 版本",

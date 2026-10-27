@@ -1557,6 +1557,7 @@
     "tools_col_done_records": "レコード",
     "tools_col_exec_success": "実行成功、影響 ",
     "tools_col_exec_fail": "実行失敗",
+    "tools_col_need_preview": "まず「影響をプレビュー」をクリックして、影響を受けるレコード数の見積もりを確認してください",
     "empty_filter_empty": "空",
     "empty_filter_not_empty": "空でない",
     "variant_title": "ROM バージョン",

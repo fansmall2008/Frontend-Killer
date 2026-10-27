@@ -1557,6 +1557,7 @@
     "tools_col_done_records": "records",
     "tools_col_exec_success": "Execution successful, affected ",
     "tools_col_exec_fail": "Execution failed",
+    "tools_col_need_preview": "Please click \"Preview Impact\" first to see the estimated number of affected records",
     "empty_filter_empty": "Empty",
     "empty_filter_not_empty": "Not Empty",
     "variant_title": "ROM Variants",

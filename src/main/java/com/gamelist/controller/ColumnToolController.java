@@ -187,7 +187,7 @@ public class ColumnToolController {
             Long platformId = (platformIdNum != null && platformIdNum.longValue() != 0)
                     ? platformIdNum.longValue() : null;
 
-            int affectedRows;
+            Map<String, Object> previewResult;
 
             switch (operation) {
                 case "copy":
@@ -195,21 +195,21 @@ public class ColumnToolController {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "copy 操作需要 sourceColumn"));
                     }
-                    affectedRows = previewCopy(sourceColumn, targetColumn, platformId);
+                    previewResult = previewCopy(sourceColumn, targetColumn, platformId);
                     break;
                 case "swap":
                     if (sourceColumn == null || sourceColumn.isBlank()) {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "swap 操作需要 sourceColumn"));
                     }
-                    affectedRows = previewSwap(sourceColumn, targetColumn, platformId);
+                    previewResult = previewSwap(sourceColumn, targetColumn, platformId);
                     break;
                 case "overwrite":
                     if (sourceColumn == null || sourceColumn.isBlank()) {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "overwrite 操作需要 sourceColumn"));
                     }
-                    affectedRows = previewOverwrite(sourceColumn, targetColumn, platformId);
+                    previewResult = previewOverwrite(sourceColumn, targetColumn, platformId);
                     break;
                 case "replace":
                     String findText = (String) request.get("findText");
@@ -217,14 +217,14 @@ public class ColumnToolController {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "replace 操作需要 findText"));
                     }
-                    affectedRows = previewReplace(targetColumn, findText, platformId);
+                    previewResult = previewReplace(targetColumn, findText, platformId);
                     break;
                 default:
                     return ResponseEntity.badRequest()
                             .body(Map.of("success", false, "error", "不支持的操作: " + operation));
             }
 
-            return ResponseEntity.ok(Map.of("success", true, "affectedRows", affectedRows));
+            return ResponseEntity.ok(previewResult);
         } catch (IllegalArgumentException e) {
             logger.warn("参数校验失败: {}", e.getMessage());
             return ResponseEntity.badRequest()
@@ -261,7 +261,7 @@ public class ColumnToolController {
             Long platformId = (platformIdNum != null && platformIdNum.longValue() != 0)
                     ? platformIdNum.longValue() : null;
 
-            int affectedRows;
+            Map<String, Object> execResult;
 
             switch (operation) {
                 case "copy":
@@ -269,21 +269,21 @@ public class ColumnToolController {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "copy 操作需要 sourceColumn"));
                     }
-                    affectedRows = executeCopy(sourceColumn, targetColumn, platformId);
+                    execResult = executeCopy(sourceColumn, targetColumn, platformId);
                     break;
                 case "swap":
                     if (sourceColumn == null || sourceColumn.isBlank()) {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "swap 操作需要 sourceColumn"));
                     }
-                    affectedRows = executeSwap(sourceColumn, targetColumn, platformId);
+                    execResult = executeSwap(sourceColumn, targetColumn, platformId);
                     break;
                 case "overwrite":
                     if (sourceColumn == null || sourceColumn.isBlank()) {
                         return ResponseEntity.badRequest()
                                 .body(Map.of("success", false, "error", "overwrite 操作需要 sourceColumn"));
                     }
-                    affectedRows = executeOverwrite(sourceColumn, targetColumn, platformId);
+                    execResult = executeOverwrite(sourceColumn, targetColumn, platformId);
                     break;
                 case "replace":
                     String findText = (String) request.get("findText");
@@ -295,23 +295,20 @@ public class ColumnToolController {
                     if (replaceText == null) {
                         replaceText = "";
                     }
-                    affectedRows = executeReplace(targetColumn, findText, replaceText, platformId);
+                    execResult = executeReplace(targetColumn, findText, replaceText, platformId);
                     break;
                 default:
                     return ResponseEntity.badRequest()
                             .body(Map.of("success", false, "error", "不支持的操作: " + operation));
             }
 
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("affectedRows", affectedRows);
-            result.put("operation", operation);
+            execResult.put("operation", operation);
             if (sourceColumn != null && !sourceColumn.isBlank()) {
-                result.put("sourceColumn", sourceColumn);
+                execResult.put("sourceColumn", sourceColumn);
             }
-            result.put("targetColumn", targetColumn);
+            execResult.put("targetColumn", targetColumn);
 
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(execResult);
         } catch (IllegalArgumentException e) {
             logger.warn("参数校验失败: {}", e.getMessage());
             return ResponseEntity.badRequest()
@@ -325,7 +322,37 @@ public class ColumnToolController {
 
     // --- Preview methods ---
 
-    private int previewCopy(String source, String target, Long platformId) {
+    private Map<String, Object> previewResult(int affectedRows) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("affectedRows", affectedRows);
+        return result;
+    }
+
+    private Map<String, Object> previewResult(int affectedRows, int skippedDueToNull) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("affectedRows", affectedRows);
+        result.put("skippedDueToNull", skippedDueToNull);
+        return result;
+    }
+
+    private Map<String, Object> execResult(int affectedRows) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("affectedRows", affectedRows);
+        return result;
+    }
+
+    private Map<String, Object> execResult(int affectedRows, int skippedDueToNull) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("affectedRows", affectedRows);
+        result.put("skippedDueToNull", skippedDueToNull);
+        return result;
+    }
+
+    private Map<String, Object> previewCopy(String source, String target, Long platformId) {
         boolean srcTrans = isTranslationColumn(source);
         boolean tgtTrans = isTranslationColumn(target);
 
@@ -339,7 +366,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else if (srcTrans && !tgtTrans) {
             // 源是翻译列，目标是 game 列
             String srcField = getTranslationSrcField(source);
@@ -352,7 +379,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else if (!srcTrans && tgtTrans) {
             // 源是 game 列，目标是翻译列
             StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
@@ -363,7 +390,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else {
             // 两个都是翻译列
             String srcField = getTranslationSrcField(source);
@@ -376,56 +403,86 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         }
     }
 
-    private int previewSwap(String source, String target, Long platformId) {
+    private Map<String, Object> previewSwap(String source, String target, Long platformId) {
         boolean srcTrans = isTranslationColumn(source);
         boolean tgtTrans = isTranslationColumn(target);
 
         if (!srcTrans && !tgtTrans) {
-            // 两个都是 game 表列
-            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE (")
-                    .append(quoteColumn(source)).append(" IS NOT NULL OR ")
-                    .append(quoteColumn(target)).append(" IS NOT NULL)");
-            List<Object> params = new ArrayList<>();
+            // 两个都是 game 表列：仅両列とも非NULL的行可以互换
+            StringBuilder sqlAffected = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
+                    .append(quoteColumn(source)).append(" IS NOT NULL AND ")
+                    .append(quoteColumn(target)).append(" IS NOT NULL");
+            // 跳过的行：恰好一列为 NULL（両NULL 无需互换也不影响）
+            StringBuilder sqlSkipped = new StringBuilder("SELECT COUNT(*) FROM game WHERE (")
+                    .append(quoteColumn(source)).append(" IS NULL AND ")
+                    .append(quoteColumn(target)).append(" IS NOT NULL) OR (")
+                    .append(quoteColumn(source)).append(" IS NOT NULL AND ")
+                    .append(quoteColumn(target)).append(" IS NULL)");
+            List<Object> paramsAffected = new ArrayList<>();
+            List<Object> paramsSkipped = new ArrayList<>();
             if (platformId != null) {
-                sql.append(" AND platform_id = ?");
-                params.add(platformId);
+                sqlAffected.append(" AND platform_id = ?");
+                sqlSkipped.append(" AND platform_id = ?");
+                paramsAffected.add(platformId);
+                paramsSkipped.add(platformId);
             }
-            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            Integer affected = jdbcTemplate.queryForObject(sqlAffected.toString(), Integer.class, paramsAffected.toArray(new Object[0]));
+            Integer skipped = jdbcTemplate.queryForObject(sqlSkipped.toString(), Integer.class, paramsSkipped.toArray(new Object[0]));
+            return previewResult(affected != null ? affected : 0, skipped != null ? skipped : 0);
         } else if (srcTrans && !tgtTrans) {
-            // 源是翻译列，目标是 game 列：任一有值即算
+            // 源是翻译列，目标是 game 列
             String srcField = getTranslationSrcField(source);
-            StringBuilder sql = new StringBuilder(
+            // 両方とも非NULL：可以互换
+            StringBuilder sqlAffected = new StringBuilder(
+                "SELECT COUNT(*) FROM game g LEFT JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE g.")
+                .append(quoteColumn(target)).append(" IS NOT NULL AND ft.trans_value IS NOT NULL");
+            // 恰好一列为 NULL：会被跳过
+            StringBuilder sqlSkipped = new StringBuilder(
                 "SELECT COUNT(*) FROM game g LEFT JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE (g.")
-                .append(quoteColumn(target)).append(" IS NOT NULL OR ft.trans_value IS NOT NULL)");
-            List<Object> params = new ArrayList<>();
-            params.add(srcField);
+                .append(quoteColumn(target)).append(" IS NULL AND ft.trans_value IS NOT NULL) OR (g.")
+                .append(quoteColumn(target)).append(" IS NOT NULL AND ft.trans_value IS NULL)");
+            List<Object> paramsAffected = new ArrayList<>();
+            List<Object> paramsSkipped = new ArrayList<>();
+            paramsAffected.add(srcField);
+            paramsSkipped.add(srcField);
             if (platformId != null) {
-                sql.append(" AND g.platform_id = ?");
-                params.add(platformId);
+                sqlAffected.append(" AND g.platform_id = ?");
+                sqlSkipped.append(" AND g.platform_id = ?");
+                paramsAffected.add(platformId);
+                paramsSkipped.add(platformId);
             }
-            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            Integer affected = jdbcTemplate.queryForObject(sqlAffected.toString(), Integer.class, paramsAffected.toArray(new Object[0]));
+            Integer skipped = jdbcTemplate.queryForObject(sqlSkipped.toString(), Integer.class, paramsSkipped.toArray(new Object[0]));
+            return previewResult(affected != null ? affected : 0, skipped != null ? skipped : 0);
         } else if (!srcTrans && tgtTrans) {
             // 源是 game 列，目标是翻译列
             String tgtField = getTranslationSrcField(target);
-            StringBuilder sql = new StringBuilder(
+            StringBuilder sqlAffected = new StringBuilder(
+                "SELECT COUNT(*) FROM game g LEFT JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE g.")
+                .append(quoteColumn(source)).append(" IS NOT NULL AND ft.trans_value IS NOT NULL");
+            StringBuilder sqlSkipped = new StringBuilder(
                 "SELECT COUNT(*) FROM game g LEFT JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE (g.")
-                .append(quoteColumn(source)).append(" IS NOT NULL OR ft.trans_value IS NOT NULL)");
-            List<Object> params = new ArrayList<>();
-            params.add(tgtField);
+                .append(quoteColumn(source)).append(" IS NULL AND ft.trans_value IS NOT NULL) OR (g.")
+                .append(quoteColumn(source)).append(" IS NOT NULL AND ft.trans_value IS NULL)");
+            List<Object> paramsAffected = new ArrayList<>();
+            List<Object> paramsSkipped = new ArrayList<>();
+            paramsAffected.add(tgtField);
+            paramsSkipped.add(tgtField);
             if (platformId != null) {
-                sql.append(" AND g.platform_id = ?");
-                params.add(platformId);
+                sqlAffected.append(" AND g.platform_id = ?");
+                sqlSkipped.append(" AND g.platform_id = ?");
+                paramsAffected.add(platformId);
+                paramsSkipped.add(platformId);
             }
-            Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            Integer affected = jdbcTemplate.queryForObject(sqlAffected.toString(), Integer.class, paramsAffected.toArray(new Object[0]));
+            Integer skipped = jdbcTemplate.queryForObject(sqlSkipped.toString(), Integer.class, paramsSkipped.toArray(new Object[0]));
+            return previewResult(affected != null ? affected : 0, skipped != null ? skipped : 0);
         } else {
-            // 两个都是翻译列
+            // 两个都是翻译列：翻訳列は NULL 許可なのでスキップなし
             String srcField = getTranslationSrcField(source);
             String tgtField = getTranslationSrcField(target);
             StringBuilder sql = new StringBuilder(
@@ -438,11 +495,11 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         }
     }
 
-    private int previewOverwrite(String source, String target, Long platformId) {
+    private Map<String, Object> previewOverwrite(String source, String target, Long platformId) {
         boolean srcTrans = isTranslationColumn(source);
         boolean tgtTrans = isTranslationColumn(target);
 
@@ -458,7 +515,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else if (srcTrans && !tgtTrans) {
             // 源是翻译列，目标是 game 列：目标为空时
             String srcField = getTranslationSrcField(source);
@@ -472,7 +529,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else if (!srcTrans && tgtTrans) {
             // 源是 game 列，目标是翻译列：目标（翻译）不存在或为空时
             String tgtField = getTranslationSrcField(target);
@@ -486,7 +543,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else {
             // 两个都是翻译列
             String srcField = getTranslationSrcField(source);
@@ -501,11 +558,11 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         }
     }
 
-    private int previewReplace(String column, String findText, Long platformId) {
+    private Map<String, Object> previewReplace(String column, String findText, Long platformId) {
         if (isTranslationColumn(column)) {
             String srcField = getTranslationSrcField(column);
             StringBuilder sql = new StringBuilder(
@@ -518,7 +575,7 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         } else {
             StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
                     .append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
@@ -529,13 +586,13 @@ public class ColumnToolController {
                 params.add(platformId);
             }
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
-            return count != null ? count : 0;
+            return previewResult(count != null ? count : 0);
         }
     }
 
     // --- Execute methods ---
 
-    private int executeCopy(String source, String target, Long platformId) {
+    private Map<String, Object> executeCopy(String source, String target, Long platformId) {
         boolean srcTrans = isTranslationColumn(source);
         boolean tgtTrans = isTranslationColumn(target);
 
@@ -548,7 +605,7 @@ public class ColumnToolController {
                 sql.append(" WHERE platform_id = ?");
                 params.add(platformId);
             }
-            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+            return execResult(jdbcTemplate.update(sql.toString(), params.toArray(new Object[0])));
         } else if (srcTrans && !tgtTrans) {
             // 源是翻译列，目标是 game 列
             return executeCopyTransToGame(source, target, platformId);
@@ -561,7 +618,7 @@ public class ColumnToolController {
         }
     }
 
-    private int executeCopyTransToGame(String source, String target, Long platformId) {
+    private Map<String, Object> executeCopyTransToGame(String source, String target, Long platformId) {
         String srcField = getTranslationSrcField(source);
         // 获取受影响的 game id 列表
         StringBuilder sql = new StringBuilder(
@@ -580,10 +637,10 @@ public class ColumnToolController {
             int updated = jdbcTemplate.update("UPDATE game SET " + quoteColumn(target) + " = ? WHERE id = ?", transValue, gameId);
             count += updated;
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeCopyGameToTrans(String source, String target, Long platformId) {
+    private Map<String, Object> executeCopyGameToTrans(String source, String target, Long platformId) {
         String tgtField = getTranslationSrcField(target);
         StringBuilder sql = new StringBuilder("SELECT id, ").append(quoteColumn(source)).append(" AS src_val FROM game WHERE ")
                 .append(quoteColumn(source)).append(" IS NOT NULL");
@@ -600,10 +657,10 @@ public class ColumnToolController {
             upsertTranslation(gameId, tgtField, srcValue);
             count++;
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeCopyTransToTrans(String source, String target, Long platformId) {
+    private Map<String, Object> executeCopyTransToTrans(String source, String target, Long platformId) {
         String srcField = getTranslationSrcField(source);
         String tgtField = getTranslationSrcField(target);
         StringBuilder sql = new StringBuilder(
@@ -622,24 +679,26 @@ public class ColumnToolController {
             upsertTranslation(gameId, tgtField, transValue);
             count++;
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeSwap(String source, String target, Long platformId) {
+    private Map<String, Object> executeSwap(String source, String target, Long platformId) {
         boolean srcTrans = isTranslationColumn(source);
         boolean tgtTrans = isTranslationColumn(target);
 
         if (!srcTrans && !tgtTrans) {
-            // 两个都是 game 表列
+            // 两个都是 game 表列：仅互换両列とも非NULL的行，避免 NULL 写入 NOT NULL 列
             StringBuilder sql = new StringBuilder("UPDATE game SET ")
                     .append(quoteColumn(source)).append(" = ").append(quoteColumn(target)).append(", ")
-                    .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
+                    .append(quoteColumn(target)).append(" = ").append(quoteColumn(source))
+                    .append(" WHERE ").append(quoteColumn(source)).append(" IS NOT NULL AND ")
+                    .append(quoteColumn(target)).append(" IS NOT NULL");
             List<Object> params = new ArrayList<>();
             if (platformId != null) {
-                sql.append(" WHERE platform_id = ?");
+                sql.append(" AND platform_id = ?");
                 params.add(platformId);
             }
-            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+            return execResult(jdbcTemplate.update(sql.toString(), params.toArray(new Object[0])));
         } else if (srcTrans && !tgtTrans) {
             // 源是翻译列，目标是 game 列
             return transactionTemplate.execute(status -> executeSwapCrossTable(platformId, target, source));
@@ -655,7 +714,7 @@ public class ColumnToolController {
     /**
      * 跨表 swap：game 列 ↔ 翻译列，按游戏逐行处理保证 1-to-1 对应
      */
-    private int executeSwapCrossTable(Long platformId, String gameColumn, String translationColumn) {
+    private Map<String, Object> executeSwapCrossTable(Long platformId, String gameColumn, String translationColumn) {
         String srcField = getTranslationSrcField(translationColumn);
         // 获取所有相关游戏 ID
         StringBuilder sql = new StringBuilder("SELECT id FROM game");
@@ -666,6 +725,7 @@ public class ColumnToolController {
         }
         List<Long> gameIds = jdbcTemplate.queryForList(sql.toString(), Long.class, params.toArray(new Object[0]));
         int count = 0;
+        int skipped = 0;
         for (Long gameId : gameIds) {
             // 1. 读 game 表值
             String gameValue = jdbcTemplate.queryForObject(
@@ -675,22 +735,32 @@ public class ColumnToolController {
             // 2. 读 field_translation 值
             String transValue = getTranslationValue(gameId, srcField);
 
-            // 3. 写 game 表（用翻译值覆盖）
+            // 3. 如果任一值为 null，跳过该行（避免将 null 写入 NOT NULL 列）
+            if (gameValue == null || transValue == null) {
+                logger.debug("跳过 gameId={} 的互换操作，因为存在 null 值 (gameValue={}, transValue={})", gameId, gameValue, transValue);
+                skipped++;
+                continue;
+            }
+
+            // 4. 写 game 表（用翻译值覆盖）
             jdbcTemplate.update(
                 "UPDATE game SET " + quoteColumn(gameColumn) + " = ? WHERE id = ?",
                 transValue, gameId);
 
-            // 4. 写 field_translation（用 game 值覆盖）
+            // 5. 写 field_translation（用 game 值覆盖）
             upsertTranslation(gameId, srcField, gameValue);
             count++;
         }
-        return count;
+        if (skipped > 0) {
+            logger.info("跨表互换完成：实际互换 {} 行，因 null 值跳过 {} 行", count, skipped);
+        }
+        return execResult(count, skipped);
     }
 
     /**
      * 两个翻译列互换
      */
-    private int executeSwapTransToTrans(String source, String target, Long platformId) {
+    private Map<String, Object> executeSwapTransToTrans(String source, String target, Long platformId) {
         String srcField = getTranslationSrcField(source);
         String tgtField = getTranslationSrcField(target);
         StringBuilder sql = new StringBuilder("SELECT id FROM game");
@@ -708,10 +778,10 @@ public class ColumnToolController {
             upsertTranslation(gameId, tgtField, srcValue);
             count++;
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeOverwrite(String source, String target, Long platformId) {
+    private Map<String, Object> executeOverwrite(String source, String target, Long platformId) {
         boolean srcTrans = isTranslationColumn(source);
         boolean tgtTrans = isTranslationColumn(target);
 
@@ -726,7 +796,7 @@ public class ColumnToolController {
                 sql.append(" AND platform_id = ?");
                 params.add(platformId);
             }
-            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+            return execResult(jdbcTemplate.update(sql.toString(), params.toArray(new Object[0])));
         } else if (srcTrans && !tgtTrans) {
             // 源是翻译列，目标是 game 列：仅当 game 列为空时写入
             return executeOverwriteTransToGame(source, target, platformId);
@@ -739,7 +809,7 @@ public class ColumnToolController {
         }
     }
 
-    private int executeOverwriteTransToGame(String source, String target, Long platformId) {
+    private Map<String, Object> executeOverwriteTransToGame(String source, String target, Long platformId) {
         String srcField = getTranslationSrcField(source);
         StringBuilder sql = new StringBuilder(
             "SELECT g.id, ft.trans_value FROM game g JOIN field_translation ft ON ft.src_table='game' AND ft.src_id=g.id AND ft.src_field=? AND ft.lang='zh' WHERE ft.trans_value IS NOT NULL AND (g.")
@@ -757,10 +827,10 @@ public class ColumnToolController {
             String transValue = (String) row.get("trans_value");
             count += jdbcTemplate.update("UPDATE game SET " + quoteColumn(target) + " = ? WHERE id = ?", transValue, gameId);
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeOverwriteGameToTrans(String source, String target, Long platformId) {
+    private Map<String, Object> executeOverwriteGameToTrans(String source, String target, Long platformId) {
         String tgtField = getTranslationSrcField(target);
         StringBuilder sql = new StringBuilder(
             "SELECT g.id, g.").append(quoteColumn(source)).append(" AS src_val FROM game g WHERE g.")
@@ -779,10 +849,10 @@ public class ColumnToolController {
             upsertTranslation(gameId, tgtField, srcValue);
             count++;
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeOverwriteTransToTrans(String source, String target, Long platformId) {
+    private Map<String, Object> executeOverwriteTransToTrans(String source, String target, Long platformId) {
         String srcField = getTranslationSrcField(source);
         String tgtField = getTranslationSrcField(target);
         StringBuilder sql = new StringBuilder(
@@ -802,10 +872,10 @@ public class ColumnToolController {
             upsertTranslation(gameId, tgtField, transValue);
             count++;
         }
-        return count;
+        return execResult(count);
     }
 
-    private int executeReplace(String column, String findText, String replaceText, Long platformId) {
+    private Map<String, Object> executeReplace(String column, String findText, String replaceText, Long platformId) {
         if (isTranslationColumn(column)) {
             String srcField = getTranslationSrcField(column);
             StringBuilder sql = new StringBuilder(
@@ -826,7 +896,7 @@ public class ColumnToolController {
                 upsertTranslation(gameId, srcField, newValue);
                 count++;
             }
-            return count;
+            return execResult(count);
         } else {
             StringBuilder sql = new StringBuilder("UPDATE game SET ")
                     .append(quoteColumn(column)).append(" = REPLACE(").append(quoteColumn(column)).append(", ?, ?)")
@@ -839,7 +909,7 @@ public class ColumnToolController {
                 sql.append(" AND platform_id = ?");
                 params.add(platformId);
             }
-            return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
+            return execResult(jdbcTemplate.update(sql.toString(), params.toArray(new Object[0])));
         }
     }
 }
