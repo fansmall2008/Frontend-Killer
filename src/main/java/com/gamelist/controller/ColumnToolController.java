@@ -31,8 +31,6 @@ public class ColumnToolController {
         // 第一组 - 游戏核心信息
         COLUMN_ORDER.put("name", "游戏名称");
         COLUMN_ORDER.put("desc", "描述");
-        COLUMN_ORDER.put("translated_name", "翻译名称");
-        COLUMN_ORDER.put("translated_desc", "翻译描述");
         // 第二组 - 元数据
         COLUMN_ORDER.put("developer", "开发商");
         COLUMN_ORDER.put("publisher", "发行商");
@@ -47,9 +45,9 @@ public class ColumnToolController {
         // 第三组 - 媒体路径
         COLUMN_ORDER.put("image", "图片");
         COLUMN_ORDER.put("thumbnail", "缩略图");
-        COLUMN_ORDER.put("box2d", "2D盒子");
-        COLUMN_ORDER.put("box2d_back", "2D盒子背面");
-        COLUMN_ORDER.put("box2d_side", "2D盒子侧面");
+        COLUMN_ORDER.put("box_2d", "2D盒子");
+        COLUMN_ORDER.put("box_2d_back", "2D盒子背面");
+        COLUMN_ORDER.put("box_2d_side", "2D盒子侧面");
         COLUMN_ORDER.put("box3d", "3D盒子");
         COLUMN_ORDER.put("box_scan", "盒子扫描");
         COLUMN_ORDER.put("wheel", "滚轮");
@@ -71,7 +69,7 @@ public class ColumnToolController {
         COLUMN_ORDER.put("mixrbv2", "混合RBV2");
         COLUMN_ORDER.put("themehb", "主题HB");
         COLUMN_ORDER.put("themehs", "主题HS");
-        COLUMN_ORDER.put("support2d", "支撑2D");
+        COLUMN_ORDER.put("support_2d", "支撑2D");
         COLUMN_ORDER.put("support_scan", "支撑扫描");
         COLUMN_ORDER.put("screenmarquee", "屏幕遮罩");
     }
@@ -80,14 +78,29 @@ public class ColumnToolController {
 
     private static final Map<String, String> COLUMN_LABELS = Map.copyOf(COLUMN_ORDER);
 
+    /** H2 保留字：这些列在 SQL 中必须加引号，使用双引号小写形式（与 init.sql 反引号创建一致） */
+    private static final java.util.Set<String> H2_RESERVED = java.util.Set.of(
+            "desc", "exists", "path", "order", "value", "key", "check", "cross", "group",
+            "index", "limit", "offset", "primary", "select", "where", "from", "table",
+            "default", "unique", "not", "null", "and", "or", "like", "between", "in",
+            "is", "as", "on", "join", "having", "case", "when", "then", "else", "end"
+    );
+
     private void validateColumn(String column) {
         if (!ALLOWED_COLUMNS.contains(column)) {
             throw new IllegalArgumentException("不允许的列名: " + column);
         }
     }
 
+    /**
+     * 列名引用：非保留字不加引号（H2 自动折叠为大写匹配存储名），
+     * 保留字用双引号小写形式（与 init.sql 反引号创建的 case-sensitive 列一致）。
+     */
     private String quoteColumn(String column) {
-        return "\"" + column + "\"";
+        if (H2_RESERVED.contains(column.toLowerCase())) {
+            return "\"" + column.toLowerCase() + "\"";
+        }
+        return column;
     }
 
     @GetMapping("/columns")
@@ -279,7 +292,7 @@ public class ColumnToolController {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
+        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
         return count != null ? count : 0;
     }
 
@@ -292,7 +305,7 @@ public class ColumnToolController {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
+        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
         return count != null ? count : 0;
     }
 
@@ -306,7 +319,7 @@ public class ColumnToolController {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
+        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
         return count != null ? count : 0;
     }
 
@@ -319,7 +332,7 @@ public class ColumnToolController {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
+        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray(new Object[0]));
         return count != null ? count : 0;
     }
 
@@ -333,7 +346,7 @@ public class ColumnToolController {
             sql.append(" WHERE platform_id = ?");
             params.add(platformId);
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray());
+        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
     }
 
     private int executeSwap(String source, String target, Long platformId) {
@@ -345,7 +358,7 @@ public class ColumnToolController {
             sql.append(" WHERE platform_id = ?");
             params.add(platformId);
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray());
+        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
     }
 
     private int executeOverwrite(String source, String target, Long platformId) {
@@ -358,7 +371,7 @@ public class ColumnToolController {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray());
+        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
     }
 
     private int executeReplace(String column, String findText, String replaceText, Long platformId) {
@@ -373,6 +386,6 @@ public class ColumnToolController {
             sql.append(" AND platform_id = ?");
             params.add(platformId);
         }
-        return jdbcTemplate.update(sql.toString(), params.toArray());
+        return jdbcTemplate.update(sql.toString(), params.toArray(new Object[0]));
     }
 }
