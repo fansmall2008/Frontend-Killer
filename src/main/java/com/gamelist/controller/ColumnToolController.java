@@ -99,6 +99,10 @@ public class ColumnToolController {
         }
     }
 
+    private String quoteColumn(String column) {
+        return "\"" + column + "\"";
+    }
+
     @GetMapping("/columns")
     public ResponseEntity<?> getColumns() {
         try {
@@ -283,7 +287,7 @@ public class ColumnToolController {
 
     private int previewCopy(String source, String target, Long platformId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
-                .append(source).append(" IS NOT NULL");
+                .append(quoteColumn(source)).append(" IS NOT NULL");
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" AND platform_id = ?");
@@ -295,8 +299,8 @@ public class ColumnToolController {
 
     private int previewSwap(String source, String target, Long platformId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE (")
-                .append(source).append(" IS NOT NULL OR ")
-                .append(target).append(" IS NOT NULL)");
+                .append(quoteColumn(source)).append(" IS NOT NULL OR ")
+                .append(quoteColumn(target)).append(" IS NOT NULL)");
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" AND platform_id = ?");
@@ -308,9 +312,9 @@ public class ColumnToolController {
 
     private int previewOverwrite(String source, String target, Long platformId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
-                .append(source).append(" IS NOT NULL AND (")
-                .append(target).append(" IS NULL OR ")
-                .append(target).append(" = '')");
+                .append(quoteColumn(source)).append(" IS NOT NULL AND (")
+                .append(quoteColumn(target)).append(" IS NULL OR ")
+                .append(quoteColumn(target)).append(" = '')");
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" AND platform_id = ?");
@@ -322,7 +326,7 @@ public class ColumnToolController {
 
     private int previewReplace(String column, String findText, Long platformId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM game WHERE ")
-                .append(column).append(" LIKE CONCAT('%', ?, '%')");
+                .append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
         List<Object> params = new ArrayList<>();
         params.add(findText);
         if (platformId != null) {
@@ -337,7 +341,7 @@ public class ColumnToolController {
 
     private int executeCopy(String source, String target, Long platformId) {
         StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(target).append(" = ").append(source);
+                .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" WHERE platform_id = ?");
@@ -348,8 +352,8 @@ public class ColumnToolController {
 
     private int executeSwap(String source, String target, Long platformId) {
         StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(source).append(" = ").append(target).append(", ")
-                .append(target).append(" = ").append(source);
+                .append(quoteColumn(source)).append(" = ").append(quoteColumn(target)).append(", ")
+                .append(quoteColumn(target)).append(" = ").append(quoteColumn(source));
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" WHERE platform_id = ?");
@@ -360,9 +364,9 @@ public class ColumnToolController {
 
     private int executeOverwrite(String source, String target, Long platformId) {
         StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(target).append(" = ").append(source)
-                .append(" WHERE (").append(target).append(" IS NULL OR ")
-                .append(target).append(" = '')");
+                .append(quoteColumn(target)).append(" = ").append(quoteColumn(source))
+                .append(" WHERE (").append(quoteColumn(target)).append(" IS NULL OR ")
+                .append(quoteColumn(target)).append(" = '')");
         List<Object> params = new ArrayList<>();
         if (platformId != null) {
             sql.append(" AND platform_id = ?");
@@ -373,8 +377,8 @@ public class ColumnToolController {
 
     private int executeReplace(String column, String findText, String replaceText, Long platformId) {
         StringBuilder sql = new StringBuilder("UPDATE game SET ")
-                .append(column).append(" = REPLACE(").append(column).append(", ?, ?)")
-                .append(" WHERE ").append(column).append(" LIKE CONCAT('%', ?, '%')");
+                .append(quoteColumn(column)).append(" = REPLACE(").append(quoteColumn(column)).append(", ?, ?)")
+                .append(" WHERE ").append(quoteColumn(column)).append(" LIKE CONCAT('%', ?, '%')");
         List<Object> params = new ArrayList<>();
         params.add(findText);
         params.add(replaceText);

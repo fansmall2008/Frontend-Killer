@@ -1610,17 +1610,16 @@
                 .catch(e => console.error('加载列列表失败:', e));
 
             // 加载平台列表
-            if (typeof loadVariantPlatforms === 'function') {
-                fetch('/api/platforms')
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success && Array.isArray(data.platforms)) {
-                            colOpPlatforms = data.platforms;
-                            renderColOpPlatforms();
-                        }
-                    })
-                    .catch(e => console.error('加载平台列表失败:', e));
-            }
+            fetch('/api/platforms')
+                .then(r => r.json())
+                .then(data => {
+                    const platforms = Array.isArray(data) ? data : (data.platforms || []);
+                    if (platforms.length) {
+                        colOpPlatforms = platforms;
+                        renderColOpPlatforms();
+                    }
+                })
+                .catch(e => console.error('加载平台列表失败:', e));
         }
 
         function renderColOpSelects() {
