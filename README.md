@@ -12,6 +12,26 @@
 - **Version mechanism refactoring**: “副本” renamed to “版本”, runtime `game.version` auto-derived from file extension, auto-detected on import
 - **ScreenScraper scraping optimization**: unified OkHttpClient connection pool, manifest cache full coverage, FAILED task URL reuse
 
+### Export — fixes & improvements
+
+- **Path consistency**: the ROM file copied out and the path written into the list file are now derived from one pre-computed source, so metadata always points to the actual file — including after format conversion (ISO / CSO / CHD …)
+- **No more “unscraped” pre-check**: exporting no longer interrupts with a warning dialog when some games have no scraped metadata
+- **Flatter output layout**: genre sub-directories were dropped (except the games-media template) — games export directly into the platform folder
+- **Multi-file games**: export templates now carry complete CUE / M3U blocks, so multi-disc games export with their tracklists intact
+- **Template picker polish**: every v3 import/export template now has English / Chinese / Japanese descriptions; the dropdown lists short names while the description box shows the full text
+- **Fixed**: path expressions evaluate before variable substitution, and unresolved `{placeholder}` segments are rejected instead of creating literal folder names when the output path is empty
+
+### Platform separation — move semantics & filter overhaul
+
+- **True move semantics**: separating games into a new platform now transfers them (copy + delete in one transaction) instead of leaving copies behind on the original platform
+- **Game-subset separation**: snapshots, sync and copy-back to the main platform now cover every ScreenScraper media field, fixing media paths being lost when syncing back
+- **Filter overhaul**: the separation dialog now mirrors the game-list search area — searchable multi-selects for publisher / developer / genre, plus game-name search, match status, folder path and language filters; dropdown panels no longer get clipped or unclickable inside the modal
+- **Fixed**: the genre filter mixed up IDs and names (always returning 0 results), and a filter that matches 0 games now shows an explicit warning
+
+### Import — multi-file matching fixes
+
+- **Multi-file game expansion**: per-disc records created on import now carry the matching fields (ssGameId, CRC32, MD5, matched), so each disc keeps its own media folder
+
 ---
 
 ## What's New in 1.3.7
