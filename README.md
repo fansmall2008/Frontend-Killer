@@ -32,6 +32,11 @@
 
 - **Multi-file game expansion**: per-disc records created on import now carry the matching fields (ssGameId, CRC32, MD5, matched), so each disc keeps its own media folder
 
+### Roadmap note
+
+- **Stability first**: no new features are planned before 1.4.0 — upcoming releases will ship bug fixes only
+- **Next — 1.4.0**: the planned feature set stays unchanged, and an onboarding / guided setup experience will be added on top
+
 ---
 
 ## What's New in 1.3.7
