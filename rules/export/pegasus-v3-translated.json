@@ -6,8 +6,8 @@
     "delimiter": ": ",
     "dataFile": "metadata.pegasus.txt",
     "author": "Frontend-Killer",
-    "description": "Pegasus Frontend (Translated)",
-    "notes": "翻译版本：使用 translatedName 和 translatedDesc 替代原始名称和描述"
+    "description": "Pegasus Frontend (Translated) — Same as pegasus-v3 but uses translatedName and translatedDesc / Pegasus 前端（翻译版）— 与 pegasus-v3 相同，但使用 translatedName 和 translatedDesc 替代原始名称和描述 / Pegasus フロントエンド（翻訳版）— pegasus-v3 と同じだが translatedName と translatedDesc を使用",
+    "notes": "Identical to pegasus-v3 in structure and output format. Data file: metadata.pegasus.txt in {outputPath}/{platform.system}/. ROM files copied to {outputPath}/{platform.system}/. Media files in {outputPath}/{platform.system}/media/{gameName}/. Key difference: game name uses translatedName (fallback to name) and description uses translatedDesc (fallback to desc). Paths are relative. Supports multi-disc games via files field.\n\n与 pegasus-v3 结构和输出格式完全相同。数据文件：metadata.pegasus.txt 位于 {outputPath}/{platform.system}/。ROM 拷贝到 {outputPath}/{platform.system}/。媒体文件位于 {outputPath}/{platform.system}/media/{gameName}/。核心区别：游戏名使用 translatedName（回退到 name），描述使用 translatedDesc（回退到 desc）。路径为相对路径。支持多盘游戏。\n\npegasus-v3 と同じ構造と出力形式。データファイル：metadata.pegasus.txt は {outputPath}/{platform.system}/ に配置。ROM は {outputPath}/{platform.system}/ にコピー。メディアは {outputPath}/{platform.system}/media/{gameName}/ に配置。主な違い：ゲーム名に translatedName（フォールバック: name）、説明に translatedDesc（フォールバック: desc）を使用。相対パス。マルチディスク対応。"
   },
   "system": {
     "header": [
@@ -34,7 +34,7 @@
     "entrySeparator": "\n\n",
     "gameInfo": {
       "game": "coalesce(translatedName, name)",
-      "file": "if(multiFile, '', path)",
+      "file": "if(multiFile, '', coalesce(romExportPath, path))",
       "files": "multiFileContent",
       "sort-by": "sort-by",
       "developer": "developer",
@@ -73,13 +73,16 @@
     },
     "roms": {
       "enabled": true,
-      "directory": "if(genre, concat('{outputPath}/', platform.system, '/', mapFirst(genre)), '{outputPath}/{platform.system}')",
+      "directory": "{outputPath}/{platform.system}",
       "filename": "{filename}{ext}",
       "m3u": {
         "enabled": false,
         "target": "{outputPath}/{platform.system}"
       },
-      "cue": { "enabled": true, "onMissing": "warn" }
+      "cue": {
+        "enabled": true,
+        "onMissing": "warn"
+      }
     },
     "media": {
       "directory": "{outputPath}/{platform.system}/media",

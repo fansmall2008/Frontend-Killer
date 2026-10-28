@@ -6,8 +6,8 @@
     "format": "xml",
     "dataFile": "gamelist.xml",
     "author": "Frontend-Killer",
-    "description": "EmulationStation DE",
-    "notes": "输出 gamelist.xml 格式。注意：仅导出元数据和媒体文件，不导出 ROM 文件"
+    "description": "ES-DE gamelist.xml — relative paths, ROMs NOT copied, media in downloaded_media layout / ES-DE gamelist.xml — 相对路径，不拷贝 ROM，媒体按 downloaded_media 布局 / ES-DE gamelist.xml — 相対パス、ROM 未コピー、メディアは downloaded_media 配置",
+    "notes": "Data file: gamelist.xml in {outputPath}/gamelists/{platform.system}/. ROM files are NOT copied. Media files in {outputPath}/downloaded_media/{platform.system}/. Path format: relative (./ prefix). Includes provider tag with system info. Supports M3U chain collection.\n\n数据文件：gamelist.xml 位于 {outputPath}/gamelists/{platform.system}/。不拷贝 ROM 文件。媒体文件位于 {outputPath}/downloaded_media/{platform.system}/。路径格式：相对路径（./ 前缀）。含 provider 标签（系统信息）。支持 M3U 链式收集。\n\nデータファイル：gamelist.xml は {outputPath}/gamelists/{platform.system}/ に配置。ROM ファイルはコピーされません。メディアファイルは {outputPath}/downloaded_media/{platform.system}/ に配置。パス形式：相対パス（./ プレフィックス）。システム情報付き provider タグ対応。M3U チェーン収集対応。"
   },
   "system": {
     "systemTag": "provider",

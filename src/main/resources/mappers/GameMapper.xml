@@ -1067,10 +1067,11 @@
         <if test="genre != null and genre != ''">
             AND (g.genre LIKE CONCAT('%', #{genre}, '%'))
         </if>
+        <!-- 游戏类型按 genreid 逗号分隔匹配（genres 传入类型 id 集合，与游戏列表页契约一致） -->
         <if test="genres != null and !genres.isEmpty()">
             AND (
-                <foreach collection="genres" item="gn" separator="OR">
-                    g.genre LIKE CONCAT('%', #{gn}, '%')
+                <foreach collection="genres" item="gid" separator="OR">
+                    CONCAT(',', REPLACE(COALESCE(g.genreid, ''), ' ', ''), ',') LIKE CONCAT('%,', #{gid}, ',%')
                 </foreach>
             )
         </if>
@@ -1253,6 +1254,30 @@
             )
         </if>
         
+        <!-- 匹配状态筛选 -->
+        <if test="matchedStatuses != null and matchedStatuses.size() &gt; 0">
+            AND (
+            <foreach item="ms" collection="matchedStatuses" separator=" OR ">
+                <choose>
+                    <when test="ms == 'matched'">g.matched = true</when>
+                    <when test="ms == 'suspect'">(g.matched = false OR g.matched IS NULL) AND (g.scraped = true OR g.match_suspect = true)</when>
+                    <when test="ms == 'unmatched'">(g.matched = false OR g.matched IS NULL) AND (g.scraped = false OR g.scraped IS NULL) AND (g.match_suspect = false OR g.match_suspect IS NULL)</when>
+                    <otherwise>1=1</otherwise>
+                </choose>
+            </foreach>
+            )
+        </if>
+        
+        <!-- 游戏名/路径模糊搜索 -->
+        <if test="searchInput != null and searchInput != ''">
+            AND (LOWER(g.name) LIKE CONCAT('%', LOWER(#{searchInput}), '%') OR LOWER(g.path) LIKE CONCAT('%', LOWER(#{searchInput}), '%'))
+        </if>
+        
+        <!-- 文件夹路径筛选 -->
+        <if test="folderPath != null and folderPath != ''">
+            AND LOWER(g.path) LIKE CONCAT('%', LOWER(#{folderPath}), '%')
+        </if>
+        
         ORDER BY g.name
     </select>
     
@@ -1335,12 +1360,13 @@
             </foreach>
         </if>
         
-        <!-- 游戏类型筛选（多选） -->
+        <!-- 游戏类型按 genreid 逗号分隔匹配（genres 传入类型 id 集合，与游戏列表页契约一致） -->
         <if test="genres != null and !genres.isEmpty()">
-            AND g.genre IN
-            <foreach collection="genres" item="genre" open="(" close=")" separator=",">
-                #{genre}
-            </foreach>
+            AND (
+                <foreach collection="genres" item="gid" separator="OR">
+                    CONCAT(',', REPLACE(COALESCE(g.genreid, ''), ' ', ''), ',') LIKE CONCAT('%,', #{gid}, ',%')
+                </foreach>
+            )
         </if>
         
         <!-- 玩家数量筛选（多选） -->
@@ -1493,6 +1519,30 @@
                     </choose>
                 </foreach>
             )
+        </if>
+        
+        <!-- 匹配状态筛选 -->
+        <if test="matchedStatuses != null and matchedStatuses.size() &gt; 0">
+            AND (
+            <foreach item="ms" collection="matchedStatuses" separator=" OR ">
+                <choose>
+                    <when test="ms == 'matched'">g.matched = true</when>
+                    <when test="ms == 'suspect'">(g.matched = false OR g.matched IS NULL) AND (g.scraped = true OR g.match_suspect = true)</when>
+                    <when test="ms == 'unmatched'">(g.matched = false OR g.matched IS NULL) AND (g.scraped = false OR g.scraped IS NULL) AND (g.match_suspect = false OR g.match_suspect IS NULL)</when>
+                    <otherwise>1=1</otherwise>
+                </choose>
+            </foreach>
+            )
+        </if>
+        
+        <!-- 游戏名/路径模糊搜索 -->
+        <if test="searchInput != null and searchInput != ''">
+            AND (LOWER(g.name) LIKE CONCAT('%', LOWER(#{searchInput}), '%') OR LOWER(g.path) LIKE CONCAT('%', LOWER(#{searchInput}), '%'))
+        </if>
+        
+        <!-- 文件夹路径筛选 -->
+        <if test="folderPath != null and folderPath != ''">
+            AND LOWER(g.path) LIKE CONCAT('%', LOWER(#{folderPath}), '%')
         </if>
     </select>
     

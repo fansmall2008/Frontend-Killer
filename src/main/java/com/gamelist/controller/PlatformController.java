@@ -124,6 +124,9 @@ public class PlatformController {
             result.put("platformName", platform.getName());
             result.put("platformId", platform.getId());
             result.put("gameCount", gameCount);
+            if (gameCount == 0) {
+                result.put("message", "筛选结果为 0 个游戏，新平台已创建但为空");
+            }
             
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {

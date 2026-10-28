@@ -71,6 +71,8 @@ distribution/*.zip
 distribution/
 
 # Screenshots and temp files
+# 根目录所有调试/验证截图一律不入库（已跟踪的历史文件不受影响）
+/*.png
 screenshot_*.png
 regression_*.png
 ui-prototype*.html

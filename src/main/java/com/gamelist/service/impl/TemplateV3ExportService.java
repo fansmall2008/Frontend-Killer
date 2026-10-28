@@ -68,6 +68,17 @@ public class TemplateV3ExportService {
      */
     public void exportToFile(List<Game> games, TemplateV3 template, Platform platform,
                              Map<String, String> variables) throws Exception {
+        exportToFile(games, template, platform, variables, null);
+    }
+
+    /**
+     * 使用 v3 模板生成数据文件（支持 ROM 导出路径注入）。
+     *
+     * @param romExportPaths 预计算的 ROM 导出路径（gameId → 绝对路径），null 表示不注入
+     */
+    public void exportToFile(List<Game> games, TemplateV3 template, Platform platform,
+                             Map<String, String> variables,
+                             Map<Long, String> romExportPaths) throws Exception {
         if (!template.getTemplateInfo().isExport()) {
             throw new IllegalArgumentException("模板方向不是 export: " + template.getTemplateInfo().getDirection());
         }
@@ -79,15 +90,14 @@ public class TemplateV3ExportService {
         }
 
         Map<String, String> vars = buildVariables(platform, variables);
-        String dataFileDir = resolveTemplateString(output.getDataFile().getDirectory(), platform, vars);
-        // 文件名同样支持模板变量（如 {platform.name}.lpl）
+        String dataFileDirResolved = resolveTemplateString(output.getDataFile().getDirectory(), platform, vars);
         String dataFileName = resolveTemplateString(output.getDataFile().getFilename(), platform, vars);
         if (dataFileName == null || dataFileName.isEmpty()) {
             dataFileName = template.getTemplateInfo().getDataFile();
         }
 
-        File outputFile = new File(dataFileDir, dataFileName);
-        String content = generateContent(games, template, platform, variables);
+        File outputFile = new File(dataFileDirResolved, dataFileName);
+        String content = generateContent(games, template, platform, variables, romExportPaths, dataFileDirResolved);
 
         // 确保输出目录存在
         Path parentDir = outputFile.toPath().getParent();
@@ -107,6 +117,15 @@ public class TemplateV3ExportService {
      */
     public String generateContent(List<Game> games, TemplateV3 template, Platform platform,
                                   Map<String, String> variables) {
+        return generateContent(games, template, platform, variables, null, null);
+    }
+
+    /**
+     * 生成数据文件的完整内容（支持 ROM 导出路径注入）。
+     */
+    public String generateContent(List<Game> games, TemplateV3 template, Platform platform,
+                                  Map<String, String> variables,
+                                  Map<Long, String> romExportPaths, String dataFileDir) {
         Map<String, String> vars = buildVariables(platform, variables);
         String fileType = template.getTemplateInfo().getDataFileType();
         String format = template.getTemplateInfo().getFormat();
@@ -115,7 +134,7 @@ public class TemplateV3ExportService {
 
         // JSON 型：整体由顶层字段 + 条目数组组成，单独组装
         if (isJson) {
-            return generateJsonContent(games, template, platform, vars);
+            return generateJsonContent(games, template, platform, vars, romExportPaths, dataFileDir);
         }
 
         StringBuilder content = new StringBuilder();
@@ -131,11 +150,18 @@ public class TemplateV3ExportService {
             // 计算该游戏的媒体路径覆盖（从 output.media.rules）
             Map<String, String> mediaOverrides = computeMediaPathOverrides(game, template, platform, vars);
 
+            // 注入 ROM 导出路径变量
+            injectRomExportPath(game, vars, romExportPaths, dataFileDir, template);
+
             if (isXml) {
                 generateXmlGameEntry(content, game, template, platform, vars, mediaOverrides);
             } else {
                 generateTextGameEntry(content, game, template, platform, vars, mediaOverrides);
             }
+            // 清理 ROM 导出路径变量
+            vars.remove("romExportPath");
+            vars.remove("romExportPathAbs");
+
             // 条目分隔符（最后一个条目后不加）
             if (i < games.size() - 1 && entrySeparator != null && !entrySeparator.isEmpty()) {
                 content.append(entrySeparator);
@@ -180,7 +206,8 @@ public class TemplateV3ExportService {
      * 转义与缩进全部交给 Jackson。
      */
     private String generateJsonContent(List<Game> games, TemplateV3 template,
-                                       Platform platform, Map<String, String> vars) {
+                                       Platform platform, Map<String, String> vars,
+                                       Map<Long, String> romExportPaths, String dataFileDir) {
         ObjectNode doc = MAPPER.createObjectNode();
 
         // 顶层字段（保序）
@@ -205,7 +232,10 @@ public class TemplateV3ExportService {
         ArrayNode items = MAPPER.createArrayNode();
         for (Game game : games) {
             Map<String, String> mediaOverrides = computeMediaPathOverrides(game, template, platform, vars);
+            injectRomExportPath(game, vars, romExportPaths, dataFileDir, template);
             items.add(buildJsonEntry(game, template, platform, vars, mediaOverrides));
+            vars.remove("romExportPath");
+            vars.remove("romExportPathAbs");
         }
         doc.set(itemsKey, items);
 
@@ -712,6 +742,32 @@ public class TemplateV3ExportService {
     private boolean containsPathField(String sourceExpr) {
         if (sourceExpr == null) return false;
         return java.util.regex.Pattern.compile("\\b(path|m3uPath)\\b").matcher(sourceExpr).find();
+    }
+
+    /**
+     * 注入 ROM 导出路径变量到 vars，供模板表达式中的 coalesce(romExportPath, path) 使用。
+     * <p>
+     * romExportPath = 相对于数据文件目录的 ROM 目标路径（按 pathFormat 格式化）；
+     * romExportPathAbs = ROM 目标的绝对路径。
+     * 调用方负责在使用后清理这两个变量。
+     */
+    private void injectRomExportPath(Game game, Map<String, String> vars,
+                                      Map<Long, String> romExportPaths, String dataFileDir,
+                                      TemplateV3 template) {
+        if (romExportPaths == null || game.getId() == null || !romExportPaths.containsKey(game.getId())) {
+            return;
+        }
+        String romTargetAbs = romExportPaths.get(game.getId());
+        vars.put("romExportPathAbs", romTargetAbs);
+        if (dataFileDir != null) {
+            String romTargetRel = PathResolver.relativize(
+                    java.nio.file.Paths.get(dataFileDir),
+                    java.nio.file.Paths.get(romTargetAbs));
+            String pathFormat = getPathFormat(template);
+            vars.put("romExportPath", PathResolver.formatExportPath(romTargetRel, pathFormat));
+        } else {
+            vars.put("romExportPath", romTargetAbs);
+        }
     }
 
     private String escapeXml(String value) {

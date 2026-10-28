@@ -6,6 +6,7 @@
     <title data-i18n="platform_mgmt_title">平台管理 - Frontend-Killer</title>
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <link rel="stylesheet" th:href="@{/css/platform-management.css}">
+    <link rel="stylesheet" th:href="@{/css/game-list.css}">
     <script src="/js/i18n.js"></script>
 </head>
 <body>
@@ -544,27 +545,36 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="developerSelect" data-i18n="developer">开发商 <small style="color:#888">(Ctrl+点击多选)</small></label>
-                            <input type="text" id="developerSearch" placeholder="搜索开发商..." data-placeholder-i18n="search_developer" style="margin-bottom:4px; padding:4px 8px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(0,255,255,0.2); border-radius:4px; color:#ccc;">
-                            <select id="developerSelect" multiple style="height: 100px;">
-                            </select>
+                            <label data-i18n="developer">开发商</label>
+                            <div class="ms-select" id="modalDeveloperMs">
+                                <div class="ms-display" data-ms-display="modalDeveloper"><span class="ms-placeholder" data-i18n="ms_placeholder">选择开发商</span></div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="publisherSelect" data-i18n="publisher">发行商 <small style="color:#888">(Ctrl+点击多选)</small></label>
-                            <input type="text" id="publisherSearch" placeholder="搜索发行商..." data-placeholder-i18n="search_publisher" style="margin-bottom:4px; padding:4px 8px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(0,255,255,0.2); border-radius:4px; color:#ccc;">
-                            <select id="publisherSelect" multiple style="height: 100px;">
-                            </select>
+                            <label data-i18n="publisher">发行商</label>
+                            <div class="ms-select" id="modalPublisherMs">
+                                <div class="ms-display" data-ms-display="modalPublisher"><span class="ms-placeholder" data-i18n="ms_placeholder">选择发行商</span></div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="genreSelect" data-i18n="genre">游戏类型 <small style="color:#888">(Ctrl+点击多选)</small></label>
-                            <input type="text" id="genreSearch" placeholder="搜索类型..." data-placeholder-i18n="search_genre" style="margin-bottom:4px; padding:4px 8px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(0,255,255,0.2); border-radius:4px; color:#ccc;">
-                            <select id="genreSelect" multiple style="height: 100px;">
-                            </select>
+                            <label data-i18n="genre">游戏类型</label>
+                            <div class="ms-select" id="modalGenreMs">
+                                <div class="ms-display" data-ms-display="modalGenre"><span class="ms-placeholder" data-i18n="ms_placeholder">选择类型</span></div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="playersSelect" data-i18n="players">玩家数量 <small style="color:#888">(Ctrl+点击多选)</small></label>
-                            <select id="playersSelect" multiple style="height: 100px;">
-                            </select>
+                            <label data-i18n="players">玩家数量</label>
+                            <div class="checkbox-group" id="modalPlayersCheckboxes">
+                                <!-- 动态填充玩家数量复选框 -->
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="match_status">匹配状态</label>
+                            <div class="checkbox-group" id="modalMatchedCheckboxes">
+                                <label><input type="checkbox" value="matched"> <span data-i18n="matched_yes">已匹配</span></label>
+                                <label><input type="checkbox" value="suspect"> <span data-i18n="matched_suspect">疑似</span></label>
+                                <label><input type="checkbox" value="unmatched"> <span data-i18n="matched_no">未匹配</span></label>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="language" data-i18n="language">语言</label>
@@ -583,6 +593,15 @@
                                 <option value="nl">Nederlands</option>
                                 <option value="ru">Русский</option>
                             </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label data-i18n="search_games">游戏名/路径搜索</label>
+                            <input type="text" id="modalSearchInput" placeholder="搜索游戏名称或路径..." data-i18n-placeholder="search_games_placeholder">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label data-i18n="folder_path_label">文件夹路径</label>
+                            <input type="text" id="modalFolderPath" placeholder="输入文件夹名称（支持任意层级）" data-i18n-placeholder="folder_path_placeholder">
+                            <span style="color: #888; font-size: 12px; margin-left: 10px;" data-i18n="folder_path_example">例如: a 或 b 都能匹配 a/b/c/xxx.nes</span>
                         </div>
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label for="gameNameRegex" data-i18n="game_name_regex">游戏名正则表达式</label>
@@ -1904,6 +1923,9 @@
                 const modal = this.closest('.pm-modal');
                 if (modal) {
                     modal.style.display = 'none';
+                    if (modal.id === 'separationModal') {
+                        closeAllModalMsDropdowns();
+                    }
                 }
             });
         });
@@ -2946,62 +2968,308 @@
             document.getElementById('separationPlatformId').value = id;
             document.getElementById('separationModal').style.display = 'block';
             
-            // 加载唯一值到下拉框
-            loadUniqueValues();
+            // 加载筛选选项（开发商、发行商、类型两级树、玩家数量）
+            loadModalFilterOptions(id);
             
-            // 初始化搜索过滤
-            _initSeparationSearchFilter('developerSearch', 'developerSelect');
-            _initSeparationSearchFilter('publisherSearch', 'publisherSelect');
-            _initSeparationSearchFilter('genreSearch', 'genreSelect');
+            // 初始化 ms-select 组件
+            initModalMsSelects();
         }
         
-        // 加载唯一值到下拉框
-        function loadUniqueValues() {
-            // 加载唯一的开发商、发行商、游戏类型和玩家数量
-            fetch('/api/gamelist/games/unique-values')
-            .then(response => response.json())
-            .then(data => {
-                // 填充开发商下拉框
-                const developerSelect = document.getElementById('developerSelect');
-                developerSelect.innerHTML = '';
-                (data.developers || []).forEach(developer => {
-                    const option = document.createElement('option');
-                    option.value = developer;
-                    option.textContent = developer;
-                    developerSelect.appendChild(option);
+        // ==================== 分离弹窗多选下拉组件（开发商 / 发行商 / 游戏类型两级） ====================
+        const modalMsState = {
+            modalDeveloper: { selected: new Set(), options: [], labels: {} },
+            modalPublisher: { selected: new Set(), options: [], labels: {} },
+            modalGenre: { selected: new Set(), tree: [], labels: {}, childrenOf: {} }
+        };
+        
+        function modalEscapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        
+        // 从后端加载筛选选项（开发商、发行商、类型两级树、玩家数量）
+        function loadModalFilterOptions(platformId) {
+            const qs = (platformId && platformId !== '') ? `?platformId=${platformId}` : '';
+            fetch(`/api/gamelist/filter-options${qs}`)
+                .then(r => r.json())
+                .then(data => {
+                    modalMsState.modalDeveloper.options = data.developers || [];
+                    modalMsState.modalPublisher.options = data.publishers || [];
+                    modalMsState.modalGenre.tree = data.genres || [];
+                    
+                    modalMsState.modalDeveloper.labels = {};
+                    modalMsState.modalDeveloper.options.forEach(n => modalMsState.modalDeveloper.labels[n] = n);
+                    modalMsState.modalPublisher.labels = {};
+                    modalMsState.modalPublisher.options.forEach(n => modalMsState.modalPublisher.labels[n] = n);
+                    modalMsState.modalGenre.labels = {};
+                    modalMsState.modalGenre.childrenOf = {};
+                    modalMsState.modalGenre.tree.forEach(top => {
+                        modalMsState.modalGenre.labels[top.id] = top.name;
+                        const childIds = (top.children || []).map(c => c.id);
+                        modalMsState.modalGenre.childrenOf[top.id] = childIds;
+                        (top.children || []).forEach(c => { modalMsState.modalGenre.labels[c.id] = c.name; });
+                    });
+                    
+                    renderModalMsDisplay('modalDeveloper');
+                    renderModalMsDisplay('modalPublisher');
+                    renderModalMsDisplay('modalGenre');
+                    
+                    // 填充玩家数量复选框
+                    const players = data.players || [];
+                    const playersCheckboxes = document.getElementById('modalPlayersCheckboxes');
+                    if (playersCheckboxes) {
+                        playersCheckboxes.innerHTML = '';
+                        players.forEach(player => {
+                            const label = document.createElement('label');
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.value = player;
+                            label.appendChild(input);
+                            label.appendChild(document.createTextNode(player));
+                            playersCheckboxes.appendChild(label);
+                        });
+                    }
+                })
+                .catch(err => console.error('加载筛选选项失败:', err));
+        }
+        
+        // ==================== 单例下拉面板 ====================
+        // 分离弹窗的 .pm-modal 带 backdrop-filter，会为 fixed 定位创建包含块，
+        // 因此下拉面板不放回弹窗内部，而是使用挂在 document.body 下的单例面板：
+        // 打开时把当前 key 的选项渲染进面板并定位到触发元素正下方，关闭时仅隐藏面板。
+        let modalMsActiveKey = null;
+        let modalMsPanel = null;
+        
+        function getModalMsPanel() {
+            if (modalMsPanel) return modalMsPanel;
+            modalMsPanel = document.createElement('div');
+            modalMsPanel.id = 'modalMsSingletonPanel';
+            modalMsPanel.className = 'ms-dropdown';
+            modalMsPanel.style.display = 'none';
+            modalMsPanel.innerHTML = '<input type="text" class="ms-search"><div class="ms-options"></div>';
+            document.body.appendChild(modalMsPanel);
+            const searchInput = modalMsPanel.querySelector('.ms-search');
+            searchInput.addEventListener('input', e => {
+                if (modalMsActiveKey) renderModalMsOptions(modalMsActiveKey, e.target.value);
+            });
+            searchInput.addEventListener('click', e => e.stopPropagation());
+            searchInput.addEventListener('keydown', e => {
+                if (e.key === 'Escape') closeAllModalMsDropdowns();
+            });
+            modalMsPanel.querySelector('.ms-options').addEventListener('mousedown', e => {
+                const opt = e.target.closest('.ms-option');
+                if (!opt || !modalMsActiveKey) return;
+                e.preventDefault();
+                toggleModalMsOption(modalMsActiveKey, opt.getAttribute('data-ms-id'));
+            });
+            // 面板内部点击不冒泡，避免触发“点击外部关闭”逻辑
+            modalMsPanel.addEventListener('click', e => e.stopPropagation());
+            return modalMsPanel;
+        }
+        
+        function currentModalMsFilter(key) {
+            if (modalMsActiveKey === key && modalMsPanel) {
+                const input = modalMsPanel.querySelector('.ms-search');
+                return input ? input.value : '';
+            }
+            const input = document.querySelector(`[data-ms-search="${key}"]`);
+            return input ? input.value : '';
+        }
+        
+        function toggleModalMsDropdown(key) {
+            if (modalMsActiveKey === key) {
+                closeAllModalMsDropdowns();
+                return;
+            }
+            openModalMsDropdown(key);
+        }
+        
+        function openModalMsDropdown(key) {
+            const selectEl = document.getElementById(key + 'Ms');
+            if (!selectEl) return;
+            closeAllModalMsDropdowns();
+            modalMsActiveKey = key;
+            const panel = getModalMsPanel();
+            const searchInput = panel.querySelector('.ms-search');
+            searchInput.value = '';
+            searchInput.placeholder = _pi18n('ms_search_placeholder', '');
+            renderModalMsOptions(key, '');
+            panel.style.display = 'block';
+            positionModalMsDropdown(key);
+            selectEl.classList.add('open');
+            setTimeout(() => {
+                if (modalMsActiveKey === key && modalMsPanel) {
+                    modalMsPanel.querySelector('.ms-search').focus();
+                }
+            }, 0);
+            
+            // 滚动跟随：弹窗内容滚动时重新定位面板
+            const modalContent = document.querySelector('#separationModal .pm-modal-content');
+            if (modalContent && !modalContent._msScrollHandler) {
+                modalContent._msScrollHandler = () => positionModalMsDropdown(modalMsActiveKey);
+                modalContent.addEventListener('scroll', modalContent._msScrollHandler, { passive: true });
+            }
+        }
+        
+        function positionModalMsDropdown(key) {
+            if (!modalMsPanel || modalMsPanel.style.display === 'none') return;
+            if (modalMsActiveKey !== key) return;
+            const selectEl = document.getElementById(key + 'Ms');
+            if (!selectEl) return;
+            const rect = selectEl.getBoundingClientRect();
+            modalMsPanel.style.top = (rect.bottom + 4) + 'px';
+            modalMsPanel.style.left = rect.left + 'px';
+            modalMsPanel.style.width = rect.width + 'px';
+        }
+        
+        function closeAllModalMsDropdowns() {
+            modalMsActiveKey = null;
+            if (modalMsPanel) {
+                modalMsPanel.style.display = 'none';
+            }
+            document.querySelectorAll('#separationModal .ms-select').forEach(el => el.classList.remove('open'));
+            // 移除滚动监听器
+            const modalContent = document.querySelector('#separationModal .pm-modal-content');
+            if (modalContent && modalContent._msScrollHandler) {
+                modalContent.removeEventListener('scroll', modalContent._msScrollHandler);
+                delete modalContent._msScrollHandler;
+            }
+        }
+        
+        function renderModalMsOptions(key, filterText) {
+            // 面板打开时选项渲染进单例面板；未打开时回退查询原位容器（通常为空操作）
+            let container = null;
+            if (modalMsActiveKey === key && modalMsPanel) {
+                container = modalMsPanel.querySelector('.ms-options');
+            } else {
+                container = document.querySelector(`[data-ms-options="${key}"]`);
+            }
+            if (!container) return;
+            const f = (filterText || '').toLowerCase();
+            let html = '';
+            if (key === 'modalGenre') {
+                modalMsState.modalGenre.tree.forEach(top => {
+                    const children = (top.children || []).filter(c => c.name.toLowerCase().includes(f));
+                    const topMatch = top.name.toLowerCase().includes(f);
+                    if (!topMatch && children.length === 0) return;
+                    if (topMatch || children.length > 0) {
+                        html += `<div class="ms-option${modalMsState.modalGenre.selected.has(top.id) ? ' ms-checked' : ''}" data-ms-id="${modalEscapeHtml(top.id)}">
+                            <input type="checkbox" ${modalMsState.modalGenre.selected.has(top.id) ? 'checked' : ''}>
+                            <span>${modalEscapeHtml(top.name)}</span></div>`;
+                    }
+                    children.forEach(c => {
+                        html += `<div class="ms-option ms-child${modalMsState.modalGenre.selected.has(c.id) ? ' ms-checked' : ''}" data-ms-id="${modalEscapeHtml(c.id)}">
+                            <input type="checkbox" ${modalMsState.modalGenre.selected.has(c.id) ? 'checked' : ''}>
+                            <span>${modalEscapeHtml(c.name)}</span></div>`;
+                    });
                 });
-                
-                // 填充发行商下拉框
-                const publisherSelect = document.getElementById('publisherSelect');
-                publisherSelect.innerHTML = '';
-                (data.publishers || []).forEach(publisher => {
-                    const option = document.createElement('option');
-                    option.value = publisher;
-                    option.textContent = publisher;
-                    publisherSelect.appendChild(option);
+            } else {
+                const st = modalMsState[key];
+                st.options.filter(n => n.toLowerCase().includes(f)).forEach(name => {
+                    html += `<div class="ms-option${st.selected.has(name) ? ' ms-checked' : ''}" data-ms-id="${modalEscapeHtml(name)}">
+                        <input type="checkbox" ${st.selected.has(name) ? 'checked' : ''}>
+                        <span>${modalEscapeHtml(name)}</span></div>`;
                 });
-                
-                // 填充游戏类型下拉框
-                const genreSelect = document.getElementById('genreSelect');
-                genreSelect.innerHTML = '';
-                (data.genres || []).forEach(genre => {
-                    const option = document.createElement('option');
-                    option.value = genre;
-                    option.textContent = genre;
-                    genreSelect.appendChild(option);
+            }
+            if (!html) {
+                html = `<div class="ms-empty" data-i18n="ms_no_match">${typeof I18n !== 'undefined' && I18n.t ? I18n.t('ms_no_match') : '无匹配选项'}</div>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        function toggleModalMsOption(key, value) {
+            const st = modalMsState[key];
+            if (key === 'modalGenre') {
+                if (st.selected.has(value)) {
+                    st.selected.delete(value);
+                    const children = st.childrenOf[value] || [];
+                    children.forEach(c => st.selected.delete(c));
+                } else {
+                    st.selected.add(value);
+                    const children = st.childrenOf[value] || [];
+                    children.forEach(c => st.selected.add(c));
+                }
+            } else {
+                if (st.selected.has(value)) st.selected.delete(value); else st.selected.add(value);
+            }
+            renderModalMsDisplay(key);
+            renderModalMsOptions(key, currentModalMsFilter(key));
+        }
+        
+        function orderedModalGenreSelection() {
+            const out = [];
+            const seen = new Set();
+            modalMsState.modalGenre.tree.forEach(top => {
+                if (modalMsState.modalGenre.selected.has(top.id) && !seen.has(top.id)) {
+                    out.push(top.id);
+                    seen.add(top.id);
+                }
+                (top.children || []).forEach(c => {
+                    if (modalMsState.modalGenre.selected.has(c.id) && !seen.has(c.id)) {
+                        out.push(c.id);
+                        seen.add(c.id);
+                    }
                 });
-                
-                // 填充玩家数量下拉框
-                const playersSelect = document.getElementById('playersSelect');
-                playersSelect.innerHTML = '';
-                (data.players || []).forEach(player => {
-                    const option = document.createElement('option');
-                    option.value = player;
-                    option.textContent = player;
-                    playersSelect.appendChild(option);
+            });
+            modalMsState.modalGenre.selected.forEach(id => {
+                if (!seen.has(id)) out.push(id);
+            });
+            return out;
+        }
+        
+        function renderModalMsDisplay(key) {
+            const displayEl = document.querySelector(`[data-ms-display="${key}"]`);
+            if (!displayEl) return;
+            const st = modalMsState[key];
+            const values = key === 'modalGenre' ? orderedModalGenreSelection() : [...st.selected];
+            if (values.length === 0) {
+                displayEl.innerHTML = `<span class="ms-placeholder" data-i18n="ms_placeholder">${typeof I18n !== 'undefined' && I18n.t ? I18n.t('ms_placeholder') : '点击选择…'}</span>`;
+                return;
+            }
+            displayEl.innerHTML = values.map(v => {
+                const label = key === 'modalGenre' ? (st.labels[v] || v) : v;
+                return `<span class="ms-tag">${modalEscapeHtml(label)}<span class="ms-tag-remove" data-ms-remove="${modalEscapeHtml(v)}">×</span></span>`;
+            }).join('');
+            displayEl.querySelectorAll('.ms-tag-remove').forEach(el => {
+                el.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const v = el.getAttribute('data-ms-remove');
+                    modalMsState[key].selected.delete(v);
+                    renderModalMsDisplay(key);
+                    renderModalMsOptions(key, currentModalMsFilter(key));
                 });
-            })
-            .catch(error => console.error('Error loading unique values:', error));
+            });
+        }
+        
+        function resetModalMsSelect(key) {
+            modalMsState[key].selected.clear();
+            renderModalMsDisplay(key);
+            renderModalMsOptions(key, '');
+        }
+        
+        function initModalMsSelects() {
+            // 确保单例面板已创建（此时 i18n 已就绪）
+            getModalMsPanel();
+            document.querySelectorAll('#separationModal .ms-select').forEach(sel => {
+                const displayEl = sel.querySelector('.ms-display');
+                const key = displayEl ? displayEl.getAttribute('data-ms-display') : null;
+                if (!key) return;
+                // 避免重复绑定
+                if (sel.dataset.msBound === 'true') return;
+                sel.dataset.msBound = 'true';
+                displayEl.addEventListener('click', e => {
+                    if (e.target.closest('.ms-tag-remove')) return;
+                    toggleModalMsDropdown(key);
+                });
+            });
+            // 点击外部关闭下拉（面板内部点击已 stopPropagation，不会到达 document）
+            if (!window._modalMsOutsideClickBound) {
+                window._modalMsOutsideClickBound = true;
+                document.addEventListener('click', e => {
+                    if (e.target.closest('#separationModal .ms-select')) return;
+                    if (modalMsPanel && modalMsPanel.contains(e.target)) return;
+                    closeAllModalMsDropdowns();
+                });
+            }
         }
         
         // 空字段筛选模式切换（为空/不为空）
@@ -3021,18 +3289,7 @@
             });
         }
 
-        // 下拉框搜索过滤
-        function _initSeparationSearchFilter(searchInputId, selectId) {
-            const input = document.getElementById(searchInputId);
-            const select = document.getElementById(selectId);
-            if (!input || !select) return;
-            input.addEventListener('input', function() {
-                const term = this.value.toLowerCase();
-                Array.from(select.options).forEach(opt => {
-                    opt.style.display = opt.textContent.toLowerCase().includes(term) ? '' : 'none';
-                });
-            });
-        }
+        // 下拉框搜索过滤（已废弃，改用 ms-select 组件）
 
         // 页面加载时获取平台列表
         window.onload = function() {
@@ -3054,11 +3311,18 @@
                 return;
             }
             
-            // 收集多选下拉值
-            const selectedDevelopers = Array.from(document.getElementById('developerSelect').selectedOptions).map(o => o.value);
-            const selectedPublishers = Array.from(document.getElementById('publisherSelect').selectedOptions).map(o => o.value);
-            const selectedGenres = Array.from(document.getElementById('genreSelect').selectedOptions).map(o => o.value);
-            const selectedPlayers = Array.from(document.getElementById('playersSelect').selectedOptions).map(o => o.value);
+            // 收集多选下拉值（从 ms-select 组件获取）
+            const selectedDevelopers = [...modalMsState.modalDeveloper.selected];
+            const selectedPublishers = [...modalMsState.modalPublisher.selected];
+            const selectedGenres = [...modalMsState.modalGenre.selected];
+            const selectedPlayers = Array.from(document.querySelectorAll('#modalPlayersCheckboxes input:checked')).map(cb => cb.value);
+            
+            // 收集匹配状态
+            const matchedStatusValues = Array.from(document.querySelectorAll('#modalMatchedCheckboxes input:checked')).map(cb => cb.value);
+            
+            // 收集游戏名/路径搜索和文件夹路径
+            const searchInputValue = document.getElementById('modalSearchInput') ? document.getElementById('modalSearchInput').value.trim() : '';
+            const folderPathValue = document.getElementById('modalFolderPath') ? document.getElementById('modalFolderPath').value.trim() : '';
             
             // 收集刮削状态
             const scrapeStatusValues = Array.from(document.querySelectorAll('#separationModal input[name="scrapeStatus"]:checked')).map(cb => cb.value);
@@ -3086,7 +3350,10 @@
                     language: document.getElementById('language').value,
                     gameNameRegex: document.getElementById('gameNameRegex').value,
                     emptyFields: emptyFieldValues,
-                    emptyFieldsMode: emptyFieldsMode
+                    emptyFieldsMode: emptyFieldsMode,
+                    matchedStatuses: matchedStatusValues,
+                    searchInput: searchInputValue,
+                    folderPath: folderPathValue
                 }
             };
             
@@ -3115,6 +3382,7 @@
             // 立即显示任务开始通知
             showNotification(_pi18n('separation_task_started', '分离任务已开始'), 'success');
             document.getElementById('separationModal').style.display = 'none';
+            closeAllModalMsDropdowns();
             
             // 发送分离请求
             fetch(fetchUrl, {
@@ -3127,9 +3395,24 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    setTimeout(() => {
-                        showNotification(_pi18n('separation_task_completed', '分离任务已完成'), 'success');
-                    }, 3000);
+                    if (result.gameCount === 0) {
+                        // 筛选结果为空：显式警告而非普通完成通知
+                        const emptyMsg = result.message || _pi18n('separation_empty_result', '筛选结果为 0 个游戏，未分离任何游戏');
+                        showNotification(emptyMsg, 'warning');
+                        getPlatforms();
+                        if (typeof getTempSubsets === 'function') {
+                            getTempSubsets();
+                        }
+                    } else {
+                        setTimeout(() => {
+                            showNotification(_pi18n('separation_task_completed', '分离任务已完成'), 'success');
+                            // 刷新平台列表和子集列表
+                            getPlatforms();
+                            if (typeof getTempSubsets === 'function') {
+                                getTempSubsets();
+                            }
+                        }, 3000);
+                    }
                 } else {
                     showNotification(_pi18n('separation_task_failed', '分离任务失败') + ': ' + (result.errorMessage || _pi18n('unknown_error', '未知错误')), 'error');
                 }
@@ -3168,6 +3451,8 @@
                 notificationElement.style.background = 'linear-gradient(45deg, #00ff00, #008800)';
             } else if (type === 'error') {
                 notificationElement.style.background = 'linear-gradient(45deg, #ff0000, #880000)';
+            } else if (type === 'warning') {
+                notificationElement.style.background = 'linear-gradient(45deg, #ff9800, #b45309)';
             } else {
                 notificationElement.style.background = 'linear-gradient(45deg, #00ffff, #0088ff)';
             }

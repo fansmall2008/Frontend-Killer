@@ -17,6 +17,7 @@
         <result column="subset_id" property="subsetId"/>
         <result column="original_game_id" property="originalGameId"/>
         <result column="game_id" property="gameId"/>
+        <result column="ss_game_id" property="ssGameId"/>
         <result column="source" property="source"/>
         <result column="path" property="path"/>
         <result column="name" property="name"/>
@@ -35,13 +36,99 @@
         <result column="genre" property="genre"/>
         <result column="players" property="players"/>
         <result column="crc32" property="crc32"/>
+        <result column="md5" property="md5"/>
         <result column="lang" property="lang"/>
         <result column="genreid" property="genreid"/>
+        <result column="hash" property="hash"/>
+        <result column="platform_type" property="platformType"/>
         <result column="sort_by" property="sortBy"/>
         <result column="platform_id" property="platformId"/>
         <result column="platform_path" property="platformPath"/>
+        <result column="scraped" property="scraped"/>
+        <result column="edited" property="edited"/>
+        <result column="exists" property="exists"/>
+        <result column="absolute_path" property="absolutePath"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
+        <!-- SS 标准媒体字段 -->
+        <result column="box_2d" property="box2d"/>
+        <result column="box_2d_back" property="box2dBack"/>
+        <result column="box_2d_side" property="box2dSide"/>
+        <result column="box3d" property="box3D"/>
+        <result column="box_texture" property="boxTexture"/>
+        <result column="box_scan" property="boxScan"/>
+        <result column="support_2d" property="support2d"/>
+        <result column="support_texture" property="supportTexture"/>
+        <result column="support_scan" property="supportScan"/>
+        <result column="wheel" property="wheel"/>
+        <result column="wheel_hd" property="wheelHd"/>
+        <result column="wheel_carbon" property="wheelCarbon"/>
+        <result column="wheel_steel" property="wheelSteel"/>
+        <result column="screenmarquee" property="screenmarquee"/>
+        <result column="ss" property="ss"/>
+        <result column="sstitle" property="sstitle"/>
+        <result column="steamgrid" property="steamgrid"/>
+        <result column="fanart" property="fanart"/>
+        <result column="overlay" property="overlay"/>
+        <result column="video_normalized" property="videoNormalized"/>
+        <result column="flyer" property="flyer"/>
+        <result column="manuel" property="manuel"/>
+        <result column="maps" property="maps"/>
+        <result column="figurine" property="figurine"/>
+        <result column="bezel_4_3" property="bezel43"/>
+        <result column="bezel_4_3_v" property="bezel43V"/>
+        <result column="bezel_4_3_cocktail" property="bezel43Cocktail"/>
+        <result column="bezel_16_9" property="bezel169"/>
+        <result column="bezel_16_9_v" property="bezel169V"/>
+        <result column="bezel_16_9_cocktail" property="bezel169Cocktail"/>
+        <result column="mixrbv1" property="mixrbv1"/>
+        <result column="mixrbv2" property="mixrbv2"/>
+        <result column="themehb" property="themehb"/>
+        <result column="themehs" property="themehs"/>
+        <result column="ssdmd" property="ssdmd"/>
+        <result column="ssfronton16_9" property="ssfronton169"/>
+        <result column="ssfronton1_1" property="ssfronton11"/>
+        <result column="ssfronton4_3" property="ssfronton43"/>
+        <result column="sstable" property="sstable"/>
+        <result column="sstopper" property="sstopper"/>
+        <result column="videodmd" property="videodmd"/>
+        <result column="videofronton4_3" property="videofronton43"/>
+        <result column="videofronton16_9" property="videofronton169"/>
+        <result column="videotable" property="videotable"/>
+        <result column="videotable4k" property="videotable4k"/>
+        <result column="videotopper" property="videotopper"/>
+        <result column="wheel_tarcisios" property="wheelTarcisios"/>
+        <!-- 遗留字段 -->
+        <result column="box_front" property="boxFront"/>
+        <result column="box_back" property="boxBack"/>
+        <result column="box_spine" property="boxSpine"/>
+        <result column="box_full" property="boxFull"/>
+        <result column="cartridge" property="cartridge"/>
+        <result column="logo" property="logo"/>
+        <result column="bezel" property="bezel"/>
+        <result column="panel" property="panel"/>
+        <result column="cabinet_left" property="cabinetLeft"/>
+        <result column="cabinet_right" property="cabinetRight"/>
+        <result column="tile" property="tile"/>
+        <result column="banner" property="banner"/>
+        <result column="steam" property="steam"/>
+        <result column="poster" property="poster"/>
+        <result column="background" property="background"/>
+        <result column="music" property="music"/>
+        <result column="screenshot" property="screenshot"/>
+        <result column="titlescreen" property="titlescreen"/>
+        <result column="boxtexture" property="boxtexture"/>
+        <result column="supporttexture" property="supporttexture"/>
+        <result column="videonormalized" property="videonormalized"/>
+        <result column="wheelcarbon" property="wheelcarbon"/>
+        <result column="wheelsteel" property="wheelsteel"/>
+        <result column="screenmarqueesmall" property="screenmarqueesmall"/>
+        <result column="boxside" property="boxside"/>
+        <result column="pictoliste" property="pictoliste"/>
+        <result column="pictomonochrome" property="pictomonochrome"/>
+        <result column="pictomonochromesvg" property="pictomonochromesvg"/>
+        <result column="pictocouleur" property="pictocouleur"/>
+        <result column="wallpaper" property="wallpaper"/>
     </resultMap>
     
     <!-- 临时子集操作 -->
@@ -71,30 +158,82 @@
         DELETE FROM temp_subset WHERE id = #{id}
     </delete>
     
-    <!-- 临时子集游戏操作 -->
+    <!-- 临时子集游戏操作 - 完整字段插入 -->
     <insert id="insertTempSubsetGame" parameterType="com.gamelist.model.TempSubsetGame" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO temp_subset_game (
-            subset_id, original_game_id, game_id, source, path, name, `desc`, 
+            subset_id, original_game_id, game_id, ss_game_id, source, path, name, `desc`, 
             translated_name, translated_desc, image, video, marquee, thumbnail, manual,
-            rating, releasedate, developer, publisher, genre, players, crc32, lang, genreid, sort_by, platform_id, platform_path
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, hash, platform_type,
+            sort_by, platform_id, platform_path, scraped, edited, `exists`, absolute_path,
+            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right,
+            tile, banner, steam, poster, background, music, screenshot, titlescreen,
+            box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel,
+            screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper,
+            box_2d, box_2d_back, box_2d_side, box_texture, box_scan,
+            support_2d, support_texture, support_scan,
+            wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee,
+            ss, sstitle, overlay, video_normalized, flyer, manuel, maps,
+            bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail,
+            mixrbv1, mixrbv2, themehb, themehs,
+            ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper,
+            videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios
         ) VALUES (
-            #{subsetId}, #{originalGameId}, #{gameId}, #{source}, #{path}, #{name}, #{desc}, 
+            #{subsetId}, #{originalGameId}, #{gameId}, #{ssGameId}, #{source}, #{path}, #{name}, #{desc}, 
             #{translatedName}, #{translatedDesc}, #{image}, #{video}, #{marquee}, #{thumbnail}, #{manual},
-            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{lang}, #{genreid}, #{sortBy}, #{platformId}, #{platformPath}
+            #{rating}, #{releasedate}, #{developer}, #{publisher}, #{genre}, #{players}, #{crc32}, #{md5}, #{lang}, #{genreid}, #{hash}, #{platformType},
+            #{sortBy}, #{platformId}, #{platformPath}, #{scraped}, #{edited}, #{exists}, #{absolutePath},
+            #{boxFront}, #{boxBack}, #{boxSpine}, #{boxFull}, #{cartridge}, #{logo}, #{bezel}, #{panel}, #{cabinetLeft}, #{cabinetRight},
+            #{tile}, #{banner}, #{steam}, #{poster}, #{background}, #{music}, #{screenshot}, #{titlescreen},
+            #{box3D}, #{steamgrid}, #{fanart}, #{boxtexture}, #{supporttexture}, #{videonormalized}, #{wheelcarbon}, #{wheelsteel},
+            #{screenmarqueesmall}, #{boxside}, #{figurine}, #{pictoliste}, #{pictomonochrome}, #{pictomonochromesvg}, #{pictocouleur}, #{wallpaper},
+            #{box2d}, #{box2dBack}, #{box2dSide}, #{boxTexture}, #{boxScan},
+            #{support2d}, #{supportTexture}, #{supportScan},
+            #{wheel}, #{wheelHd}, #{wheelCarbon}, #{wheelSteel}, #{screenmarquee},
+            #{ss}, #{sstitle}, #{overlay}, #{videoNormalized}, #{flyer}, #{manuel}, #{maps},
+            #{bezel43}, #{bezel43V}, #{bezel43Cocktail}, #{bezel169}, #{bezel169V}, #{bezel169Cocktail},
+            #{mixrbv1}, #{mixrbv2}, #{themehb}, #{themehs},
+            #{ssdmd}, #{ssfronton169}, #{ssfronton11}, #{ssfronton43}, #{sstable}, #{sstopper},
+            #{videodmd}, #{videofronton43}, #{videofronton169}, #{videotable}, #{videotable4k}, #{videotopper}, #{wheelTarcisios}
         )
     </insert>
     
     <insert id="insertTempSubsetGamesBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO temp_subset_game (
-            subset_id, original_game_id, game_id, source, path, name, `desc`, 
+            subset_id, original_game_id, game_id, ss_game_id, source, path, name, `desc`, 
             translated_name, translated_desc, image, video, marquee, thumbnail, manual,
-            rating, releasedate, developer, publisher, genre, players, crc32, lang, genreid, sort_by, platform_id, platform_path
+            rating, releasedate, developer, publisher, genre, players, crc32, md5, lang, genreid, hash, platform_type,
+            sort_by, platform_id, platform_path, scraped, edited, `exists`, absolute_path,
+            box_front, box_back, box_spine, box_full, cartridge, logo, bezel, panel, cabinet_left, cabinet_right,
+            tile, banner, steam, poster, background, music, screenshot, titlescreen,
+            box3d, steamgrid, fanart, boxtexture, supporttexture, videonormalized, wheelcarbon, wheelsteel,
+            screenmarqueesmall, boxside, figurine, pictoliste, pictomonochrome, pictomonochromesvg, pictocouleur, wallpaper,
+            box_2d, box_2d_back, box_2d_side, box_texture, box_scan,
+            support_2d, support_texture, support_scan,
+            wheel, wheel_hd, wheel_carbon, wheel_steel, screenmarquee,
+            ss, sstitle, overlay, video_normalized, flyer, manuel, maps,
+            bezel_4_3, bezel_4_3_v, bezel_4_3_cocktail, bezel_16_9, bezel_16_9_v, bezel_16_9_cocktail,
+            mixrbv1, mixrbv2, themehb, themehs,
+            ssdmd, ssfronton16_9, ssfronton1_1, ssfronton4_3, sstable, sstopper,
+            videodmd, videofronton4_3, videofronton16_9, videotable, videotable4k, videotopper, wheel_tarcisios
         ) VALUES
         <foreach collection="list" item="game" separator=",">
             (
-                #{game.subsetId}, #{game.originalGameId}, #{game.gameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, 
+                #{game.subsetId}, #{game.originalGameId}, #{game.gameId}, #{game.ssGameId}, #{game.source}, #{game.path}, #{game.name}, #{game.desc}, 
                 #{game.translatedName}, #{game.translatedDesc}, #{game.image}, #{game.video}, #{game.marquee}, #{game.thumbnail}, #{game.manual},
-                #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.lang}, #{game.genreid}, #{game.sortBy}, #{game.platformId}, #{game.platformPath}
+                #{game.rating}, #{game.releasedate}, #{game.developer}, #{game.publisher}, #{game.genre}, #{game.players}, #{game.crc32}, #{game.md5}, #{game.lang}, #{game.genreid}, #{game.hash}, #{game.platformType},
+                #{game.sortBy}, #{game.platformId}, #{game.platformPath}, #{game.scraped}, #{game.edited}, #{game.exists}, #{game.absolutePath},
+                #{game.boxFront}, #{game.boxBack}, #{game.boxSpine}, #{game.boxFull}, #{game.cartridge}, #{game.logo}, #{game.bezel}, #{game.panel}, #{game.cabinetLeft}, #{game.cabinetRight},
+                #{game.tile}, #{game.banner}, #{game.steam}, #{game.poster}, #{game.background}, #{game.music}, #{game.screenshot}, #{game.titlescreen},
+                #{game.box3D}, #{game.steamgrid}, #{game.fanart}, #{game.boxtexture}, #{game.supporttexture}, #{game.videonormalized}, #{game.wheelcarbon}, #{game.wheelsteel},
+                #{game.screenmarqueesmall}, #{game.boxside}, #{game.figurine}, #{game.pictoliste}, #{game.pictomonochrome}, #{game.pictomonochromesvg}, #{game.pictocouleur}, #{game.wallpaper},
+                #{game.box2d}, #{game.box2dBack}, #{game.box2dSide}, #{game.boxTexture}, #{game.boxScan},
+                #{game.support2d}, #{game.supportTexture}, #{game.supportScan},
+                #{game.wheel}, #{game.wheelHd}, #{game.wheelCarbon}, #{game.wheelSteel}, #{game.screenmarquee},
+                #{game.ss}, #{game.sstitle}, #{game.overlay}, #{game.videoNormalized}, #{game.flyer}, #{game.manuel}, #{game.maps},
+                #{game.bezel43}, #{game.bezel43V}, #{game.bezel43Cocktail}, #{game.bezel169}, #{game.bezel169V}, #{game.bezel169Cocktail},
+                #{game.mixrbv1}, #{game.mixrbv2}, #{game.themehb}, #{game.themehs},
+                #{game.ssdmd}, #{game.ssfronton169}, #{game.ssfronton11}, #{game.ssfronton43}, #{game.sstable}, #{game.sstopper},
+                #{game.videodmd}, #{game.videofronton43}, #{game.videofronton169}, #{game.videotable}, #{game.videotable4k}, #{game.videotopper}, #{game.wheelTarcisios}
             )
         </foreach>
     </insert>
@@ -129,14 +268,99 @@
             genre = #{genre},
             players = #{players},
             crc32 = #{crc32},
+            md5 = #{md5},
             lang = #{lang},
             game_id = #{gameId},
+            ss_game_id = #{ssGameId},
             source = #{source},
             path = #{path},
             genreid = #{genreid},
+            hash = #{hash},
+            platform_type = #{platformType},
             sort_by = #{sortBy},
             platform_id = #{platformId},
             platform_path = #{platformPath},
+            scraped = #{scraped},
+            edited = #{edited},
+            `exists` = #{exists},
+            absolute_path = #{absolutePath},
+            box_front = #{boxFront},
+            box_back = #{boxBack},
+            box_spine = #{boxSpine},
+            box_full = #{boxFull},
+            cartridge = #{cartridge},
+            logo = #{logo},
+            bezel = #{bezel},
+            panel = #{panel},
+            cabinet_left = #{cabinetLeft},
+            cabinet_right = #{cabinetRight},
+            tile = #{tile},
+            banner = #{banner},
+            steam = #{steam},
+            poster = #{poster},
+            background = #{background},
+            music = #{music},
+            screenshot = #{screenshot},
+            titlescreen = #{titlescreen},
+            box3d = #{box3D},
+            steamgrid = #{steamgrid},
+            fanart = #{fanart},
+            boxtexture = #{boxtexture},
+            supporttexture = #{supporttexture},
+            videonormalized = #{videonormalized},
+            wheelcarbon = #{wheelcarbon},
+            wheelsteel = #{wheelsteel},
+            screenmarqueesmall = #{screenmarqueesmall},
+            boxside = #{boxside},
+            figurine = #{figurine},
+            pictoliste = #{pictoliste},
+            pictomonochrome = #{pictomonochrome},
+            pictomonochromesvg = #{pictomonochromesvg},
+            pictocouleur = #{pictocouleur},
+            wallpaper = #{wallpaper},
+            box_2d = #{box2d},
+            box_2d_back = #{box2dBack},
+            box_2d_side = #{box2dSide},
+            box_texture = #{boxTexture},
+            box_scan = #{boxScan},
+            support_2d = #{support2d},
+            support_texture = #{supportTexture},
+            support_scan = #{supportScan},
+            wheel = #{wheel},
+            wheel_hd = #{wheelHd},
+            wheel_carbon = #{wheelCarbon},
+            wheel_steel = #{wheelSteel},
+            screenmarquee = #{screenmarquee},
+            ss = #{ss},
+            sstitle = #{sstitle},
+            overlay = #{overlay},
+            video_normalized = #{videoNormalized},
+            flyer = #{flyer},
+            manuel = #{manuel},
+            maps = #{maps},
+            bezel_4_3 = #{bezel43},
+            bezel_4_3_v = #{bezel43V},
+            bezel_4_3_cocktail = #{bezel43Cocktail},
+            bezel_16_9 = #{bezel169},
+            bezel_16_9_v = #{bezel169V},
+            bezel_16_9_cocktail = #{bezel169Cocktail},
+            mixrbv1 = #{mixrbv1},
+            mixrbv2 = #{mixrbv2},
+            themehb = #{themehb},
+            themehs = #{themehs},
+            ssdmd = #{ssdmd},
+            ssfronton16_9 = #{ssfronton169},
+            ssfronton1_1 = #{ssfronton11},
+            ssfronton4_3 = #{ssfronton43},
+            sstable = #{sstable},
+            sstopper = #{sstopper},
+            videodmd = #{videodmd},
+            videofronton4_3 = #{videofronton43},
+            videofronton16_9 = #{videofronton169},
+            videotable = #{videotable},
+            videotable4k = #{videotable4k},
+            videotopper = #{videotopper},
+            wheel_tarcisios = #{wheelTarcisios},
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>

@@ -108,9 +108,14 @@ public class ExportController {
 
                 Map<String, Object> item = new HashMap<>();
                 item.put("frontend", frontend);
-                String displayName = (v3.getTemplateInfo() != null && v3.getTemplateInfo().getDescription() != null)
+                String fullDesc = (v3.getTemplateInfo() != null && v3.getTemplateInfo().getDescription() != null)
                         ? v3.getTemplateInfo().getDescription() : frontend;
-                item.put("name", displayName);
+                item.put("name", fullDesc);
+                // 短名称：取 description 中第一个 " — " 之前的部分（即英文名），回退到 " / "
+                String shortName = fullDesc.contains(" — ") ? fullDesc.substring(0, fullDesc.indexOf(" — "))
+                        : fullDesc.contains(" / ") ? fullDesc.substring(0, fullDesc.indexOf(" / "))
+                        : fullDesc;
+                item.put("shortName", shortName);
                 item.put("version", 3);
 
                 if (v3.getOutput() != null && v3.getOutput().getExportOptions() != null) {

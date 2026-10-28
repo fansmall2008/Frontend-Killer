@@ -147,17 +147,44 @@ public class ExportOrchestrator {
                 logger.info("v3 导出: 跳过媒体文件复制");
             }
 
-            // 4. 生成数据文件
+            // 4. 预计算 ROM 导出路径（单一计算源，保证拷贝路径与 metadata 写入路径一致）
+            Map<Long, String> romExportPaths = null;
+            if (!request.isWholeDirectoryCopy()
+                    && output.getRoms() != null && output.getRoms().isEnabled()
+                    && output.getRoms().getDirectory() != null
+                    && request.isCopyRoms()) {
+                romExportPaths = new LinkedHashMap<>();
+                String romDirTemplate = output.getRoms().getDirectory();
+                String romFilenameTemplate = output.getRoms().getFilename();
+                if (romFilenameTemplate == null || romFilenameTemplate.isEmpty()) {
+                    romFilenameTemplate = "{filename}{ext}";
+                }
+                for (Game game : games) {
+                    if (game.getId() == null) continue;
+                    try {
+                        String romDir = resolveRomDirForGame(romDirTemplate, game, platform, vars);
+                        Map<String, String> gameVars = buildGameVariables(game, vars);
+                        String romFilename = evaluateFilenameTemplate(romFilenameTemplate, game, platform,
+                                gameVars, resolveSourcePath(game));
+                        String romTargetAbs = romDir + "/" + romFilename;
+                        romExportPaths.put(game.getId(), romTargetAbs);
+                    } catch (Exception e) {
+                        logger.warn("预计算 ROM 导出路径失败: game={}, error={}", game.getName(), e.getMessage());
+                    }
+                }
+            }
+
+            // 5. 生成数据文件
             if (request.isGenerateDataFile() && output.getDataFile() != null) {
                 taskService.updateTaskProgress(task.getId(), progress, "开始生成数据文件", 0, 100);
-                generateDataFile(games, template, platform, vars);
+                generateDataFile(games, template, platform, vars, romExportPaths);
                 progress = 100;
                 taskService.updateTaskProgress(task.getId(), progress, "数据文件生成完成", 0, 100);
             } else {
                 logger.info("v3 导出: 跳过数据文件生成");
             }
 
-            // 5. 生成使用说明（output.readme 声明，模板驱动）
+            // 6. 生成使用说明（output.readme 声明，模板驱动）
             if (output.getReadme() != null && output.getReadme().isEnabled()) {
                 generateReadme(output.getReadme(), platform, vars);
             }
@@ -433,7 +460,7 @@ public class ExportOrchestrator {
     /**
      * 为单个游戏求值 roms.directory（支持 genre 等 per-game 字段的表达式）。
      */
-    private String resolveRomDirForGame(String dirTemplate, Game game, Platform platform, Map<String, String> vars) {
+    public static String resolveRomDirForGame(String dirTemplate, Game game, Platform platform, Map<String, String> vars) {
         logger.info("[DEBUG] resolveRomDirForGame: template={}, genre={}, isExpression={}", 
             dirTemplate, game.getGenre(), TemplateExpressionEngine.isExpression(dirTemplate));
         if (dirTemplate == null) {
@@ -719,8 +746,9 @@ public class ExportOrchestrator {
      * 生成数据文件，委托给 TemplateV3ExportService。
      */
     private void generateDataFile(List<Game> games, TemplateV3 template,
-                                   Platform platform, Map<String, String> vars) throws Exception {
-        v3ExportService.exportToFile(games, template, platform, vars);
+                                   Platform platform, Map<String, String> vars,
+                                   Map<Long, String> romExportPaths) throws Exception {
+        v3ExportService.exportToFile(games, template, platform, vars, romExportPaths);
     }
 
     /**
@@ -808,7 +836,7 @@ public class ExportOrchestrator {
     /**
      * 构建游戏级变量（在基础变量上叠加 filename/gameName/ext 等）。
      */
-    private Map<String, String> buildGameVariables(Game game, Map<String, String> baseVars) {
+    private static Map<String, String> buildGameVariables(Game game, Map<String, String> baseVars) {
         Map<String, String> gameVars = new HashMap<>(baseVars);
 
         // filename: 从 path 字段计算（去目录、去扩展名）
@@ -858,7 +886,7 @@ public class ExportOrchestrator {
      * <p>
      * 优先使用表达式引擎（支持函数调用），回退到简单变量替换。
      */
-    private String evaluateFilenameTemplate(String template, Game game, Platform platform,
+    private static String evaluateFilenameTemplate(String template, Game game, Platform platform,
                                              Map<String, String> gameVars, Path sourcePath) {
         if (template == null || template.isEmpty()) {
             return sourcePath.getFileName().toString();
@@ -923,7 +951,7 @@ public class ExportOrchestrator {
      * 注意：表达式引擎对字符串字面量（如 '{outputPath}/xxx'）原样返回、不做 {变量} 替换，
      * 因此求值结果也必须走一遍兜底变量替换（applySimpleVars）；失败才回退到纯变量替换。
      */
-    private String resolveTemplateString(String template, Platform platform, Map<String, String> vars) {
+    private static String resolveTemplateString(String template, Platform platform, Map<String, String> vars) {
         if (template == null) return null;
 
         // 尝试表达式引擎（支持 if/concat/map/sanitize 等）
@@ -949,7 +977,7 @@ public class ExportOrchestrator {
      * <p>
      * 复用点：非表达式模板的直接替换；表达式求值结果的后置替换（引擎不处理字面量内的 {变量}）。
      */
-    private String applySimpleVars(String template, Platform platform, Map<String, String> vars) {
+    private static String applySimpleVars(String template, Platform platform, Map<String, String> vars) {
         if (template == null) return null;
         String result = template;
         if (platform != null) {
@@ -987,7 +1015,7 @@ public class ExportOrchestrator {
      * @return 校验通过的路径
      * @throws IllegalArgumentException 检测到残留占位符
      */
-    private String ensurePathResolved(String resolvedPath, String rawTemplate) {
+    private static String ensurePathResolved(String resolvedPath, String rawTemplate) {
         if (resolvedPath == null) return null;
         Matcher m = UNRESOLVED_PLACEHOLDER.matcher(resolvedPath);
         if (m.find()) {
@@ -1314,7 +1342,7 @@ public class ExportOrchestrator {
         }
     }
 
-    private String nvl(String value) {
+    private static String nvl(String value) {
         return value != null ? value : "";
     }
 }

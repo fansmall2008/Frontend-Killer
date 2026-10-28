@@ -528,6 +528,13 @@ public class TemplateV3ImportService {
         copy.setSource(source.getSource());
         copy.setPlatformId(source.getPlatformId());
         copy.setPlatformPath(source.getPlatformPath());
+        copy.setSsGameId(source.getSsGameId());
+        copy.setCrc32(source.getCrc32());
+        copy.setMd5(source.getMd5());
+        copy.setMatched(source.getMatched());
+        copy.setMatchSuspect(source.getMatchSuspect());
+        copy.setMatchMethod(source.getMatchMethod());
+        copy.setDiscSerial(source.getDiscSerial());
         return copy;
     }
 

@@ -6,8 +6,8 @@
     "format": "json",
     "dataFile": "*.lpl",
     "author": "Frontend-Killer",
-    "description": "RetroArch 播放列表（.lpl）导出模板",
-    "notes": "输出 JSON 1.5 格式播放列表；path 写绝对路径纯 zip 形式（兼容所有 RetroArch 版本）；缩略图按 thumbnails/<PlaylistName>/Named_* 布局输出，文件名按 RetroArch sanitize 规则（&*/:\\<>?| → _）；不拷贝 ROM 文件\n\n重要 / Important：游戏 ROM 必须位于播放列表 path 记录的路径上，否则无法运行 / ROMs must be located at the exact paths recorded in the playlist, otherwise the games cannot launch"
+    "description": "RetroArch Playlist — JSON 1.5 .lpl with absolute ROM paths, ROMs NOT copied, thumbnails in Named_* layout / RetroArch 播放列表 — JSON 1.5 .lpl 绝对路径，不拷贝 ROM，缩略图按 Named_* 布局 / RetroArch プレイリスト — JSON 1.5 .lpl 絶対パス、ROM 未コピー、サムネイルは Named_* 配置",
+    "notes": "Data file: {platform.name}.lpl in {outputPath}/playlists/. ROM files are NOT copied — paths reference original locations in the database. Thumbnails in {outputPath}/thumbnails/{platform.name}/Named_{Boxarts,Snaps,Titles,Logos}/ with sanitized filenames. Includes README with installation instructions. Path format: absolute. JSON 1.5 format compatible with all RetroArch versions.\n\n数据文件：{platform.name}.lpl 位于 {outputPath}/playlists/。不拷贝 ROM 文件——路径引用数据库中的原始位置。缩略图位于 {outputPath}/thumbnails/{platform.name}/Named_{Boxarts,Snaps,Titles,Logos}/，文件名已清理。附带安装说明 README。路径格式：绝对路径。JSON 1.5 格式兼容所有 RetroArch 版本。\n\nデータファイル：{platform.name}.lpl は {outputPath}/playlists/ に配置。ROM ファイルはコピーされず、DB の元の場所を参照。サムネイルは {outputPath}/thumbnails/{platform.name}/Named_{Boxarts,Snaps,Titles,Logos}/ に配置、ファイル名はサニタイズ済み。インストール説明 README 付き。パス形式：絶対パス。JSON 1.5 形式で全 RetroArch バージョン対応。"
   },
   "game": {
     "gameInfo": {

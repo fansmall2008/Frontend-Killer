@@ -3,8 +3,8 @@
     "version": 3,
     "direction": "export",
     "author": "Frontend-Killer",
-    "description": "游戏 + RetroArch 缩略图（封面/截图/标题/标志 4 种），游戏文件按方言分类建子目录",
-    "notes": "导出游戏文件和 4 种 RetroArch 标准缩略图：封面(box-2D→Named_Boxarts)、截图(ss→Named_Snaps)、标题(sstitle→Named_Titles)、标志(wheel-carbon→Named_Logos)。缩略图按 RetroArch 规则输出到 thumbnails/{平台名}/Named_* 目录，文件名按 RetroArch sanitize 规则生成（显示名中的非法字符 &*/:\\<>?| 替换为 _）。游戏有类别时用方言映射的分类缩写（map(genre)，如 FTG/ACT，多种类型用 - 连接）作为游戏文件子目录，无类别则直接放在平台目录下。不生成数据文件。"
+    "description": "Game Files + RetroArch Thumbnails — ROMs copied with genre subdirs, 4 thumbnail types, NO data file / 游戏文件 + RetroArch 缩略图 — ROM 按类别子目录拷贝，4 种缩略图，不生成数据文件 / ゲームファイル + RetroArch サムネイル — ROM をジャンル別サブディレクトリにコピー、4 種類のサムネイル、データファイルなし",
+    "notes": "No data file generated. ROM files copied to {outputPath}/{platform.system}/[genre/] with filenames from dialect mapping. Thumbnails in {outputPath}/thumbnails/{platform.name}/Named_{Boxarts,Snaps,Titles,Logos}/ (box-2D→Boxarts, ss→Snaps, sstitle→Titles, wheel-carbon→Logos). Supports M3U and CUE chain collection.\n\n不生成数据文件。ROM 拷贝到 {outputPath}/{platform.system}/[类别/]，文件名按方言映射生成。缩略图位于 {outputPath}/thumbnails/{platform.name}/Named_{Boxarts,Snaps,Titles,Logos}/（box-2D→Boxarts, ss→Snaps, sstitle→Titles, wheel-carbon→Logos）。支持 M3U 和 CUE 链式收集。\n\nデータファイルは生成されません。ROM は {outputPath}/{platform.system}/[ジャンル/] にコピー、ファイル名は方言マッピングで生成。サムネイルは {outputPath}/thumbnails/{platform.name}/Named_{Boxarts,Snaps,Titles,Logos}/ に配置（box-2D→Boxarts, ss→Snaps, sstitle→Titles, wheel-carbon→Logos）。M3U および CUE チェーン収集対応。"
   },
   "output": {
     "exportOptions": {

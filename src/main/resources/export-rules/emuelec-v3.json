@@ -6,8 +6,8 @@
     "format": "xml",
     "dataFile": "gamelist.xml",
     "author": "Frontend-Killer",
-    "description": "EmuELEC",
-    "notes": "输出 gamelist.xml 格式。注意：仅导出元数据和媒体文件，不导出 ROM 文件。gamelist.xml 位于 roms 目录中"
+    "description": "EmuELEC gamelist.xml — ROMs NOT copied, gamelist.xml inside ROM dir, media in downloaded_images / EmuELEC gamelist.xml — 不拷贝 ROM，gamelist.xml 在 ROM 目录内，媒体在 downloaded_images / EmuELEC gamelist.xml — ROM 未コピー、gamelist.xml は ROM ディレクトリ内、メディアは downloaded_images",
+    "notes": "Data file: gamelist.xml in {outputPath}/roms/{platform.system}/ (inside ROM directory). ROM files are NOT copied. Media files in {outputPath}/downloaded_images/{platform.system}/. Path format: absoluteWithDot (./ prefix). Supports M3U chain collection.\n\n数据文件：gamelist.xml 位于 {outputPath}/roms/{platform.system}/（ROM 目录内）。不拷贝 ROM 文件。媒体文件位于 {outputPath}/downloaded_images/{platform.system}/。路径格式：带 ./ 前缀。支持 M3U 链式收集。\n\nデータファイル：gamelist.xml は {outputPath}/roms/{platform.system}/（ROM ディレクトリ内）に配置。ROM ファイルはコピーされません。メディアファイルは {outputPath}/downloaded_images/{platform.system}/ に配置。パス形式：./ プレフィックス付き。M3U チェーン収集対応。"
   },
   "system": {
     "header": [

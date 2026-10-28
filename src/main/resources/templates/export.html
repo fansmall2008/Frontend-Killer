@@ -369,7 +369,7 @@
                         const option = document.createElement('option');
                         option.value = rule.frontend;
                         // v3 模板显示版本标记
-                        option.textContent = rule.name + (rule.version === 3 ? ' (v3)' : '');
+                        option.textContent = (rule.shortName || rule.name) + (rule.version === 3 ? ' (v3)' : '');
                         frontendSelect.appendChild(option);
                     });
                     showNotification(getI18nText('frontends_loaded'), 'success');

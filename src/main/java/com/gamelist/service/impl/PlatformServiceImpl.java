@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gamelist.mapper.GameMapper;
 import com.gamelist.mapper.MediaDownloadTaskMapper;
@@ -83,7 +84,7 @@ public class PlatformServiceImpl implements PlatformService {
                 addGamesToTempSubset(tempSubset, games);
                 logger.info("游戏添加完成，临时子集ID: {}", tempSubset.getId());
             } else {
-                logger.info("没有符合条件的游戏，临时子集创建完成但为空");
+                logger.warn("没有符合条件的游戏，临时子集创建完成但为空，subsetId={}", tempSubset.getId());
             }
             
             // 验证游戏是否已正确添加
@@ -169,33 +170,122 @@ public class PlatformServiceImpl implements PlatformService {
     private List<TempSubsetGame> convertGamesToTempSubsetGames(TempSubset tempSubset, List<Game> games) {
         List<TempSubsetGame> tempSubsetGames = new ArrayList<>();
         for (Game game : games) {
-            TempSubsetGame tempSubsetGame = new TempSubsetGame();
-            tempSubsetGame.setSubsetId(tempSubset.getId());
-            tempSubsetGame.setOriginalGameId(game.getId());
-            tempSubsetGame.setGameId(game.getGameId());
-            tempSubsetGame.setSource(game.getSource());
-            tempSubsetGame.setPath(game.getPath());
-            tempSubsetGame.setName(game.getName());
-            tempSubsetGame.setDesc(game.getDesc());
-            tempSubsetGame.setTranslatedName(game.getTranslatedName());
-            tempSubsetGame.setTranslatedDesc(game.getTranslatedDesc());
-            tempSubsetGame.setImage(game.getImage());
-            tempSubsetGame.setVideo(game.getVideo());
-            tempSubsetGame.setMarquee(game.getMarquee());
-            tempSubsetGame.setThumbnail(game.getThumbnail());
-            tempSubsetGame.setManual(game.getManual());
-            tempSubsetGame.setRating(game.getRating());
-            tempSubsetGame.setReleasedate(game.getReleasedate());
-            tempSubsetGame.setDeveloper(game.getDeveloper());
-            tempSubsetGame.setPublisher(game.getPublisher());
-            tempSubsetGame.setGenre(game.getGenre());
-            tempSubsetGame.setPlayers(game.getPlayers());
-            tempSubsetGame.setCrc32(game.getCrc32());
-            tempSubsetGame.setLang(game.getLang());
-            tempSubsetGame.setGenreid(game.getGenreid());
-            tempSubsetGame.setSortBy(game.getSortBy());
-            tempSubsetGame.setPlatformId(game.getPlatformId());
-            tempSubsetGames.add(tempSubsetGame);
+            TempSubsetGame tsg = new TempSubsetGame();
+            tsg.setSubsetId(tempSubset.getId());
+            tsg.setOriginalGameId(game.getId());
+            tsg.setGameId(game.getGameId());
+            tsg.setSsGameId(game.getSsGameId());
+            tsg.setSource(game.getSource());
+            tsg.setPath(game.getPath());
+            tsg.setName(game.getName());
+            tsg.setDesc(game.getDesc());
+            tsg.setTranslatedName(game.getTranslatedName());
+            tsg.setTranslatedDesc(game.getTranslatedDesc());
+            tsg.setImage(game.getImage());
+            tsg.setVideo(game.getVideo());
+            tsg.setMarquee(game.getMarquee());
+            tsg.setThumbnail(game.getThumbnail());
+            tsg.setManual(game.getManual());
+            tsg.setRating(game.getRating());
+            tsg.setReleasedate(game.getReleasedate());
+            tsg.setDeveloper(game.getDeveloper());
+            tsg.setPublisher(game.getPublisher());
+            tsg.setGenre(game.getGenre());
+            tsg.setPlayers(game.getPlayers());
+            tsg.setCrc32(game.getCrc32());
+            tsg.setMd5(game.getMd5());
+            tsg.setLang(game.getLang());
+            tsg.setGenreid(game.getGenreid());
+            tsg.setHash(game.getHash());
+            tsg.setPlatformType(game.getPlatformType());
+            tsg.setSortBy(game.getSortBy());
+            tsg.setPlatformId(game.getPlatformId());
+            tsg.setPlatformPath(game.getPlatformPath());
+            // 状态字段
+            tsg.setScraped(game.getScraped());
+            tsg.setEdited(game.getEdited());
+            tsg.setExists(game.getExists());
+            tsg.setAbsolutePath(game.getAbsolutePath());
+            // 遗留媒体字段
+            tsg.setBoxFront(game.getBoxFront());
+            tsg.setBoxBack(game.getBoxBack());
+            tsg.setBoxSpine(game.getBoxSpine());
+            tsg.setBoxFull(game.getBoxFull());
+            tsg.setCartridge(game.getCartridge());
+            tsg.setLogo(game.getLogo());
+            tsg.setBezel(game.getBezel());
+            tsg.setPanel(game.getPanel());
+            tsg.setCabinetLeft(game.getCabinetLeft());
+            tsg.setCabinetRight(game.getCabinetRight());
+            tsg.setTile(game.getTile());
+            tsg.setBanner(game.getBanner());
+            tsg.setSteam(game.getSteam());
+            tsg.setPoster(game.getPoster());
+            tsg.setBackground(game.getBackground());
+            tsg.setMusic(game.getMusic());
+            tsg.setScreenshot(game.getScreenshot());
+            tsg.setTitlescreen(game.getTitlescreen());
+            tsg.setBox3D(game.getBox3D());
+            tsg.setSteamgrid(game.getSteamgrid());
+            tsg.setFanart(game.getFanart());
+            tsg.setBoxtexture(game.getBoxtexture());
+            tsg.setSupporttexture(game.getSupporttexture());
+            tsg.setVideonormalized(game.getVideonormalized());
+            tsg.setWheelcarbon(game.getWheelcarbon());
+            tsg.setWheelsteel(game.getWheelsteel());
+            tsg.setScreenmarqueesmall(game.getScreenmarqueesmall());
+            tsg.setBoxside(game.getBoxside());
+            tsg.setFigurine(game.getFigurine());
+            tsg.setPictoliste(game.getPictoliste());
+            tsg.setPictomonochrome(game.getPictomonochrome());
+            tsg.setPictomonochromesvg(game.getPictomonochromesvg());
+            tsg.setPictocouleur(game.getPictocouleur());
+            tsg.setWallpaper(game.getWallpaper());
+            // SS 标准媒体字段
+            tsg.setBox2d(game.getBox2d());
+            tsg.setBox2dBack(game.getBox2dBack());
+            tsg.setBox2dSide(game.getBox2dSide());
+            tsg.setBoxTexture(game.getBoxTexture());
+            tsg.setBoxScan(game.getBoxScan());
+            tsg.setSupport2d(game.getSupport2d());
+            tsg.setSupportTexture(game.getSupportTexture());
+            tsg.setSupportScan(game.getSupportScan());
+            tsg.setWheel(game.getWheel());
+            tsg.setWheelHd(game.getWheelHd());
+            tsg.setWheelCarbon(game.getWheelCarbon());
+            tsg.setWheelSteel(game.getWheelSteel());
+            tsg.setScreenmarquee(game.getScreenmarquee());
+            tsg.setSs(game.getSs());
+            tsg.setSstitle(game.getSstitle());
+            tsg.setOverlay(game.getOverlay());
+            tsg.setVideoNormalized(game.getVideoNormalized());
+            tsg.setFlyer(game.getFlyer());
+            tsg.setManuel(game.getManuel());
+            tsg.setMaps(game.getMaps());
+            tsg.setBezel43(game.getBezel43());
+            tsg.setBezel43V(game.getBezel43V());
+            tsg.setBezel43Cocktail(game.getBezel43Cocktail());
+            tsg.setBezel169(game.getBezel169());
+            tsg.setBezel169V(game.getBezel169V());
+            tsg.setBezel169Cocktail(game.getBezel169Cocktail());
+            tsg.setMixrbv1(game.getMixrbv1());
+            tsg.setMixrbv2(game.getMixrbv2());
+            tsg.setThemehb(game.getThemehb());
+            tsg.setThemehs(game.getThemehs());
+            tsg.setSsdmd(game.getSsdmd());
+            tsg.setSsfronton169(game.getSsfronton169());
+            tsg.setSsfronton11(game.getSsfronton11());
+            tsg.setSsfronton43(game.getSsfronton43());
+            tsg.setSstable(game.getSstable());
+            tsg.setSstopper(game.getSstopper());
+            tsg.setVideodmd(game.getVideodmd());
+            tsg.setVideofronton43(game.getVideofronton43());
+            tsg.setVideofronton169(game.getVideofronton169());
+            tsg.setVideotable(game.getVideotable());
+            tsg.setVideotable4k(game.getVideotable4k());
+            tsg.setVideotopper(game.getVideotopper());
+            tsg.setWheelTarcisios(game.getWheelTarcisios());
+            tempSubsetGames.add(tsg);
         }
         return tempSubsetGames;
     }
@@ -291,7 +381,7 @@ public class PlatformServiceImpl implements PlatformService {
             // 获取原始游戏
             Game originalGame = gameMapper.selectGameById(tempGame.getOriginalGameId());
             if (originalGame != null) {
-                // 更新原始游戏
+                // 同步基础字段
                 originalGame.setName(tempGame.getName());
                 originalGame.setDesc(tempGame.getDesc());
                 originalGame.setTranslatedName(tempGame.getTranslatedName());
@@ -308,9 +398,96 @@ public class PlatformServiceImpl implements PlatformService {
                 originalGame.setGenre(tempGame.getGenre());
                 originalGame.setPlayers(tempGame.getPlayers());
                 originalGame.setCrc32(tempGame.getCrc32());
+                originalGame.setMd5(tempGame.getMd5());
                 originalGame.setLang(tempGame.getLang());
                 originalGame.setGenreid(tempGame.getGenreid());
+                originalGame.setHash(tempGame.getHash());
+                originalGame.setPlatformType(tempGame.getPlatformType());
                 originalGame.setSortBy(tempGame.getSortBy());
+                // 同步状态字段
+                originalGame.setScraped(tempGame.getScraped());
+                originalGame.setEdited(tempGame.getEdited());
+                originalGame.setExists(tempGame.getExists());
+                originalGame.setAbsolutePath(tempGame.getAbsolutePath());
+                // 同步遗留媒体字段
+                originalGame.setBoxFront(tempGame.getBoxFront());
+                originalGame.setBoxBack(tempGame.getBoxBack());
+                originalGame.setBoxSpine(tempGame.getBoxSpine());
+                originalGame.setBoxFull(tempGame.getBoxFull());
+                originalGame.setCartridge(tempGame.getCartridge());
+                originalGame.setLogo(tempGame.getLogo());
+                originalGame.setBezel(tempGame.getBezel());
+                originalGame.setPanel(tempGame.getPanel());
+                originalGame.setCabinetLeft(tempGame.getCabinetLeft());
+                originalGame.setCabinetRight(tempGame.getCabinetRight());
+                originalGame.setTile(tempGame.getTile());
+                originalGame.setBanner(tempGame.getBanner());
+                originalGame.setSteam(tempGame.getSteam());
+                originalGame.setPoster(tempGame.getPoster());
+                originalGame.setBackground(tempGame.getBackground());
+                originalGame.setMusic(tempGame.getMusic());
+                originalGame.setScreenshot(tempGame.getScreenshot());
+                originalGame.setTitlescreen(tempGame.getTitlescreen());
+                originalGame.setBox3D(tempGame.getBox3D());
+                originalGame.setSteamgrid(tempGame.getSteamgrid());
+                originalGame.setFanart(tempGame.getFanart());
+                originalGame.setBoxtexture(tempGame.getBoxtexture());
+                originalGame.setSupporttexture(tempGame.getSupporttexture());
+                originalGame.setVideonormalized(tempGame.getVideonormalized());
+                originalGame.setWheelcarbon(tempGame.getWheelcarbon());
+                originalGame.setWheelsteel(tempGame.getWheelsteel());
+                originalGame.setScreenmarqueesmall(tempGame.getScreenmarqueesmall());
+                originalGame.setBoxside(tempGame.getBoxside());
+                originalGame.setFigurine(tempGame.getFigurine());
+                originalGame.setPictoliste(tempGame.getPictoliste());
+                originalGame.setPictomonochrome(tempGame.getPictomonochrome());
+                originalGame.setPictomonochromesvg(tempGame.getPictomonochromesvg());
+                originalGame.setPictocouleur(tempGame.getPictocouleur());
+                originalGame.setWallpaper(tempGame.getWallpaper());
+                // 同步 SS 标准媒体字段
+                originalGame.setBox2d(tempGame.getBox2d());
+                originalGame.setBox2dBack(tempGame.getBox2dBack());
+                originalGame.setBox2dSide(tempGame.getBox2dSide());
+                originalGame.setBoxTexture(tempGame.getBoxTexture());
+                originalGame.setBoxScan(tempGame.getBoxScan());
+                originalGame.setSupport2d(tempGame.getSupport2d());
+                originalGame.setSupportTexture(tempGame.getSupportTexture());
+                originalGame.setSupportScan(tempGame.getSupportScan());
+                originalGame.setWheel(tempGame.getWheel());
+                originalGame.setWheelHd(tempGame.getWheelHd());
+                originalGame.setWheelCarbon(tempGame.getWheelCarbon());
+                originalGame.setWheelSteel(tempGame.getWheelSteel());
+                originalGame.setScreenmarquee(tempGame.getScreenmarquee());
+                originalGame.setSs(tempGame.getSs());
+                originalGame.setSstitle(tempGame.getSstitle());
+                originalGame.setOverlay(tempGame.getOverlay());
+                originalGame.setVideoNormalized(tempGame.getVideoNormalized());
+                originalGame.setFlyer(tempGame.getFlyer());
+                originalGame.setManuel(tempGame.getManuel());
+                originalGame.setMaps(tempGame.getMaps());
+                originalGame.setBezel43(tempGame.getBezel43());
+                originalGame.setBezel43V(tempGame.getBezel43V());
+                originalGame.setBezel43Cocktail(tempGame.getBezel43Cocktail());
+                originalGame.setBezel169(tempGame.getBezel169());
+                originalGame.setBezel169V(tempGame.getBezel169V());
+                originalGame.setBezel169Cocktail(tempGame.getBezel169Cocktail());
+                originalGame.setMixrbv1(tempGame.getMixrbv1());
+                originalGame.setMixrbv2(tempGame.getMixrbv2());
+                originalGame.setThemehb(tempGame.getThemehb());
+                originalGame.setThemehs(tempGame.getThemehs());
+                originalGame.setSsdmd(tempGame.getSsdmd());
+                originalGame.setSsfronton169(tempGame.getSsfronton169());
+                originalGame.setSsfronton11(tempGame.getSsfronton11());
+                originalGame.setSsfronton43(tempGame.getSsfronton43());
+                originalGame.setSstable(tempGame.getSstable());
+                originalGame.setSstopper(tempGame.getSstopper());
+                originalGame.setVideodmd(tempGame.getVideodmd());
+                originalGame.setVideofronton43(tempGame.getVideofronton43());
+                originalGame.setVideofronton169(tempGame.getVideofronton169());
+                originalGame.setVideotable(tempGame.getVideotable());
+                originalGame.setVideotable4k(tempGame.getVideotable4k());
+                originalGame.setVideotopper(tempGame.getVideotopper());
+                originalGame.setWheelTarcisios(tempGame.getWheelTarcisios());
                 
                 gameMapper.updateGame(originalGame);
                 updatedCount++;
@@ -326,11 +503,11 @@ public class PlatformServiceImpl implements PlatformService {
     public Platform createPlatformFromTempSubset(Long subsetId, String platformName) {
         logger.info("从临时子集创建平台: subsetId={}, platformName={}", subsetId, platformName);
         
-        // 创建新平台
+        // 创建新平台（folderPath 设为空）
         Platform platform = new Platform();
         platform.setSystem(platformName.trim());
         platform.setName(platformName.trim());
-        platform.setFolderPath(platformName.trim()); // 设置folderPath字段
+        platform.setFolderPath(""); // 从子集创建的平台不继承 folderPath
         platform.setSoftware("WebGamelistOper");
         platform.setDatabase("Custom Database");
         platform.setWeb("http://localhost:8084");
@@ -343,9 +520,10 @@ public class PlatformServiceImpl implements PlatformService {
         
         if (!tempSubsetGames.isEmpty()) {
             for (TempSubsetGame tempGame : tempSubsetGames) {
-                // 创建新游戏
+                // 创建新游戏，完整复制所有字段
                 Game newGame = new Game();
                 newGame.setGameId(tempGame.getGameId());
+                newGame.setSsGameId(tempGame.getSsGameId());
                 newGame.setSource(tempGame.getSource());
                 newGame.setPath(tempGame.getPath());
                 newGame.setName(tempGame.getName());
@@ -364,14 +542,98 @@ public class PlatformServiceImpl implements PlatformService {
                 newGame.setGenre(tempGame.getGenre());
                 newGame.setPlayers(tempGame.getPlayers());
                 newGame.setCrc32(tempGame.getCrc32());
+                newGame.setMd5(tempGame.getMd5());
                 newGame.setLang(tempGame.getLang());
                 newGame.setGenreid(tempGame.getGenreid());
+                newGame.setHash(tempGame.getHash());
+                newGame.setPlatformType(tempGame.getPlatformType());
                 newGame.setSortBy(tempGame.getSortBy());
                 newGame.setPlatformId(platform.getId());
-                // 复制platformPath字段
-                if (tempGame.getPlatformPath() != null) {
-                    newGame.setPlatformPath(tempGame.getPlatformPath());
-                }
+                newGame.setPlatformPath(tempGame.getPlatformPath());
+                // 状态字段
+                newGame.setScraped(tempGame.getScraped());
+                newGame.setEdited(tempGame.getEdited());
+                newGame.setExists(tempGame.getExists());
+                newGame.setAbsolutePath(tempGame.getAbsolutePath());
+                // 遗留媒体字段
+                newGame.setBoxFront(tempGame.getBoxFront());
+                newGame.setBoxBack(tempGame.getBoxBack());
+                newGame.setBoxSpine(tempGame.getBoxSpine());
+                newGame.setBoxFull(tempGame.getBoxFull());
+                newGame.setCartridge(tempGame.getCartridge());
+                newGame.setLogo(tempGame.getLogo());
+                newGame.setBezel(tempGame.getBezel());
+                newGame.setPanel(tempGame.getPanel());
+                newGame.setCabinetLeft(tempGame.getCabinetLeft());
+                newGame.setCabinetRight(tempGame.getCabinetRight());
+                newGame.setTile(tempGame.getTile());
+                newGame.setBanner(tempGame.getBanner());
+                newGame.setSteam(tempGame.getSteam());
+                newGame.setPoster(tempGame.getPoster());
+                newGame.setBackground(tempGame.getBackground());
+                newGame.setMusic(tempGame.getMusic());
+                newGame.setScreenshot(tempGame.getScreenshot());
+                newGame.setTitlescreen(tempGame.getTitlescreen());
+                newGame.setBox3D(tempGame.getBox3D());
+                newGame.setSteamgrid(tempGame.getSteamgrid());
+                newGame.setFanart(tempGame.getFanart());
+                newGame.setBoxtexture(tempGame.getBoxtexture());
+                newGame.setSupporttexture(tempGame.getSupporttexture());
+                newGame.setVideonormalized(tempGame.getVideonormalized());
+                newGame.setWheelcarbon(tempGame.getWheelcarbon());
+                newGame.setWheelsteel(tempGame.getWheelsteel());
+                newGame.setScreenmarqueesmall(tempGame.getScreenmarqueesmall());
+                newGame.setBoxside(tempGame.getBoxside());
+                newGame.setFigurine(tempGame.getFigurine());
+                newGame.setPictoliste(tempGame.getPictoliste());
+                newGame.setPictomonochrome(tempGame.getPictomonochrome());
+                newGame.setPictomonochromesvg(tempGame.getPictomonochromesvg());
+                newGame.setPictocouleur(tempGame.getPictocouleur());
+                newGame.setWallpaper(tempGame.getWallpaper());
+                // SS 标准媒体字段
+                newGame.setBox2d(tempGame.getBox2d());
+                newGame.setBox2dBack(tempGame.getBox2dBack());
+                newGame.setBox2dSide(tempGame.getBox2dSide());
+                newGame.setBoxTexture(tempGame.getBoxTexture());
+                newGame.setBoxScan(tempGame.getBoxScan());
+                newGame.setSupport2d(tempGame.getSupport2d());
+                newGame.setSupportTexture(tempGame.getSupportTexture());
+                newGame.setSupportScan(tempGame.getSupportScan());
+                newGame.setWheel(tempGame.getWheel());
+                newGame.setWheelHd(tempGame.getWheelHd());
+                newGame.setWheelCarbon(tempGame.getWheelCarbon());
+                newGame.setWheelSteel(tempGame.getWheelSteel());
+                newGame.setScreenmarquee(tempGame.getScreenmarquee());
+                newGame.setSs(tempGame.getSs());
+                newGame.setSstitle(tempGame.getSstitle());
+                newGame.setOverlay(tempGame.getOverlay());
+                newGame.setVideoNormalized(tempGame.getVideoNormalized());
+                newGame.setFlyer(tempGame.getFlyer());
+                newGame.setManuel(tempGame.getManuel());
+                newGame.setMaps(tempGame.getMaps());
+                newGame.setBezel43(tempGame.getBezel43());
+                newGame.setBezel43V(tempGame.getBezel43V());
+                newGame.setBezel43Cocktail(tempGame.getBezel43Cocktail());
+                newGame.setBezel169(tempGame.getBezel169());
+                newGame.setBezel169V(tempGame.getBezel169V());
+                newGame.setBezel169Cocktail(tempGame.getBezel169Cocktail());
+                newGame.setMixrbv1(tempGame.getMixrbv1());
+                newGame.setMixrbv2(tempGame.getMixrbv2());
+                newGame.setThemehb(tempGame.getThemehb());
+                newGame.setThemehs(tempGame.getThemehs());
+                newGame.setSsdmd(tempGame.getSsdmd());
+                newGame.setSsfronton169(tempGame.getSsfronton169());
+                newGame.setSsfronton11(tempGame.getSsfronton11());
+                newGame.setSsfronton43(tempGame.getSsfronton43());
+                newGame.setSstable(tempGame.getSstable());
+                newGame.setSstopper(tempGame.getSstopper());
+                newGame.setVideodmd(tempGame.getVideodmd());
+                newGame.setVideofronton43(tempGame.getVideofronton43());
+                newGame.setVideofronton169(tempGame.getVideofronton169());
+                newGame.setVideotable(tempGame.getVideotable());
+                newGame.setVideotable4k(tempGame.getVideotable4k());
+                newGame.setVideotopper(tempGame.getVideotopper());
+                newGame.setWheelTarcisios(tempGame.getWheelTarcisios());
                 
                 gameMapper.insertGame(newGame);
             }
@@ -550,6 +812,7 @@ public class PlatformServiceImpl implements PlatformService {
     }
     
     @Override
+    @Transactional
     public Platform createPlatformWithGames(String name, java.util.Map<String, Object> filterParams) {
         logger.info("创建带游戏的平台: name={}, filterParams={}", name, filterParams);
         // 检查平台名称是否为空
@@ -600,18 +863,18 @@ public class PlatformServiceImpl implements PlatformService {
         platform.setWeb("http://localhost:8083");
         logger.info("创建新平台: System={}, Name={}", platform.getSystem(), platform.getName());
         
-        // 继承原平台的完整属性
+        // 继承原平台的完整属性（folderPath 不继承，设为空）
         if (originalPlatform != null) {
             platform.setSortBy(originalPlatform.getSortBy());
             platform.setLaunch(originalPlatform.getLaunch());
-            platform.setFolderPath(originalPlatform.getFolderPath());
+            platform.setFolderPath(""); // 新平台不继承原平台的 folderPath
             platform.setSystemId(originalPlatform.getSystemId());
             platform.setSystemRegion(originalPlatform.getSystemRegion());
             platform.setLogoRegion(originalPlatform.getLogoRegion());
             platform.setLogoType(originalPlatform.getLogoType());
             platform.setExtensions(originalPlatform.getExtensions());
             platform.setIgnoreFiles(originalPlatform.getIgnoreFiles());
-            logger.info("继承原平台的 sortBy, launch, folderPath, systemId, systemRegion 等属性");
+            logger.info("继承原平台的 sortBy, launch, systemId, systemRegion 等属性（folderPath 不继承）");
         }
         
         // 保存平台
@@ -620,18 +883,32 @@ public class PlatformServiceImpl implements PlatformService {
         
         // 从GameMapper获取筛选后的游戏
         List<com.gamelist.model.Game> games = gameMapper.selectGamesByFilter(filterParams);
+        if (games.isEmpty()) {
+            logger.warn("筛选结果为 0 个游戏，新平台 {} (ID={}) 将创建为空平台", name, platform.getId());
+        }
         logger.info("获取到筛选后的游戏数量: {}", games.size());
         
-        // 如果有游戏，将它们的platformId更新为新平台的id
+        // 如果有游戏，复制到新平台后删除原平台中的记录（移动语义）
         if (!games.isEmpty()) {
-            logger.info("开始更新游戏的platformId为新平台ID: {}", platform.getId());
+            logger.info("开始移动游戏到新平台ID: {}", platform.getId());
+            java.util.List<Long> originalGameIds = new java.util.ArrayList<>();
             for (com.gamelist.model.Game game : games) {
                 // 使用 createGameCopy 完整复制所有字段（包括路径、媒体、状态等），只修改 platformId
                 com.gamelist.model.Game newGame = createGameCopy(game, platform.getId());
                 // 保存新游戏
                 gameMapper.insertGame(newGame);
+                // 记录原始游戏ID，稍后删除
+                originalGameIds.add(game.getId());
             }
-            logger.info("游戏更新完成，共更新 {} 个游戏", games.size());
+            // 删除原平台中的游戏记录（移动语义）
+            for (Long originalGameId : originalGameIds) {
+                try {
+                    gameMapper.deleteGameById(originalGameId);
+                } catch (Exception e) {
+                    logger.warn("删除原游戏记录失败，ID: {}, 错误: {}", originalGameId, e.getMessage());
+                }
+            }
+            logger.info("游戏移动完成，共移动 {} 个游戏，删除原记录 {} 个", games.size(), originalGameIds.size());
         }
         
         return platform;
@@ -931,6 +1208,7 @@ public class PlatformServiceImpl implements PlatformService {
     private com.gamelist.model.Game createGameCopy(com.gamelist.model.Game originalGame, Long newPlatformId) {
         com.gamelist.model.Game newGame = new com.gamelist.model.Game();
         newGame.setGameId(originalGame.getGameId());
+        newGame.setSsGameId(originalGame.getSsGameId());
         newGame.setSource(originalGame.getSource());
         newGame.setPath(originalGame.getPath());
         newGame.setName(originalGame.getName());
@@ -963,6 +1241,13 @@ public class PlatformServiceImpl implements PlatformService {
         newGame.setPlatformPath(originalGame.getPlatformPath());
         newGame.setMultiFile(originalGame.getMultiFile());
         newGame.setMultiFileContent(originalGame.getMultiFileContent());
+        newGame.setCached(originalGame.getCached());
+        newGame.setParentRom(originalGame.getParentRom());
+        newGame.setDiscSerial(originalGame.getDiscSerial());
+        newGame.setMatched(originalGame.getMatched());
+        newGame.setMatchSuspect(originalGame.getMatchSuspect());
+        newGame.setMatchMethod(originalGame.getMatchMethod());
+        // 遗留字段
         newGame.setBoxFront(originalGame.getBoxFront());
         newGame.setBoxBack(originalGame.getBoxBack());
         newGame.setBoxSpine(originalGame.getBoxSpine());
@@ -986,6 +1271,61 @@ public class PlatformServiceImpl implements PlatformService {
         newGame.setFanart(originalGame.getFanart());
         newGame.setBoxtexture(originalGame.getBoxtexture());
         newGame.setSupporttexture(originalGame.getSupporttexture());
+        newGame.setVideonormalized(originalGame.getVideonormalized());
+        newGame.setWheelcarbon(originalGame.getWheelcarbon());
+        newGame.setWheelsteel(originalGame.getWheelsteel());
+        newGame.setScreenmarqueesmall(originalGame.getScreenmarqueesmall());
+        newGame.setBoxside(originalGame.getBoxside());
+        newGame.setFigurine(originalGame.getFigurine());
+        newGame.setPictoliste(originalGame.getPictoliste());
+        newGame.setPictomonochrome(originalGame.getPictomonochrome());
+        newGame.setPictomonochromesvg(originalGame.getPictomonochromesvg());
+        newGame.setPictocouleur(originalGame.getPictocouleur());
+        newGame.setWallpaper(originalGame.getWallpaper());
+        // SS 标准媒体字段
+        newGame.setBox2d(originalGame.getBox2d());
+        newGame.setBox2dBack(originalGame.getBox2dBack());
+        newGame.setBox2dSide(originalGame.getBox2dSide());
+        newGame.setBoxTexture(originalGame.getBoxTexture());
+        newGame.setBoxScan(originalGame.getBoxScan());
+        newGame.setSupport2d(originalGame.getSupport2d());
+        newGame.setSupportTexture(originalGame.getSupportTexture());
+        newGame.setSupportScan(originalGame.getSupportScan());
+        newGame.setWheel(originalGame.getWheel());
+        newGame.setWheelHd(originalGame.getWheelHd());
+        newGame.setWheelCarbon(originalGame.getWheelCarbon());
+        newGame.setWheelSteel(originalGame.getWheelSteel());
+        newGame.setScreenmarquee(originalGame.getScreenmarquee());
+        newGame.setSs(originalGame.getSs());
+        newGame.setSstitle(originalGame.getSstitle());
+        newGame.setOverlay(originalGame.getOverlay());
+        newGame.setVideoNormalized(originalGame.getVideoNormalized());
+        newGame.setFlyer(originalGame.getFlyer());
+        newGame.setManuel(originalGame.getManuel());
+        newGame.setMaps(originalGame.getMaps());
+        newGame.setBezel43(originalGame.getBezel43());
+        newGame.setBezel43V(originalGame.getBezel43V());
+        newGame.setBezel43Cocktail(originalGame.getBezel43Cocktail());
+        newGame.setBezel169(originalGame.getBezel169());
+        newGame.setBezel169V(originalGame.getBezel169V());
+        newGame.setBezel169Cocktail(originalGame.getBezel169Cocktail());
+        newGame.setMixrbv1(originalGame.getMixrbv1());
+        newGame.setMixrbv2(originalGame.getMixrbv2());
+        newGame.setThemehb(originalGame.getThemehb());
+        newGame.setThemehs(originalGame.getThemehs());
+        newGame.setSsdmd(originalGame.getSsdmd());
+        newGame.setSsfronton169(originalGame.getSsfronton169());
+        newGame.setSsfronton11(originalGame.getSsfronton11());
+        newGame.setSsfronton43(originalGame.getSsfronton43());
+        newGame.setSstable(originalGame.getSstable());
+        newGame.setSstopper(originalGame.getSstopper());
+        newGame.setVideodmd(originalGame.getVideodmd());
+        newGame.setVideofronton43(originalGame.getVideofronton43());
+        newGame.setVideofronton169(originalGame.getVideofronton169());
+        newGame.setVideotable(originalGame.getVideotable());
+        newGame.setVideotable4k(originalGame.getVideotable4k());
+        newGame.setVideotopper(originalGame.getVideotopper());
+        newGame.setWheelTarcisios(originalGame.getWheelTarcisios());
         return newGame;
     }
     

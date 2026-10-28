@@ -6,8 +6,8 @@
     "format": "xml",
     "dataFile": "gamelist.xml",
     "author": "Frontend-Killer",
-    "description": "RetroBat",
-    "notes": "输出 gamelist.xml 格式，含 provider 头部信息"
+    "description": "RetroBat gamelist.xml — ROMs copied to platform dir, paths with ./ prefix, includes provider header / RetroBat gamelist.xml — ROM 拷贝到平台目录，路径带 ./ 前缀，含 provider 头 / RetroBat gamelist.xml — ROM をプラットフォームディレクトリにコピー、パスに ./ プレフィックス付き、provider ヘッダー含む",
+    "notes": "Data file: gamelist.xml in {outputPath}/{platform.system}/ (same directory as ROMs). ROM files copied to {outputPath}/{platform.system}/. Media files in {outputPath}/{platform.system}/media/{gameName}/. Path format: absoluteWithDot (./ prefix). Includes provider header with system/software/database/web info. Supports M3U chain collection.\n\n数据文件：gamelist.xml 位于 {outputPath}/{platform.system}/（与 ROM 同目录）。ROM 拷贝到 {outputPath}/{platform.system}/。媒体文件位于 {outputPath}/{platform.system}/media/{gameName}/。路径格式：带 ./ 前缀。含 provider 头（system/software/database/web 信息）。支持 M3U 链式收集。\n\nデータファイル：gamelist.xml は {outputPath}/{platform.system}/（ROM と同じディレクトリ）に配置。ROM は {outputPath}/{platform.system}/ にコピー。メディアは {outputPath}/{platform.system}/media/{gameName}/ に配置。パス形式：./ プレフィックス付き。system/software/database/web 情報を含む provider ヘッダー付き。M3U チェーン収集対応。"
   },
   "system": {
     "systemTag": "provider",
@@ -34,7 +34,7 @@
   "game": {
     "gameStartMarker": "game",
     "gameInfo": {
-      "path": "if(multiFile, m3uPath, path)",
+      "path": "if(multiFile, m3uPath, coalesce(romExportPath, path))",
       "name": "name",
       "desc": "desc",
       "rating": "rating",

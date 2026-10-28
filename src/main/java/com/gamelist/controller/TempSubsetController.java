@@ -69,6 +69,9 @@ public class TempSubsetController {
             result.put("subsetId", tempSubset.getId());
             result.put("subsetName", tempSubset.getName());
             result.put("gameCount", gameCount);
+            if (gameCount == 0) {
+                result.put("message", "筛选结果为 0 个游戏，临时子集已创建但为空");
+            }
             return new ResponseEntity<>(result, getJsonHeaders(), HttpStatus.OK);
         } catch (Exception e) {
             logger.error("创建临时子集失败: {}", e.getMessage(), e);

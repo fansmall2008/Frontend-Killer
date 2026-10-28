@@ -790,10 +790,7 @@ tr.row-suspect {
 }
 
 .ms-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
+    position: fixed;
     z-index: 1200;
     background: var(--bg-surface);
     border: 1px solid var(--border-default);

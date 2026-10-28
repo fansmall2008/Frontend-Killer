@@ -2696,6 +2696,11 @@
             closeAllMsDropdowns();
             if (wasClosed) {
                 dd.style.display = 'block';
+                // 动态定位：fixed 相对于视口，放在 display 元素正下方
+                const rect = selectEl.getBoundingClientRect();
+                dd.style.top = (rect.bottom + 4) + 'px';
+                dd.style.left = rect.left + 'px';
+                dd.style.width = rect.width + 'px';
                 selectEl.classList.add('open');
                 const input = dd.querySelector('.ms-search');
                 input.value = '';
