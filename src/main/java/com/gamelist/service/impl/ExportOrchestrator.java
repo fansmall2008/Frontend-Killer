@@ -180,21 +180,27 @@ public class ExportOrchestrator {
                                     Map<String, String> vars) throws Exception {
         // ROM 目录
         if (output.getRoms() != null && output.getRoms().getDirectory() != null) {
-            String romsDir = resolveTemplateString(output.getRoms().getDirectory(), platform, vars);
+            String romsDir = ensurePathResolved(
+                    resolveTemplateString(output.getRoms().getDirectory(), platform, vars),
+                    output.getRoms().getDirectory());
             Files.createDirectories(Paths.get(romsDir));
             logger.info("创建 ROM 目录: {}", romsDir);
         }
 
         // 媒体目录
         if (output.getMedia() != null && output.getMedia().getDirectory() != null) {
-            String mediaDir = resolveTemplateString(output.getMedia().getDirectory(), platform, vars);
+            String mediaDir = ensurePathResolved(
+                    resolveTemplateString(output.getMedia().getDirectory(), platform, vars),
+                    output.getMedia().getDirectory());
             Files.createDirectories(Paths.get(mediaDir));
             logger.info("创建媒体目录: {}", mediaDir);
         }
 
         // 数据文件目录
         if (output.getDataFile() != null && output.getDataFile().getDirectory() != null) {
-            String dataDir = resolveTemplateString(output.getDataFile().getDirectory(), platform, vars);
+            String dataDir = ensurePathResolved(
+                    resolveTemplateString(output.getDataFile().getDirectory(), platform, vars),
+                    output.getDataFile().getDirectory());
             Files.createDirectories(Paths.get(dataDir));
             logger.info("创建数据文件目录: {}", dataDir);
         }
@@ -430,8 +436,11 @@ public class ExportOrchestrator {
     private String resolveRomDirForGame(String dirTemplate, Game game, Platform platform, Map<String, String> vars) {
         logger.info("[DEBUG] resolveRomDirForGame: template={}, genre={}, isExpression={}", 
             dirTemplate, game.getGenre(), TemplateExpressionEngine.isExpression(dirTemplate));
-        if (dirTemplate == null || !TemplateExpressionEngine.isExpression(dirTemplate)) {
-            return resolveTemplateString(dirTemplate, platform, vars);
+        if (dirTemplate == null) {
+            return null;
+        }
+        if (!TemplateExpressionEngine.isExpression(dirTemplate)) {
+            return ensurePathResolved(resolveTemplateString(dirTemplate, platform, vars), dirTemplate);
         }
         try {
             Map<String, String> gameVars = buildGameVariables(game, vars);
@@ -439,12 +448,16 @@ public class ExportOrchestrator {
             String result = TemplateExpressionEngine.evaluate(dirTemplate, ctx);
             logger.info("[DEBUG] evaluate result: {}", result);
             if (result != null && !result.isEmpty()) {
-                return result;
+                // 表达式字符串字面量内的 {outputPath} 等占位符由引擎原样返回，
+                // 求值结果必须再做一次变量替换 + 残留检测，否则路径会带字面量 {outputPath}
+                return ensurePathResolved(applySimpleVars(result, platform, gameVars), dirTemplate);
             }
+        } catch (IllegalArgumentException e) {
+            throw e; // 占位符残留防御异常直接上抛，不吞
         } catch (Exception e) {
             logger.warn("[DEBUG] roms.directory 表达式求值失败: {}", e.getMessage(), e);
         }
-        return resolveTemplateString(dirTemplate, platform, vars);
+        return ensurePathResolved(resolveTemplateString(dirTemplate, platform, vars), dirTemplate);
     }
 
     /**
@@ -906,7 +919,9 @@ public class ExportOrchestrator {
     /**
      * 解析模板字符串：替换 {platform.xxx} 和 {variable} 占位符。
      * <p>
-     * 若模板是表达式（含函数调用），则优先用表达式引擎求值；失败回退到简单变量替换。
+     * 若模板是表达式（含函数调用），则优先用表达式引擎求值。
+     * 注意：表达式引擎对字符串字面量（如 '{outputPath}/xxx'）原样返回、不做 {变量} 替换，
+     * 因此求值结果也必须走一遍兜底变量替换（applySimpleVars）；失败才回退到纯变量替换。
      */
     private String resolveTemplateString(String template, Platform platform, Map<String, String> vars) {
         if (template == null) return null;
@@ -917,7 +932,8 @@ public class ExportOrchestrator {
                 TemplateExpressionEngine.Context ctx = new TemplateExpressionEngine.Context(null, platform, vars);
                 String result = TemplateExpressionEngine.evaluate(template, ctx);
                 if (result != null && !result.isEmpty()) {
-                    return result;
+                    // 求值结果中的 {outputPath} 等占位符位于字符串字面量内，引擎不替换，需后置替换
+                    return applySimpleVars(result, platform, vars);
                 }
             } catch (Exception e) {
                 logger.debug("表达式求值失败，回退到变量替换: {}", e.getMessage());
@@ -925,6 +941,16 @@ public class ExportOrchestrator {
         }
 
         // 回退：简单变量替换
+        return applySimpleVars(template, platform, vars);
+    }
+
+    /**
+     * 对模板串执行简单 {变量} 占位符替换（{platform.xxx} + vars 内变量）。
+     * <p>
+     * 复用点：非表达式模板的直接替换；表达式求值结果的后置替换（引擎不处理字面量内的 {变量}）。
+     */
+    private String applySimpleVars(String template, Platform platform, Map<String, String> vars) {
+        if (template == null) return null;
         String result = template;
         if (platform != null) {
             result = result
@@ -944,6 +970,31 @@ public class ExportOrchestrator {
             }
         }
         return result;
+    }
+
+    /** 未解析占位符检测模式：{xxx}（路径中不应出现任何残留占位符） */
+    private static final Pattern UNRESOLVED_PLACEHOLDER = Pattern.compile("\\{[^}]+\\}");
+
+    /**
+     * 防御加固：检测解析后的路径是否仍残留 {xxx} 占位符（模板变量未解析）。
+     * <p>
+     * 残留的典型原因：表达式引擎对字符串字面量原样返回而调用方未做后置变量替换。
+     * 若不拦截，字面量路径会在 cwd 下创建 "{outputPath}" 垃圾目录
+     * （NAS 容器 cwd=/app 不可写时直接 AccessDeniedException）。
+     *
+     * @param resolvedPath 已解析路径
+     * @param rawTemplate  原始模板值（用于错误定位）
+     * @return 校验通过的路径
+     * @throws IllegalArgumentException 检测到残留占位符
+     */
+    private String ensurePathResolved(String resolvedPath, String rawTemplate) {
+        if (resolvedPath == null) return null;
+        Matcher m = UNRESOLVED_PLACEHOLDER.matcher(resolvedPath);
+        if (m.find()) {
+            throw new IllegalArgumentException("导出路径模板变量未解析: " + m.group()
+                    + "（模板: " + rawTemplate + "）");
+        }
+        return resolvedPath;
     }
 
     // ==================== CUE/M3U 关联文件收集 ====================

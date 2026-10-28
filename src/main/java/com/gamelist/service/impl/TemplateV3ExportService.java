@@ -611,7 +611,8 @@ public class TemplateV3ExportService {
                 TemplateExpressionEngine.Context ctx = new TemplateExpressionEngine.Context(game, platform, gameVars);
                 String evaluated = TemplateExpressionEngine.evaluate(resolvedTarget, ctx);
                 if (evaluated != null && !evaluated.isEmpty()) {
-                    resolvedTarget = evaluated;
+                    // 表达式字符串字面量内的 {变量} 引擎不替换，求值结果需再做一次后置变量替换
+                    resolvedTarget = replaceVars(replacePlatformVariables(evaluated, platform), gameVars);
                 }
             }
 
