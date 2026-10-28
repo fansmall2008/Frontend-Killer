@@ -24,6 +24,12 @@
 ### Fixed
 - **移除导出前 scraped 预检**：删除 export.html 预检流程与弹窗函数、`ExportController` `/preflight` 端点、`ExportService(Impl)` preflight 方法及 `GameMapper` `countUnscrapedGamesByPlatformId` 查询，多平台导出不再因未刮削游戏弹警告阻断；三语 locale 同步删除 9 个 `preflight_*` 键
 - **i18n 语言包解析失败修复**：`zh-CN.json` 的 `confirm_reject_match` 值含未转义 ASCII 双引号导致 `response.json()` 抛异常、翻译表为空，数据导出/数据合并页面整页显示 i18n 键名；修复引号后，两页面自定义 i18n 应用逻辑增加 `translation !== key` 保护并消除异步加载时序竞态，三语补齐 8 个缺失文案（platforms_loaded、loading_frontends、frontends_loaded、please_select、merge_started、log_task_started、log_check_task_status、log_conflict_resolution）
+- **v3 导出路径一致性修复**：`ExportOrchestrator` 在媒体拷贝前预计算每款游戏的 ROM 导出路径（单一计算源），并以 `romExportPaths` 注入 `TemplateV3ExportService`，保证数据文件中写入的媒体路径与实际拷贝位置完全一致；导出页模板下拉改用模板 shortName 显示
+- **v3 导出路径表达式与占位符解析**：导出路径先做表达式求值、再应用简单变量替换（此前顺序相反导致表达式内变量未被替换）；目录创建前校验并拒绝未解析的 `{placeholder}`，避免生成字面量目录名
+- **分离功能修复与弹窗筛选对齐**：`PlatformServiceImpl` 分离移动语义重构（单事务原子移动 + 目标平台字段补全），`TempSubsetGame` / `TempSubsetMapper` / `GameMapper` 补齐字段与查询；平台管理页分离弹窗的筛选条件与游戏列表检索区对齐
+
+### Changed
+- **v3 模板三语描述与内置模板同步**：全部 v3 导出/导入模板补充中/日/英三语 description；`retroarch-v3` / `retroarch-folder-v3` / `games-media-v3` 三份导出模板同步进 `src/main/resources/export-rules` 内置资源，升级后强制覆盖规则与内置模板保持一致
 
 ## [1.3.7] - 2026-10-25
 
