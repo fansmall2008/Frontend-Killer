@@ -24,8 +24,8 @@ ENV TZ=Asia/Shanghai
 #   ffmpeg  - APE/FLAC track decoding to WAV           (LGPL-2.1-or-later in Debian)
 # See THIRD-PARTY-NOTICES.md. Do not remove /usr/share/doc/mame-tools or
 # /usr/share/doc/ffmpeg.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends mame-tools ffmpeg \
+RUN apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 update \
+    && apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 install -y --no-install-recommends mame-tools ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
