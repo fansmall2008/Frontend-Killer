@@ -1,0 +1,211 @@
+/* ============================================================
+   Frontend-Killer 导引引擎样式（像素 RPG 风）
+   由 guide-engine.js 动态注入，命名统一以 fk-guide- 前缀隔离
+   ============================================================ */
+
+/* ---- 全屏遮罩 + 目标高亮 ---- */
+.fk-guide-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    display: none;
+}
+.fk-guide-overlay.active { display: block; }
+
+.fk-guide-highlight {
+    position: fixed;
+    border: 3px solid #ffd93d;
+    border-radius: 4px;
+    /* 用超大 box-shadow 在目标周围"挖洞"变暗 */
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.68);
+    transition: left .18s steps(6), top .18s steps(6), width .18s steps(6), height .18s steps(6);
+    pointer-events: none;
+    image-rendering: pixelated;
+}
+/* 无目标（整页介绍）时：高亮隐藏，仅留全屏暗色 */
+.fk-guide-highlight.no-target {
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    border-color: transparent;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.68);
+}
+
+/* ---- 对话框容器（精灵 + 对话框） ---- */
+.fk-guide-dialog-wrap {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    z-index: 10051;
+    display: none;
+    align-items: flex-end;
+    gap: 10px;
+    max-width: min(920px, 94vw);
+}
+.fk-guide-dialog-wrap.active { display: flex; }
+
+/* ---- 像素精灵 ---- */
+.fk-guide-sprite {
+    width: 108px;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.45));
+    animation: fk-bob 0.9s steps(2, jump-none) infinite;
+    flex: 0 0 auto;
+    margin-bottom: -4px;
+}
+.fk-guide-sprite.flip { transform: scaleX(-1); }
+@keyframes fk-bob {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
+}
+.fk-guide-sprite.flip { animation-name: fk-bob-flip; }
+@keyframes fk-bob-flip {
+    0%   { transform: scaleX(-1) translateY(0); }
+    50%  { transform: scaleX(-1) translateY(-3px); }
+    100% { transform: scaleX(-1) translateY(0); }
+}
+
+/* ---- RPG 对话框 ---- */
+.fk-guide-dialog {
+    position: relative;
+    flex: 1 1 auto;
+    background: #10131f;
+    color: #f4f4f4;
+    border: 4px solid #f4f4f4;
+    outline: 4px solid #2b3350;
+    border-radius: 2px;
+    padding: 22px 22px 16px 22px;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 2px #000;
+    font-family: "Courier New", "Consolas", monospace;
+    min-height: 96px;
+}
+
+/* 名牌 */
+.fk-guide-name {
+    position: absolute;
+    top: -18px;
+    left: 14px;
+    background: #ffd93d;
+    color: #10131f;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 3px 12px;
+    border: 3px solid #10131f;
+    border-radius: 2px;
+    letter-spacing: 1px;
+}
+
+/* 步骤进度点 */
+.fk-guide-progress {
+    position: absolute;
+    top: -14px;
+    right: 14px;
+    background: #2b3350;
+    color: #ffd93d;
+    font-size: 11px;
+    padding: 2px 8px;
+    border: 2px solid #f4f4f4;
+    border-radius: 2px;
+    font-family: "Courier New", monospace;
+}
+
+/* 正文 */
+.fk-guide-text {
+    font-size: 16px;
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+    white-space: pre-wrap;
+    min-height: 44px;
+    word-break: break-word;
+}
+.fk-guide-text .cursor {
+    display: inline-block;
+    width: 8px;
+    animation: fk-blink 0.7s steps(1) infinite;
+    color: #ffd93d;
+}
+@keyframes fk-blink { 50% { opacity: 0; } }
+
+/* 继续指示 ▼ */
+.fk-guide-continue {
+    position: absolute;
+    right: 18px;
+    bottom: 6px;
+    color: #ffd93d;
+    font-size: 14px;
+    animation: fk-blink 0.8s steps(1) infinite;
+    display: none;
+}
+.fk-guide-continue.show { display: block; }
+
+/* 操作按钮（RPG 菜单风） */
+.fk-guide-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+.fk-guide-btn {
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    font-size: 13px;
+    color: #f4f4f4;
+    background: #2b3350;
+    border: 3px solid #f4f4f4;
+    border-radius: 2px;
+    padding: 5px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+}
+.fk-guide-btn:hover { background: #3d4a73; }
+.fk-guide-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.5); }
+.fk-guide-btn.primary { background: #ffd93d; color: #10131f; border-color: #10131f; }
+.fk-guide-btn.primary:hover { background: #ffe36e; }
+.fk-guide-btn.ghost { background: transparent; border-color: #6b7aa8; color: #9fb0e0; box-shadow: none; }
+
+/* ---- 帮助唤起按钮（导引关闭后出现在右下角） ---- */
+.fk-guide-help {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 10040;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #10131f;
+    color: #ffd93d;
+    border: 3px solid #ffd93d;
+    border-radius: 30px;
+    padding: 8px 16px 8px 8px;
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+}
+.fk-guide-help.active { display: flex; }
+.fk-guide-help img {
+    width: 40px;
+    height: auto;
+    image-rendering: pixelated;
+    background: #2b3350;
+    border-radius: 50%;
+}
+.fk-guide-help:hover { transform: translateY(-2px); }
+
+/* ---- 首次开启询问弹窗（复用对话框外观，居中） ---- */
+.fk-guide-first {
+    position: fixed;
+    inset: 0;
+    z-index: 10060;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.72);
+}
+.fk-guide-first.active { display: flex; }
+.fk-guide-first .fk-guide-dialog { max-width: 560px; width: 92%; }
+.fk-guide-first .fk-guide-sprite { width: 130px; }

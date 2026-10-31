@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "首页 · 总览", "en-US": "Dashboard · Overview", "ja-JP": "ホーム · 概要" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["欢迎来到首页！这里是整个系统的总览面板，一眼看清平台、游戏和任务的状况。"],
+        "en-US": ["Welcome to the Dashboard! It gives you an at-a-glance view of platforms, games and tasks."],
+        "ja-JP": ["ホームへようこそ！ここではプラットフォーム、ゲーム、タスクの状況をひと目で確認できます。"]
+      }
+    },
+    {
+      "selector": ".sidebar",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["左边这一列是导航栏，点一下就能在首页、游戏列表、平台管理、任务、媒体、设置之间来回切换。"],
+        "en-US": ["The column on the left is navigation. Click to switch between Dashboard, Game List, Platform, Tasks, Media and Settings."],
+        "ja-JP": ["左の列はナビゲーションです。ホーム、ゲーム一覧、プラットフォーム、タスク、メディア、設定を切り替えられます。"]
+      }
+    },
+    {
+      "selector": ".stats-grid",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["这几张卡片是关键指标：平台数、游戏总数、已刮削数量、以及正在进行的任务。", "下面的彩色条则按数据质量分级展示刮削覆盖情况。"],
+        "en-US": ["These cards are key metrics: platforms, total games, scraped count and running tasks.", "The colored bar below shows scrape coverage broken down by data quality."],
+        "ja-JP": ["このカードは主要指標です：プラットフォーム数、ゲーム総数、スクレイピング済み数、実行中タスク。", "下のカラーバーはデータ品質別のスクレイピング被覆率を示します。"]
+      }
+    },
+    {
+      "selector": "#taskListCard",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["这里列出正在运行的后台任务和进度条。需要中止的话，点对应任务右侧的红色叉号。"],
+        "en-US": ["Running background tasks and their progress appear here. To stop one, click the red cross on its right."],
+        "ja-JP": ["実行中のバックグラウンドタスクと進捗がここに表示されます。中止するには右側の赤い×をクリックします。"]
+      }
+    },
+    {
+      "selector": "#headerNotifBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["右上角的小铃铛会汇总任务完成情况，点开可查看成功与失败的明细。"],
+        "en-US": ["The bell at the top-right collects task results; open it to see successes and failures."],
+        "ja-JP": ["右上のベルはタスク結果を集約します。クリックすると成功と失敗の内訳が見られます。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["发起批量任务后回到首页，就能在这里盯着进度。想管理游戏，去『游戏列表』页，那边也有我～"],
+        "en-US": ["After starting a batch task, come back here to watch its progress. To manage games, head to the Game List page — I'll be there too."],
+        "ja-JP": ["バッチタスクを開始したらホームに戻って進捗を確認できます。ゲームを管理するには『ゲーム一覧』ページへ。そっちにもいますよ。"]
+      }
+    },
+    {
+      "selector": "a[href=\"/data-import\"]",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["最后给个建议：第一次使用本软件，最好从侧边栏的『数据导入』开始。先导入 gamelist.xml 或扫描 ROM 目录，之后的刮削和媒体下载都以它为基础。"],
+        "en-US": ["One last tip: on a first run, start from 'Data Import' in the sidebar. Import a gamelist.xml or scan your ROM folder first — scraping and media downloads all build on it."],
+        "ja-JP": ["最後にひとこと：初めての利用なら、サイドバーの『データインポート』から始めるのがおすすめです。まず gamelist.xml のインポートか ROM フォルダのスキャンを行い、その後のスクレイピングやメディアダウンロードはすべてそれを基盤とします。"]
+      }
+    }
+  ]
+}

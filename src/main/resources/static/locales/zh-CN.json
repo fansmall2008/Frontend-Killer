@@ -65,7 +65,7 @@
     "feature_log_viewer_btn":  "进入日志查看",
     "log_viewer_btn":  "日志查看器",
     "copyright":  "© 2023–2026 Frontend Killer | 模拟游戏元数据管理平台",
-    "version":  "版本：1.3.0",
+    "version":  "版本：1.4.0 预览版",
     "nav_about":  "关于与版权",
     "about_title":  "关于与版权 - Frontend Killer",
     "about_story_heading":  "开发故事",
@@ -1616,5 +1616,13 @@
     "alert_select_scrape_first": "请先选择要刮削的游戏",
     "alert_game_info_failed": "获取游戏信息失败",
     "alert_bind_system_first": "请先绑定系统后再进行刮削",
-    "alert_scrape_error": "批量刮削出错: "
+    "alert_scrape_error": "批量刮削出错: ",
+    "guide_name": "向导精灵",
+    "guide_prev": "← 上一步",
+    "guide_next": "下一步 →",
+    "guide_skip": "跳过本页",
+    "guide_help": "导引",
+    "guide_firstrun_msg": "初次见面！我是你的向导精灵。要不要让我带你逐一熟悉各个页面的功能和按钮？开启后，随时可点页面右下角的「导引」按钮重看。",
+    "guide_firstrun_no": "暂不需要",
+    "guide_firstrun_yes": "开启导引"
 }

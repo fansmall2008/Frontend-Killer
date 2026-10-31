@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "媒体下载", "en-US": "Media Download", "ja-JP": "メディアダウンロード" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『媒体下载』专门批量抓取封面、截图、视频、手册等媒体文件，按平台排队逐个下载。"],
+        "en-US": ["Media Download batch-fetches covers, screenshots, videos and manuals, queued per platform."],
+        "ja-JP": ["『メディアダウンロード』はジャケット・スクリーンショット・動画・マニュアルなどを、プラットフォーム単位でキューに入れて一括取得します。"]
+      }
+    },
+    {
+      "selector": ".md-toolbar",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["顶部是全局控制：『全部暂停』临时停下所有下载、『全部停止』终止任务，右侧『刷新状态』手动拉取最新进度。"],
+        "en-US": ["The top bar is global control: Pause All halts downloads, Stop All ends them, and Refresh pulls the latest status."],
+        "ja-JP": ["上部は全体制御です。『すべて一時停止』で停止、『すべて停止』で終了、右の『状態更新』で最新の進捗を取得します。"]
+      }
+    },
+    {
+      "selector": "#quotaBar",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["这一行实时监控 ScreenScraper 配额：今日请求数、并发线程和账号等级。快接近上限时适当放慢，避免超额失败。"],
+        "en-US": ["This row monitors the ScreenScraper quota: today's requests, threads and account level. Slow down near the cap to avoid failures."],
+        "ja-JP": ["この行は ScreenScraper クォータのリアルタイム監視です。本日のリクエスト数・スレッド数・ランクを示し、上限接近では失敗回避のため速度を落としてください。"]
+      }
+    },
+    {
+      "selector": "#platformList",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["这里列出各平台的下载进度。展开某个平台能看到细节；失败项可点进去查看并重试。"],
+        "en-US": ["Each platform's download progress appears here. Expand one for details, and open failed items to review and retry."],
+        "ja-JP": ["各プラットフォームのダウンロード進捗がここに出ます。展開すると詳細が見られ、失敗項目は開いて確認・再試行できます。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["媒体通常要先完成刮削拿到记录才会下载。若这里是空的，先去『游戏列表』或『平台管理』做刮削。"],
+        "en-US": ["Media usually needs scraping first to create records before download. If it's empty, scrape from the Game List or Platform Management first."],
+        "ja-JP": ["メディアは通常、先にスクレイピングしてレコードを作ってからです。ここが空なら、まず『ゲーム一覧』や『プラットフォーム管理』で刮削してください。"]
+      }
+    }
+  ]
+}

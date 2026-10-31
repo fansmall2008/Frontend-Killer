@@ -95,6 +95,8 @@
     <!-- 音效引擎 & 主题管理器 -->
     <script th:src="@{/js/sound-engine.js}"></script>
     <script th:src="@{/js/theme-manager.js}"></script>
+    <!-- 导引引擎（像素 RPG 风，自包含；无对应 guides/{page}.json 时自动静默） -->
+    <script th:src="@{/js/guide-engine.js}"></script>
     <script>
         // ---- 初始化音效引擎 + 主题 ----
         (function() {

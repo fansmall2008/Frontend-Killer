@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "title": "游戏列表页导引",
+  "steps": [
+    {
+      "selector": "",
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": [
+          "欢迎来到「游戏列表」页！",
+          "这里管理当前平台下的所有游戏。让我带你认识一下各个按钮吧。"
+        ],
+        "en-US": [
+          "Welcome to the Game List page!",
+          "Here you manage all games under the current platform. Let me walk you through the buttons."
+        ],
+        "ja-JP": [
+          "「ゲームリスト」ページへようこそ！",
+          "ここで現在のプラットフォームのすべてのゲームを管理します。ボタンを一つずつご案内します。"
+        ]
+      }
+    },
+    {
+      "selector": ".search-toggle-btn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "这个「搜索」按钮可以展开检索区。",
+          "支持按名称、发行日期、开发商、发行商、类型等多种条件筛选。"
+        ],
+        "en-US": [
+          "This \"Search\" button opens the filter panel.",
+          "You can filter by name, release date, developer, publisher, genre and more."
+        ],
+        "ja-JP": [
+          "この「検索」ボタンで検索パネルが開きます。",
+          "名前・発売日・開発元・出版社・ジャンルなどで絞り込めます。"
+        ]
+      }
+    },
+    {
+      "selector": "#addGameBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "「新增」用于手动添加一个游戏条目。",
+          "日常更推荐用「数据导入」批量导入 ROM。"
+        ],
+        "en-US": [
+          "\"Add\" creates a single game entry manually.",
+          "For bulk work, prefer importing ROMs from the Data Import page."
+        ],
+        "ja-JP": [
+          "「追加」でゲームを1件手動登録します。",
+          "まとめて登録するには「データインポート」をおすすめします。"
+        ]
+      }
+    },
+    {
+      "selector": "#batchScrapeBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "勾选游戏后点这个，会向 ScreenScraper 获取游戏信息和媒体。",
+          "注意：需要先在平台绑定刮削系统，且受账号额度限制。"
+        ],
+        "en-US": [
+          "After selecting games, this fetches metadata and media from ScreenScraper.",
+          "Note: the platform must be bound to a scrape system first, and quota limits apply."
+        ],
+        "ja-JP": [
+          "ゲームを選択後に押すと、ScreenScraper から情報とメディアを取得します。",
+          "注意：先にプラットフォームをスクレイプシステムへ紐付ける必要があります。"
+        ]
+      }
+    },
+    {
+      "selector": "#matchDiscSerialBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "「本地获取数据」不联网，用本地 ROM 库快速识别游戏。",
+          "光盘类游戏会优先读取内部编号来匹配，命中后再补充信息。"
+        ],
+        "en-US": [
+          "\"Local Match\" works offline, identifying games via the local ROM database.",
+          "Disc games match by their internal serial first."
+        ],
+        "ja-JP": [
+          "「ローカル照合」はオフラインでローカルROMデータベースから認識します。",
+          "ディスク系は内部シリアル番号で優先的に照合します。"
+        ]
+      }
+    },
+    {
+      "selector": "#batchEditBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "「批量修改」可一次编辑多个游戏的开发商、发行商等字段。",
+          "留空的字段不会被改动。"
+        ],
+        "en-US": [
+          "\"Batch Edit\" updates fields like developer or publisher for many games at once.",
+          "Fields left blank are not changed."
+        ],
+        "ja-JP": [
+          "「一括編集」で開発元や出版社などを複数ゲームまとめて変更できます。",
+          "空欄の項目は変更されません。"
+        ]
+      }
+    },
+    {
+      "selector": "#deleteSelectedBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "「删除选中」会把勾选的游戏从列表移除。",
+          "删除前请务必确认范围，操作会提示二次确认。"
+        ],
+        "en-US": [
+          "\"Delete Selected\" removes the checked games from the list.",
+          "Always double-check the range; a confirmation will be shown."
+        ],
+        "ja-JP": [
+          "「選択削除」でチェックしたゲームを一覧から削除します。",
+          "対象範囲をよく確認してください。確認ダイアログが表示されます。"
+        ]
+      }
+    },
+    {
+      "selector": "#recheckExistsBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": [
+          "「重新检测」会重新扫描 ROM 文件是否存在。",
+          "移动过游戏文件夹后点它，可以刷新存在状态。"
+        ],
+        "en-US": [
+          "\"Recheck\" rescans whether each ROM file still exists.",
+          "Use it after moving game folders to refresh the status."
+        ],
+        "ja-JP": [
+          "「再検出」はROMファイルの存在を再スキャンします。",
+          "ゲームフォルダを移動した後に状態を更新できます。"
+        ]
+      }
+    },
+    {
+      "selector": "",
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": [
+          "这一页的介绍就到这里！",
+          "之后想再看，点右下角的「导引」按钮即可。祝游戏库整理顺利～"
+        ],
+        "en-US": [
+          "That's the tour of this page!",
+          "To see it again, click the \"Guide\" button at the bottom-right. Happy organizing!"
+        ],
+        "ja-JP": [
+          "このページの案内は以上です！",
+          "もう一度見るには右下の「ガイド」ボタンを押してください。"
+        ]
+      }
+    }
+  ]
+}

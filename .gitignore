@@ -159,3 +159,6 @@ browser_screenshot_*.png
 /scan-out.txt
 /tail-out.txt
 /test-chdman-*.ps1
+
+# 导引精灵转换的中间二进制产物（原图/预览，不随软件分发）
+assets/guide/

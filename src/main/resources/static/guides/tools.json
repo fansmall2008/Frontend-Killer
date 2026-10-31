@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "工具箱", "en-US": "Tools", "ja-JP": "ツールボックス" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『工具箱』汇集了几款离线、通用的小工具：翻译、DAT 生成、ROM 版本、列操作。点卡片即可展开对应面板。"],
+        "en-US": ["Tools collects a few offline, general-purpose utilities: Translation, DAT generation, ROM versions and column ops. Click a card to open its panel."],
+        "ja-JP": ["『ツールボックス』にはオフラインの小道具が揃っています：翻訳・DAT 生成・ROM バージョン・列操作。カードをクリックするとパネルが開きます。"]
+      }
+    },
+    {
+      "selector": "#cardTranslation",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["翻译工具：把游戏名称、描述、ROM 名批量翻译成目标语种，结果写入独立的译文表，不覆盖原文。"],
+        "en-US": ["Translation: batch-translate game names, descriptions and ROM names into a target language, stored in a separate translation table without overwriting originals."],
+        "ja-JP": ["翻訳ツール：ゲーム名・説明・ROM 名を目的言語へ一括翻訳し、原文を上書きせず独立の訳文テーブルに保存します。"]
+      }
+    },
+    {
+      "selector": "#cardDat",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["DAT 生成器：把 rom_db 或现有游戏列表导出成标准 ClrMamePro DAT；生成的 DAT 也能再回流导入 rom_db。"],
+        "en-US": ["DAT Generator: export rom_db or an existing game list into a standard ClrMamePro DAT, which can also be re-imported back into rom_db."],
+        "ja-JP": ["DAT ジェネレーター：rom_db や既存の一覧を標準の ClrMamePro DAT に出力でき、その DAT を再び rom_db に読み戻すことも可能です。"]
+      }
+    },
+    {
+      "selector": "#cardVariant",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["ROM 版本：按系统能力生成原始文件 / ZIP / 7z / ISO / CSO 等版本，供导出时按格式取用；版本与主文件独立存储。"],
+        "en-US": ["ROM Versions: generate raw / ZIP / 7z / ISO / CSO variants per system capability for export; each version is stored independently of the main file."],
+        "ja-JP": ["ROM バージョン：システムの対応に応じて 生ファイル / ZIP / 7z / ISO / CSO などを生成し、出力時に形式で選べます。バージョンは本体とは独立して保存されます。"]
+      }
+    },
+    {
+      "selector": "#cardColumnOps",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["列操作：批量复制、互换、覆盖或替换游戏表的某一列数据，做数据清洗和整理时很省事。"],
+        "en-US": ["Column Ops: batch copy, swap, overwrite or replace a column of game data — a time-saver for cleaning and organizing."],
+        "ja-JP": ["列操作：ゲームテーブルの特定列を一括でコピー・入替・上書き・置換でき、データの整備に役立ちます。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["这些都是各自独立的小工具，用哪个点哪个；具体进度和日志会在对应面板里显示。"],
+        "en-US": ["Each is an independent utility — use whichever you need; progress and logs show inside that tool's panel."],
+        "ja-JP": ["これらは独立したツールです。必要なものを押せば、進捗とログはそれぞれのパネルに表示されます。"]
+      }
+    }
+  ]
+}

@@ -65,7 +65,7 @@
     "feature_log_viewer_btn":  "ログビューアに入る",
     "log_viewer_btn":  "ログビューア",
     "copyright":  "© 2023–2026 Frontend Killer | エミュレータゲームメタデータ管理プラットフォーム",
-    "version":  "バージョン：1.3.0",
+    "version":  "バージョン：1.4.0 プレビュー",
     "nav_about":  "このソフトと著作権",
     "about_title":  "このソフトと著作権 - Frontend Killer",
     "about_story_heading":  "開発ストーリー",
@@ -1616,5 +1616,13 @@
     "alert_select_scrape_first": "スクレイプするゲームを選択してください",
     "alert_game_info_failed": "ゲーム情報の取得に失敗しました",
     "alert_bind_system_first": "スクレイプ前にシステムをバインドしてください",
-    "alert_scrape_error": "一括スクレイプエラー: "
+    "alert_scrape_error": "一括スクレイプエラー: ",
+    "guide_name": "ガイド精霊",
+    "guide_prev": "← 前へ",
+    "guide_next": "次へ →",
+    "guide_skip": "このページをスキップ",
+    "guide_help": "ガイド",
+    "guide_firstrun_msg": "はじめまして！ガイド精霊です。各ページの機能やボタンをひとつずつご案内しましょうか？オンにすると、ページ右下の「ガイド」ボタンからいつでも見直せます。",
+    "guide_firstrun_no": "今は不要",
+    "guide_firstrun_yes": "ガイドを開始"
 }

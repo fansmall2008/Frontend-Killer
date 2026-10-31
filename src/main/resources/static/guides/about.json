@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "关于", "en-US": "About", "ja-JP": "情報" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『关于』页介绍这款软件的来历、致谢，以及版权与开源许可信息。"],
+        "en-US": ["The About page covers this software's story, acknowledgements, and copyright/license info."],
+        "ja-JP": ["『情報』ページはこのソフトの由来と謝意、著作権およびライセンス情報を紹介しています。"]
+      }
+    },
+    {
+      "selector": ".about-header",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["顶部是软件名 Frontend Killer 与当前版本号。"],
+        "en-US": ["The top shows the app name, Frontend Killer, and the current version."],
+        "ja-JP": ["上部にはアプリ名 Frontend Killer と現在のバージョンが表示されています。"]
+      }
+    },
+    {
+      "selector": "#aboutLangSelect",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["右上角的下拉可切换界面语言（中/英/日），选完即时生效。"],
+        "en-US": ["The dropdown at the top-right switches the UI language (Chinese/English/Japanese) and applies instantly."],
+        "ja-JP": ["右上のドロップダウンで表示言語（中国語/英語/日本語）を切り替え、すぐ反映されます。"]
+      }
+    },
+    {
+      "selector": ".about-section",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["第一块是『开发故事』，记录了它从一个小脚本一步步演进成 Frontend-Killer 的经过。"],
+        "en-US": ["The first section is the development story — how it grew from a tiny script into Frontend-Killer."],
+        "ja-JP": ["最初のブロックは『開発ストーリー』で、小さなスクリプトから Frontend-Killer に育った経緯を記しています。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["往下还有致谢、版权声明、第三方组件（如 chdman/GPL）与代码使用策略。本软件基于 MIT 开源，且不含任何游戏 ROM。有兴趣可以慢慢读。"],
+        "en-US": ["Further down are acknowledgements, copyright, third-party components (like chdman/GPL) and the usage policy. The app is MIT-licensed and ships no ROMs — read on if curious."],
+        "ja-JP": ["その下に謝意、著作権表示、サードパーティ製部品（chdman など GPL）、利用方針が続きます。本ソフトは MIT で公開され、ROM は同梱していません。宜しければゆっくりお読みください。"]
+      }
+    }
+  ]
+}

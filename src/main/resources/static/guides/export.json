@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "导出", "en-US": "Export", "ja-JP": "エクスポート" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『导出』把整理好的游戏与媒体，按所选前端的目录结构输出到指定路径，喂给 EmulationStation、Pegasus 等前端。"],
+        "en-US": ["Export outputs your curated games and media into a chosen frontend's folder layout, ready for EmulationStation, Pegasus and more."],
+        "ja-JP": ["『エクスポート』は整理済みのゲームとメディアを、選んだ前端のフォルダ構成で指定パスに出力し、EmulationStation や Pegasus などに渡します。"]
+      }
+    },
+    {
+      "selector": "#platformCombo",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["先选要导出的平台，可搜索、可多选。每个平台在输出里会生成各自的独立子目录。"],
+        "en-US": ["Choose platforms to export — searchable and multi-select. Each platform gets its own subfolder in the output."],
+        "ja-JP": ["まず出力するプラットフォームを選びます。検索・複数選択可。各プラットフォームは独立したサブフォルダに出力されます。"]
+      }
+    },
+    {
+      "selector": "#frontend",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["再选目标前端模板（Pegasus、ES-DE、RetroArch 等），它决定导出的目录结构与清单格式。"],
+        "en-US": ["Then pick a target frontend template (Pegasus, ES-DE, RetroArch...) which decides the folder layout and list format."],
+        "ja-JP": ["続いて対象の前端テンプレート（Pegasus、ES-DE、RetroArch など）を選ぶと、出力のフォルダ構成とリスト形式が決まります。"]
+      }
+    },
+    {
+      "selector": "#translationLang",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["（可选）指定导出译文书种：若该语种已有译文，导出的名称与描述会自动替换成译文。"],
+        "en-US": ["Optional: set an export translation language; if translations exist, exported name/description use them."],
+        "ja-JP": ["（任意）出力する翻訳言語を指定できます。訳文があれば、名前と説明は自動で訳文に置き換わります。"]
+      }
+    },
+    {
+      "selector": ".checkbox-group",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["勾选导出内容：游戏文件、媒体文件、数据文件，按需取舍。只要清单就只留数据文件。", "注意：并非所有模板都支持三类文件同时导出，有些模板只能导出其中一部分；不可用的选项会按模板配置自动置灰。"],
+        "en-US": ["Pick what to export: game files, media files, data files. Only want the list? Keep just data files.", "Note: not every template can export all three at once — some support only part of them; unavailable options are greyed out by the template."],
+        "ja-JP": ["出力内容を選びます：ゲームファイル・メディアファイル・データファイル。一覧だけならデータファイルのみでOK。", "注意：すべてのテンプレートが3種を同時出力できるとは限りません。一部のみ対応もあり、使えない項目はテンプレート設定に従い自動でグレーアウトします。"]
+      }
+    },
+    {
+      "selector": "#outputPath",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["填导出目标路径（默认 /data/output），确保前端能读到这个目录。"],
+        "en-US": ["Set the output path (default /data/output) and make sure your frontend can read it."],
+        "ja-JP": ["出力先パス（既定は /data/output）を入力し、前端が読み取れる場所か確認します。"]
+      }
+    },
+    {
+      "selector": "#exportBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["都设好了，点『导出』开始。这是后台任务，可回首页或任务管理页看进度。"],
+        "en-US": ["All set — click Export. It runs as a background task; watch progress on the Dashboard or Task page."],
+        "ja-JP": ["準備ができたら『エクスポート』をクリック。バックグラウンドタスクなので、ホームやタスク管理で進捗を確認できます。"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "任务管理", "en-US": "Task Management", "ja-JP": "タスク管理" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『任务管理』汇总所有后台任务：扫描、导入、刮削、导出等，一个页面看全状态与日志。"],
+        "en-US": ["Task Management aggregates all background jobs — scan, import, scrape, export — with status and logs in one place."],
+        "ja-JP": ["『タスク管理』はスキャン・インポート・刮削・エクスポートなど全てのバックグラウンドタスクを、状態とログとともに一画面でまとめます。"]
+      }
+    },
+    {
+      "selector": "#taskList",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["每张卡片是一个任务，显示进度与状态；展开可查看详细日志，判断它进行到哪一步。"],
+        "en-US": ["Each card is one task with progress and status; expand it to read detailed logs and see where it's at."],
+        "ja-JP": ["カード一つがひとつのタスクで、進捗と状態を表示。展開すると詳細ログで現在地を確認できます。"]
+      }
+    },
+    {
+      "selector": "#clearAllBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["任务结束后点『清空所有任务』清理列表。这只清任务记录，不会动你已导入的游戏数据。"],
+        "en-US": ["After tasks finish, use 'Clear All' to tidy the list. It only clears task records, not your imported game data."],
+        "ja-JP": ["タスクが終わったら『すべてクリア』で一覧を整理できます。消えるのはタスク記録のみで、インポート済みのゲームデータには影響しません。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["想单独盯媒体下载去『媒体下载』页；只想快速概览进度，回首页的『运行中任务』也够用。"],
+        "en-US": ["For media only, use the Media Download page; for a quick glance, the Dashboard's running-tasks section works too."],
+        "ja-JP": ["メディアだけ見たい場合は『メディアダウンロード』へ。概要だけならホームの『実行中タスク』でも十分です。"]
+      }
+    }
+  ]
+}

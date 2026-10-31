@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "数据合并", "en-US": "Platform Merge", "ja-JP": "プラットフォーム統合" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『数据合并』把多个平台的游戏归并成一个新平台，适合把零散或重复的分类整合到一起。"],
+        "en-US": ["Platform Merge combines games from several platforms into one new platform — handy for tidying scattered or duplicate categories."],
+        "ja-JP": ["『プラットフォーム統合』は複数のプラットフォームのゲームを新しいひとつにまとめ、散在や重複の分類を整理するのに便利です。"]
+      }
+    },
+    {
+      "selector": "#sourcePlatforms",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["在这里多选要合并的源平台：按住 Ctrl 逐个加、按 Shift 选连续范围，至少选两个。"],
+        "en-US": ["Multi-select the source platforms here: Ctrl to add individually, Shift for a range. Pick at least two."],
+        "ja-JP": ["ここで統合元のプラットフォームを複数選びます。Ctrl で個別追加、Shift で連続選択、最低 2 つ必要です。"]
+      }
+    },
+    {
+      "selector": "#newPlatformName",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["给合并后诞生的新平台起一个名称，这个是必填项。"],
+        "en-US": ["Give the new merged platform a name — this field is required."],
+        "ja-JP": ["統合後にできる新しいプラットフォームに名前を付けます。これは必須項目です。"]
+      }
+    },
+    {
+      "selector": "#newPlatformFolderPath",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["（可选）填新平台文件夹的绝对路径，它是导出功能的前置条件；不导出可留空。"],
+        "en-US": ["Optional: set the new platform's absolute folder path — a prerequisite for export; leave blank if you won't export."],
+        "ja-JP": ["（任意）新プラットフォームのフォルダ絶対パスを入力します。エクスポートの前提条件で、行わないなら空で構いません。"]
+      }
+    },
+    {
+      "selector": "#startMerge",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["点『开始合并』，合并作为后台任务执行；遇到重名文件会先问你是否覆盖。"],
+        "en-US": ["Click 'Start Merge'; it runs as a background task. On name conflicts it asks whether to overwrite."],
+        "ja-JP": ["『統合を開始』でバックグラウンド実行されます。同名ファイルでは上書き確認が行われます。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["合并进度可以到『任务管理』页查看；有冲突时，也能在合并报告里逐条处理。"],
+        "en-US": ["Check merge progress on the Task Management page; conflicts can be handled one by one in the merge report."],
+        "ja-JP": ["進捗は『タスク管理』で確認できます。競合があれば統合レポートで一つずつ処理できます。"]
+      }
+    }
+  ]
+}

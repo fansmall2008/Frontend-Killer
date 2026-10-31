@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "平台管理", "en-US": "Platform Management", "ja-JP": "プラットフォーム管理" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『平台管理』是按平台组织游戏的中枢：每个平台绑定一个刮削系统，批量刮削与体量扫描都以平台为单位。"],
+        "en-US": ["Platform Management organizes games by platform: each platform binds one scrape system, and batch scraping/scanning works per platform."],
+        "ja-JP": ["『プラットフォーム管理』はプラットフォーム単位でゲームを整理する中枢です。各プラットフォームにスクレイピングシステムを紐づけ、一括処理も単位になります。"]
+      }
+    },
+    {
+      "selector": ".pm-tabs",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["顶部这两个标签可切换视图：『平台』看常规平台，『游戏子集』管理临时筛选出来的子集。"],
+        "en-US": ["The two tabs on top switch views: 'Platforms' for normal platforms, 'Subsets' for temporary filtered sets."],
+        "ja-JP": ["上部の二つのタブで表示を切り替えます。『プラットフォーム』は通常の一覧、『ゲームサブセット』は一時抽出の集合を管理します。"]
+      }
+    },
+    {
+      "selector": ".pm-add-btn-wrap .btn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["点『新增平台』创建一个平台，并为它选择对应的刮削系统，之后导入的游戏才好归类。"],
+        "en-US": ["Click 'Add Platform' to create one and pick its scrape system, so imported games can be categorized."],
+        "ja-JP": ["『プラットフォームを追加』で新建し、対応するスクレイピングシステムを選ぶと、インポート後のゲームを分類しやすくなります。"]
+      }
+    },
+    {
+      "selector": "#platformTable",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["这张总表列出每个平台的游戏数与质量分布：已刮削、原始数据、质量差、纯ROM。点平台名可进入详情页做精细配置。"],
+        "en-US": ["This table lists each platform's game count and quality mix: scraped, original, poor, raw ROM. Click a name to open its detail page."],
+        "ja-JP": ["この一覧は各プラットフォームのゲーム数と品質内訳（スクレイピング済み・元データ・低品質・ROMのみ）を示します。名前をクリックで詳細設定へ。"]
+      }
+    },
+    {
+      "selector": "#batchToolbar",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["在左侧勾选平台后，这里可对多个平台批量操作：获取 ScreenScraper 数据、扫描体量、本地获取数据、或删除。"],
+        "en-US": ["After checking platforms on the left, batch-operate here: fetch ScreenScraper data, scan volume, local match, or delete."],
+        "ja-JP": ["左でプラットフォームにチェックすると、ここで一括操作できます：ScreenScraper データ取得、体量スキャン、ローカル照合、削除。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["单个平台的 Logo、媒体类型、刮削字段等细节，进到平台详情页配置更合适。整理好平台，再回游戏列表批量刮削。"],
+        "en-US": ["Per-platform details — logo, media types, scrape fields — are best set in the platform's detail page. Then batch-scrape from the Game List."],
+        "ja-JP": ["プラットフォーム単位の Logo・メディア種別・スクレイピング項目などの細部は詳細ページで設定するのがおすすめです。整理できたらゲーム一覧で一括刮削へ。"]
+      }
+    }
+  ]
+}

@@ -35,7 +35,7 @@ if not exist "%DATA_DIR%\database" mkdir "%DATA_DIR%\database"
 
 rem 拷贝jar文件
 echo 拷贝jar文件...
-copy "%TARGET_DIR%\webGamelistOper-1.3.8.jar" "%DISTRIBUTION_DIR%\webGamelistOper-1.3.8.jar" /Y
+copy "%TARGET_DIR%\webGamelistOper-1.4.0-PREVIEW.jar" "%DISTRIBUTION_DIR%\webGamelistOper-1.4.0-PREVIEW.jar" /Y
 
 rem 拷贝data目录（排除 scraper 缓存、rom-db 用户数据和 variants 运行时数据）
 echo 拷贝data目录内容...

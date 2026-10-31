@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "系统设置", "en-US": "System Settings", "ja-JP": "システム設定" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『系统设置』是全局偏好中枢：语言、主题、声音、ScreenScraper 账号、缓存与数据库都在这一页配置。"],
+        "en-US": ["System Settings is the global-preferences hub: language, theme, sound, ScreenScraper account, cache and database all live here."],
+        "ja-JP": ["『システム設定』は全体設定の中心です。言語・テーマ・サウンド・ScreenScraper アカウント・キャッシュ・データベースをここで設定します。"]
+      }
+    },
+    {
+      "selector": "#themeGrid",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["在这里挑选一套界面主题，配色与风格会即时切换，选顺眼的即可。"],
+        "en-US": ["Pick a UI theme here; colors and style switch instantly, so choose whatever you like."],
+        "ja-JP": ["ここで UI テーマを選ぶと、配色とスタイルが即座に切り替わります。お好みを選んでください。"]
+      }
+    },
+    {
+      "selector": "#soundEventList",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["这里配置各类事件的音效（成功、失败、通知等），不喜欢被打扰也可以整体静音。"],
+        "en-US": ["Configure event sounds here (success, failure, notification...). You can also mute them entirely."],
+        "ja-JP": ["ここではイベント音（成功・失敗・通知など）を設定します。妨害したくなければ一括でミュートも可能です。"]
+      }
+    },
+    {
+      "selector": "#scraperUsername",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["刮削依赖 ScreenScraper：在这里填入账号用户名与密码，这是能否刮削的前提。"],
+        "en-US": ["Scraping relies on ScreenScraper: enter your username and password here — this is the prerequisite for scraping."],
+        "ja-JP": ["刮削は ScreenScraper に依存します。ここにユーザー名とパスワードを入力すると、刮削できるかの前提が整います。"]
+      }
+    },
+    {
+      "selector": "#testScraperConnectionBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["填好后点『测试连接』，确认账号可用、配额正常，再去做刮削更稳妥。"],
+        "en-US": ["After filling it in, click 'Test Connection' to confirm the account works and quota is fine before scraping."],
+        "ja-JP": ["入力後は『接続テスト』をクリックし、アカウントが有効でクォータも問題ないことを確認してから刮削するのが安心です。"]
+      }
+    },
+    {
+      "selector": "#saveCacheSettingsBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["游戏信息缓存的设置单独保存；开启后可显著减少重复请求、加快刮削。"],
+        "en-US": ["Game-info cache is saved separately; enabling it cuts repeated requests and speeds up scraping."],
+        "ja-JP": ["ゲーム情報キャッシュの設定は個別に保存します。有効にすると重複リクエストが減り、刮削が速くなります。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["这页管的是全局偏好；单个平台的 Logo、媒体、刮削字段等参数，要到平台详情页里去调。"],
+        "en-US": ["This page covers global preferences; per-platform logo, media and scrape fields are set in the platform's detail page."],
+        "ja-JP": ["このページは全体設定です。プラットフォーム単位の Logo・メディア・刮削項目などは詳細ページで調整します。"]
+      }
+    }
+  ]
+}

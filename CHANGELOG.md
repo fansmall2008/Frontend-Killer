@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [1.4.0-PREVIEW] - 2026-10-31
+
+> ⚠️ **预览版**：像素 RPG 风新手导引系统首发，功能已开发完成并通过基础验证（JSON 合法性、选择器存在性、HTTP 内容、浏览器实测），但**尚未完全测试，可能存在 bug**，欢迎反馈。
+
+### Added
+- **导引功能（像素 RPG 风新手引导）**：全新自包含导引引擎 `static/js/guide-engine.js`（`window.FkGuide`，零外部依赖、离线可用），仅在 `fragments/layout.html` 的 common-scripts fragment 注入一行 `<script>` 即全站生效；页面按 `body[data-guide-page]` 或 URL 路径末段自动匹配 `static/guides/{page}.json`，无导引文件的页面静默不启用
+- **像素精灵与 RPG 对话框 UI**：`static/guide-sprites/{idle,point,walk}.png` 透明像素精灵 + `static/css/guide.css`（RPG 对话框、黄名牌、遮罩挖洞高亮、pixelated 精灵动画）；打字机逐字对话（~28ms/字）、目标元素高亮指引、精灵指向/行走姿态与视口左侧自动镜像、键盘导航（Enter/Space 继续、←/→ 步进、Esc 关闭）
+- **全站 11 页三语导引内容**（zh-CN / en-US / ja-JP）：home(7 步)、game-list(9)、data-import(8)、export(7)、platform-management(6)、platform-merge(6)、media-download(5)、task-management(4)、system-settings(7)、tools(6)、about(5)；全部选择器经渲染 DOM 校验存在性，标签页类页面（platform-management / tools）只指向默认可见元素避免被引擎静默跳过
+  - 首页导引末尾附“首次使用建议从数据导入开始”上手建议
+  - 数据导入导引讲解**导入模板**按媒体规则扫描磁盘、无列表文件也能匹配关联媒体；数据导出导引说明**导出范围**并非所有模板支持三类文件、不可用选项按模板自动置灰
+- **导引开关持久化**：复用 `system_settings`（`guide_enabled` / `guide_prompted`，经 `/api/settings/get|save` 读写）；每页“跳过本页”与“已看过”状态存 localStorage（`guideSkipped_{page}` / `guideSeen_{page}`）；首次访问弹窗询问是否开启导引，页面右下角常驻「导引」按钮可随时重看
+
+### Changed
+- **导引引擎 UI 三语 locale**：`guide_name / guide_prev / guide_next / guide_skip / guide_help / guide_firstrun_msg / guide_firstrun_no / guide_firstrun_yes` 8 键正式并入 `locales/{zh-CN,en-US,ja-JP}.json`；引擎新增 `refreshLabels()`，在每次打开导引/显示入口时按当前语言重贴按钮、名牌与帮助标签并同步对话语言，规避语言包异步加载的首帧中文残留竞态
+
+### Known Issues（预览版已知限制）
+- 系统设置页暂无导引全局开关 UI（开关目前依赖首次询问与 localStorage/后端设置项）
+- 精灵为单帧静态图 + CSS steps() 浮动动画，非真多帧逐帧动画
+- 导引内容选择器基于当前版本页面结构，若后续页面改版元素 id 需同步更新对应 guides JSON，否则该步会被静默跳过
+
 ## [1.3.8] - 2026-10-26
 
 > 版本机制重构 + ScreenScraper 刮削性能优化三项（统一连接池 / manifest 缓存全覆盖 / FAILED 任务 URL 复用）。

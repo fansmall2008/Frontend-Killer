@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "title": { "zh-CN": "数据导入", "en-US": "Data Import", "ja-JP": "データインポート" },
+  "steps": [
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["『数据导入』把 ROM 目录或游戏清单读进系统，是后续刮削、媒体、导出的起点。第一次用就从这里开始吧。"],
+        "en-US": ["Data Import reads your ROM folders or game lists into the app — the starting point for scraping, media and export. First run begins here."],
+        "ja-JP": ["『データインポート』は ROM フォルダやゲーム一覧をシステムに読み込む、スクレイピング・メディア・エクスポートの出発点です。初めての利用はここから始めましょう。"]
+      }
+    },
+    {
+      "selector": "#path",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["先填要扫描的根路径（默认 /roms）。也可以点下方『浏览目录』直接从文件夹里选。"],
+        "en-US": ["Enter the root path to scan (default /roms). Or click 'Browse Directories' below to pick a folder."],
+        "ja-JP": ["まずスキャンするルートパスを入力します（既定は /roms）。下の『フォルダを参照』から選ぶこともできます。"]
+      }
+    },
+    {
+      "selector": "#scanLevels",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["勾选要扫描的层级：第 1 层就是根目录本身，想连子文件夹一起导入，就勾上更深的层级。"],
+        "en-US": ["Tick the levels to scan: level 1 is the root itself; check deeper levels to include subfolders."],
+        "ja-JP": ["スキャンする階層にチェックします。第1階層はルート自体で、サブフォルダも取り込むにはより深い階層にチェックを付けてください。"]
+      }
+    },
+    {
+      "selector": "#systemCombobox",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["（可选）指定这批 ROM 属于哪个系统，方便自动匹配与刮削。输入关键词即可搜索。"],
+        "en-US": ["Optional: set which system these ROMs belong to for easier matching and scraping. Type a keyword to search."],
+        "ja-JP": ["（任意）この ROM がどのシステムに属するか指定すると、マッチングやスクレイピングが楽になります。キーワードで検索できます。"]
+      }
+    },
+    {
+      "selector": "#importMethod",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["选择导入方式：『模板方式』按前端模板解析 gamelist/dat 等数据文件；『无数据文件导入』则直接扫描 ROM 文件本体。"],
+        "en-US": ["Pick an import method: 'Template' parses gamelist/dat files by a frontend template; 'No data file' scans the ROM files directly."],
+        "ja-JP": ["インポート方式を選びます。『テンプレート方式』は gamelist/dat を前端テンプレートで解析し、『データファイルなし』は ROM 本体を直接スキャンします。"]
+      }
+    },
+    {
+      "selector": "#importTemplate",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["选定导入模板后，程序会按模板里配置的媒体规则扫描磁盘，自动把封面、截图等媒体文件匹配并关联到对应游戏。", "哪怕某个游戏集合没有列表文件、只有散落的媒体，也能靠模板的方式把媒体对上游戏。"],
+        "en-US": ["Once a template is chosen, the import scans the disk by the template's media rules and auto-matches covers, screenshots and more to each game.", "Even if a collection has no list file — just loose media — the template approach can still pair media with games."],
+        "ja-JP": ["テンプレートを選ぶと、そのメディア規則でディスクをスキャンし、ジャケットやスクリーンショットなどを各ゲームに自動で紐づけます。", "リストファイルがなく散在するメディアだけの集合でも、テンプレート方式ならメディアとゲームを対応付けられます。"]
+      }
+    },
+    {
+      "selector": "#submitBtn",
+      "pose": "point",
+      "dialogue": {
+        "zh-CN": ["设置好后，点『开始扫描并导入』。导入是后台任务，可回首页或任务管理页盯进度。"],
+        "en-US": ["When ready, click 'Start Scan & Import'. Import runs as a background task — watch progress on the Dashboard or Task page."],
+        "ja-JP": ["設定が終わったら『スキャンしてインポート』をクリック。インポートはバックグラウンドタスクなので、ホームやタスク管理で進捗を確認できます。"]
+      }
+    },
+    {
+      "selector": null,
+      "pose": "idle",
+      "dialogue": {
+        "zh-CN": ["导入完成后，去『平台管理』给游戏归好平台，再回『游戏列表』批量刮削——顺序就顺啦。"],
+        "en-US": ["After importing, organize games into platforms under Platform Management, then batch-scrape in the Game List — that's the smooth order."],
+        "ja-JP": ["インポートが終わったら『プラットフォーム管理』でゲームを整理し、『ゲーム一覧』で一括スクレイピング、という流れがスムーズです。"]
+      }
+    }
+  ]
+}
