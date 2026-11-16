@@ -31,7 +31,7 @@ RUN apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 update \
 WORKDIR /app
 
 # Copy the built JAR file
-COPY --from=builder /build/target/webGamelistOper-1.4.0-PREVIEW.jar app.jar
+COPY --from=builder /build/target/webGamelistOper-1.4.0.jar app.jar
 
 # Copy default rules (from rules/ directory, which contains all v2+v3 templates)
 COPY rules/export/ /app/default-rules/export/

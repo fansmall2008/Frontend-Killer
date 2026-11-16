@@ -448,6 +448,8 @@ public class RomDbController {
         m.put("publisher", romDb.getPublisher());
         m.put("releaseyear", romDb.getReleaseyear());
         m.put("genre", romDb.getGenre());
+        m.put("romFile", romDb.getRomFile());
+        m.put("romFileNorm", romDb.getRomFileNorm());
         return m;
     }
 

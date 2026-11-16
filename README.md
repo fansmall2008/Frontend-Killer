@@ -6,9 +6,7 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
-## What's New in 1.4.0-PREVIEW
-
-> ⚠️ Preview release: fully coded and smoke-tested, but not exhaustively tested — bugs may exist.
+## What's New in 1.4.0
 
 - **Onboarding guide system**: pixel-RPG style guided tours built into 11 pages (home, game list, data import/export, platform management/merge, media download, task management, system settings, tools, about), fully localized in zh-CN / en-US / ja-JP
 - **Zero-dependency engine**: self-contained JS sprite-guide engine (typewriter dialogue, spotlight highlighting, keyboard navigation), injected with a single script tag; per-page skip and replay via the bottom-right “Guide” button
@@ -223,7 +221,7 @@ Run: `docker compose up -d`
 #### Option 3: JAR File
 Requires Java 17+.
 ```bash
-java -jar webGamelistOper-1.4.0-PREVIEW.jar
+java -jar webGamelistOper-1.4.0.jar
 ```
 
 #### Option 4: Windows EXE (No Java Required)
@@ -310,7 +308,7 @@ services:
 #### 方式三：JAR 包运行
 需要 Java 17+。
 ```bash
-java -jar webGamelistOper-1.4.0-PREVIEW.jar
+java -jar webGamelistOper-1.4.0.jar
 ```
 
 #### 方式四：Windows EXE（无需 Java）
@@ -397,7 +395,7 @@ services:
 #### オプション3：JARファイル
 Java 17+ が必要です。
 ```bash
-java -jar webGamelistOper-1.4.0-PREVIEW.jar
+java -jar webGamelistOper-1.4.0.jar
 ```
 
 #### オプション4：Windows EXE（Java不要）
@@ -583,4 +581,4 @@ Without your effort and support, this idea would never have existed, let alone c
 
 ---
 
-**Version**: 1.4.0-PREVIEW
+**Version**: 1.4.0

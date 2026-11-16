@@ -404,32 +404,39 @@
         state.pageKey = resolvePageKey();
         state.lang = currentLang();
 
-        // 先读后端全局开关，再决定是否继续
+        // 先读后端全局开关：它只控制“自动完整导引”，不再决定右下角入口是否出现
         fetch('/api/settings/get').then(function (r) { return r.json(); }).then(function (s) {
             s = s || {};
             if (s.guide_enabled === 'false') lsSet('guideEnabled', 'false');
             else if (s.guide_enabled === 'true') lsSet('guideEnabled', 'true');
             if (s.guide_prompted === 'true') lsSet('guidePrompted', 'true');
 
-            if (!isGloballyEnabled()) return; // 用户已关闭，不打扰
-
-            // 首次询问
-            if (lsGet('guidePrompted') !== 'true') {
-                // 加载本页导引备用；询问后再开
-                loadGuide().then(function () { showFirstRunPrompt(); });
-                return;
-            }
-
             loadGuide().then(function (g) {
-                if (!g) return; // 该页无导引
+                if (!g) return; // 该页无导引内容：不出现入口
+                // 只要本页有导引内容，右下角「导引」按钮就常驻，与全局开关无关
                 showHelp();
-                // 首次进入且未被跳过 → 自动播放；否则仅保留右下角手动入口
+
+                // 全局关闭（首次选“暂不需要”也是此状态）：仅保留手动入口，不自动播放
+                if (!isGloballyEnabled()) return;
+
+                // 首次询问：同意后才会自动走一遍完整导引
+                if (lsGet('guidePrompted') !== 'true') {
+                    showFirstRunPrompt();
+                    return;
+                }
+
+                // 已开启 + 首次进入且未被跳过/未看过 → 自动播放完整导引；否则仅保留入口
                 if (!pageSkipped() && !pageSeen()) openGuide();
             });
         }).catch(function () {
-            // 读设置失败：降级为纯 localStorage
-            if (!isGloballyEnabled()) return;
-            loadGuide().then(function (g) { if (g && !pageSkipped()) showHelp(); });
+            // 读设置失败：降级为纯 localStorage，入口仍常驻
+            loadGuide().then(function (g) {
+                if (!g) return;
+                showHelp();
+                if (!isGloballyEnabled()) return;
+                if (lsGet('guidePrompted') !== 'true') { showFirstRunPrompt(); return; }
+                if (!pageSkipped() && !pageSeen()) openGuide();
+            });
         });
     }
 
