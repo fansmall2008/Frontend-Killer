@@ -531,6 +531,47 @@ public final class CartridgeHeaderReader {
         }
     }
 
+    /**
+     * Wii: 返回**完整 6 位 disc ID**（如 "REJEAF"），供 WBFS 命名/导出使用。
+     * <p>
+     * 与 {@link #extractWiiGameId(String)} 读同一头部（ISO/GCM @0x00、WBFS @0x200），
+     * 但**不截断到 4 位**：前 4 位是 Game Code，第 5 位区域码、第 6 位版本/类型码。
+     * 真机样本实测（K:\wbfs 1123 个 .wbfs）后两位永远存在且为可打印 alnum，
+     * 故这里按定长 6 字节保留，仅剔除尾部 NUL 填充，不用 trim 以免误删合法位。
+     * 仅校验前 4 位可打印作为“是不是有效盘头”的判据；magic 不匹配只记日志不阻断。
+     * 本方法为独立 util，不改动 extractWiiGameId 及其 rom_db 建键调用。
+     */
+    public static String extractWiiDiscId(String filePath) throws IOException {
+        String ext = getFileExtension(filePath).toLowerCase();
+        boolean wbfs = "wbfs".equals(ext);
+        if (!wbfs && !"iso".equals(ext) && !"gcm".equals(ext)) return null;
+        try (RandomAccessFile raf = new RandomAccessFile(filePath, "r")) {
+            long base = wbfs ? 0x200L : 0x0L;
+            if (raf.length() < base + 0x1C) return null;
+            byte[] gid = new byte[6];
+            raf.seek(base);
+            raf.readFully(gid);
+            String code = new String(gid, StandardCharsets.US_ASCII);
+            if (!isPrintableAscii(code.substring(0, 4))) {
+                logger.debug("Wii disc ID 无效(前 4 位 Game Code 非可打印): file={}, raw=[{}]",
+                        new File(filePath).getName(), code);
+                return null;
+            }
+            String discId = code.replace("\0", "").toUpperCase();
+            byte[] magic = new byte[4];
+            raf.seek(base + 0x18);
+            raf.readFully(magic);
+            boolean magicOk = magic[0] == WII_DISC_MAGIC[0] && magic[1] == WII_DISC_MAGIC[1]
+                    && magic[2] == WII_DISC_MAGIC[2] && magic[3] == WII_DISC_MAGIC[3];
+            if (!magicOk) {
+                logger.debug("Wii disc magic 不匹配(仍返回 discId): file={}, discId={}",
+                        new File(filePath).getName(), discId);
+            }
+            logger.debug("Wii disc ID 提取: discId={} from {}", discId, new File(filePath).getName());
+            return discId;
+        }
+    }
+
     // ========== NES (systemId=3) ==========
 
     /**

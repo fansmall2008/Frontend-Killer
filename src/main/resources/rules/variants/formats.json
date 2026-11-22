@@ -32,7 +32,7 @@
       "extension": "iso",
       "defaultEnabled": false,
       "scope": {
-        "systemIds": [57, 61],
+        "systemIds": [57, 61, 16],
         "extensions": []
       }
     },
@@ -56,6 +56,17 @@
       "scope": {
         "systemIds": [57, 20, 22, 23, 29, 70, 72, 114, 117],
         "extensions": ["chd"]
+      }
+    },
+    {
+      "id": "wbfs",
+      "label": "WBFS",
+      "order": 70,
+      "extension": "wbfs",
+      "defaultEnabled": false,
+      "scope": {
+        "systemIds": [16],
+        "extensions": ["wbfs"]
       }
     }
   ]

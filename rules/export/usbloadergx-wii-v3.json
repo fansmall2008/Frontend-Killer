@@ -1,0 +1,89 @@
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "author": "Frontend-Killer",
+    "description": "USB Loader GX (Wii) — ROM as wbfs/[GameID]/{GameID}.wbfs|.iso using the 6-char DiscID, covers 2D/3D/disc resized to GX spec under images/ / USB Loader GX（Wii）— ROM 以 6 位游戏 ID 命名，落在 wbfs/[ID]/{ID}.wbfs|.iso，封面按 GX 规格缩放后置于 images/ / USB Loader GX（Wii）— ROM は 6 桁 DiscID で命名し wbfs/[ID]/{ID}.wbfs|.iso に配置、カバーは GX 仕様に縮小して images/ に配置",
+    "notes": "Targets Wii (systemId 16). ROM/media are named by the 6-char DiscID: taken from the library field discSerial; if empty it is read from the image header at offset 0x18. Games with no resolvable ID are skipped with a task-log warning (GX cannot index them without an ID). Folder name uses literal square brackets: wbfs/[{ID}]. ROM extension follows the delivered file (ISO stays .iso; choose a format under 'Export-time conversion' to produce .wbfs). Covers: box-2D→images/2D (≤160×224), box-3D→images/3D (≤176×248), support-2D→images/disc (≤160×160); all fit-scaled, never upscaled, width/height snapped down to multiples of 4 (GX hard rule), re-encoded as PNG. Optional actions: WBFS split (FAT32 4GB) and export-time format conversion. No gamelist/wiitdb data file is produced.\n\n作用系统 Wii（systemId 16）。ROM/封面以 6 位游戏 ID 命名：优先取库字段 discSerial，为空则从镜像头偏移 0x18 读取；仍拿不到的游戏跳过并写任务日志告警（GX 无 ID 无法索引）。文件夹名带方括号：wbfs/[{ID}]。ROM 扩展名随实际交付文件（ISO 保持 .iso；在“导出时格式转换”里选目标格式则产出 .wbfs）。封面：box-2D→images/2D（≤160×224）、box-3D→images/3D（≤176×248）、support-2D→images/disc（≤160×160），均等比缩放、只缩不放、宽高向下取 4 的倍数（GX 硬约束）、重编码为 PNG。可选动作：WBFS 分片（FAT32 4GB）与导出时格式转换。不生成 gamelist/wiitdb 数据文件。\n\n対象システム Wii（systemId 16）。ROM/カバーは 6 桁 DiscID で命名：ライブラリフィールド discSerial を優先使用、空ならイメージヘッダ偏移 0x18 から読取。取得できないゲームはスキップしタスクログに警告（GX は ID なしで索引不可）。フォルダ名は角括弧付き：wbfs/[{ID}]。ROM 拡張子は実交付ファイルに追従（ISO は .iso のまま。「エクスポート時の形式変換」で目標形式を選ぶと .wbfs を生成）。カバー：box-2D→images/2D（≤160×224）、box-3D→images/3D（≤176×248）、support-2D→images/disc（≤160×160）。いずれも等倍縮小・拡大なし・幅高を 4 の倍数へ切り下げ（GX 必須条件）・PNG へ再エンコード。任意アクション：WBFS 分割（FAT32 4GB）とエクスポート時の形式変換。gamelist/wiitdb データファイルは生成しません。"
+  },
+  "variables": [
+    {
+      "name": "formatConvert",
+      "label": "导出时格式转换 / Export-time conversion / エクスポート時の形式変換",
+      "description": "把主文件按 Wii 产线转成选定格式（即使库里没有预生成该版本）。留空/不转换则维持源文件格式。/ Convert the main file to the chosen format via the Wii pipeline (even if no pre-built variant exists). Leave empty to keep the source format.",
+      "type": "select",
+      "default": "",
+      "required": false,
+      "action": "format-convert"
+    },
+    {
+      "name": "wbfsSplit",
+      "label": "WBFS 分片（FAT32 4GB）/ WBFS split (FAT32 4GB) / WBFS 分割（FAT32 4GB）",
+      "description": "对 WBFS 产物按 FAT32 单文件上限切分。仅在单平台导出时可用。/ Split the WBFS output at the FAT32 per-file limit. Single-platform export only.",
+      "type": "checkbox",
+      "default": "false",
+      "required": false,
+      "action": "wbfs-split"
+    }
+  ],
+  "output": {
+    "exportOptions": {
+      "gameFiles": true,
+      "mediaFiles": true,
+      "gameListFile": false,
+      "showWarning": true
+    },
+    "roms": {
+      "enabled": true,
+      "directory": "concat('{outputPath}/wbfs/[', discSerial, ']')",
+      "filename": "concat(discSerial, ext)",
+      "m3u": {
+        "enabled": false
+      }
+    },
+    "media": {
+      "directory": "{outputPath}/images",
+      "rules": {
+        "box-2D": {
+          "source": "box-2D",
+          "target": "concat('2D/', discSerial, '.png')",
+          "resize": {
+            "enabled": true,
+            "width": 160,
+            "height": 224,
+            "mode": "fit",
+            "upscale": false,
+            "divisor": 4,
+            "format": "png"
+          }
+        },
+        "box-3D": {
+          "source": "box-3D",
+          "target": "concat('3D/', discSerial, '.png')",
+          "resize": {
+            "enabled": true,
+            "width": 176,
+            "height": 248,
+            "mode": "fit",
+            "upscale": false,
+            "divisor": 4,
+            "format": "png"
+          }
+        },
+        "support-2D": {
+          "source": "support-2D",
+          "target": "concat('disc/', discSerial, '.png')",
+          "resize": {
+            "enabled": true,
+            "width": 160,
+            "height": 160,
+            "mode": "fit",
+            "upscale": false,
+            "divisor": 4,
+            "format": "png"
+          }
+        }
+      }
+    }
+  }
+}

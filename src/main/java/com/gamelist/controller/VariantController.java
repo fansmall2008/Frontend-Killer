@@ -37,6 +37,7 @@ import com.gamelist.variant.ModuleCatalog;
 import com.gamelist.variant.SystemPipelineLibrary;
 import com.gamelist.variant.audio.Ffmpeg;
 import com.gamelist.variant.module.Chdman;
+import com.gamelist.variant.module.Wit;
 
 /**
  * ROM 版本管理接口：能力矩阵、生成、查询、删除、导出弹窗选项。
@@ -77,6 +78,9 @@ public class VariantController {
     @Autowired
     private Ffmpeg ffmpeg;
 
+    @Autowired
+    private Wit wit;
+
     // ---------------------------------------------------------------- 外部工具
 
     /** 外部工具（chdman / ffmpeg）状态：界面配置值、实际生效路径、来源与版本 */
@@ -95,8 +99,12 @@ public class VariantController {
             if (body != null && body.containsKey("ffmpegPath")) {
                 externalToolSettings.save(ExternalToolSettings.FFMPEG_PATH, body.get("ffmpegPath"));
             }
+            if (body != null && body.containsKey("witPath")) {
+                externalToolSettings.save(ExternalToolSettings.WIT_PATH, body.get("witPath"));
+            }
             chdman.refresh();
             ffmpeg.refresh();
+            wit.refresh();
             return ResponseEntity.ok(toolsStatus());
         } catch (Exception e) {
             logger.error("保存外部工具路径失败", e);
@@ -109,10 +117,14 @@ public class VariantController {
     private Map<String, Object> toolsStatus() {
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("success", true);
+        // 告诉前端当前运行 OS，获取指引按平台分支（Windows 找 wit.exe、Linux 找 wit，发行形态也不同）
+        root.put("os", System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win") ? "windows" : "linux");
         root.put("chdman", toolRow(chdman.locate(), chdman.version(), chdman.source(),
                 externalToolSettings.get(ExternalToolSettings.CHDMAN_PATH)));
         root.put("ffmpeg", toolRow(ffmpeg.locate(), ffmpeg.version(), ffmpeg.source(),
                 externalToolSettings.get(ExternalToolSettings.FFMPEG_PATH)));
+        root.put("wit", toolRow(wit.locate(), wit.version(), wit.source(),
+                externalToolSettings.get(ExternalToolSettings.WIT_PATH)));
         return root;
     }
 

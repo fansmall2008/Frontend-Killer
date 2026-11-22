@@ -24,6 +24,7 @@ public class ExternalToolSettings {
     /** system_settings 的键名 */
     public static final String CHDMAN_PATH = "chdman.path";
     public static final String FFMPEG_PATH = "ffmpeg.path";
+    public static final String WIT_PATH = "wit.path";
 
     private static final Logger logger = LoggerFactory.getLogger(ExternalToolSettings.class);
 
@@ -78,9 +79,9 @@ public class ExternalToolSettings {
         try {
             // 按列序号取值：H2 会把列标签转成大写，用列名查容易拿到 null
             List<String[]> rows = jdbcTemplate.query(
-                    "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?, ?)",
+                    "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?, ?, ?)",
                     (rs, rowNum) -> new String[]{rs.getString(1), rs.getString(2)},
-                    CHDMAN_PATH, FFMPEG_PATH);
+                    CHDMAN_PATH, FFMPEG_PATH, WIT_PATH);
             for (String[] row : rows) {
                 if (row[0] != null) {
                     fresh.put(row[0], row[1] == null ? "" : row[1]);

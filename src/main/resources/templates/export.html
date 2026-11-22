@@ -380,7 +380,7 @@
                 });
         }
         
-        document.getElementById('exportForm').addEventListener('submit', function(e) {
+        document.getElementById('exportForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const selected = msComboGetSelected();
@@ -392,6 +392,26 @@
             if (!frontend) {
                 showNotification(getI18nText('please_select_frontend'), 'error');
                 return;
+            }
+
+            // 动作绑定前置检查：有分片/转换动作的模板必须单平台，且平台 systemId 须在动作作用范围内
+            const rule = frontendRules.find(r => r.frontend === frontend);
+            const ac = rule && rule.actionConstraints;
+            if (ac && ac.hasActions) {
+                if (ac.singlePlatform && selected.length > 1) {
+                    showNotification(getI18nText('action_single_platform_required'), 'error');
+                    return;
+                }
+                if (ac.supportedSystemIds && ac.supportedSystemIds.length) {
+                    const bad = selected.filter(s => {
+                        const p = allPlatforms.find(pp => pp.id === s.id);
+                        return !p || ac.supportedSystemIds.indexOf(p.systemId) < 0;
+                    });
+                    if (bad.length) {
+                        showNotification(getI18nText('action_system_not_supported'), 'error');
+                        return;
+                    }
+                }
             }
 
             const platformIds = selected.map(s => s.id);
@@ -407,7 +427,19 @@
             };
 
             // 模板若声明了执行前变量，先弹窗收集用户设定，再继续导出流程（多平台共享一份全局变量）
-            const declarations = TemplateVars.getDeclarationsForFrontend(frontendRules, frontend);
+            const declarations = TemplateVars.getDeclarationsForFrontend(frontendRules, frontend) || [];
+            // select+pipeline 变量：按（单）平台 systemId 拉取候选格式注入下拉
+            const pipelineVar = declarations.find(d => d.optionsSource === 'pipeline');
+            if (pipelineVar && selected.length === 1) {
+                const p = allPlatforms.find(pp => pp.id === selected[0].id);
+                if (p && p.systemId) {
+                    try {
+                        const resp = await fetch('/api/export/format-options?systemId=' + p.systemId);
+                        const data = await resp.json();
+                        pipelineVar.options = data.options || [];
+                    } catch (err) { /* 拉取失败则下拉仅剩“不转换” */ }
+                }
+            }
             if (declarations && declarations.length) {
                 TemplateVars.open(declarations, {
                     onConfirm: function (values) {

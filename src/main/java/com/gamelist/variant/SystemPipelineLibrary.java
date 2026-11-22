@@ -125,6 +125,8 @@ public class SystemPipelineLibrary {
                 return ArtifactKind.CHD;
             case "pbp":
                 return ArtifactKind.PBP;
+            case "wbfs":
+                return ArtifactKind.WBFS;
             default:
                 return null;
         }

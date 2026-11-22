@@ -6,6 +6,11 @@
 
 <p align="center">A web-based game list management tool for emulator frontend metadata. Import, manage, export, and scrape game metadata across multiple frontend formats.</p>
 
+## What's New in 1.4.1
+
+- **External-tool health check**: the Tools → External Tools panel now actually launches `wit` / `chdman` / `ffmpeg` once to verify they run, instead of only checking that the file exists — so a `wit.exe` copied without its companion `cygwin1.dll` (or a `chdman.exe` missing `SDL2.dll`) is now clearly reported as unavailable with the reason, rather than showing a misleading green “available” dot
+- **Per-platform acquisition guide**: the availability hints in the Tools panel are now split by operating system, telling Windows users to unpack the full Cygwin build (and where to put `wit.exe` / `chdman.exe` / `ffmpeg.exe`), Linux users to use the precompiled tarball or package manager (`mame-tools`, `ffmpeg`), and noting that the Docker image ships them preinstalled
+
 ## What's New in 1.4.0
 
 - **Onboarding guide system**: pixel-RPG style guided tours built into 11 pages (home, game list, data import/export, platform management/merge, media download, task management, system settings, tools, about), fully localized in zh-CN / en-US / ja-JP
@@ -221,7 +226,7 @@ Run: `docker compose up -d`
 #### Option 3: JAR File
 Requires Java 17+.
 ```bash
-java -jar webGamelistOper-1.4.0.jar
+java -jar webGamelistOper-1.4.1.jar
 ```
 
 #### Option 4: Windows EXE (No Java Required)
@@ -308,7 +313,7 @@ services:
 #### 方式三：JAR 包运行
 需要 Java 17+。
 ```bash
-java -jar webGamelistOper-1.4.0.jar
+java -jar webGamelistOper-1.4.1.jar
 ```
 
 #### 方式四：Windows EXE（无需 Java）
@@ -395,7 +400,7 @@ services:
 #### オプション3：JARファイル
 Java 17+ が必要です。
 ```bash
-java -jar webGamelistOper-1.4.0.jar
+java -jar webGamelistOper-1.4.1.jar
 ```
 
 #### オプション4：Windows EXE（Java不要）
@@ -581,4 +586,4 @@ Without your effort and support, this idea would never have existed, let alone c
 
 ---
 
-**Version**: 1.4.0
+**Version**: 1.4.1

@@ -112,6 +112,16 @@
           "sources": ["iso", "bin", "bin-multi", "nrg", "toc"]
         }
       }
+    },
+    {
+      "systemId": 16,
+      "name": "Nintendo Wii",
+      "targets": {
+        "wbfs": {
+          "enabled": true,
+          "sources": ["iso"]
+        }
+      }
     }
   ]
 }

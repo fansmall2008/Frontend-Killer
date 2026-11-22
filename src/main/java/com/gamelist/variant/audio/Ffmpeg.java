@@ -72,6 +72,11 @@ public class Ffmpeg {
             sourceLabel = "探测失败：" + e.getMessage();
             logger.warn("探测 ffmpeg 失败", e);
         }
+        // 文件在≠能跑：空跑一次主程序，跑不动（缺依赖 dll、文件损坏）就判不可用
+        if (executable != null && !smokeTest(executable)) {
+            executable = null;
+            sourceLabel = "主程序能找到但无法运行（可能是缺依赖库或文件损坏）";
+        }
         if (executable == null) {
             logger.info("未找到 ffmpeg，APE/FLAC 音轨无法还原为 WAV（可在工具箱 → 外部工具里指定路径，或配置 gamelist.ffmpeg.path）{}",
                     sourceLabel.isEmpty() ? "" : "｜" + sourceLabel);
@@ -203,12 +208,12 @@ public class Ffmpeg {
         String fromUi = toolSettings.get(ExternalToolSettings.FFMPEG_PATH);
         if (!fromUi.isEmpty()) {
             Path path = probe(fromUi);
-            sourceLabel = path != null ? "界面设置" : "界面设置（路径不可用）";
+            sourceLabel = path != null ? "界面设置" : "界面设置（找不到该文件）";
             return path;
         }
         if (!defaultPath.isEmpty()) {
             Path path = probe(defaultPath);
-            sourceLabel = path != null ? "gamelist.ffmpeg.path" : "gamelist.ffmpeg.path（路径不可用）";
+            sourceLabel = path != null ? "gamelist.ffmpeg.path" : "gamelist.ffmpeg.path（找不到该文件）";
             return path;
         }
         Path fromEnv = probe(System.getenv("FFMPEG"));
@@ -267,6 +272,25 @@ public class Ffmpeg {
             return Files.isRegularFile(path) && Files.isExecutable(path) ? path.toAbsolutePath() : null;
         } catch (RuntimeException e) {
             return null;
+        }
+    }
+
+    /** 空跑一次主程序验证真能启动；进程拉不起来或 5 秒退不出都算不可用 */
+    private static boolean smokeTest(Path tool) {
+        try {
+            Process process = new ProcessBuilder(tool.toString(), "-hide_banner", "-version").start();
+            if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return false;
+            }
+            process.getInputStream().close();
+            process.getErrorStream().close();
+            return true;
+        } catch (IOException e) {
+            return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
         }
     }
 

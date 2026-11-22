@@ -157,4 +157,12 @@ public interface ScraperService {
      * @param platformId 平台ID
      */
     void stopPlatform(Long platformId);
+
+    /**
+     * 清除指定平台的整个刮削队列：删除该平台所有 scrape_task 与 media_download_task 记录
+     * （含 PENDING/RUNNING/STOPPED/FAILED/COMPLETED），并释放工作线程。
+     * @param platformId 平台ID
+     * @return success 标志与被删除的队列条数统计
+     */
+    Map<String, Object> clearPlatformQueue(Long platformId);
 }

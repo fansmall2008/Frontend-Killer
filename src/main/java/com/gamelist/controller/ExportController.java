@@ -1,9 +1,16 @@
 package com.gamelist.controller;
 
+import com.gamelist.export.action.ExportAction;
+import com.gamelist.export.action.ExportActionCatalog;
+import com.gamelist.export.action.ExportActionPlanner;
 import com.gamelist.model.ExportRequest;
+import com.gamelist.model.Platform;
 import com.gamelist.model.TemplateV3;
 import com.gamelist.service.ExportRuleService;
 import com.gamelist.service.ExportService;
+import com.gamelist.service.PlatformService;
+import com.gamelist.variant.ArtifactKind;
+import com.gamelist.variant.SystemPipelineLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +33,18 @@ public class ExportController {
     @Autowired
     private ExportRuleService exportRuleService;
 
+    @Autowired
+    private ExportActionPlanner actionPlanner;
+
+    @Autowired
+    private ExportActionCatalog actionCatalog;
+
+    @Autowired
+    private SystemPipelineLibrary pipelineLibrary;
+
+    @Autowired
+    private PlatformService platformService;
+
     /**
      * 导出平台
      */
@@ -38,6 +57,14 @@ public class ExportController {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", missingErr
+                ));
+            }
+            String bindErr = validateActionConstraints(request.getFrontend(),
+                    request.getPlatformId() != null ? List.of(request.getPlatformId()) : request.getPlatformIds());
+            if (bindErr != null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", bindErr
                 ));
             }
             Map<String, Object> result = exportService.exportPlatform(request);
@@ -70,6 +97,14 @@ public class ExportController {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "error", missingErr
+                ));
+            }
+
+            String bindErr = validateActionConstraints(request.getFrontend(), platformIds);
+            if (bindErr != null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", bindErr
                 ));
             }
 
@@ -154,6 +189,9 @@ public class ExportController {
                 }
                 item.put("variables", varDecls);
 
+                // 动作绑定约束（供前端选模板前置检查：单平台/适用系统）
+                item.put("actionConstraints", constraintsToMap(actionPlanner.constraints(v3)));
+
                 ruleList.add(item);
             }
 
@@ -195,9 +233,90 @@ public class ExportController {
         m.put("name", var.getName());
         m.put("label", var.getLabel() != null ? var.getLabel() : var.getName());
         m.put("description", var.getDescription());
-        m.put("type", var.getType() != null ? var.getType() : "text");
+        String type = var.getType() != null ? var.getType() : "text";
+        m.put("type", type);
         m.put("default", var.getDefaultValue());
         m.put("required", var.isRequired());
+        // 绑定导出动作：控件形态与作用域由动作目录权威定义
+        if (var.hasAction()) {
+            String actionId = var.getAction().trim();
+            m.put("action", actionId);
+            ExportAction action = actionCatalog.get(actionId);
+            if (action != null) {
+                m.put("type", action.variableType());
+                m.put("actionNote", action.note());
+                if (action.optionsFromPipeline()) {
+                    m.put("optionsSource", "pipeline");
+                }
+            }
+        }
         return m;
+    }
+
+    /** 动作绑定约束转前端可读 Map */
+    private Map<String, Object> constraintsToMap(ExportActionPlanner.ActionConstraints c) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("hasActions", c.hasActions());
+        m.put("singlePlatform", c.requiresSinglePlatform());
+        m.put("supportedSystemIds", c.supportedSystemIds() == null
+                ? null : new ArrayList<>(c.supportedSystemIds()));
+        return m;
+    }
+
+    /**
+     * 获取某系统可用的目标格式候选（供导出时格式转换的 select 控件使用）。
+     * <p>
+     * 来源为该系统产线声明的 enabled 目标格式；前端据此渲染下拉选项。
+     */
+    @GetMapping("/format-options")
+    public ResponseEntity<Object> getFormatOptions(@RequestParam("systemId") Integer systemId) {
+        List<Map<String, String>> options = new ArrayList<>();
+        if (systemId != null) {
+            for (SystemPipelineLibrary.Target target : pipelineLibrary.targets(systemId)) {
+                if (!target.enabled()) {
+                    continue;
+                }
+                ArtifactKind kind = SystemPipelineLibrary.targetKind(target.format());
+                String label = kind != null ? kind.display() : target.format().toUpperCase();
+                Map<String, String> opt = new HashMap<>();
+                opt.put("value", target.format());
+                opt.put("label", label);
+                options.add(opt);
+            }
+        }
+        return ResponseEntity.ok(Map.of("success", true, "options", options));
+    }
+
+    /**
+     * 后端兜底绑定校验：有分片/转换动作的模板必须单平台，且平台 systemId 须在动作作用范围内。
+     * @return 不适用时返回错误信息（阻止导出），通过时返回 null
+     */
+    private String validateActionConstraints(String frontend, List<Long> platformIds) {
+        if (frontend == null || frontend.isEmpty() || platformIds == null || platformIds.isEmpty()) {
+            return null;
+        }
+        TemplateV3 v3 = exportRuleService.getV3RuleByFrontend(frontend);
+        if (v3 == null) {
+            return null;
+        }
+        ExportActionPlanner.ActionConstraints c = actionPlanner.constraints(v3);
+        if (!c.hasActions()) {
+            return null;
+        }
+        if (c.requiresSinglePlatform() && platformIds.size() > 1) {
+            return "该模板含分片/格式转换动作，只能对单个平台导出，请只选择一个平台";
+        }
+        for (Long pid : platformIds) {
+            Platform platform = platformService.getPlatformById(pid);
+            if (platform == null) {
+                continue;
+            }
+            int systemId = platform.getSystemId() == null ? 0 : platform.getSystemId();
+            if (!c.allowsSystem(systemId)) {
+                String name = platform.getName() != null ? platform.getName() : ("ID=" + pid);
+                return "模板绑定的导出动作不适用于平台「" + name + "」（该系统不在动作作用范围），请更换平台";
+            }
+        }
+        return null;
     }
 }

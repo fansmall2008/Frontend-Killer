@@ -43,6 +43,35 @@ v3 模板采用统一的 JSON 结构：
 }
 ```
 
+### 1.3 用 AI 生成模板（推荐）
+
+v3 模板是**纯 JSON、完全声明式**（Java 引擎零硬编码），因此最省事的产出方式不是手写，而是**让 AI 照着本文档直接生成**：把整份《v3 模板系统文档》连同目标前端的官方命名/尺寸规范一起发给 AI，说清「目标前端 / 作用系统 / ROM 目录与文件名规则 / 封面来源与尺寸 / 是否需要数据文件」，让它输出一个 `rules/export/<frontend>-v3.json`。
+
+为提升一次命中率，把下面这段**规范提示词**随文档一并喂给 AI（尖括号处替换成你的实际要求）：
+
+```text
+你是 WebGamelistOper / Frontend Killer 的 v3 导出模板生成器。只输出一个合法 JSON，字段严格遵循所附《v3 模板系统文档》，不得臆造文档中未出现的函数、变量或配置键。
+
+【输入】
+目标前端：<名称>；方向：export；作用系统 systemId：<整数>。
+ROM 输出：<目录模板 + 文件名模板>；若用游戏 ID 命名见规则 4。
+媒体输出：每类型 -> 源 nomcourt + 目标相对路径 + 是否缩放及尺寸（见规则 3）。
+数据文件：<格式 xml|json|text + 文件名>；不需要则 exportOptions.gameListFile=false 且不写 dataFile 块。
+
+【硬性规则】
+1. templateInfo 必含 "version":3 与 "direction":"export"。
+2. 表达式与 {占位符} 只能用文档第 2 节函数、第 3 节变量；命名优先 nomcourt（如 box-2D）。
+3. 图片缩放写在 output.media.rules.<类型>.resize：{"enabled":true,"width":<int>,"height":<int>,"mode":"fit|pad|stretch","upscale":<bool>,"divisor":<整数,要求宽高被 N 整除就填 N>,"format":"png|jpg"}。不需要缩放就整体省略 resize（=原样拷贝）。
+4. 游戏 ID 命名（例：Wii USB Loader GX 的 6 位 DiscID）用变量 discSerial：目录 "concat('{outputPath}/wbfs/[', discSerial, ']')"、文件名 "concat(discSerial, ext)"。discSerial 为空时引擎自动从镜像头兜底，仍读不到 ID 的游戏会被跳过并告警——模板无需处理该逻辑。
+5. 导出动作（用户在弹窗勾选/选择）通过 variables[].action 引用引擎内建动作 id（见 export-actions.json；当前如 format-convert=select、wbfs-split=checkbox）。select 的候选由系统产线自动给出，模板不要写死 options。
+6. output.exportOptions 的 gameFiles/mediaFiles/gameListFile 要如实对应前端支持的导出范围。
+
+【输出】
+只给 JSON；键顺序 templateInfo → variables → system → game → output。可对照文档第 7 节末尾的 USB Loader GX（Wii）范例检查产物。
+```
+
+生成后保存进 `rules/export/`（版本库源）并同步一份到 `data/rules/export/`（运行时加载目录），触发模板重载或重启后即可在导出表单选用。
+
 ---
 
 ## 2. 表达式引擎
@@ -219,6 +248,7 @@ concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 | `lang` | 语言 | "en" |
 | `sort-by` | 排序字段 | "Mario" |
 | `gameId` | 游戏 ID | "12345" |
+| `discSerial` | 光盘标识 / 游戏 ID（如 Wii 6 位 DiscID；用于导出命名与匹配，见 3.5、6.8） | "RSLJ00139" |
 | `hash` | 文件哈希 | "abc123..." |
 | `crc32` | CRC32 校验 | "12345678" |
 | `md5` | MD5 校验 | "abcdef..." |
@@ -318,9 +348,10 @@ concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 | `name` | 变量名，表达式与 `{xxx}` 占位符中使用；须为标识符（字母/下划线开头），不得与内置变量重名 |
 | `label` | 弹窗中显示的变量名 |
 | `description` | 弹窗中显示的说明（为什么需要、作用是什么） |
-| `type` | 仅 `text` \| `path` 两种（`path` 类型弹窗提供路径浏览） |
+| `type` | 纯数据变量用 `text` \| `path`；绑定导出动作时按控件用 `checkbox` \| `select`（见 3.5） |
 | `default` | 可选默认值，支持 `{platform.xxx}` 等占位符，执行时按平台解析 |
 | `required` | 默认 `false`；为空且 `required=true` 时前端阻止提交、后端返回 400 |
+| `action` | 可选：绑定的**导出动作 id**（引用引擎内建 `export-actions.json`）。填写后该变量不再是纯文本输入，而是弹窗里的动作控件，用户的选择驱动导出后处理，详见 **3.5** |
 
 **行为约定**：
 - 变量值**不持久化**，每次导入/导出都需重新填写。
@@ -334,6 +365,28 @@ concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 2. **表达式裸标识符通道**：变量名可直接出现在 `concat(...)`、`+` 等表达式中。如 `"image": "concat(cdnBase, '/', platform.system, '/', filename(name), '.png')"`。
 
 变量为空时，`concat`/`+` 按现有语义跳过空值或返回 null，不影响其他字段。参考示例模板：`rules/export/retroarch-folder-v3.json`。
+
+### 3.5 导出动作绑定（variables[].action）
+
+`variables` 项除纯文本输入外，还能**绑定一个引擎内建「导出动作」**：给变量填 `action`（值 = 动作 id），弹窗按该动作声明的控件渲染（勾选框 / 下拉），用户的选择在导出时逐 ROM 执行后处理（格式转换、分片等）。
+
+```json
+"variables": [
+  { "name": "formatConvert", "label": "导出时格式转换", "type": "select",   "action": "format-convert" },
+  { "name": "wbfsSplit",     "label": "WBFS 分片（FAT32 4GB）", "type": "checkbox", "action": "wbfs-split" }
+]
+```
+
+| 要点 | 说明 |
+|------|------|
+| `action` | 引用引擎内建动作 id，清单在 `rules/variants/export-actions.json`（属引擎能力，非用户模板）；模板只写 id，不描述行为 |
+| `type` | 与动作控件保持一致：`checkbox`（勾选）或 `select`（下拉）；实际渲染以动作声明为准 |
+| 作用系统 / 单平台 | 由动作声明的 scope 决定（如 Wii 转换只在 systemId=16、且强制单平台）；选模板时不匹配会被绑定校验拦下，模板无需重复约束 |
+| select 候选 | `format-convert` 的目标格式由该系统产线自动算出，模板**不要**写死 options |
+| 未勾选 / 失败 | 未选则动作不介入、ROM 原样交付；转换或分片失败只提示不报错，导出继续 |
+| 对后缀的影响 | 动作把文件转成其他格式时交付文件名后缀随之改变，引擎已处理，模板文件名仍写 `{ID}{ext}` 形式即可 |
+
+新增一个可绑定的动作 = `export-actions.json` 加一条声明 + 一个 Java 积木实现，**导出主流程零改动**；模板侧只是引用其 id。
 
 ---
 
@@ -862,8 +915,30 @@ box2d
 | `rules.*.source` | 源媒体字段（与 key 相同，冗余便于阅读） |
 | `rules.*.target` | 目标路径模板（相对 media.directory）；支持 `{filename}`、`{gameName}` 变量与表达式（如 `sanitize`、`concat`） |
 | `rules.*.dataFileTag` | 数据文件中对应的标签；**有值时数据文件中的该媒体路径改写为导出后路径**（相对数据文件目录重新计算）；无值时只复制文件不改写 |
+| `rules.*.resize` | 可选：该类型图片导出时的规格约束（缩放/取倍数/重编码），缺省=原样拷贝；字段见下 |
 
 数据文件中的媒体路径 = 先计算 media.directory + target 的完整路径，再按数据文件目录做相对化，最后按 `pathFormat` 决定输出格式（见 6.9）。
+
+**`rules.*.resize` 图片规格约束（可选，缺省=原样拷贝）**
+
+部分前端硬性要求封面尺寸/格式（如 USB Loader GX 要求宽高都能被 4 整除，否则不显示）。可在规则里加 `resize` 块，导出时对该图缩放重编码；不写则完全等同原样拷贝（向后兼容）：
+
+```json
+"resize": { "enabled": true, "width": 160, "height": 224, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" }
+```
+
+| 字段 | 默认 | 说明 |
+|------|------|------|
+| `enabled` | `true` | 带 `resize` 块即启用；设 `false` 等价不处理 |
+| `width` / `height` | `0` | 目标框宽/高；`<=0` 表示该方向不限 |
+| `mode` | `fit` | `fit` 等比内缩（画面即成品）/ `pad` 等比后补边到精确 width×height / `stretch` 强制拉伸 |
+| `upscale` | `false` | 源小于目标框时是否放大；默认只缩不放 |
+| `divisor` | `1` | 输出宽高**向下**取到该数的倍数（GX 的 ÷4 铁律填 `4`）；`<=1` 不取整 |
+| `format` | 源格式 | 输出编码 `png`（保留透明）/ `jpg`（铺白底）；缺省保持源扩展名 |
+
+- 对任意来源尺寸/格式都成立：先按 `mode` 处理到目标框，再按 `divisor` 向下取倍数，最后按 `format` 重编码。
+- 缺图跳过；坏图无法解码时告警并跳过该图，不中断整批导出。
+- 这是通用能力、不绑定平台：任何前端按需在自己的媒体规则里声明尺寸规格即可。
 
 ### 6.9 output.dataFile 数据文件
 
@@ -1445,6 +1520,48 @@ box2d
 - **roms.directory 按 genre 分子目录**：`mapFirst(genre)` 取第一个类别映射为目录名，无类别时回退 `{outputPath}/{platform.system}`
 - **media.target 使用 {gameName}**：每个游戏独立目录（如 `media/超级马里奥/boxFront.png`），dataFileTag 对应 `assets.*` 嵌套标签
 - **pathFormat: "relative" + pathPrefix: ""**：path 类字段仅去除 `./` 前缀
+
+### 7.5 USB Loader GX（Wii）导出模板示例
+
+> 一份用满「游戏 ID 命名 + 图片 resize + 导出动作绑定」三项能力的完整范例，作用系统 systemId=16；实际文件见 `rules/export/usbloadergx-wii-v3.json`。
+
+```json
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "author": "Frontend-Killer",
+    "description": "USB Loader GX (Wii) — ROM 以 6 位 DiscID 命名落在 wbfs/[ID]/{ID}.wbfs|.iso，封面按 GX 规格缩放后置于 images/"
+  },
+  "variables": [
+    { "name": "formatConvert", "label": "导出时格式转换", "type": "select",   "default": "", "action": "format-convert" },
+    { "name": "wbfsSplit",     "label": "WBFS 分片（FAT32 4GB）", "type": "checkbox", "default": "false", "action": "wbfs-split" }
+  ],
+  "output": {
+    "exportOptions": { "gameFiles": true, "mediaFiles": true, "gameListFile": false, "showWarning": true },
+    "roms": {
+      "enabled": true,
+      "directory": "concat('{outputPath}/wbfs/[', discSerial, ']')",
+      "filename": "concat(discSerial, ext)"
+    },
+    "media": {
+      "directory": "{outputPath}/images",
+      "rules": {
+        "box-2D":     { "source": "box-2D",     "target": "concat('2D/', discSerial, '.png')",   "resize": { "width": 160, "height": 224, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } },
+        "box-3D":     { "source": "box-3D",     "target": "concat('3D/', discSerial, '.png')",   "resize": { "width": 176, "height": 248, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } },
+        "support-2D": { "source": "support-2D", "target": "concat('disc/', discSerial, '.png')", "resize": { "width": 160, "height": 160, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } }
+      }
+    }
+  }
+}
+```
+
+要点说明：
+
+- **ID 命名**：ROM 目录 `wbfs/[{ID}]`（带方括号）、文件名 `{ID}{ext}`，ID 取 `discSerial`；为空时引擎自动从镜像头偏移 0x18 兜底读取，仍拿不到 ID 的游戏会被跳过并在任务日志告警（GX 无 ID 无法索引）。
+- **图片规格**：`box-2D→images/2D`（≤160×224）、`box-3D→images/3D`（≤176×248）、`support-2D→images/disc`（≤160×160），全部 fit + 只缩不放 + `divisor:4` + PNG，满足 GX「宽高必须被 4 整除」的硬约束。
+- **导出动作**：`format-convert`（下拉把 iso→wbfs，候选来自 Wii 产线）与 `wbfs-split`（勾选按 FAT32 4GB 分片）；两者强制单平台、仅 Wii 生效，非 Wii 平台选用会被绑定校验拦下。
+- **不生成数据文件**：GX 直接扫描 `wbfs/` 与 `images/`，故 `gameListFile=false` 且模板不写 `dataFile` 块。
 
 ---
 

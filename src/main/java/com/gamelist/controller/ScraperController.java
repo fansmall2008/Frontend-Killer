@@ -406,6 +406,22 @@ public class ScraperController {
     }
 
     /**
+     * 清除指定平台的整个刮削队列（删除该平台所有排队/运行/停止/失败/完成的刮削与媒体下载任务）
+     */
+    @PostMapping("/platforms/{id}/clear-queue")
+    public ResponseEntity<?> clearPlatformQueue(@PathVariable("id") Long platformId) {
+        try {
+            Map<String, Object> result = scraperService.clearPlatformQueue(platformId);
+            Object deleted = result.get("deletedCount");
+            result.put("message", "已清除该平台的 " + deleted + " 个队列任务");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("清除平台刮削队列失败: platformId={}", platformId, e);
+            return ResponseEntity.ok(Map.of("success", false, "message", "清除失败: " + e.getMessage()));
+        }
+    }
+
+    /**
      * 从 manifest 缓存回填缺失元数据（genre/genreid/releasedate），零 SS 请求
      */
     @PostMapping("/backfill-metadata")

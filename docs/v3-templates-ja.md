@@ -43,6 +43,35 @@ v3 テンプレートは統一された JSON 構造を使用します：
 }
 ```
 
+### 1.3 AI でテンプレートを生成（推奨）
+
+v3 テンプレートは**純 JSON・完全に宣言的**（Java エンジンはハードコードゼロ）なので、最も手軽な作成方法は手書きではなく、**このドキュメントを見て AI に直接生成させること**です。「v3 テンプレートシステム文書」全体を対象フロントエンドの公式な命名／サイズ仕様とともに AI に送り、「対象フロントエンド / 作用システム / ROM のディレクトリとファイル名規則 / カバーの出所とサイズ / データファイルが必要か」を伝え、`rules/export/<frontend>-v3.json` を出力させます。
+
+一回で当てる精度を上げるため、次の**仕様プロンプト**をドキュメントとともに AI に与えてください（山括弧を実際の要件に置き換え）：
+
+```text
+あなたは WebGamelistOper / Frontend Killer の v3 エクスポートテンプレート生成器です。有効な JSON だけを出力し、各フィールドは添付の「v3 テンプレートシステム文書」に厳密に従ってください。文書にない関数・変数・設定キーを捏造しないでください。
+
+【入力】
+対象フロントエンド：<名前>；方向：export；作用 systemId：<整数>。
+ROM 出力：<ディレクトリテンプレート + ファイル名テンプレート>；ゲーム ID による命名は規則 4 参照。
+メディア出力：種別ごと -> ソース nomcourt + 相対ターゲットパス + リサイズ有無とサイズ（規則 3 参照）。
+データファイル：<形式 xml|json|text + ファイル名>；不要なら exportOptions.gameListFile=false とし dataFile ブロックを書かない。
+
+【必須ルール】
+1. templateInfo に "version":3 と "direction":"export" を必ず含める。
+2. 式と {プレースホルダ} は文書第2節の関数・第3節の変数のみ使用；命名は nomcourt 優先（例 box-2D）。
+3. 画像リサイズは output.media.rules.<種別>.resize に記述：{"enabled":true,"width":<int>,"height":<int>,"mode":"fit|pad|stretch","upscale":<bool>,"divisor":<整数、幅高を N で割り切れる必要があれば N>,"format":"png|jpg"}。リサイズ不要なら resize ブロック全体を省略（=そのままコピー）。
+4. ゲーム ID 命名（例：Wii USB Loader GX の 6 桁 DiscID）は変数 discSerial を使用：ディレクトリ "concat('{outputPath}/wbfs/[', discSerial, ']')"、ファイル名 "concat(discSerial, ext)"。discSerial が空のときエンジンは画像ヘッダから自動補完し、それでも ID が取れないゲームはスキップして警告——テンプレート側でこの処理は不要。
+5. エクスポートアクション（ユーザーがダイアログでチェック/選択）は variables[].action でエンジン内蔵アクション id を参照（export-actions.json 参照；現時点で format-convert=select、wbfs-split=checkbox など）。select の候補はシステム産線から自動生成され、テンプレートで options を固定してはいけない。
+6. output.exportOptions の gameFiles/mediaFiles/gameListFile はフロントエンドがサポートする範囲に忠実に対応させる。
+
+【出力】
+JSON のみ；キー順 templateInfo → variables → system → game → output。成果物は文書第7節末尾の USB Loader GX（Wii）例で照合してください。
+```
+
+生成後、`rules/export/`（リポジトリ元）に保存し、さらに `data/rules/export/`（実行時ロード先）へコピーを配置してください。テンプレートリロードまたは再起動後、エクスポートフォームで選択可能になります。
+
 ---
 
 ## 2. 式エンジン
@@ -219,6 +248,7 @@ concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 | `lang` | 言語 | "en" |
 | `sort-by` | ソートフィールド | "Mario" |
 | `gameId` | ゲーム ID | "12345" |
+| `discSerial` | ディスク識別子 / ゲーム ID（例：Wii 6 桁 DiscID；エクスポート命名とマッチング用、3.5・6.8 参照） | "RSLJ00139" |
 | `hash` | ファイルハッシュ | "abc123..." |
 | `crc32` | CRC32 チェックサム | "12345678" |
 | `md5` | MD5 チェックサム | "abcdef..." |
@@ -318,9 +348,10 @@ concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 | `name` | 数式と `{xxx}` プレースホルダで使用される変数名。識別子（英字/下線始まり）であり、組み込み変数と重複してはいけません |
 | `label` | ダイアログに表示される変数名 |
 | `description` | ダイアログに表示される説明（なぜ必要か / どう作用するか） |
-| `type` | `text` \| `path` のみ（`path` はダイアログにパスブラウザを提供） |
+| `type` | 純データ変数は `text` \| `path`；エクスポートアクション紐付け時はコントロールに合わせ `checkbox` \| `select`（3.5 参照） |
 | `default` | 省略可能なデフォルト値。`{platform.xxx}` プレースホルダをサポートし、実行時にプラットフォームごとに解決 |
 | `required` | デフォルト `false`。空かつ `required=true` の場合、フロントエンドは送信を阻止し、バックエンドは 400 を返します |
+| `action` | 任意：紐付ける**エクスポートアクション id**（エンジン内蔵 `export-actions.json` を参照）。設定するとこの変数は単純なテキスト入力ではなくダイアログ内のアクションコントロールになり、ユーザーの選択がエクスポート後処理を駆動します。詳細は **3.5** |
 
 **動作規約**：
 - 変数値は**永続化されず**、インポート/エクスポートのたびに再入力が必要です。
@@ -334,6 +365,28 @@ concat('Named_Boxarts/', sanitize(name, '&*/:\\<>?|'), '.png')
 2. **数式中の裸識別子チャネル**：変数名は `concat(...)`、`+` などの中に直接出現できます。例 `"image": "concat(cdnBase, '/', platform.system, '/', filename(name), '.png')"`。
 
 変数が空の場合、`concat`/`+` は既存のセマンティクスに従い空値をスキップするか null を返し、他のフィールドに影響しません。サンプルテンプレート：`rules/export/retroarch-folder-v3.json`。
+
+### 3.5 エクスポートアクション紐付け（variables[].action）
+
+`variables` エントリは単純なテキスト入力に加え、エンジン内蔵の「エクスポートアクション」を**紐付けられます**：変数に `action`（値 = アクション id）を設定すると、ダイアログはそのアクションが宣言したコントロール（チェックボックス / ドロップダウン）で描画し、ユーザーの選択がエクスポート時に ROM 毎の後処理（形式変換、分割など）を実行します。
+
+```json
+"variables": [
+  { "name": "formatConvert", "label": "エクスポート時の形式変換", "type": "select",   "action": "format-convert" },
+  { "name": "wbfsSplit",     "label": "WBFS 分割（FAT32 4GB）", "type": "checkbox", "action": "wbfs-split" }
+]
+```
+
+| 項目 | 説明 |
+|------|------|
+| `action` | エンジン内蔵アクション id を参照。一覧は `rules/variants/export-actions.json`（エンジン能力でありユーザーテンプレートではない）。テンプレートは id のみ書き、挙動は書かない |
+| `type` | アクションのコントロールと一致させる：`checkbox`（切替）または `select`（ドロップダウン）。実際の描画はアクション宣言に従う |
+| 作用システム / 単一プラットフォーム | アクション宣言の scope で決まる（例：Wii 変換は systemId=16 のみ、単一プラットフォーム必須）。テンプレート選択時に紐付け検証で弾かれるため、テンプレート側で再規定不要 |
+| select の候補 | `format-convert` の対象形式はそのシステム産線から自動算出。テンプレートで options を**固定しない**こと |
+| 未選択 / 失敗 | 未選択ならアクションは介入せず ROM はそのまま納品。変換/分割の失敗は警告のみでエラーにせずエクスポートは継続 |
+| 拡張子への影響 | アクションがファイルを別形式に変換すると納品ファイル名の拡張子も変わる。エンジンは処理済みなので、テンプレートファイル名は `{ID}{ext}` 形式のままでよい |
+
+新規の紐付け可能アクションの追加 = `export-actions.json` へ宣言1件 + Java ブロック実装1件で、**エクスポート主フローは無変更**。テンプレート側はその id を参照するだけです。
 
 ---
 
@@ -862,8 +915,30 @@ box2d
 | `rules.*.source` | ソースメディアフィールド（キーと同じ。可読性のため保持） |
 | `rules.*.target` | ターゲットパステンプレート（media.directory からの相対）。`{filename}`、`{gameName}` 変数と式（`sanitize`、`concat` など）をサポート |
 | `rules.*.dataFileTag` | データファイル内の対応タグ。**設定した場合、データファイル内のそのメディアパスはエクスポート後のパスにリライトされる**（データファイルディレクトリからの相対で再計算）。未設定の場合はリライトなしでコピーのみ |
+| `rules.*.resize` | 任意：種別ごとの画像仕様制約（スケール/桁切下げ/再エンコード）。欠落=そのままコピー。フィールドは下記参照 |
 
 データファイル内のメディアパス = media.directory + target の完全パスを、データファイルディレクトリからの相対に変換し、`pathFormat` に従ってフォーマットしたもの（6.9 参照）。
+
+**`rules.*.resize` 画像仕様制約（任意、欠落=そのままコピー）**
+
+一部のフロントエンドはカバーサイズ/形式を強制します（例：USB Loader GX は幅と高さがどちらも 4 で割り切れないと表示しない）。ルールに `resize` ブロックを追加するとエクスポート時にその画像をスケール/再エンコード。省略した場合は完全にそのままコピー（後方互換）：
+
+```json
+"resize": { "enabled": true, "width": 160, "height": 224, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" }
+```
+
+| フィールド | デフォルト | 説明 |
+|------|------|------|
+| `enabled` | `true` | `resize` ブロックがあれば有効。`false` で無処理 |
+| `width` / `height` | `0` | 対象ボックスの幅/高さ。`<=0` はその方向を無制限 |
+| `mode` | `fit` | `fit` 等倍内Inset（画面が成品）/ `pad` 等倍後に exact width×height へ余白補完 / `stretch` 強制拡大 |
+| `upscale` | `false` | ソースがボックスより小さい時に拡大するか。デフォルトは縮小のみ |
+| `divisor` | `1` | 出力の幅/高さをこの数の倍数へ**切り下げ**（GX の ÷4 鉄則は `4`）。`<=1` は切整なし |
+| `format` | ソース | 出力形式 `png`（透明保持）/ `jpg`（白背景）。デフォルトはソースの拡張子を維持 |
+
+- どのソースサイズ/形式でも成立：まず `mode` でボックスへ処理し、次に `divisor` で切り下げ、最後に `format` で再エンコード。
+- 欠落カバーはスキップ。破損/デコード不能は警告してその図をスキップし、バッチ全体は中断しません。
+- これは汎用能力でプラットフォーム非依存：任意のフロントエンドが自身のメディアルールでサイズ仕様を宣言できます。
 
 ### 6.9 output.dataFile データファイル
 
@@ -1445,6 +1520,48 @@ box2d
 - **roms.directory はジャンル別グループ化**：`mapFirst(genre)` が最初のジャンルをディレクトリ名として取得し、ない場合は `{outputPath}/{platform.system}` にフォールバック
 - **media.target は {gameName} を使用**：ゲームごとに 1 ディレクトリ（例：`media/Super Mario/boxFront.png`）。dataFileTag は `assets.*` ネストタグにマッピング
 - **pathFormat: "relative" + pathPrefix: ""**：パス型フィールドは `./` プレフィックスの除去のみ
+
+### 7.5 USB Loader GX（Wii）エクスポートテンプレート例
+
+> 「ゲーム ID 命名 + 画像 resize + エクスポートアクション紐付け」の3能力を一通り使った完全例。作用システム systemId=16。実ファイルは `rules/export/usbloadergx-wii-v3.json`。
+
+```json
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "author": "Frontend-Killer",
+    "description": "USB Loader GX (Wii) — ROM は 6 桁 DiscID で wbfs/[ID]/{ID}.wbfs|.iso に配置、カバーは GX 仕様に縮小して images/ に配置"
+  },
+  "variables": [
+    { "name": "formatConvert", "label": "エクスポート時の形式変換", "type": "select",   "default": "", "action": "format-convert" },
+    { "name": "wbfsSplit",     "label": "WBFS 分割（FAT32 4GB）", "type": "checkbox", "default": "false", "action": "wbfs-split" }
+  ],
+  "output": {
+    "exportOptions": { "gameFiles": true, "mediaFiles": true, "gameListFile": false, "showWarning": true },
+    "roms": {
+      "enabled": true,
+      "directory": "concat('{outputPath}/wbfs/[', discSerial, ']')",
+      "filename": "concat(discSerial, ext)"
+    },
+    "media": {
+      "directory": "{outputPath}/images",
+      "rules": {
+        "box-2D":     { "source": "box-2D",     "target": "concat('2D/', discSerial, '.png')",   "resize": { "width": 160, "height": 224, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } },
+        "box-3D":     { "source": "box-3D",     "target": "concat('3D/', discSerial, '.png')",   "resize": { "width": 176, "height": 248, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } },
+        "support-2D": { "source": "support-2D", "target": "concat('disc/', discSerial, '.png')", "resize": { "width": 160, "height": 160, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } }
+      }
+    }
+  }
+}
+```
+
+要点：
+
+- **ID 命名**：ROM ディレクトリ `wbfs/[{ID}]`（角括弧付き）、ファイル名 `{ID}{ext}`。ID は `discSerial`。空の時はエンジンが画像ヘッダ偏移 0x18 から自動補完し、それでも ID が取れないゲームはタスクログ警告付きでスキップ（GX は ID なしで索引不可）。
+- **画像仕様**：`box-2D→images/2D`（≤160×224）、`box-3D→images/3D`（≤176×248）、`support-2D→images/disc`（≤160×160）。すべて fit + 縮小のみ + `divisor:4` + PNG で、GX の「幅高を 4 で割り切れる」必須条件を満たす。
+- **エクスポートアクション**：`format-convert`（ドロップダウンで iso→wbfs、候補は Wii 産線）と `wbfs-split`（チェックで FAT32 4GB 分割）。両者とも単一プラットフォーム必須・Wii のみ有効で、非 Wii プラットフォームでの選択は紐付け検証で弾かれます。
+- **データファイルなし**：GX は `wbfs/` と `images/` を直接スキャンするため、`gameListFile=false` とし `dataFile` ブロックを書きません。
 
 ---
 

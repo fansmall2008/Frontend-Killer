@@ -55,6 +55,9 @@
             'border:1px solid var(--border-color,#444);background:var(--input-bg,#14141b);',
             'color:inherit;font-size:14px;}',
             '.tv-input.tv-invalid{border-color:#e5484d;}',
+            '.tv-select{appearance:none;}',
+            '.tv-check-wrap{display:flex;align-items:center;gap:8px;cursor:pointer;}',
+            '.tv-check-wrap input{width:auto;}',
             '.tv-error{color:#e5484d;font-size:12px;margin-top:4px;display:none;}',
             '.tv-footer{padding:12px 20px 18px;display:flex;justify-content:flex-end;gap:10px;}',
             '.tv-btn{padding:8px 18px;border-radius:6px;border:1px solid var(--border-color,#444);',
@@ -79,26 +82,53 @@
         });
     }
 
+    function isTruthyDefault(s) {
+        if (s == null) return false;
+        var v = String(s).trim().toLowerCase();
+        return v === '1' || v === 'true' || v === 'on' || v === 'yes';
+    }
+
     function buildFieldHtml(decl) {
         var label = decl.label || decl.name;
         var required = !!decl.required;
         var desc = decl.description || '';
+        var type = decl.type || 'text';
         var def = decl['default'];
         var prefill = (!hasPlaceholder(def)) ? (def || '') : '';
         var placeholder = hasPlaceholder(def) ? def : '';
-        var typeHint = (decl.type === 'path')
+        var typeHint = (type === 'path')
             ? t('tv_path_placeholder', '请输入路径')
             : '';
         var ph = placeholder || typeHint;
-        var html = '<div class="tv-field" data-name="' + escapeHtml(decl.name) + '">';
+        var html = '<div class="tv-field" data-name="' + escapeHtml(decl.name) + '" data-type="' + type + '">';
         html += '<label class="tv-label">' + escapeHtml(label);
         if (required) html += '<span class="tv-required" title="' + escapeHtml(t('tv_required_tip', '必填')) + '">*</span>';
         html += '</label>';
         if (desc) html += '<div class="tv-desc">' + escapeHtml(desc) + '</div>';
-        html += '<input class="tv-input" type="text" data-name="' + escapeHtml(decl.name) + '"';
-        html += ' data-required="' + (required ? '1' : '0') + '"';
-        html += ' value="' + escapeHtml(prefill) + '"';
-        html += ' placeholder="' + escapeHtml(ph) + '">';
+        if (type === 'checkbox') {
+            html += '<label class="tv-check-wrap">';
+            html += '<input class="tv-check" type="checkbox" data-name="' + escapeHtml(decl.name) + '"';
+            html += (isTruthyDefault(def) ? ' checked' : '') + '>';
+            html += '<span>' + escapeHtml(decl.checkLabel || t('tv_check_enable', '启用')) + '</span></label>';
+        } else if (type === 'select') {
+            html += '<select class="tv-input tv-select" data-name="' + escapeHtml(decl.name) + '"';
+            html += ' data-required="' + (required ? '1' : '0') + '">';
+            html += '<option value="">' + escapeHtml(t('tv_select_none', '（不转换）')) + '</option>';
+            var opts = decl.options || [];
+            for (var i = 0; i < opts.length; i++) {
+                var o = opts[i];
+                var ov = (o && o.value != null) ? o.value : o;
+                var ol = (o && o.label != null) ? o.label : ov;
+                var sel = (prefill && String(prefill) === String(ov)) ? ' selected' : '';
+                html += '<option value="' + escapeHtml(String(ov)) + '"' + sel + '>' + escapeHtml(String(ol)) + '</option>';
+            }
+            html += '</select>';
+        } else {
+            html += '<input class="tv-input" type="text" data-name="' + escapeHtml(decl.name) + '"';
+            html += ' data-required="' + (required ? '1' : '0') + '"';
+            html += ' value="' + escapeHtml(prefill) + '"';
+            html += ' placeholder="' + escapeHtml(ph) + '">';
+        }
         html += '<div class="tv-error">' + escapeHtml(t('tv_required_error', '此项为必填')) + '</div>';
         html += '</div>';
         return html;
@@ -127,23 +157,30 @@
     }
 
     function doConfirm() {
-        var inputs = varOverlay.querySelectorAll('input.tv-input');
+        var fields = varOverlay.querySelectorAll('.tv-field');
         var values = {};
         var firstInvalid = null;
-        for (var i = 0; i < inputs.length; i++) {
-            var input = inputs[i];
-            var name = input.getAttribute('data-name');
-            var required = input.getAttribute('data-required') === '1';
-            var val = (input.value || '').trim();
-            var field = input.parentNode;
+        for (var i = 0; i < fields.length; i++) {
+            var field = fields[i];
+            var type = field.getAttribute('data-type') || 'text';
+            var name = field.getAttribute('data-name');
             var errEl = field.querySelector('.tv-error');
-            if (required && !val) {
-                input.classList.add('tv-invalid');
-                if (errEl) errEl.style.display = 'block';
-                if (!firstInvalid) firstInvalid = input;
+            if (type === 'checkbox') {
+                var cb = field.querySelector('input.tv-check');
+                if (cb) values[name] = cb.checked ? '1' : '0';
                 continue;
             }
-            input.classList.remove('tv-invalid');
+            var control = field.querySelector('.tv-input');
+            if (!control) continue;
+            var required = control.getAttribute('data-required') === '1';
+            var val = (control.value || '').trim();
+            if (required && !val) {
+                control.classList.add('tv-invalid');
+                if (errEl) errEl.style.display = 'block';
+                if (!firstInvalid) firstInvalid = control;
+                continue;
+            }
+            control.classList.remove('tv-invalid');
             if (errEl) errEl.style.display = 'none';
             if (val) values[name] = val;
         }
@@ -151,9 +188,9 @@
             firstInvalid.focus();
             return;
         }
-        var cb = currentOnConfirm;
+        var cb2 = currentOnConfirm;
         close();
-        if (cb) cb(values);
+        if (cb2) cb2(values);
     }
 
     /**
@@ -210,7 +247,7 @@
         document.body.appendChild(varOverlay);
         document.addEventListener('keydown', onKeydown, true);
 
-        var first = varOverlay.querySelector('input.tv-input');
+        var first = varOverlay.querySelector('.tv-input, input.tv-check');
         if (first) first.focus();
     }
 

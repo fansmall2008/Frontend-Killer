@@ -1,0 +1,26 @@
+{
+  "_comment": "导出动作目录（引擎内建能力清单，非用户模板）。v3 模板的 variables 项通过 action 字段引用此处的 id，声明‘用户可在导出时选用哪个动作’。动作的作用系统(scope)、是否强制单平台(singlePlatform)、弹窗控件(variableType)、积木链(chain)与参数都在此声明；真正的行为由同 id 的 Java 实现（Block / SplitStrategy）完成。新增动作＝加一条声明 + 一个 Java 实现，不改导出主流程。",
+  "actions": [
+    {
+      "id": "wbfs-split",
+      "label": "WBFS 分片（FAT32 4GB）",
+      "variableType": "checkbox",
+      "singlePlatform": true,
+      "scope": { "systemIds": [16, 59] },
+      "chain": ["split", "rewrite-rom-path", "copy", "cleanup"],
+      "params": { "splitSize": "4000M" },
+      "strategies": { "16": "wit-split", "59": "noop" },
+      "note": "对已是 WBFS 的产物按 FAT32 单文件上限切分为 .wbfs + .wbf1…（wit copy --split）。PS3(59) 暂只预留：勾选后按单文件导出并给出提示，不报错。"
+    },
+    {
+      "id": "format-convert",
+      "label": "导出时格式转换",
+      "variableType": "select",
+      "singlePlatform": true,
+      "scope": { "systemIds": [16] },
+      "chain": ["transcode", "rewrite-rom-path", "copy", "cleanup"],
+      "optionsSource": "pipeline",
+      "note": "导出时把主文件按需转成用户选定的目标格式（即使系统没有预生成该版本），候选来自系统产线（SystemPipelineLibrary + FormatRegistry + PipelinePlanner）。选‘不转换’则维持现状。"
+    }
+  ]
+}

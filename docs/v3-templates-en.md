@@ -43,6 +43,35 @@ v3 templates use a unified JSON structure:
 }
 ```
 
+### 1.3 Generate templates with AI (recommended)
+
+A v3 template is **pure JSON, fully declarative** (the Java engine hardcodes nothing), so the easiest way to produce one is not to hand-write it but to **have an AI generate it straight from this document**: send the whole "v3 Template System Documentation" together with the target frontend's official naming/size spec to an AI, state "target frontend / system / ROM directory & filename rules / cover sources & sizes / whether a data file is needed", and let it emit a `rules/export/<frontend>-v3.json`.
+
+To improve first-shot accuracy, feed this **spec prompt** to the AI along with the document (replace the angle-bracket placeholders with your actual requirements):
+
+```text
+You are a v3 export-template generator for WebGamelistOper / Frontend Killer. Output only one valid JSON; every field must strictly follow the attached "v3 Template System Documentation". Do not invent any function, variable, or config key that is not documented.
+
+[INPUT]
+Target frontend: <name>; direction: export; systemId in scope: <integer>.
+ROM output: <directory template + filename template>; for game-ID naming see rule 4.
+Media output: per type -> source nomcourt + relative target path + whether to resize and the size (see rule 3).
+Data file: <format xml|json|text + filename>; if none is needed set exportOptions.gameListFile=false and omit the dataFile block.
+
+[HARD RULES]
+1. templateInfo must include "version":3 and "direction":"export".
+2. Expressions and {placeholders} may only use the functions (section 2) and variables (section 3) in the doc; prefer nomcourt naming (e.g. box-2D).
+3. Image resizing goes in output.media.rules.<type>.resize: {"enabled":true,"width":<int>,"height":<int>,"mode":"fit|pad|stretch","upscale":<bool>,"divisor":<integer; set N if width/height must be divisible by N>,"format":"png|jpg"}. If no resizing is needed, omit resize entirely (= verbatim copy).
+4. Game-ID naming (e.g. the 6-char Wii DiscID used by USB Loader GX) uses the variable discSerial: directory "concat('{outputPath}/wbfs/[', discSerial, ']')", filename "concat(discSerial, ext)". When discSerial is empty the engine auto-reads it from the image header; games whose ID still cannot be resolved are skipped with a warning — the template needs no logic for this.
+5. Export actions (user ticks/chooses in the dialog) are referenced via variables[].action pointing to engine-built-in action ids (see export-actions.json; currently e.g. format-convert=select, wbfs-split=checkbox). A select's options are produced automatically from the system pipeline; the template must NOT hardcode options.
+6. output.exportOptions gameFiles/mediaFiles/gameListFile must faithfully reflect the ranges the frontend supports.
+
+[OUTPUT]
+Give JSON only; key order templateInfo -> variables -> system -> game -> output. Cross-check the product against the USB Loader GX (Wii) example at the end of section 7.
+```
+
+After generating, save it under `rules/export/` (repo source) and also drop a copy in `data/rules/export/` (loaded at runtime); it becomes selectable in the export form after a template reload or restart.
+
 ---
 
 ## 2. Expression Engine
@@ -219,6 +248,7 @@ All game fields can be referenced directly by field name. Three naming conventio
 | `lang` | Language | "en" |
 | `sort-by` | Sort field | "Mario" |
 | `gameId` | Game ID | "12345" |
+| `discSerial` | Disc identifier / game ID (e.g. the 6-char Wii DiscID; used for export naming & matching, see 3.5, 6.8) | "RSLJ00139" |
 | `hash` | File hash | "abc123..." |
 | `crc32` | CRC32 checksum | "12345678" |
 | `md5` | MD5 checksum | "abcdef..." |
@@ -318,9 +348,10 @@ Some values are unknown during the "game processing stage" and must be set by th
 | `name` | Variable name used in expressions and `{xxx}` placeholders; must be an identifier (letter/underscore start), must not clash with a built-in variable |
 | `label` | Name shown in the dialog |
 | `description` | Explanation shown in the dialog (why it is needed / what it does) |
-| `type` | Only `text` \| `path` (`path` provides a path browser in the dialog) |
+| `type` | `text` \| `path` for plain data variables; for export-action bindings use `checkbox` \| `select` to match the control (see 3.5) |
 | `default` | Optional default, supports `{platform.xxx}` placeholders, resolved per platform at execution |
 | `required` | Defaults to `false`; when empty and `required=true` the frontend blocks submit and the backend returns 400 |
+| `action` | Optional: the bound **export-action id** (references the engine-built-in `export-actions.json`). Once set, this variable is no longer a plain text input but an action control in the dialog; the user's choice drives post-export processing, see **3.5** |
 
 **Behavior**:
 - Variable values are **not persisted**; they must be entered for every import/export.
@@ -334,6 +365,28 @@ Some values are unknown during the "game processing stage" and must be set by th
 2. **Bare-identifier expression channel**: the variable name can appear directly inside `concat(...)`, `+`, etc. e.g. `"image": "concat(cdnBase, '/', platform.system, '/', filename(name), '.png')"`.
 
 When a variable is empty, `concat`/`+` skip empty values or return null per existing semantics, without affecting other fields. See the sample template: `rules/export/retroarch-folder-v3.json`.
+
+### 3.5 Export-action binding (variables[].action)
+
+Besides plain text input, a `variables` entry can **bind an engine-built-in "export action"**: set the variable's `action` (value = action id) and the dialog renders it as the control declared by that action (checkbox / select); the user's choice runs per-ROM post-processing at export time (format conversion, splitting, etc.).
+
+```json
+"variables": [
+  { "name": "formatConvert", "label": "Export-time conversion", "type": "select",   "action": "format-convert" },
+  { "name": "wbfsSplit",     "label": "WBFS split (FAT32 4GB)", "type": "checkbox", "action": "wbfs-split" }
+]
+```
+
+| Point | Description |
+|-------|-------------|
+| `action` | References an engine-built-in action id; the catalog lives in `rules/variants/export-actions.json` (engine capability, not a user template). The template only names the id, never the behavior |
+| `type` | Keep it consistent with the action control: `checkbox` (toggle) or `select` (dropdown); actual rendering follows the action declaration |
+| System scope / single platform | Determined by the action's scope (e.g. Wii conversion applies only to systemId=16 and forces single-platform); a mismatch is rejected by binding validation when picking the template, so the template need not restate it |
+| select options | `format-convert`'s target formats are computed automatically from that system's pipeline; the template must **not** hardcode options |
+| Unticked / failure | If not chosen the action stays out and the ROM is delivered as-is; a failed conversion/split only notes a warning and the export continues |
+| Extension effect | When an action turns the file into another format the delivered filename's extension changes accordingly; the engine handles it, so the template filename stays in the `{ID}{ext}` form |
+
+Adding a new bindable action = one declaration in `export-actions.json` + one Java block implementation, with **zero change to the export main flow**; the template side just references its id.
 
 ---
 
@@ -862,8 +915,30 @@ The user's actual checkboxes on the export form decide which output blocks take 
 | `rules.*.source` | Source media field (same as key, kept for readability) |
 | `rules.*.target` | Target path template (relative to media.directory); supports `{filename}`, `{gameName}` variables and expressions (e.g. `sanitize`, `concat`) |
 | `rules.*.dataFileTag` | Corresponding tag in the data file; **when set, that media path in the data file is rewritten to the post-export path** (recomputed relative to the data file directory); when unset the file is copied without rewriting |
+| `rules.*.resize` | Optional: per-type image spec constraint at export (scale/snap/re-encode); absent = verbatim copy; fields below |
 
 Media paths in the data file = full path of media.directory + target, relativized against the data file directory, then formatted per `pathFormat` (see 6.9).
+
+**`rules.*.resize` image spec constraint (optional; absent = verbatim copy)**
+
+Some frontends hard-require cover sizes/format (e.g. USB Loader GX will not display unless both width and height are divisible by 4). Add a `resize` block to scale/re-encode that image at export; omitting it is exactly a verbatim copy (backward compatible):
+
+```json
+"resize": { "enabled": true, "width": 160, "height": 224, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" }
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `enabled` | `true` | Presence of a `resize` block enables it; set `false` to treat as no-op |
+| `width` / `height` | `0` | Target box width/height; `<=0` means that dimension is unbounded |
+| `mode` | `fit` | `fit` proportional contain (result is the content) / `pad` proportional then pad to exact width×height / `stretch` force to the box |
+| `upscale` | `false` | Whether to enlarge when the source is smaller than the box; default is downscale-only |
+| `divisor` | `1` | Snap output width/height **down** to a multiple of this (GX's ÷4 rule = `4`); `<=1` no snap |
+| `format` | source | Output encoding `png` (keeps alpha) / `jpg` (white matte); default keeps the source extension |
+
+- Holds for any source size/format: first handle to the box per `mode`, then snap down per `divisor`, finally re-encode per `format`.
+- A missing cover is skipped; a corrupt/undecodable image is warned and skipped without aborting the batch.
+- This is a generic, non-platform-bound capability: any frontend declares its own size spec in its media rules.
 
 ### 6.9 output.dataFile Data File
 
@@ -1445,6 +1520,48 @@ Key points (this example matches `rules/export/pegasus-v3.json` exactly):
 - **roms.directory groups by genre**: `mapFirst(genre)` takes the first genre as the directory name, falling back to `{outputPath}/{platform.system}` when absent
 - **media.target uses {gameName}**: one directory per game (e.g. `media/Super Mario/boxFront.png`), with dataFileTag mapping to `assets.*` nested tags
 - **pathFormat: "relative" + pathPrefix: ""**: path-type fields only get their `./` prefix stripped
+
+### 7.5 USB Loader GX (Wii) export template example
+
+> A complete example exercising all three capabilities — game-ID naming + image resize + export-action binding; systemId=16; the real file is `rules/export/usbloadergx-wii-v3.json`.
+
+```json
+{
+  "templateInfo": {
+    "version": 3,
+    "direction": "export",
+    "author": "Frontend-Killer",
+    "description": "USB Loader GX (Wii) — ROM named by the 6-char DiscID under wbfs/[ID]/{ID}.wbfs|.iso, covers resized to GX spec under images/"
+  },
+  "variables": [
+    { "name": "formatConvert", "label": "Export-time conversion", "type": "select",   "default": "", "action": "format-convert" },
+    { "name": "wbfsSplit",     "label": "WBFS split (FAT32 4GB)", "type": "checkbox", "default": "false", "action": "wbfs-split" }
+  ],
+  "output": {
+    "exportOptions": { "gameFiles": true, "mediaFiles": true, "gameListFile": false, "showWarning": true },
+    "roms": {
+      "enabled": true,
+      "directory": "concat('{outputPath}/wbfs/[', discSerial, ']')",
+      "filename": "concat(discSerial, ext)"
+    },
+    "media": {
+      "directory": "{outputPath}/images",
+      "rules": {
+        "box-2D":     { "source": "box-2D",     "target": "concat('2D/', discSerial, '.png')",   "resize": { "width": 160, "height": 224, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } },
+        "box-3D":     { "source": "box-3D",     "target": "concat('3D/', discSerial, '.png')",   "resize": { "width": 176, "height": 248, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } },
+        "support-2D": { "source": "support-2D", "target": "concat('disc/', discSerial, '.png')", "resize": { "width": 160, "height": 160, "mode": "fit", "upscale": false, "divisor": 4, "format": "png" } }
+      }
+    }
+  }
+}
+```
+
+Key points:
+
+- **ID naming**: ROM directory `wbfs/[{ID}]` (with brackets), filename `{ID}{ext}`; ID comes from `discSerial`; when empty the engine auto-reads it from the image header at offset 0x18, and games whose ID still can't be resolved are skipped with a task-log warning (GX cannot index without an ID).
+- **Image spec**: `box-2D→images/2D` (≤160×224), `box-3D→images/3D` (≤176×248), `support-2D→images/disc` (≤160×160), all fit + downscale-only + `divisor:4` + PNG, meeting GX's "width/height divisible by 4" hard rule.
+- **Export actions**: `format-convert` (dropdown iso→wbfs, options from the Wii pipeline) and `wbfs-split` (tick to split at FAT32 4GB); both force single-platform and apply only to Wii, and selecting them on a non-Wii platform is rejected by binding validation.
+- **No data file**: GX scans `wbfs/` and `images/` directly, so `gameListFile=false` and the template writes no `dataFile` block.
 
 ---
 

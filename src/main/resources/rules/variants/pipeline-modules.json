@@ -86,6 +86,15 @@
       "cost": 40,
       "lossless": true,
       "note": "解包后重算 2352 扇区头；只给仅认 BIN 的模拟器用"
+    },
+    {
+      "id": "iso2wbfs",
+      "input": "ISO_2048",
+      "output": "WBFS",
+      "cost": 45,
+      "lossless": false,
+      "externalDeps": ["wit"],
+      "note": "Wii ISO→WBFS：调用外部 wit（Wiimms ISO Tools）copy 生成清洗分区；有损不可逆，不做 wbfs→iso 回退"
     }
   ]
 }

@@ -1196,6 +1196,26 @@ public class ScraperServiceImpl implements ScraperService {
         logger.info("已停止平台 {} 的刮削和媒体下载", platformId);
     }
 
+    @Override
+    public Map<String, Object> clearPlatformQueue(Long platformId) {
+        // 先置停止标志，避免工作线程在删除途中又拾取/重建该平台的任务
+        getPlatformStoppedFlag(platformId).set(true);
+        getPlatformPausedFlag(platformId).set(false);
+        // 停止该平台的媒体下载（释放正在占用线程的下载任务）
+        mediaDownloadService.stopPlatformDownload(platformId);
+        // 删除该平台的所有刮削队列记录（含所有状态）
+        int scrapeDeleted = scrapeTaskMapper.deleteByPlatformId(platformId);
+        int mediaDeleted = mediaDownloadTaskMapper.deleteByPlatformId(platformId);
+        logger.info("已清除平台 {} 的刮削队列：scrape_task {} 条，media_download_task {} 条",
+            platformId, scrapeDeleted, mediaDeleted);
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("success", true);
+        result.put("scrapeDeleted", scrapeDeleted);
+        result.put("mediaDeleted", mediaDeleted);
+        result.put("deletedCount", scrapeDeleted + mediaDeleted);
+        return result;
+    }
+
     private AtomicBoolean getPlatformPausedFlag(Long platformId) {
         return platformPausedFlags.computeIfAbsent(platformId, k -> new AtomicBoolean(false));
     }

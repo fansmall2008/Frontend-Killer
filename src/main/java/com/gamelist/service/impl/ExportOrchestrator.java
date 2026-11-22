@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -20,6 +21,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.gamelist.export.action.ExportActionContext;
+import com.gamelist.export.action.ExportActionPlan;
+import com.gamelist.export.action.ExportActionPlanner;
+import com.gamelist.export.action.ExportActionRunner;
 import com.gamelist.mapper.GameMapper;
 import com.gamelist.mapper.FieldTranslationMapper;
 import com.gamelist.model.BackgroundTask;
@@ -31,8 +36,12 @@ import com.gamelist.model.TemplateV3;
 import com.gamelist.service.PlatformService;
 import com.gamelist.service.TaskService;
 import com.gamelist.service.VariantService;
+import com.gamelist.util.ArchiveUtil;
 import com.gamelist.util.GameFieldAccessor;
+import com.gamelist.util.ImageResizer;
 import com.gamelist.util.TemplateExpressionEngine;
+import com.gamelist.variant.ConversionModule;
+import com.gamelist.variant.module.Wit;
 
 /**
  * v3 导出编排器 — 文件操作编排层。
@@ -69,6 +78,12 @@ public class ExportOrchestrator {
     @Autowired
     private VariantResolver variantResolver;
 
+    @Autowired
+    private ExportActionPlanner actionPlanner;
+
+    @Autowired
+    private ExportActionRunner actionRunner;
+
     /**
      * 执行 v3 导出。
      * <p>
@@ -101,14 +116,24 @@ public class ExportOrchestrator {
         // 按所选语种从 field_translation 回填瞬态 translatedName/translatedDesc（供 coalesce/-translated 模板消费）
         applyTranslationInjection(games, request.getTranslationLang());
 
+        // Wii（USB Loader GX 等）靠 6 位游戏 ID 命名 ROM/封面：库里 discSerial 为空则从镜像头兜底回填，
+        // 仍拿不到的游戏剔除并告警（GX 无 ID 无法识别，留着只会产出错误文件名）
+        games = backfillWiiGameIds(games, template, platform, task.getId());
+
         // 按系统选择版本格式；未选择时用系统偏好（无偏好则 original）
         Map<Long, ResolvedVariant> resolvedVariants = Collections.emptyMap();
         boolean useVariants = request.isCopyRoms()
                 && output.getRoms() != null && output.getRoms().isEnabled()
                 && !request.isWholeDirectoryCopy();
+        // 逐文件交付类动作（分片/导出时转换）只在“按游戏拷 ROM”时介入，整目录拷贝不涉及
+        ExportActionPlan actionPlan = null;
         if (useVariants) {
             String requestedFormat = resolveRequestedVariantFormat(request, platform);
             resolvedVariants = variantResolver.resolveBatch(games, platform.getSystemId(), requestedFormat);
+            actionPlan = actionPlanner.plan(template, request.getTemplateVariables(), platform.getSystemId());
+            if (actionPlan != null && !actionPlan.isEmpty()) {
+                logger.info("导出动作已启用: 平台={}, 链={}", platform.getName(), actionPlan.getSteps());
+            }
         }
 
         try {
@@ -129,7 +154,7 @@ public class ExportOrchestrator {
                 } else {
                     taskService.updateTaskProgress(task.getId(), 10, "开始复制游戏文件", 0, 100);
                     copyResult = copyGameFiles(games, output.getRoms(), platform, vars,
-                            task.getId(), resolvedVariants);
+                            task.getId(), resolvedVariants, actionPlan);
                 }
                 progress = 40;
                 taskService.updateTaskProgress(task.getId(), progress, "游戏文件复制完成", 0, 100);
@@ -165,7 +190,7 @@ public class ExportOrchestrator {
                         String romDir = resolveRomDirForGame(romDirTemplate, game, platform, vars);
                         Map<String, String> gameVars = buildGameVariables(game, vars);
                         String romFilename = evaluateFilenameTemplate(romFilenameTemplate, game, platform,
-                                gameVars, resolveSourcePath(game));
+                                gameVars, resolveSourcePath(game, platform));
                         String romTargetAbs = romDir + "/" + romFilename;
                         romExportPaths.put(game.getId(), romTargetAbs);
                     } catch (Exception e) {
@@ -281,7 +306,8 @@ public class ExportOrchestrator {
      */
     private RomCopyResult copyGameFiles(List<Game> games, TemplateV3.RomOutput romsConfig,
                                 Platform platform, Map<String, String> vars,
-                                Long taskId, Map<Long, ResolvedVariant> resolvedVariants) {
+                                Long taskId, Map<Long, ResolvedVariant> resolvedVariants,
+                                ExportActionPlan actionPlan) {
         // roms.directory 可能含 per-game 表达式（如 if(genre,...)），在 createDirectories 中已创建基础路径
         // 此处为每个游戏重新求值，确保 genre 等字段正确参与计算
         String rawDirTemplate = romsConfig.getDirectory();
@@ -318,7 +344,7 @@ public class ExportOrchestrator {
                 // 为当前游戏重新求值 roms.directory（支持 genre 等 per-game 字段）
                 String romsDirForGame = resolveRomDirForGame(rawDirTemplate, game, platform, vars);
                 copySingleGameFile(game, romsDirForGame, filenameTemplate, platform, vars,
-                        enableM3U, romsConfig, taskId, resolved, cueCtx);
+                        enableM3U, romsConfig, taskId, resolved, cueCtx, actionPlan);
                 // 街机 clone 父 rom 找齐：本体拷贝后，按 parent_rom 到源目录 copy-if-missing
                 copyParentRomIfMissing(game, romsDirForGame, taskId, missingParents);
             } catch (Exception e) {
@@ -493,10 +519,11 @@ public class ExportOrchestrator {
     private void copySingleGameFile(Game game, String romsDir, String filenameTemplate,
                                      Platform platform, Map<String, String> vars,
                                      boolean enableM3U, TemplateV3.RomOutput romsConfig,
-                                     Long taskId, ResolvedVariant resolved, CueContext cueCtx) throws Exception {
+                                     Long taskId, ResolvedVariant resolved, CueContext cueCtx,
+                                     ExportActionPlan actionPlan) throws Exception {
         // 确定源路径：有可用版本则用版本，否则回退主文件
         Path sourcePath = resolved != null && resolved.getSourcePath() != null
-                ? resolved.getSourcePath() : resolveSourcePath(game);
+                ? resolved.getSourcePath() : resolveSourcePath(game, platform);
         if (sourcePath == null || !Files.exists(sourcePath)) {
             if (sourcePath != null) {
                 logger.warn("ROM 文件不存在: {}", sourcePath);
@@ -530,6 +557,14 @@ public class ExportOrchestrator {
         logger.info("[DIAG] game={}, genre={}, filenameTemplate={}, targetFileName={}, romsDir={}",
                 game.getName(), game.getGenre(), filenameTemplate, targetFileName, romsDir);
 
+        // 交付类动作接管：非多文件、有启用计划 → 由积木链完成转换/分片与落盘，替代下面的 copyFile
+        if (actionPlan != null && !actionPlan.isEmpty()) {
+            if (tryDeliverViaActions(game, romsDir, sourcePath, targetFileName, platform, taskId, actionPlan)) {
+                return;
+            }
+            // 未接管（多文件等）→ 回退原拷贝路径
+        }
+
         Path targetPath = Paths.get(romsDir, targetFileName);
         copyFile(sourcePath, targetPath);
 
@@ -557,6 +592,50 @@ public class ExportOrchestrator {
         // 处理 CUE 文件（裸 cue 游戏：解析 FILE 引用收集 bin/wav 等关联文件，缺失按 cue.onMissing 处理）
         if (cueCtx.enabled && targetFileName.toLowerCase().endsWith(".cue")) {
             copyCueReferencedFiles(sourcePath, targetPath, cueCtx, game, taskId);
+        }
+    }
+
+    /**
+     * 交付类动作接管：跑合并后的积木链（转换/分片 → 落盘），成功接管则替代主流程的 copyFile。
+     * <p>
+     * 返回 {@code true} 表示动作链已接管交付（{@code game.path} 已更新为实际导出文件名），
+     * 调用方应直接 return；返回 {@code false} 表示未接管（noop 系统 / 未达转换条件 / 用户选“不转换” / 失败），
+     * 调用方回退原拷贝路径。无论接管与否都把链上产生的提示写入任务日志。
+     */
+    private boolean tryDeliverViaActions(Game game, String romsDir, Path sourcePath, String targetFileName,
+                                         Platform platform, Long taskId, ExportActionPlan plan) {
+        int systemId = platform.getSystemId() == null ? 0 : platform.getSystemId();
+        String fn = sourcePath.getFileName().toString();
+        int dot = fn.lastIndexOf('.');
+        String ext = dot > 0 ? fn.substring(dot) : "";
+        ExportActionContext ctx = plan.newContext(game, systemId, sourcePath, ext,
+                Paths.get(romsDir), targetFileName, ConversionModule.ProgressSink.NOOP);
+        try {
+            actionRunner.runSteps(plan.getSteps(), ctx);
+        } catch (Exception e) {
+            logger.error("导出动作失败: game={}, err={}", game.getName(), e.getMessage());
+            logNotes(ctx, taskId);
+            return false;
+        }
+        logNotes(ctx, taskId);
+        if (!ctx.isTakenOver()) {
+            return false;
+        }
+        String primary = ctx.getPrimaryDestName() != null ? ctx.getPrimaryDestName() : targetFileName;
+        game.setPath(primary);
+        if (taskId != null) {
+            taskService.updateTaskLog(taskId, "动作交付: " + fn + " → " + primary);
+        }
+        return true;
+    }
+
+    /** 把动作链执行期间累积的提示逐条写入任务日志 */
+    private void logNotes(ExportActionContext ctx, Long taskId) {
+        if (taskId == null || ctx == null) {
+            return;
+        }
+        for (String note : ctx.getNotes()) {
+            taskService.updateTaskLog(taskId, "动作提示: " + note);
         }
     }
 
@@ -727,11 +806,33 @@ public class ExportOrchestrator {
                     if (resolvedTarget == null || resolvedTarget.isEmpty()) continue;
 
                     Path targetPath = Paths.get(mediaDir, resolvedTarget);
-                    copyFile(sourcePath, targetPath);
-
-                    if (taskId != null) {
-                        taskService.updateTaskLog(taskId,
-                            "复制媒体: " + nomcourt + " " + sourcePath.getFileName() + " → " + resolvedTarget);
+                    TemplateV3.MediaResizeConfig resize = rule.getResize();
+                    if (resize != null && resize.isEnabled()) {
+                        // 规格约束：等比/补边/拉伸到目标框 + 宽高取 divisor 倍数 + 重编码；坏图跳过不中断
+                        boolean ok;
+                        try {
+                            ok = ImageResizer.process(sourcePath, targetPath, resize);
+                        } catch (Exception ex) {
+                            ok = false;
+                            logger.warn("媒体缩放处理异常: {} {}", sourcePath, ex.getMessage());
+                        }
+                        if (!ok) {
+                            if (taskId != null) {
+                                taskService.updateTaskLog(taskId,
+                                    "媒体缩放失败(跳过): " + nomcourt + " " + sourcePath.getFileName());
+                            }
+                            continue;
+                        }
+                        if (taskId != null) {
+                            taskService.updateTaskLog(taskId,
+                                "缩放媒体: " + nomcourt + " " + sourcePath.getFileName() + " → " + resolvedTarget);
+                        }
+                    } else {
+                        copyFile(sourcePath, targetPath);
+                        if (taskId != null) {
+                            taskService.updateTaskLog(taskId,
+                                "复制媒体: " + nomcourt + " " + sourcePath.getFileName() + " → " + resolvedTarget);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -927,21 +1028,127 @@ public class ExportOrchestrator {
 
     /**
      * 解析游戏的 ROM 源路径。
-     * 优先 absolutePath，回退到 platformPath + path。
+     * 优先 absolutePath，回退到 platformPath + path；若 game.platformPath 没缓存，
+     * 再回退到当前导出平台的 folderPath + path，避免库内旧数据没写 platform_path 时静默导出 0 个。
      */
     private Path resolveSourcePath(Game game) {
+        return resolveSourcePath(game, null);
+    }
+
+    private Path resolveSourcePath(Game game, Platform platform) {
+        if (game == null) return null;
         String absolutePath = game.getAbsolutePath();
         if (absolutePath != null && !absolutePath.isEmpty()) {
             return Paths.get(absolutePath);
         }
-
-        String platformPath = game.getPlatformPath();
         String gamePath = game.getPath();
-        if (platformPath != null && !platformPath.isEmpty() && gamePath != null && !gamePath.isEmpty()) {
+        if (gamePath == null || gamePath.isEmpty()) {
+            return null;
+        }
+        String platformPath = game.getPlatformPath();
+        if (platformPath == null || platformPath.isEmpty()) {
+            platformPath = platform != null ? platform.getFolderPath() : null;
+        }
+        if (platformPath != null && !platformPath.isEmpty()) {
             return Paths.get(platformPath, gamePath);
         }
-
         return null;
+    }
+
+    /**
+     * Wii 游戏 ID 兜底回填。仅当模板命名引用了 discSerial 且当前为 Wii（systemId=16）时介入：
+     * 库里 discSerial 为空则从镜像头（{@link Wit#readGameId}）读取回填；仍拿不到的游戏从列表剔除并写任务日志告警。
+     * 其他平台/模板未引用 discSerial 时原样返回，不影响既有导出。
+     */
+    private List<Game> backfillWiiGameIds(List<Game> games, TemplateV3 template, Platform platform, Long taskId) {
+        if (!templateUsesDiscSerial(template)) {
+            return games;
+        }
+        Integer systemId = platform != null ? platform.getSystemId() : null;
+        if (systemId == null || systemId != 16) {
+            return games; // 读镜像头是 Wii 专属，其他系统交各自产线/规则处理
+        }
+        List<Game> kept = new ArrayList<>(games.size());
+        for (Game game : games) {
+            if (game.getDiscSerial() == null || game.getDiscSerial().isBlank()) {
+                // 优先从 rom 文件名茎取 ID（Wit/Wii Backup Manager 导出的 [ID].wbfs、ID.iso 均适用），
+                // 失败才回退到镜像头多偏移探测（避免打开大文件），最后试 game name 本身已是 ID 的情形。
+                String id = extractIdFromRomFilename(game);
+                if (id == null) {
+                    id = Wit.readGameId(resolveSourcePath(game, platform));
+                }
+                if (id == null && game.getName() != null) {
+                    String nm = game.getName().trim().toUpperCase(Locale.ROOT);
+                    if (nm.matches("[A-Z][A-Z0-9]{5}")) id = nm;
+                }
+                if (id != null && !id.isBlank()) {
+                    game.setDiscSerial(id);
+                }
+            }
+            if (game.getDiscSerial() == null || game.getDiscSerial().isBlank()) {
+                logger.warn("Wii 游戏无法解析 6 位 ID，跳过导出: {}", game.getName());
+                if (taskId != null) {
+                    taskService.updateTaskLog(taskId, "跳过(无游戏ID): " + game.getName());
+                }
+                continue;
+            }
+            kept.add(game);
+        }
+        return kept;
+    }
+
+    /**
+     * 从 Game.path 的 rom 文件名茎提取 6 位 Wii DiscID（容错方括号、下划线、后缀名）。
+     * 命中 {@code [A-Z][A-Z0-9]{5}} 时返回，否则 null。
+     */
+    private static String extractIdFromRomFilename(Game game) {
+        if (game == null) return null;
+        String p = game.getPath();
+        if (p == null || p.isBlank()) return null;
+        String fname;
+        try {
+            fname = Paths.get(p).getFileName().toString();
+        } catch (Exception e) {
+            int idx = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'));
+            fname = idx >= 0 ? p.substring(idx + 1) : p;
+        }
+        int dot = fname.lastIndexOf('.');
+        String stem = dot > 0 ? fname.substring(0, dot) : fname;
+        // 剥离常见包裹字符，包括 [ ] ( ) _ - 空格
+        String clean = stem.replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
+        if (clean.matches("[A-Z][A-Z0-9]{5}")) return clean;
+        // 容错：茎内前 6 个字母数字恰为 ID（后面拼了额外标签）
+        if (clean.length() >= 6) {
+            String head = clean.substring(0, 6);
+            if (head.matches("[A-Z][A-Z0-9]{5}")) return head;
+        }
+        return null;
+    }
+
+    /** 模板命名（ROM 目录/文件名或媒体目标路径）是否引用了 discSerial 字段 */
+    private boolean templateUsesDiscSerial(TemplateV3 template) {
+        if (template == null || template.getOutput() == null) {
+            return false;
+        }
+        TemplateV3.OutputConfig output = template.getOutput();
+        TemplateV3.RomOutput roms = output.getRoms();
+        if (roms != null
+                && (referencesDiscSerial(roms.getDirectory()) || referencesDiscSerial(roms.getFilename()))) {
+            return true;
+        }
+        TemplateV3.MediaOutput media = output.getMedia();
+        if (media != null && media.getRules() != null) {
+            for (TemplateV3.MediaOutputRule rule : media.getRules().values()) {
+                if (rule != null && referencesDiscSerial(rule.getTarget())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean referencesDiscSerial(String template) {
+        return template != null && template.contains("discSerial");
     }
 
     /**

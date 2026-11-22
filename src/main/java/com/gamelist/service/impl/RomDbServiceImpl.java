@@ -243,13 +243,16 @@ public class RomDbServiceImpl implements RomDbService {
             }
         }
 
-        // L1-Wii: game ID 头部提取（iso @0x00 / wbfs @0x200），取前 4 位 game code 反查 rom_db
+        // L1-Wii: 读 ISO @0x00 / WBFS @0x200 头部 6 字节 disc ID（如 RSPP01），直接用 6 位精准命中 rom_db。
+        // 不降级到 4 位前缀：4 位会经 LIKE 撞进 rdb 合并库里的发行编号行（RVL-XXXX-YYY），
+        // 既污染 game.disc_serial（导出命名被 USB Loader GX 拒认）又抓错 revision 元数据；
+        // 6 位命中的是干净的 DiscID 行，serial 即 6 位码，写回 disc_serial 天然正确。
         if (systemId == 16) {
             try {
-                String serial = CartridgeHeaderReader.extractWiiGameId(filePath);
-                if (serial != null) {
-                    logger.info("rom_db: Wii game ID 头部提取 serial={} from {}", serial, fileName);
-                    RomDb result = matchBySerial(serial, systemId);
+                String discId = CartridgeHeaderReader.extractWiiDiscId(filePath);
+                if (discId != null) {
+                    logger.info("rom_db: Wii disc ID 头部提取 discId={} from {}", discId, fileName);
+                    RomDb result = matchBySerial(discId, systemId);
                     if (result != null) return result;
                 }
             } catch (Exception e) {

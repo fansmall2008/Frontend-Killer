@@ -22,10 +22,11 @@ FROM docker.io/library/eclipse-temurin:17-jre
 # Set timezone
 ENV TZ=Asia/Shanghai
 
-# External tools used by the variant pipeline. Both are invoked as separate
-# processes, so neither becomes part of this MIT-licensed application:
+# External tools used by the variant pipeline. All are invoked as separate
+# processes, so none becomes part of this MIT-licensed application:
 #   chdman  - CHD compression, part of MAME tools      (GPL-2.0-or-later)
 #   ffmpeg  - APE/FLAC track decoding to WAV           (LGPL-2.1-or-later in Debian)
+#   wit     - Wii ISO -> WBFS conversion (see block below) (GPLv2+)
 # See THIRD-PARTY-NOTICES.md. Do not remove /usr/share/doc/mame-tools or
 # /usr/share/doc/ffmpeg.
 RUN sed -i 's|http://archive.ubuntu.com|http://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list.d/*.sources 2>/dev/null; \
@@ -34,13 +35,35 @@ RUN sed -i 's|http://archive.ubuntu.com|http://mirrors.tuna.tsinghua.edu.cn|g' /
     sed -i 's|http://security.ubuntu.com|http://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \
     true
 RUN apt-get update --allow-releaseinfo-change \
-    && apt-get install -y --no-install-recommends mame-tools ffmpeg \
+    && apt-get install -y --no-install-recommends mame-tools ffmpeg ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
+
+# wit (Wiimms ISO Tools): Wii ISO -> WBFS for the variant pipeline (GPLv2+, run
+# as a separate process). Ubuntu has no wit package, so we ship the official
+# precompiled Linux/x86_64 build. A small wrapper puts it on PATH and points
+# LD_LIBRARY_PATH at any bundled libs, so Wit.locate() auto-detects it and the
+# WBFS line works out of the box with no user configuration.
+# (wit.wiimm.de is not mirrored; if the download is unreachable, build from
+#  https://github.com/Wiimm/wiimms-iso-tools in a toolchain stage instead.)
+RUN set -eux; \
+    curl -fsSL --retry 5 -o /tmp/wit.tar.gz \
+      "https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz"; \
+    mkdir -p /opt/wit; \
+    tar -xzf /tmp/wit.tar.gz -C /opt/wit; \
+    REAL="$(find /opt/wit -type f -name wit | head -n1)"; \
+    test -n "$REAL"; \
+    LIBDIR="$(dirname "$REAL")/../lib"; \
+    [ -d "$LIBDIR" ] && LIBDIR="$(cd "$LIBDIR" && pwd):" || LIBDIR=""; \
+    printf '#!/bin/sh\nLD_LIBRARY_PATH="%s${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "%s" "$@"\n' \
+      "$LIBDIR" "$REAL" > /usr/local/bin/wit; \
+    chmod +x /usr/local/bin/wit; \
+    rm -rf /tmp/wit.tar.gz; \
+    /usr/local/bin/wit --version
 
 WORKDIR /app
 
 # Copy the built JAR file
-COPY --from=builder /build/target/webGamelistOper-1.4.0.jar app.jar
+COPY --from=builder /build/target/webGamelistOper-1.4.1.jar app.jar
 
 # Copy default rules (from rules/ directory, which contains all v2+v3 templates)
 COPY rules/export/ /app/default-rules/export/

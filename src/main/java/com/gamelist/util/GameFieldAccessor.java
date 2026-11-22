@@ -70,6 +70,8 @@ public final class GameFieldAccessor {
         registerSimpleField("crc32", Game::getCrc32, Game::setCrc32);
         registerSimpleField("md5", Game::getMd5, Game::setMd5);
         registerSimpleField("gameId", Game::getGameId, Game::setGameId);
+        // 光盘标识（v1.3）：模板可用 {discSerial} 引用（如 USB Loader GX 用 6 位 ID 命名 ROM/封面）
+        registerSimpleField("discSerial", Game::getDiscSerial, Game::setDiscSerial);
         registerSimpleField("source", Game::getSource, Game::setSource);
         registerSimpleField("platformType", Game::getPlatformType, Game::setPlatformType);
         registerSimpleField("sortBy", Game::getSortBy, Game::setSortBy);

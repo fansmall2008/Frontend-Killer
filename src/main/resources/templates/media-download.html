@@ -204,6 +204,26 @@
             } catch (e) { showToast(I18n.t('stop_failed', '停止失败'), 'error'); }
         };
 
+        window.clearPlatformQueue = async function(pid, btn) {
+            if (!confirm(I18n.t('confirm_clear_queue', '确定要清除该平台的整个刮削队列吗？将删除该平台所有排队/运行/停止/失败/完成的任务，且不可恢复。'))) return;
+            if (btn) btn.disabled = true;
+            try {
+                const r = await fetch('/api/scraper/platforms/' + pid + '/clear-queue', { method: 'POST' });
+                const d = await r.json();
+                if (d.success) {
+                    showToast(d.message || (I18n.t('cleared_queue', '已清除刮削队列') + ' ' + (d.deletedCount || 0) + ' ' + I18n.t('cleared_queue_unit', '条')), 'success');
+                    expandedPlatforms.delete(pid);
+                    refreshData();
+                } else {
+                    showToast(d.message || I18n.t('clear_queue_failed', '清除队列失败'), 'error');
+                    if (btn) btn.disabled = false;
+                }
+            } catch (e) {
+                showToast(I18n.t('clear_queue_failed', '清除队列失败'), 'error');
+                if (btn) btn.disabled = false;
+            }
+        };
+
         // ========== 折叠控制 ==========
         window.togglePlatform = function(pid) {
             if (expandedPlatforms.has(pid)) {
@@ -358,6 +378,8 @@
                     html += '<button class="btn btn-sm btn-success" onclick="resumePlatform(' + pid + ')" title="' + I18n.t('btn_resume', '恢复') + '">▶️</button>';
                     html += '<button class="btn btn-sm btn-danger" onclick="stopPlatform(' + pid + ')" title="' + I18n.t('btn_stop', '停止') + '">⏹️</button>';
                 }
+                // 清除队列：任何阶段都可用，把该平台整个刮削队列删掉
+                html += '<button class="btn btn-sm btn-danger" onclick="clearPlatformQueue(' + pid + ', this)" title="' + I18n.t('btn_clear_queue', '清除刮削队列（删除该平台所有任务）') + '">🗑️</button>';
 
                 html += '</div></div>';
 

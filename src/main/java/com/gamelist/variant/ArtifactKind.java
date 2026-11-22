@@ -35,6 +35,12 @@ public enum ArtifactKind {
     CHD("chd", "CHD（MAME 压缩镜像）", "chd"),
     /** PBP 打包镜像（预留） */
     PBP("pbp", "PBP（打包镜像）", "pbp"),
+    /**
+     * WBFS：Wii 清洗分区容器（"WBFS" 头 + 块分配 + scrub 位图）。
+     * <p>
+     * 有损、不可逆：scrub 丢掉了盘上未使用的扇区，无法还原成原 ISO，故只作正向产物。
+     */
+    WBFS("wbfs", "WBFS（Wii 清洗分区）", "wbfs"),
     /** 压缩包：不是镜像形态，任何模块都不以它为输入 */
     ARCHIVE("archive", "压缩包（非镜像）", "zip"),
     /** 无法识别的文件 */
@@ -66,7 +72,7 @@ public enum ArtifactKind {
 
     /** 是否是可以直接交给模拟器的最终产物 */
     public boolean playable() {
-        return this == ISO_2048 || this == CSO || this == ZSO || this == CHD || this == PBP;
+        return this == ISO_2048 || this == CSO || this == ZSO || this == CHD || this == PBP || this == WBFS;
     }
 
     /** 是否是压缩容器：要先解包才能读到扇区内容 */

@@ -399,7 +399,7 @@
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <div>
                             <h3 style="margin:0;" data-i18n="tools_variant_ext_tools_title">外部工具</h3>
-                            <span class="hint" data-i18n="tools_variant_ext_tools_desc">chdman 负责 CHD 压缩，ffmpeg 负责把 APE/FLAC 音轨还原为 WAV。这里填的路径存在数据库里，保存即重新探测，不用重启。</span>
+                            <span class="hint" data-i18n="tools_variant_ext_tools_desc">chdman 负责 CHD 压缩，ffmpeg 负责把 APE/FLAC 音轨还原为 WAV，wit 负责 Wii ISO→WBFS 转换。这里填的路径存在数据库里，保存即重新探测，不用重启。</span>
                         </div>
                         <button class="btn btn-secondary" onclick="loadExternalTools()" data-i18n="btn_refresh">刷新</button>
                     </div>
@@ -1105,7 +1105,8 @@
         // ====== 外部工具（chdman / ffmpeg 路径） ======
         const EXTERNAL_TOOLS = [
             { key: 'chdman', label: 'chdman', descKey: 'tools_ext_chdman_desc', placeholderKey: 'tools_ext_chdman_ph' },
-            { key: 'ffmpeg', label: 'ffmpeg', descKey: 'tools_ext_ffmpeg_desc', placeholderKey: 'tools_ext_ffmpeg_ph' }
+            { key: 'ffmpeg', label: 'ffmpeg', descKey: 'tools_ext_ffmpeg_desc', placeholderKey: 'tools_ext_ffmpeg_ph' },
+            { key: 'wit', label: 'wit', descKey: 'tools_ext_wit_desc', placeholderKey: 'tools_ext_wit_ph' }
         ];
 
         async function loadExternalTools() {
@@ -1159,8 +1160,20 @@
                     + '</div>'
                     + '</div>'
                     + '</div>';
-            }).join('')
-            + '<span class="hint">' + esc(t('tools_ext_path_hint', '留空表示自动查找：配置文件 → 环境变量 → PATH → 程序目录（tools/、bin/）。Docker 镜像已内置 chdman，无需填写。填了路径但探测不到时会明确显示不可用，不会回退到其它版本。')) + '</span>';
+            }).join('');
+            // 获取指引按当前运行 OS 分支：两个平台上主程序名与发行形态都不同
+            const isWin = (data.os || '') !== 'linux';
+            const witGuide = isWin
+                ? t('tools_ext_wit_guide_win', 'Windows 版 wit 请解压官方 Cygwin 包的完整目录到程序目录的 tools/（只拷 wit.exe 不带 cygwin1.dll 等随附文件会无法运行），或在此填 wit.exe 的完整路径。')
+                : t('tools_ext_wit_guide_linux', 'Linux 版 wit 请解压官方预编译 tarball（wit-*-x86_64.tar.gz），将 wit 可执行文件放进 PATH 或程序目录的 tools/，或在此填 wit 的完整路径；Docker 镜像已内置无需处理。');
+            const chdmanGuide = isWin
+                ? t('tools_ext_chdman_guide_win', 'Windows 版 chdman 请到 MAME 官网下载 Windows 64 位完整版，取其中的 chdman.exe 连同 SDL2.dll 放进 tools/，或在此填 chdman.exe 的完整路径。')
+                : t('tools_ext_chdman_guide_linux', 'Linux 版 chdman 随 mame 工具包提供（Debian/Ubuntu：apt install mame-tools），或在此填 chdman 的完整路径；Docker 镜像已内置无需处理。');
+            const ffmpegGuide = isWin
+                ? t('tools_ext_ffmpeg_guide_win', 'Windows 版 ffmpeg 请到 ffmpeg.org 下载 Windows 构建（gyan.dev / BtbN），将 ffmpeg.exe 放进 tools/ 或 PATH，或在此填完整路径；仅还原 APE/FLAC 音轨时需要。')
+                : t('tools_ext_ffmpeg_guide_linux', 'Linux 版 ffmpeg 用发行版包管理器安装（apt install ffmpeg）即可被自动发现，或在此填完整路径；Docker 镜像已内置无需处理。');
+            const commonGuide = t('tools_ext_path_hint_common', '留空表示自动查找：配置文件 → 环境变量 → PATH → 程序目录（tools/、bin/）。可用性以主程序实际试运行为准：找不到文件、或能找到但跑不起来，都会明确显示不可用并标注原因，不会回退到其它版本。');
+            box.innerHTML += '<span class="hint">' + esc(commonGuide + ' ' + chdmanGuide + ' ' + ffmpegGuide + ' ' + witGuide) + '</span>';
         }
 
         function currentToolPath(key) {
@@ -1169,7 +1182,7 @@
         }
 
         function saveExternalTools() {
-            postToolPaths({ chdmanPath: currentToolPath('chdman'), ffmpegPath: currentToolPath('ffmpeg') });
+            postToolPaths({ chdmanPath: currentToolPath('chdman'), ffmpegPath: currentToolPath('ffmpeg'), witPath: currentToolPath('wit') });
         }
 
         function clearExternalTool(key) {

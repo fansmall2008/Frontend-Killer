@@ -520,6 +520,7 @@ public class TemplateV3 {
         private String source;                 // 源 nomcourt（冗余，与 Map key 相同，方便读取）
         private String target;                 // 目标路径模板（精确到文件名）
         private String dataFileTag;            // 数据文件中的标签（如 "assets.boxFront"、"image"）
+        private MediaResizeConfig resize;      // 导出时图片规格约束（可选；缺省=原样拷贝）
 
         public String getSource() { return source; }
         public void setSource(String source) { this.source = source; }
@@ -529,6 +530,48 @@ public class TemplateV3 {
 
         public String getDataFileTag() { return dataFileTag; }
         public void setDataFileTag(String dataFileTag) { this.dataFileTag = dataFileTag; }
+
+        public MediaResizeConfig getResize() { return resize; }
+        public void setResize(MediaResizeConfig resize) { this.resize = resize; }
+    }
+
+    /**
+     * 媒体图片导出时的规格约束（通用能力，任何前端按需声明；缺省不处理=原样拷贝）。
+     * <p>
+     * 处理流程：等比（或 pad/stretch）缩放到 {@code width×height} 目标框 → 宽高向下取到
+     * {@code divisor} 的倍数 → 按 {@code format} 重编码。源小于目标框时是否放大由 {@code upscale} 决定。
+     * 典型用途：USB Loader GX 要求 2D≤160×224、3D≤176×248、disc≤160×160 且宽高必须能被 4 整除。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class MediaResizeConfig {
+        private boolean enabled = true;        // 是否启用（缺省带 resize 块即视为启用）
+        private int width;                      // 目标框宽（<=0 表示不限宽）
+        private int height;                     // 目标框高（<=0 表示不限高）
+        private String mode = "fit";            // fit 等比内缩 | pad 等比+补边到精确 | stretch 强制拉伸
+        private boolean upscale = false;        // 源小于目标框时是否放大（默认只缩不放）
+        private int divisor = 1;                // 输出宽高向下取到该数的倍数（1=不取整，4=÷4 铁律）
+        private String format;                  // 输出格式 png|jpg（缺省=保持源格式）
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public int getWidth() { return width; }
+        public void setWidth(int width) { this.width = width; }
+
+        public int getHeight() { return height; }
+        public void setHeight(int height) { this.height = height; }
+
+        public String getMode() { return mode; }
+        public void setMode(String mode) { this.mode = mode; }
+
+        public boolean isUpscale() { return upscale; }
+        public void setUpscale(boolean upscale) { this.upscale = upscale; }
+
+        public int getDivisor() { return divisor; }
+        public void setDivisor(int divisor) { this.divisor = divisor; }
+
+        public String getFormat() { return format; }
+        public void setFormat(String format) { this.format = format; }
     }
 
     /**
@@ -672,10 +715,11 @@ public class TemplateV3 {
         private String name;                 // 变量名（表达式与 {xxx} 占位符中使用）
         private String label;                // 弹窗显示的变量名
         private String description;          // 弹窗显示的用途说明
-        private String type = "text";        // text | path
+        private String type = "text";        // text | path | checkbox | select
         @com.fasterxml.jackson.annotation.JsonProperty("default")
         private String defaultValue;         // 默认值（支持 {platform.xxx} 占位符，执行时按平台解析）
         private boolean required = false;    // 是否必填
+        private String action;               // 绑定的导出动作 id（引用 export-actions.json；为空=纯数据替换变量）
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -694,6 +738,12 @@ public class TemplateV3 {
 
         public boolean isRequired() { return required; }
         public void setRequired(boolean required) { this.required = required; }
+
+        public String getAction() { return action; }
+        public void setAction(String action) { this.action = action; }
+
+        /** 是否绑定了导出动作（决定它是否参与单平台/系统绑定校验与导出后处理） */
+        public boolean hasAction() { return action != null && !action.isBlank(); }
     }
 
     /** 与内置变量冲突的名字（用户变量不得覆盖，防止 outputPath 等被篡改） */
@@ -732,6 +782,22 @@ public class TemplateV3 {
         java.util.List<String> names = new ArrayList<>();
         for (TemplateVariable v : getValidVariables()) names.add(v.getName());
         return names;
+    }
+
+    /**
+     * 返回本模板绑定的导出动作：变量名 → 动作 id（仅含 {@code action} 非空的合法变量）。
+     * <p>
+     * 供导出主流程据用户填写值判断启用哪些动作，以及供绑定校验（单平台/系统范围）取用。
+     * 作用系统、是否单平台等约束由 {@code ExportActionCatalog} 按动作 id 解析，模型层不重复持有。
+     */
+    public Map<String, String> getActionBindings() {
+        Map<String, String> bindings = new LinkedHashMap<>();
+        for (TemplateVariable v : getValidVariables()) {
+            if (v.hasAction()) {
+                bindings.put(v.getName(), v.getAction().trim());
+            }
+        }
+        return bindings;
     }
 
     /**
