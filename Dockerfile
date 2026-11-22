@@ -25,9 +25,16 @@ ENV TZ=Asia/Shanghai
 #   wit     - Wii ISO -> WBFS conversion (see block below) (GPLv2+)
 # See THIRD-PARTY-NOTICES.md. Do not remove /usr/share/doc/mame-tools or
 # /usr/share/doc/ffmpeg.
-RUN apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 update \
-    && apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 install -y --no-install-recommends mame-tools ffmpeg ca-certificates curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN set -e; ok=0; \
+    for i in 1 2 3 4 5 6; do \
+      if apt-get -o Acquire::Retries=10 -o Acquire::http::Timeout=60 update \
+         && apt-get -o Acquire::Retries=10 -o Acquire::http::Timeout=60 install -y --no-install-recommends mame-tools ffmpeg ca-certificates curl; then \
+        ok=1; break; \
+      fi; \
+      echo "apt attempt $i failed, retrying in 5s..."; sleep 5; \
+    done; \
+    [ "$ok" = "1" ] || { echo "apt install failed after retries"; exit 1; }; \
+    rm -rf /var/lib/apt/lists/*
 
 # wit (Wiimms ISO Tools): Wii ISO -> WBFS for the variant pipeline (GPLv2+, run
 # as a separate process). Ubuntu has no wit package, so we ship the official
@@ -37,8 +44,13 @@ RUN apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 update \
 # (Fallback if this download host is unreachable: build from
 #  https://github.com/Wiimm/wiimms-iso-tools in a toolchain stage.)
 RUN set -eux; \
-    curl -fsSL --retry 5 -o /tmp/wit.tar.gz \
-      "https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz"; \
+    ok=0; \
+    for i in 1 2 3 4 5 6 7 8; do \
+      if curl -fsSL --retry-all-errors --retry 5 --retry-delay 3 --connect-timeout 30 -o /tmp/wit.tar.gz \
+        "https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz"; then ok=1; break; fi; \
+      echo "wit download attempt $i failed, retrying in 5s..."; sleep 5; \
+    done; \
+    [ "$ok" = "1" ] || { echo "wit download failed after retries"; exit 1; }; \
     mkdir -p /opt/wit; \
     tar -xzf /tmp/wit.tar.gz -C /opt/wit; \
     REAL="$(find /opt/wit -type f -name wit | head -n1)"; \
