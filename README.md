@@ -20,6 +20,13 @@
 
 - **JSON-driven export actions**: new export behaviours (WBFS split, format conversion, …) are declared as an action catalog plus small Java blocks (copy / transcode / split / rewrite-path / cleanup), so the export pipeline extends without changing the core flow; a single-template variable dialog collects the options each action exposes
 
+### Templates — v3 authoring capabilities
+
+- **Action-bound variables**: a v3 template variable can now bind a built-in export action through an `action` field, rendering a checkbox / dropdown in the variable dialog — so WBFS split and export-time format conversion become per-export user choices declared entirely in the template JSON, with no `{placeholder}` hard-coding (dropdown candidates are computed from the system pipeline)
+- **Image `resize` rules**: each media rule gains an optional `resize` block (fit / pad / stretch, upscale on/off, ÷N divisor, png/jpg) to enforce a frontend’s exact cover-art spec at export (e.g. USB Loader GX’s “÷4” rule); omitted by default, so existing templates copy media through unchanged
+- **`discSerial` variable**: a new template variable exposing the disc / game ID (e.g. the Wii 6-char DiscID) for naming and matching — taken from the library field first and auto-read from the image header when empty
+- **AI-authoring guide & worked example**: the v3 template docs add a “generate templates with AI” prompt section and a complete USB Loader GX (Wii) example exercising game-ID naming + image resize + action binding together
+
 ### External tools
 
 - **External-tool health check**: the Tools → External Tools panel now actually launches `wit` / `chdman` / `ffmpeg` once to verify they run, instead of only checking that the file exists — so a `wit.exe` copied without its companion `cygwin1.dll` (or a `chdman.exe` missing `SDL2.dll`) is now clearly reported as unavailable with the reason, rather than showing a misleading green “available” dot
