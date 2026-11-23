@@ -4,7 +4,15 @@
 
 ## [1.4.1] - 2026-11-22
 
-> 1.4.1 正式版：修复外接工具「假可用」问题，可用性以主程序实际试运行为准，并把获取指引按操作系统拆分。
+> 1.4.1 正式版：新增 Wii / USB Loader GX 导出（WBFS 支持与 FAT32 分片）、JSON 驱动的导出动作引擎，并修复外接工具「假可用」问题、把获取指引按操作系统拆分。
+
+### Added
+- **USB Loader GX（Wii）导出模板**：面向 USB Loader GX 主机前端导出 Wii 游戏，ROM 与封面按 6 位 Disc ID 命名、落地 `wbfs/[{ID}]/{ID}.wbfs|.iso`，封面按 GX 规格缩放（box-2D→images/2D、box-3D→images/3D、support-2D→images/disc，等比只缩不放、宽高向下取 4 的倍数、重编码为 PNG）；不生成 gamelist/wiitdb 数据文件。
+- **6 位 Disc ID 解析**：ID 优先取库字段 `discSerial`，为空则从镜像头偏移读取；仍拿不到的游戏跳过并写任务日志警告（GX 无 ID 无法索引）。
+- **WBFS 产物（基于 wit）**：Wii ISO 可保持 `.iso`，或经 Wiimms ISO Tools（`wit`）转换为清洗后的 `.wbfs`；Docker 镜像已内置 `wit`，Windows/Linux 自动探测。
+- **可选 WBFS FAT32 分片**：新增「WBFS 分片」导出动作，把超限 `.wbfs` 按 FAT32 单文件上限切成 `.wbfs` + `.wbf1`…（约 4GB/文件）。
+- **导出时格式转换**：新增「导出时格式转换」动作，导出时按需把主文件转成用户选定格式（即使库里没有预生成该版本），候选来自系统产线；选「不转换」则维持现状。
+- **JSON 驱动的导出动作引擎**：新导出能力以「动作目录 + 少量 Java 积木块（copy / transcode / split / rewrite-rom-path / cleanup）」声明式接入，不改导出主流程即可扩展；模板变量弹窗统一收集各动作暴露的选项。
 
 ### Fixed
 - **外接工具「假可用」**：`Wit` / `Chdman` / `Ffmpeg` 的可用性判定原先只检查主程序文件是否存在，导致 Windows 下只拷了 `wit.exe` 却没带同目录的 `cygwin1.dll`（或 `chdman.exe` 缺 `SDL2.dll`）时仍显示绿色「可用」，直到真正执行导出才失败。现改为定位到主程序后空跑一次（`wit --version` / `chdman --version` / `ffmpeg -hide_banner -version`，5 秒超时）：进程拉不起来或退不出即判为不可用，并在来源标签里写明「主程序能找到但无法运行」的具体原因。检测只针对当前需要的主文件，不逐项校验随附 dll。

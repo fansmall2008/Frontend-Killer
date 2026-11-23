@@ -8,6 +8,20 @@
 
 ## What's New in 1.4.1
 
+### Wii — USB Loader GX export & WBFS
+
+- **USB Loader GX (Wii) export template**: export Wii games for the USB Loader GX homebrew frontend — ROMs and media are named by the 6-character Disc ID and laid out as `wbfs/[ID]/{ID}.wbfs|.iso`, with cover art resized to GX spec (box-2D / box-3D / disc) into `images/`
+- **Disc-ID resolution**: the 6-char ID is taken from the library field first and falls back to reading the disc image header; games with no resolvable ID are skipped with a task-log warning (GX cannot index them without one)
+- **WBFS output via `wit`**: Wii ISO can be delivered as `.iso` or converted to scrubbed `.wbfs` through Wiimms ISO Tools (`wit`), which ships preinstalled in the Docker image and is auto-detected on Windows/Linux
+- **Optional WBFS FAT32 splitting**: a “WBFS split” export action splits oversized `.wbfs` into FAT32-safe chunks (`.wbfs` + `.wbf1`…, ~4 GB per file)
+- **Export-time format conversion**: pick a target format at export time and the main file is converted on the fly (even when no pre-built variant exists), instead of only exporting what was already generated
+
+### Export — declarative action engine
+
+- **JSON-driven export actions**: new export behaviours (WBFS split, format conversion, …) are declared as an action catalog plus small Java blocks (copy / transcode / split / rewrite-path / cleanup), so the export pipeline extends without changing the core flow; a single-template variable dialog collects the options each action exposes
+
+### External tools
+
 - **External-tool health check**: the Tools → External Tools panel now actually launches `wit` / `chdman` / `ffmpeg` once to verify they run, instead of only checking that the file exists — so a `wit.exe` copied without its companion `cygwin1.dll` (or a `chdman.exe` missing `SDL2.dll`) is now clearly reported as unavailable with the reason, rather than showing a misleading green “available” dot
 - **Per-platform acquisition guide**: the availability hints in the Tools panel are now split by operating system, telling Windows users to unpack the full Cygwin build (and where to put `wit.exe` / `chdman.exe` / `ffmpeg.exe`), Linux users to use the precompiled tarball or package manager (`mame-tools`, `ffmpeg`), and noting that the Docker image ships them preinstalled
 
